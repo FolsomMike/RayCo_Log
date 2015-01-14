@@ -1,0 +1,30 @@
+DSP Tools Help File
+
+
+The display is based around the sample rate. The "Time Base" 
+provides a means to specify the number of zeroes to insert
+between samples for the purpose of up-sampling. It also
+stretches the screen, but doing so will cause the output to
+be zero-stuffed.
+
+--- Zero Stuffing ---
+
+The purpose of "Up Sampling" is to specify the number of
+zeroed data points to be inserted into the output waveform
+(zero-stuffing for up-sampling) between samples.
+
+If "Up Sampling" is set to 1 pixel/sample, then no zero-
+stuffing will occur. All filter settings for calculating
+FIR coefficients should then be based on the "Sampling
+Frequency".
+
+If "Up Samping" is set to a higher number, such as 4
+pixels/sample, then 3 zero stuffed data points will be inserted
+between each sample in the output waveform. The filter
+coefficients should be calculated based on the (Sampling
+Frequency * 4), as the inserted zeroes effectively
+change the sampling rate.
+
+WARNING: If the "Up Sampling" value is used to stretch the
+screen without entering adjusted FIR coefficients, the filter
+response frequencies will be shifted.
