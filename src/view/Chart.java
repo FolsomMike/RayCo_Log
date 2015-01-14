@@ -30,10 +30,11 @@ class Chart extends JPanel{
 
     private String title;    
     private int index;
+    int numGraphs;
     private int width;
     private int height;
 
-    Graph graph;
+    Graph graphs[];
     
     Trace[] traces;
 
@@ -59,24 +60,49 @@ public Chart()
 // in an array of the creating object.
 //
 
-public void init(String pTitle, int pIndex, int pWidth, int pHeight)
+public void init(String pTitle, int pIndex, int pNumGraphs, int pWidth,
+                                                                int pHeight)
 {
 
-    title = pTitle; index = pIndex; width = pWidth; height = pHeight;
+    title = pTitle; index = pIndex; numGraphs = pNumGraphs;
+    width = pWidth; height = pHeight;
 
     setBorder(BorderFactory.createTitledBorder(title));
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     
-    createTraces();    
+    createTraces();
     
-    graph = new Graph(); //the traces are drawn on this panel
-    graph.init(traces);
-    add(graph);
+    graphs = new Graph[numGraphs];
     
-    //set the size of the graph...the chart will be packed to fit around it
-    setSizes(graph, width, height);
-
+    for (int i = 0; i<numGraphs; i++){
+        graphs[i] = new Graph(); //the traces are drawn on this panel
+        graphs[i].init(traces);
+        add(graphs[i]);
+        //set the size of the graphs...the chart pack to fit around them
+        setSizes(graphs[i], width, height);
+        if(i<numGraphs-1){ addGraphSeparatorPanel(); }
+    }
+    
 }// end of Chart::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::addGraphSeparatorPanel
+//
+// Adds a panel mean to separate two graphs. This version contains a simple
+// line with specified color and thickness.
+//
+
+public void addGraphSeparatorPanel()
+{
+
+    SeparatorPanel spanel = new SeparatorPanel();
+    
+    spanel.init(width, 1, Color.BLACK, 1);
+    
+    add(spanel);
+    
+}// end of Chart::addGraphSeparatorPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -165,7 +191,9 @@ public void paintComponent (Graphics g)
 public void paintTraces (Graphics2D pG2)
 {
 
-    graph.paintTraces (pG2);
+    for(int i=0; i<numGraphs; i++){
+        graphs[i].paintTraces(pG2);
+    }
 
 }// end of Chart::paintTraces
 //-----------------------------------------------------------------------------

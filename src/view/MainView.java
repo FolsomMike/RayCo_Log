@@ -112,11 +112,14 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JLabel statusLabel, infoLabel;
     private JLabel progressLabel;
 
-    private static final int CHART_WIDTH = 1000;
+    private static final int CHART_WIDTH = 1650;
     private static final int CHART_HEIGHT = 100;
     
-    public static final int INPUT_CHART = 0;
-    public static final int OUTPUT_CHART = 1;
+    public static final int NUM_CHARTS = 3;
+    
+    public static final int LONG_CHART = 0;
+    public static final int TRANS_CHART = 1;
+    public static final int WALL_CHART = 2;
     
     public static final int SAMPLE_TRACE = 0;
     
@@ -594,23 +597,31 @@ private JPanel createGraphingPanel()
 {
         
     JPanel panel = new JPanel(); 
-    panel.setBorder(BorderFactory.createTitledBorder("Graphs"));
+    //no border -- panel.setBorder(BorderFactory.createTitledBorder("Graphs"));
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
-    charts = new Chart[2];
+    charts = new Chart[NUM_CHARTS];
         
-    //create chart for unfiltered output
-    charts[INPUT_CHART] = new Chart();
-    charts[INPUT_CHART].init("Input", INPUT_CHART, CHART_WIDTH, CHART_HEIGHT);
-    panel.add(charts[INPUT_CHART]);
+    //create chart for Longitudinal
+    charts[LONG_CHART] = new Chart();
+    charts[LONG_CHART].init(
+                    "Longitudinal", LONG_CHART, 2, CHART_WIDTH, CHART_HEIGHT);
+    panel.add(charts[LONG_CHART]);
 
-    //create chart for filtered output
-    charts[OUTPUT_CHART] = new Chart();
-    charts[OUTPUT_CHART].init("Output", OUTPUT_CHART, 1000, 100);
-    panel.add(charts[OUTPUT_CHART]);
+    //create chart for Transverse
+    charts[TRANS_CHART] = new Chart();
+    charts[TRANS_CHART].init(
+                        "Transverse", TRANS_CHART, 2, CHART_WIDTH, CHART_HEIGHT);
+    panel.add(charts[TRANS_CHART]);
   
     //sample trace draws the sample points without connecting them
-    charts[OUTPUT_CHART].setTraceConnectPoints(SAMPLE_TRACE, false);
+    charts[TRANS_CHART].setTraceConnectPoints(SAMPLE_TRACE, false);
+
+    //create chart for Transverse
+    charts[WALL_CHART] = new Chart();
+    charts[WALL_CHART].init(
+                        "Wall", TRANS_CHART, 1, CHART_WIDTH, CHART_HEIGHT);
+    panel.add(charts[WALL_CHART]);
 
     return(panel);
      
