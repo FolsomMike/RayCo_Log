@@ -186,7 +186,7 @@ public void init()
 public void setupMainFrame()
 {
 
-    mainFrame = new JFrame("DSP Tools");
+    mainFrame = new JFrame("RayCo Log IV");
 
     //add a JPanel to the frame to provide a familiar container
     mainPanel = new JPanel();
@@ -605,13 +605,13 @@ private JPanel createGraphingPanel()
     //create chart for Longitudinal
     charts[LONG_CHART] = new Chart();
     charts[LONG_CHART].init(
-                    "Longitudinal", LONG_CHART, 2, CHART_WIDTH, CHART_HEIGHT);
+           "Longitudinal", LONG_CHART, 2, true, 50, CHART_WIDTH, CHART_HEIGHT);
     panel.add(charts[LONG_CHART]);
 
     //create chart for Transverse
     charts[TRANS_CHART] = new Chart();
     charts[TRANS_CHART].init(
-                        "Transverse", TRANS_CHART, 2, CHART_WIDTH, CHART_HEIGHT);
+             "Transverse", TRANS_CHART, 2, true, 50, CHART_WIDTH, CHART_HEIGHT);
     panel.add(charts[TRANS_CHART]);
   
     //sample trace draws the sample points without connecting them
@@ -620,7 +620,7 @@ private JPanel createGraphingPanel()
     //create chart for Transverse
     charts[WALL_CHART] = new Chart();
     charts[WALL_CHART].init(
-                        "Wall", TRANS_CHART, 1, CHART_WIDTH, CHART_HEIGHT);
+                    "Wall", WALL_CHART, 1, false, 0, CHART_WIDTH, CHART_HEIGHT);
     panel.add(charts[WALL_CHART]);
 
     return(panel);

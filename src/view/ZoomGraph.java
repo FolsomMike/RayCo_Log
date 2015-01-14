@@ -1,12 +1,11 @@
 /******************************************************************************
-* Title: SeparatorPanel.java
+* Title: ZoomGraph.java
 * Author: Mike Schoonover
-* Date: 1/14/15
+* Date: 01/14/15
 *
 * Purpose:
 *
-* This class subclasses a JPanel to display a separator line or other graphic
-* to provide visual separation between other panels or GUI objecs.
+* This class subclasses a JPanel to display zoomed views of signal indications.
 *
 * Open Source Policy:
 *
@@ -22,60 +21,51 @@ import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class SeparatorPanel
+// class Chart
 //
 
-class SeparatorPanel extends JPanel{
+class ZoomGraph extends JPanel{
 
+    private String title;    
+    private int index;
     private int width;
     private int height;
-    Color lineColor;
-    int lineThickness;
- 
+
 //-----------------------------------------------------------------------------
-// SeparatorPanel::SeparatorPanel (constructor)
+// ZoomGraph::ZoomGraph (constructor)
 //
 //
 
-public SeparatorPanel()
+public ZoomGraph()
 {
 
-}//end of SeparatorPanel::SeparatorPanel (constructor)
+}//end of Chart::ZoomGraph (constructor)
 //-----------------------------------------------------------------------------
-    
+
 //-----------------------------------------------------------------------------
-// SeparatorPanel::init
+// ZoomGraph::init
+//
+// Initializes the object.  Must be called immediately after instantiation.
+//
+// pTitle is the text title for the graph.
+//
+// pIndex is a unique identifier for the object -- usually it's index position
+// in an array of the creating object.
 //
 
-public void init(int pWidth, int pHeight, Color pLineColor, int pLineThickness)
+public void init(String pTitle, int pIndex, int pWidth,int pHeight)
 {
 
-    width = pWidth; height = pHeight; lineColor = pLineColor; 
-    lineThickness = pLineThickness;
-    
+    title = pTitle; index = pIndex;
+    width = pWidth; height = pHeight;    
+
     setSizes(this, width, height);
-        
-}// end of SeparatorPanel::init
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// SeparatorPanel::paintComponent
-//
-
-@Override
-public void paintComponent (Graphics g)
-{
-
-    Graphics2D g2 = (Graphics2D) g;
-    g2.setColor(lineColor);
-    g2.setStroke(new BasicStroke(lineThickness));
-    g2.drawLine(0, 0, width, 0);
     
-}// end of SeparatorPanel::paintComponent
+}// end of ZoomGraph::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SeparatorPanel::setSizes
+// ZoomGraph::setSizes
 //
 // Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
 //
@@ -87,9 +77,23 @@ private void setSizes(Component pComponent, int pWidth, int pHeight)
     pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
     pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
 
-}//end of SeparatorPanel::setSizes
+}//end of ZoomGraph::setSizes
 //-----------------------------------------------------------------------------
 
-}//end of class SeparatorPanel
+//-----------------------------------------------------------------------------
+// ZoomGraph::paintComponent
+//
+
+@Override
+public void paintComponent (Graphics g)
+{
+
+    super.paintComponent(g);
+    
+}// end of ZoomGraph::paintComponent
+//-----------------------------------------------------------------------------
+
+
+}//end of class ZoomGraph
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

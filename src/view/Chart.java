@@ -31,10 +31,13 @@ class Chart extends JPanel{
     private String title;    
     private int index;
     int numGraphs;
+    boolean hasAnnotationGraph;
+    int annotationGraphHeight;
     private int width;
     private int height;
 
     Graph graphs[];
+    ZoomGraph zoomGraph;
     
     Trace[] traces;
 
@@ -60,13 +63,16 @@ public Chart()
 // in an array of the creating object.
 //
 
-public void init(String pTitle, int pIndex, int pNumGraphs, int pWidth,
-                                                                int pHeight)
+public void init(String pTitle, int pIndex, int pNumGraphs,
+        boolean pHasAnnotationGraph, int pAnnotationGraphHeight,
+        int pWidth,int pHeight)
 {
 
     title = pTitle; index = pIndex; numGraphs = pNumGraphs;
+    hasAnnotationGraph = pHasAnnotationGraph;
+    annotationGraphHeight = pAnnotationGraphHeight;
     width = pWidth; height = pHeight;
-
+    
     setBorder(BorderFactory.createTitledBorder(title));
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     
@@ -83,6 +89,14 @@ public void init(String pTitle, int pIndex, int pNumGraphs, int pWidth,
         if(i<numGraphs-1){ addGraphSeparatorPanel(); }
     }
     
+    if (hasAnnotationGraph){
+        zoomGraph = new ZoomGraph();
+        zoomGraph.init("Longitudinal Zoom", 0, width, annotationGraphHeight);
+        addGraphSeparatorPanel();
+        add(zoomGraph);
+    }
+    
+    
 }// end of Chart::init
 //-----------------------------------------------------------------------------
 
@@ -98,7 +112,7 @@ public void addGraphSeparatorPanel()
 
     SeparatorPanel spanel = new SeparatorPanel();
     
-    spanel.init(width, 1, Color.BLACK, 1);
+    spanel.init(width, 1, Color.LIGHT_GRAY , 1);
     
     add(spanel);
     
@@ -115,9 +129,6 @@ public void repaintGraph()
 {
 
     invalidate();
-   // repaint();
-    
-  //  graph.repaint();
     
 }// end of Chart::repaintGraph
 //-----------------------------------------------------------------------------
