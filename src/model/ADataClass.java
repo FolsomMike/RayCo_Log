@@ -268,7 +268,7 @@ public void updateWaveforms()
 public void generateInputWaveform()
 {
     
-    mainView.resetAllTraceDataForChart(MainView.INPUT_CHART);
+    mainView.resetAllTraceDataForChart(MainView.LONG_CHART);
 
     samples.clear();
     boolean storeSample = false;
@@ -287,7 +287,7 @@ public void generateInputWaveform()
             //do this before inserting the point as insertion moves the
             //insertion point to the next buffer location
             mainView.setTraceFlagsAtCurrentInsertionPoint(
-                       MainView.INPUT_CHART, INPUT_SIGNAL_TRACE, Trace.CIRCLE);        
+                       MainView.LONG_CHART, INPUT_SIGNAL_TRACE, Trace.CIRCLE);        
         }
         
         int point;
@@ -297,7 +297,7 @@ public void generateInputWaveform()
         point += generateWaveform2(i);
         
         mainView.insertDataPointInTrace(
-                              MainView.INPUT_CHART, INPUT_SIGNAL_TRACE, point);
+                              MainView.LONG_CHART, INPUT_SIGNAL_TRACE, point);
 
         if (storeSample){ samples.add(point); storeSample = false; }
 
@@ -339,7 +339,7 @@ public void generateInputWaveform()
 public void displayProcessedWaveforms()
 {
     
-    mainView.resetAllTraceDataForChart(MainView.OUTPUT_CHART);
+    mainView.resetAllTraceDataForChart(MainView.TRANS_CHART);
 
     double sampleTimePoint = 0;
     
@@ -359,7 +359,7 @@ public void displayProcessedWaveforms()
                 //do this before inserting the point as insertion moves the
                 //insertion point to the next buffer location
                 mainView.setTraceFlagsAtCurrentInsertionPoint(
-                          MainView.OUTPUT_CHART, SAMPLE_TRACE, Trace.CIRCLE);
+                          MainView.TRANS_CHART, SAMPLE_TRACE, Trace.CIRCLE);
             
                 addDataPointToSampleWaveForm(dataPoint);
             }
@@ -408,7 +408,7 @@ private void addDataPointToSampleWaveForm(int pValue)
 {
    
     mainView.insertDataPointInTrace(
-                                MainView.OUTPUT_CHART, SAMPLE_TRACE, pValue);
+                                MainView.TRANS_CHART, SAMPLE_TRACE, pValue);
         
 }// end of ADataClass::addDataPointToSampleWaveForm
 //-----------------------------------------------------------------------------
@@ -423,7 +423,7 @@ private void addDataPointToZeroStuffedWaveForm(int pValue)
 {
    
     mainView.insertDataPointInTrace(
-                            MainView.OUTPUT_CHART, ZERO_STUFFED_TRACE, pValue);
+                            MainView.TRANS_CHART, ZERO_STUFFED_TRACE, pValue);
         
 }// end of ADataClass::addDataPointToZeroStuffedWaveForm
 //-----------------------------------------------------------------------------
@@ -459,7 +459,7 @@ private void addDataPointToFilteredWaveForm(int pValue)
     y = y / filterOutputScalingDivisor;
     
     mainView.insertDataPointInTrace(
-                               MainView.OUTPUT_CHART, FILTERED_TRACE, (int)y);
+                               MainView.TRANS_CHART, FILTERED_TRACE, (int)y);
     
 }// end of ADataClass::addDataPointToFilteredWaveForm
 //-----------------------------------------------------------------------------

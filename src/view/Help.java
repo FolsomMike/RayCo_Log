@@ -33,7 +33,7 @@ class Help extends JDialog{
 
     public JTextArea textArea;
 
-    private static final String HELP_FILENAME = "DSP Tools Help.txt";
+    private static final String HELP_FILENAME = "RayCo Log Help.txt";
     
 //-----------------------------------------------------------------------------
 // Help::Help (constructor)
