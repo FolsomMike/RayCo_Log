@@ -1,7 +1,7 @@
 /******************************************************************************
 * Title: Chart.java
 * Author: Mike Schoonover
-* Date: 11/13/13
+* Date: 11/01/14
 *
 * Purpose:
 *
@@ -26,8 +26,6 @@ import javax.swing.*;
 
 class Chart extends JPanel{
 
-    private final int numberTraces = 4;
-
     private String title;    
     private int index;
     int numGraphs;
@@ -38,8 +36,7 @@ class Chart extends JPanel{
 
     Graph graphs[];
     ZoomGraph zoomGraph;
-    
-    Trace[] traces;
+
 
 //-----------------------------------------------------------------------------
 // Chart::Chart (constructor)
@@ -75,17 +72,13 @@ public void init(String pTitle, int pIndex, int pNumGraphs,
     
     setBorder(BorderFactory.createTitledBorder(title));
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    
-    createTraces();
-    
+
     graphs = new Graph[numGraphs];
     
     for (int i = 0; i<numGraphs; i++){
         graphs[i] = new Graph(); //the traces are drawn on this panel
-        graphs[i].init(traces);
+        graphs[i].init(index, i, width, height);
         add(graphs[i]);
-        //set the size of the graphs...the chart pack to fit around them
-        setSizes(graphs[i], width, height);
         if(i<numGraphs-1){ addGraphSeparatorPanel(); }
     }
     
@@ -131,37 +124,6 @@ public void repaintGraph()
     invalidate();
     
 }// end of Chart::repaintGraph
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::createTraces
-//
-// Creates and sets up the traces.
-//
-
-private void createTraces()
-{
-
-    traces = new Trace[numberTraces];
-
-    //trace colors
-    Color color[] = new Color[numberTraces];
-    color[0] = new Color(Color.MAGENTA.getRGB());
-    color[1] = new Color(Color.BLUE.getRGB());
-    color[2] = new Color(Color.GREEN.getRGB());
-    color[3] = new Color(Color.CYAN.getRGB());
-
-
-    for(int i=0; i<traces.length; i++){
-
-        traces[i] = new Trace();
-        traces[i].init(i, width, height, color[i], Trace.CONNECT_POINTS);
-        
-        traces[i].setOffset(50); //place 0 value at vertical center
-
-    }
-
-}//end of Chart::createTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -212,15 +174,15 @@ public void paintTraces (Graphics2D pG2)
 //-----------------------------------------------------------------------------
 // Chart::insertDataPointInTrace
 //
-// Stores pData in Trace pTrace.
+// Stores pData in Trace pTrace of Graph pGraph.
 //
 
-public void insertDataPointInTrace(int pTrace, int pData)
+public void insertDataPointInTrace(int pGraph, int pTrace, int pData)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pGraph < 0 || pGraph > graphs.length){ return; }
 
-    traces[pTrace].insertDataPoint(pData);
+    graphs[pGraph].insertDataPointInTrace(pTrace, pData);
 
 }// end of Chart::insertDataPointInTrace
 //-----------------------------------------------------------------------------
@@ -228,13 +190,13 @@ public void insertDataPointInTrace(int pTrace, int pData)
 //-----------------------------------------------------------------------------
 // Chart::setAllTraceXScale
 //
-// Sets the display horizontal scale for all traces to pScale.
+// Sets the display horizontal scale for all traces of all graphs to pScale.
 //
 
 public void setAllTraceXScale(double pScale)
 {
     
-    for (Trace trace : traces) { trace.setXScale(pScale); }
+    for (Graph graph : graphs) { graph.setAllTraceXScale(pScale); }
 
 }// end of Chart::setAllTraceXScale
 //-----------------------------------------------------------------------------
@@ -242,31 +204,68 @@ public void setAllTraceXScale(double pScale)
 //-----------------------------------------------------------------------------
 // Chart::setTraceYScale
 //
-// Sets the display vertical scale for pTrace to pScale
+// For Trace pTrace of Graph pGraph, sets the display vertical scale for
+// to pScale
 //
 
-public void setTraceYScale(int pTrace, double pScale)
+public void setTraceYScale(int pGraph, int pTrace, double pScale)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pGraph < 0 || pGraph > graphs.length){ return; }
 
-    traces[pTrace].setYScale(pScale);
+    graphs[pGraph].setTraceYScale(pTrace, pScale);
 
 }// end of Chart::setTraceYScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::setTraceOffset
+//
+// For Trace pTrace of Graph pGraph, sets the display offset for Trace pTrace
+// to pOffset.
+//
+
+public void setTraceOffset(int pGraph, int pTrace, int pOffset)
+{
+    
+    if (pGraph < 0 || pGraph > graphs.length){ return; }
+
+    graphs[pGraph].setTraceOffset(pTrace, pOffset);
+
+}// end of Chart::setTraceOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::setTraceBaseLine
+//
+// For Trace pTrace of Graph pGraph, sets the baseLine value to pBaseLine.
+// This will cause the pBaseline value to be shifted to zero when the trace is
+// drawn.
+//
+
+public void setTraceBaseLine(int pGraph, int pTrace, int pBaseLine)
+{
+    
+    if (pGraph < 0 || pGraph > graphs.length){ return; }
+
+    graphs[pGraph].setTraceBaseLine(pTrace, pBaseLine);
+
+}// end of Chart::setTraceBaseLine
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::setTraceConnectPoints
 //
-// Sets the connectPoints flag. If true, points will be connected by a line.
+// For Trace pTrace of Graph pGraph, sets the connectPoints flag. If true,
+// points will be connected by a line.
 //
 
-public void setTraceConnectPoints(int pTrace, boolean pValue)
+public void setTraceConnectPoints(int pGraph, int pTrace, boolean pValue)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pGraph < 0 || pGraph > graphs.length){ return; }
 
-    traces[pTrace].setConnectPoints(pValue);
+    graphs[pGraph].setTraceConnectPoints(pTrace, pValue);
     
 }// end of Chart::setTraceConnectPoints
 //-----------------------------------------------------------------------------
@@ -274,16 +273,17 @@ public void setTraceConnectPoints(int pTrace, boolean pValue)
 //-----------------------------------------------------------------------------
 // Chart::setTraceFlags
 //
-// OR's pFlags of Trace pTrace with flags[pIndex] to set one or more flag bits
-// in the flags array at the specified position pIndex.
+// For Trace pTrace of Graph pGraph, OR's pFlags of Trace pTrace with
+// flags[pIndex] to set one or more flag bits in the flags array at the
+// specified position pIndex.
 //
 
-public void setTraceFlags(int pTrace, int pIndex, int pFlags)
+public void setTraceFlags(int pGraph, int pTrace, int pIndex, int pFlags)
 {
 
-   if (pTrace < 0 || pTrace > traces.length){ return; }
+   if (pGraph < 0 || pGraph > graphs.length){ return; }
 
-   traces[pTrace].setFlags(pIndex, pFlags);
+   graphs[pGraph].setTraceFlags(pTrace, pIndex, pFlags);
 
 }// end of Chart::setTraceFlags
 //-----------------------------------------------------------------------------
@@ -291,16 +291,18 @@ public void setTraceFlags(int pTrace, int pIndex, int pFlags)
 //-----------------------------------------------------------------------------
 // Chart::setTraceFlagsAtCurrentInsertionPoint
 //
-// OR's pFlags with flags[<current insertion point>] to set one or more flag
-// bits in the flags array at the current data insertionPoint.
+// For Trace pTrace of Graph pGraph, OR's pFlags with 
+// flags[<current insertion point>] to set one or more flag bits in the flags
+// array at the current data insertionPoint.
 //
 
-public void setTraceFlagsAtCurrentInsertionPoint(int pTrace, int pFlags)
+public void setTraceFlagsAtCurrentInsertionPoint(int pGraph, int pTrace,
+                                                                    int pFlags)
 {
 
-   if (pTrace < 0 || pTrace > traces.length){ return; }
+   if (pGraph < 0 || pGraph > graphs.length){ return; }
 
-   traces[pTrace].setFlagsAtCurrentInsertionPoint(pFlags);
+   graphs[pGraph].setTraceFlagsAtCurrentInsertionPoint(pTrace, pFlags);
 
 }// end of Chart::setTraceFlagsAtCurrentInsertionPoint
 //-----------------------------------------------------------------------------
@@ -309,153 +311,66 @@ public void setTraceFlagsAtCurrentInsertionPoint(int pTrace, int pFlags)
 // Chart::setVerticalBarAllTraces
 //
 // Sets a vertical bar to be drawn at the current data insertion location for
-// all traces.
+// all traces on all graphs.
 //
 
 public void setVerticalBarAllTraces()
 {
 
-    for (Trace trace : traces) {
-            trace.setFlags(trace.getDataInsertPos(), Trace.VERTICAL_BAR);
-    }
+    for (Graph graph : graphs) { graph.setVerticalBarAllTraces(); }
 
 }// end of Chart::setVerticalBarAllTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::setTraceOffset
-//
-// Sets the display offset for Trace pTrace to pOffset.
-//
-
-public void setTraceOffset(int pTrace, int pOffset)
-{
-
-    if (pTrace < 0 || pTrace > traces.length){ return; }
-
-    traces[pTrace].setOffset(pOffset);
-
-}// end of Chart::setTraceOffset
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::setTraceBaseLine
-//
-// Sets the baseLine value for Trace pTrace to pBaseLine. This will cause the
-// pBaseline value to be shifted to zero when the trace is drawn
-//
-
-public void setTraceBaseLine(int pTrace, int pBaseLine)
-{
-
-    if (pTrace < 0 || pTrace > traces.length){ return; }
-
-    traces[pTrace].setBaseLine(pBaseLine);
-
-}// end of Chart::setTraceBaseLine
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Chart::resetAllTraceData
 //
-// For all traces resets all data to zero and all flags to DEFAULT_FLAGS.
-// Reses dataInsertPos to zero.
+// For all traces of all graphs resets all data to zero and all flags to
+// DEFAULT_FLAGS. Resets dataInsertPos to zero.
 //
 
 public void resetAllTraceData()
 {
-    
-    for (Trace trace : traces) {
-        trace.resetData();
-    }
+
+    for (Graph graph: graphs){        
+            graph.resetAllTraceData();
+        }
 
 }// end of Chart::resetAllTraceData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::getNumberTraces
+// Chart::getNumTracesForGraph
 //
-// Returns numberTraces.
+// Returns numTraces from Graph pGraph.
 //
 
-public int getNumberTraces()
+public int getNumTraces(int pGraph)
 {
 
-    return(numberTraces);
+    if (pGraph < 0 || pGraph > graphs.length){ return(0); }
+    
+    return(graphs[pGraph].getNumTraces());
 
-}// end of Chart::getNumberTraces
+}// end of Chart::getNumTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Chart::getTrace
 //
-// Returns Trace pTrace from the traces array.
+// Returns Trace pTrace of Graph pGraph.
 //
 
-public Trace getTrace(int pTrace)
+public Trace getTrace(int pGraph, int pTrace)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return(null); }
+    if (pGraph < 0 || pGraph > graphs.length){ return(null); }
 
-    return(traces[pTrace]);
+    return(graphs[pGraph].getTrace(pTrace));
 
 }// end of Chart::getTrace
 //-----------------------------------------------------------------------------
 
 }//end of class Chart
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// class Graph
-//
-
-class Graph extends JPanel{
-
-    Trace[] traces;
-    
-//-----------------------------------------------------------------------------
-// Graph::init
-//
-
-public void init(Trace[] pTraces)
-{
-
-    traces = pTraces;
-
-}// end of Graph::init
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Graph::paintComponent
-//
-
-@Override
-public void paintComponent (Graphics g)
-{
-
-    Graphics2D g2 = (Graphics2D) g;
-
-    paintTraces(g2);
-
-}// end of Graph::paintComponent
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Graph::paintTraces
-//
-// Paints all the traces on the canvas.
-//
-
-public void paintTraces (Graphics2D pG2)
-{
-    
-    for (Trace trace : traces) { trace.paint(pG2); }
-
-}// end of Graph::paintTraces
-//-----------------------------------------------------------------------------
-
-}//end of class Graph
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

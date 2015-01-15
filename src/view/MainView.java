@@ -112,7 +112,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JLabel statusLabel, infoLabel;
     private JLabel progressLabel;
 
-    private static final int CHART_WIDTH = 1650;
+    private static final int CHART_WIDTH = 1000; //1650 for LG screen at RGNDT
     private static final int CHART_HEIGHT = 100;
     
     public static final int NUM_CHARTS = 3;
@@ -615,7 +615,7 @@ private JPanel createGraphingPanel()
     panel.add(charts[TRANS_CHART]);
   
     //sample trace draws the sample points without connecting them
-    charts[TRANS_CHART].setTraceConnectPoints(SAMPLE_TRACE, false);
+    charts[TRANS_CHART].setTraceConnectPoints(0, SAMPLE_TRACE, false);
 
     //create chart for Transverse
     charts[WALL_CHART] = new Chart();
@@ -659,13 +659,14 @@ public static void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
 //-----------------------------------------------------------------------------
 // MainView::insertDataPointInTrace
 //
-// Adds data point pData to pTrace of pChart.
+// Adds data point pData to pTrace of pGraph of pChart.
 //
 
-public void insertDataPointInTrace(int pChart, int pTrace, int pData)
+public void insertDataPointInTrace(int pChart, int pGraph,
+                                                        int pTrace, int pData)
 {        
 
-    charts[pChart].insertDataPointInTrace(pTrace, pData);
+    charts[pChart].insertDataPointInTrace(pGraph, pTrace, pData);
     
 }// end of MainView::insertDataPointInTrace
 //-----------------------------------------------------------------------------
@@ -673,15 +674,16 @@ public void insertDataPointInTrace(int pChart, int pTrace, int pData)
 //-----------------------------------------------------------------------------
 // MainView::setTraceFlags
 //
-// Sets flag(s) pFlags at index pIndex of pTrace of pChart.
+// Sets flag(s) pFlags at index pIndex of pTrace of pGraph of pChart.
 //
 // Each bit of pFlags represents a different flag.
 //
 
-public void setTraceFlags(int pChart, int pTrace, int pIndex, int pFlags)
+public void setTraceFlags(int pChart, int pGraph, int pTrace, int pIndex,
+                                                                    int pFlags)
 {        
 
-    charts[pChart].setTraceFlags(pTrace, pIndex, pFlags);
+    charts[pChart].setTraceFlags(pGraph, pTrace, pIndex, pFlags);
 
 }// end of MainView::setTraceFlags
 //-----------------------------------------------------------------------------
@@ -689,16 +691,17 @@ public void setTraceFlags(int pChart, int pTrace, int pIndex, int pFlags)
 //-----------------------------------------------------------------------------
 // MainView::setTraceFlagsAtCurrentInsertionPoint
 //
-// Sets flag(s) pFlags at the current insertion point of pTrace of pChart.
+// Sets flag(s) pFlags at the current insertion point of pTrace of pGraph of
+// pChart.
 //
 // Each bit of pFlags represents a different flag.
 //
 
 public void setTraceFlagsAtCurrentInsertionPoint(
-                                            int pChart, int pTrace, int pFlags)
+                                int pChart, int pGraph, int pTrace, int pFlags)
 {        
 
-    charts[pChart].setTraceFlagsAtCurrentInsertionPoint(pTrace, pFlags);
+    charts[pChart].setTraceFlagsAtCurrentInsertionPoint(pGraph, pTrace, pFlags);
 
 }// end of MainView::setTraceFlagsAtCurrentInsertionPoint
 //-----------------------------------------------------------------------------
