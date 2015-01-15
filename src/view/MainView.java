@@ -142,11 +142,13 @@ public MainView(EventHandler pEventHandler, ADataClass pADataClass)
 // Initializes the object.  Must be called immediately after instantiation.
 //
 
-public void init()
+public void init(String pAppTitle)
 {
 
     setupMainFrame();
 
+    mainFrame.setTitle(pAppTitle);
+    
     //create a window for displaying messages and an object to handle updating
     //it in threadsafe manner
     log = new Log(mainFrame); log.setLocation(230, 0);

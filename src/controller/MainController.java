@@ -44,6 +44,7 @@ import javax.swing.event.ChangeEvent;
 import mksystems.mswing.MFloatSpinner;
 import model.ADataClass;
 import model.Options;
+import model.SharedSettings;
 import view.MainView;
 
 //-----------------------------------------------------------------------------
@@ -100,11 +101,14 @@ public MainController()
 public void init()
 {
 
+    SharedSettings sharedSettings = new SharedSettings();
+    sharedSettings.init();
+    
     aDataClass = new ADataClass();
     aDataClass.init();
 
     mainView = new MainView(this, aDataClass);
-    mainView.init();
+    mainView.init(sharedSettings.appTitle);
 
     aDataClass.setMainView(mainView); //give Model a pointer to View
     
