@@ -20,6 +20,7 @@ package model;
 
 //-----------------------------------------------------------------------------
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -30,6 +31,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 //-----------------------------------------------------------------------------
 // class SharedSettings
@@ -38,6 +41,8 @@ import java.util.logging.SimpleFormatter;
 public class SharedSettings{
 
 
+    JFrame mainFrame;
+    
     public String appTitle;
     
     String currentJobName = "";
@@ -47,8 +52,8 @@ public class SharedSettings{
     
     static final String MAIN_CONFIG_SETTINGS_FILENAME =
                                              "Main Configuration Settings.ini";
-    static final String DEFAULT_PRIMARY_DATA_PATH = "Primary Data Folder";
-    static final String DEFAULT_SECONARY_DATA_PATH = "Secondary Data Folder";
+    static final String DEFAULT_PRIMARY_DATA_PATH = "Data Folder - Primary";
+    static final String DEFAULT_SECONDARY_DATA_PATH = "Data Folder - Secondary";
 
     private static final int ERROR_LOG_MAX_SIZE = 10000;
     
@@ -67,10 +72,14 @@ public SharedSettings()
 // SharedSettings::init
 //
 
-public void init()
+public void init(JFrame pMainFrame)
 {
 
+    mainFrame = pMainFrame;
+    
     loadMainConfigSettings();
+
+    verifyDataPathsAndCreateIfMissing();
     
 }// end of SharedSettings::init
 //-----------------------------------------------------------------------------
@@ -96,7 +105,83 @@ public void loadMainConfigSettings()
     appTitle = configFile.readString(
                                 "Main Settings", "Application Title", "Chart");
     
+    primaryJobPath = configFile.readString(
+               "Main Settings", "Primary Job Path", DEFAULT_PRIMARY_DATA_PATH);
+    
+    primaryJobPath = trimAndAppendFileSeparatorIfMissing(primaryJobPath);
+    
+    secondaryJobPath = configFile.readString(
+           "Main Settings", "Secondary Job Path", DEFAULT_SECONDARY_DATA_PATH);
+
+    secondaryJobPath = trimAndAppendFileSeparatorIfMissing(secondaryJobPath);
+    
 }// end of SharedSettings::loadMainConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::verifyDataPathsAndCreateIfMissing
+//
+// Verifies that the data paths exist and creates them if not.
+//
+
+private void verifyDataPathsAndCreateIfMissing()
+{
+    
+    if (!Files.exists(Paths.get(primaryJobPath))) {
+        logSevere("Primary Data Path not found, creating now - Error: 122");
+        createDataFolder(primaryJobPath, "primary");        
+    }    
+
+    if (!Files.exists(Paths.get(secondaryJobPath))) {
+        logSevere("Secondary Data Path not found, creating now - Error: 136");
+        createDataFolder(secondaryJobPath, "secondary");        
+    }    
+
+}// end of SharedSettings::verifyDataPathsAndCreateIfMissing
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings:createDataFolder
+//
+// Creates data folder named pPath. On error, displays message using
+// pErrorMsgID and logs that message.
+//
+
+private void createDataFolder(String pPath, String pErrorMsgID)
+{    
+    
+    File folder = new File(pPath);
+    
+    if (!folder.exists() && !folder.mkdirs()){
+        displayErrorMessage("Could not create the " + pErrorMsgID
+                                                        + " data directory.");
+        logSevere("Could not create the " + pErrorMsgID
+                                              + " data directory - Error: 160");
+        return;
+    }
+    
+}// end of SharedSettings::verifyDataPathsAndCreateIfMissing
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::trimAndAppendFileSeparatorIfMissing
+//
+// pPath is trimmed of whitespace.
+// If pPath does not already end with a file separator, one is added.
+// The path, modified or not, is returned.
+//
+
+private String trimAndAppendFileSeparatorIfMissing(String pPath)
+{
+
+    pPath = pPath.trim();
+    
+    //add a separator if not one already at the end
+    if (!pPath.endsWith(File.separator)) { pPath += File.separator; }
+
+    return(pPath);
+    
+}// end of SharedSettings::trimAndAppendFileSeparatorIfMissing
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -122,7 +207,7 @@ private void deleteFileIfOverSizeLimit(String pFilename, int pLimit)
     }
     catch (IOException e) {
         //do nothing if error on deletion -- will be deleted next time
-        logStackTrace("Error: 2488", e);
+        logStackTrace("Error: 152", e);
     }
 
 }//end of SharedSettings::deleteFileIfOverSizeLimit
@@ -197,7 +282,7 @@ void logSevere(String pMessage)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainWindow::logStackTrace
+// SharedSettings::logStackTrace
 //
 // Logs stack trace info for exception pE with pMessage at level SEVERE using
 // the Java logger.
@@ -208,7 +293,22 @@ void logStackTrace(String pMessage, Exception pE)
 
     Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
 
-}//end of MainWindow::logStackTrace
+}//end of SharedSettings::logStackTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::displayErrorMessage
+//
+// Displays an error dialog with message pMessage.
+//
+
+private void displayErrorMessage(String pMessage)
+{
+
+    JOptionPane.showMessageDialog(mainFrame, pMessage,
+                                            "Error", JOptionPane.ERROR_MESSAGE);
+
+}//end of SharedSettings::displayErrorMessage
 //-----------------------------------------------------------------------------
 
 

@@ -102,7 +102,8 @@ public void init()
 {
 
     SharedSettings sharedSettings = new SharedSettings();
-    sharedSettings.init();
+    //main frame is not yet created, so pass null
+    sharedSettings.init(null);
     
     aDataClass = new ADataClass();
     aDataClass.init();
