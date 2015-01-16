@@ -109,7 +109,7 @@ public void init()
     aDataClass.init();
 
     mainView = new MainView(this, aDataClass);
-    mainView.init(sharedSettings.appTitle);
+    mainView.init(sharedSettings);
 
     aDataClass.setMainView(mainView); //give Model a pointer to View
     

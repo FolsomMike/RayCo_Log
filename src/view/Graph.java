@@ -16,12 +16,12 @@
 
 package view;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JPanel;
+import model.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -30,15 +30,17 @@ import javax.swing.JPanel;
 
 public class Graph extends JPanel{
 
-    private final int numTraces = 4; //change this to 0 after adding config load section
-    Trace[] traces;
+    private IniFile configFile;
+    
+    private int numTraces;
+    private Trace[] traces;
 
-    String title;
-    int chartIndex, index, width, height;
+    private String title, shortTitle;
+    private int chartGroupIndex, chartIndex, index;
+    private int width, height;
     
 //-----------------------------------------------------------------------------
 // Graph::Graph (constructor)
-//
 //
 
 public Graph()
@@ -51,17 +53,73 @@ public Graph()
 // Graph::init
 //
 
-public void init(int pChartIndex, int pIndex, int pWidth, int pHeight)
+public void init(int pChartGroupIndex, int pChartIndex, int pIndex,
+                                  int pWidth, int pHeight, IniFile pConfigFile)
 {
 
+    chartGroupIndex = pChartGroupIndex; 
     chartIndex = pChartIndex; index = pIndex; 
     width = pWidth; height = pHeight;
+    configFile = pConfigFile;
 
+    loadConfigSettings();
+    
     setSizes(this, width, height);
     
     createTraces(); //debug mks -- do this in the config section
     
 }// end of Graph::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::loadConfigSettings
+//
+// Loads settings for the object from configFile.
+//
+
+private void loadConfigSettings()
+{
+
+    String section = "Chart Group " + chartGroupIndex + " Chart " + chartIndex
+                                                            + " Graph " + index;
+
+    title = configFile.readString(section, "title", "Graph " + (index + 1));
+
+    shortTitle = configFile.readString(
+                                section, "short title", "graph" + (index + 1));
+        
+    numTraces = configFile.readInt(section, "number of traces", 0);
+        
+    int configWidth = configFile.readInt(section, "width", 0);
+
+    if (configWidth > 0) width = configWidth; //override if > 0
+    
+    int configHeight = configFile.readInt(section, "height", 0);
+
+    if (configHeight > 0) height = configHeight; //override if > 0
+    
+}// end of Chart::loadConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::createTraces
+//
+// Creates and sets up the traces.
+//
+
+private void createTraces()
+{
+
+    traces = new Trace[numTraces];
+
+    for(int i=0; i<traces.length; i++){
+
+        traces[i] = new Trace();
+        traces[i].init(chartGroupIndex, chartIndex, index, i,
+                                                    width, height, configFile);
+    }
+
+}//end of Graph::createTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -94,37 +152,6 @@ public void paintTraces (Graphics2D pG2)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Graph::createTraces
-//
-// Creates and sets up the traces.
-//
-
-private void createTraces()
-{
-
-    traces = new Trace[numTraces];
-
-    //trace colors
-    Color color[] = new Color[numTraces];
-    color[0] = new Color(Color.MAGENTA.getRGB());
-    color[1] = new Color(Color.BLUE.getRGB());
-    color[2] = new Color(Color.GREEN.getRGB());
-    color[3] = new Color(Color.CYAN.getRGB());
-
-
-    for(int i=0; i<traces.length; i++){
-
-        traces[i] = new Trace();
-        traces[i].init(i, width, height, color[i], Trace.CONNECT_POINTS);
-        
-        traces[i].setOffset(50); //place 0 value at vertical center
-
-    }
-
-}//end of Graph::createTraces
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Graph::getTrace
 //
 // Returns Trace pTrace.
@@ -133,7 +160,7 @@ private void createTraces()
 public Trace getTrace(int pTrace)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return(null); }
+    if (pTrace < 0 || pTrace >= traces.length){ return(null); }
 
     return(traces[pTrace]);
 
@@ -196,7 +223,7 @@ public void setVerticalBarAllTraces()
 public void setTraceFlagsAtCurrentInsertionPoint(int pTrace, int pFlags)
 {
 
-   if (pTrace < 0 || pTrace > traces.length){ return; }
+   if (pTrace < 0 || pTrace >= traces.length){ return; }
 
    traces[pTrace].setFlagsAtCurrentInsertionPoint(pFlags);
 
@@ -213,7 +240,7 @@ public void setTraceFlagsAtCurrentInsertionPoint(int pTrace, int pFlags)
 public void setTraceFlags(int pTrace, int pIndex, int pFlags)
 {
 
-   if (pTrace < 0 || pTrace > traces.length){ return; }
+   if (pTrace < 0 || pTrace >= traces.length){ return; }
 
    traces[pTrace].setFlags(pIndex, pFlags);
 
@@ -230,7 +257,7 @@ public void setTraceFlags(int pTrace, int pIndex, int pFlags)
 public void setTraceConnectPoints(int pTrace, boolean pValue)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pTrace < 0 || pTrace >= traces.length){ return; }
 
     traces[pTrace].setConnectPoints(pValue);
     
@@ -246,7 +273,7 @@ public void setTraceConnectPoints(int pTrace, boolean pValue)
 public void setTraceYScale(int pTrace, double pScale)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pTrace < 0 || pTrace >= traces.length){ return; }
 
     traces[pTrace].setYScale(pScale);
 
@@ -262,7 +289,7 @@ public void setTraceYScale(int pTrace, double pScale)
 public void setTraceOffset(int pTrace, int pOffset)
 {
     
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pTrace < 0 || pTrace >= traces.length){ return; }
 
     traces[pTrace].setOffset(pOffset);
 
@@ -279,7 +306,7 @@ public void setTraceOffset(int pTrace, int pOffset)
 public void setTraceBaseLine(int pTrace, int pBaseLine)
 {
     
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pTrace < 0 || pTrace >= traces.length){ return; }
 
     traces[pTrace].setBaseLine(pBaseLine);
 
@@ -309,7 +336,7 @@ public void setAllTraceXScale(double pScale)
 public void insertDataPointInTrace(int pTrace, int pData)
 {
 
-    if (pTrace < 0 || pTrace > traces.length){ return; }
+    if (pTrace < 0 || pTrace >= traces.length){ return; }
 
     traces[pTrace].insertDataPoint(pData);
 

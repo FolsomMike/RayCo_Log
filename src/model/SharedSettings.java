@@ -45,13 +45,19 @@ public class SharedSettings{
     
     public String appTitle;
     
-    String currentJobName = "";
-    String primaryJobPath = ""; String secondaryJobPath = "";
+    public String currentJobName = "";
+    public String jobPathPrimary = "";
+    public String jobPathSecondary = "";    
+    public String dataPathPrimary = ""; String dataPathSecondary = "";
 
-    String mainFileFormat = "UTF-8";
+    public int lastPieceNumber;
+    public int lastCalPieceNumber;
+    
+    public String mainFileFormat = "UTF-8";
     
     static final String MAIN_CONFIG_SETTINGS_FILENAME =
                                              "Main Configuration Settings.ini";
+    static final String MAIN_SETTINGS_FILENAME = "Main Settings.ini";    
     static final String DEFAULT_PRIMARY_DATA_PATH = "Data Folder - Primary";
     static final String DEFAULT_SECONDARY_DATA_PATH = "Data Folder - Secondary";
 
@@ -80,15 +86,37 @@ public void init(JFrame pMainFrame)
     loadMainConfigSettings();
 
     verifyDataPathsAndCreateIfMissing();
+
+    loadMainSettings();
+    
+    createJobPaths();
     
 }// end of SharedSettings::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::createJobPaths
+//
+// Create paths to the primary and secondary job folders.
+//
+
+private void createJobPaths()
+{
+
+    jobPathPrimary = dataPathPrimary + currentJobName;        
+    jobPathPrimary = trimAndAppendFileSeparatorIfMissing(jobPathPrimary);
+
+    jobPathSecondary = dataPathSecondary + currentJobName;        
+    jobPathSecondary = trimAndAppendFileSeparatorIfMissing(jobPathSecondary);
+
+}// end of SharedSettings::createJobPaths
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // SharedSettings::loadMainConfigSettings
 //
 
-public void loadMainConfigSettings()
+private void loadMainConfigSettings()
 {
 
     IniFile configFile;
@@ -103,19 +131,51 @@ public void loadMainConfigSettings()
     }
 
     appTitle = configFile.readString(
-                                "Main Settings", "Application Title", "Chart");
+                                "Main Settings", "application title", "Chart");
     
-    primaryJobPath = configFile.readString(
-               "Main Settings", "Primary Job Path", DEFAULT_PRIMARY_DATA_PATH);
+    dataPathPrimary = configFile.readString(
+               "Main Settings", "primary data path", DEFAULT_PRIMARY_DATA_PATH);
     
-    primaryJobPath = trimAndAppendFileSeparatorIfMissing(primaryJobPath);
+    dataPathPrimary = trimAndAppendFileSeparatorIfMissing(dataPathPrimary);
     
-    secondaryJobPath = configFile.readString(
-           "Main Settings", "Secondary Job Path", DEFAULT_SECONDARY_DATA_PATH);
+    dataPathSecondary = configFile.readString(
+           "Main Settings", "secondary data path", DEFAULT_SECONDARY_DATA_PATH);
 
-    secondaryJobPath = trimAndAppendFileSeparatorIfMissing(secondaryJobPath);
+    dataPathSecondary = trimAndAppendFileSeparatorIfMissing(dataPathSecondary);
     
 }// end of SharedSettings::loadMainConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::loadMainSettings
+//
+// Loads settings which change frequently.
+//
+
+private void loadMainSettings()
+{
+
+    IniFile configFile;
+
+    try {
+        configFile = new IniFile(MAIN_SETTINGS_FILENAME, mainFileFormat);
+        configFile.init();
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 142");
+        return;
+    }
+
+    currentJobName = configFile.readString(
+                                     "Main Settings", "current job name", "");
+    
+    lastPieceNumber = configFile.readInt(
+                 "Main Settings", "number of last piece processed", 0);
+
+    lastCalPieceNumber = configFile.readInt(
+             "Main Settings", "number of last calibration piece processed", 0);
+    
+}// end of SharedSettings::loadMainSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -127,14 +187,14 @@ public void loadMainConfigSettings()
 private void verifyDataPathsAndCreateIfMissing()
 {
     
-    if (!Files.exists(Paths.get(primaryJobPath))) {
+    if (!Files.exists(Paths.get(dataPathPrimary))) {
         logSevere("Primary Data Path not found, creating now - Error: 122");
-        createDataFolder(primaryJobPath, "primary");        
+        createDataFolder(dataPathPrimary, "primary");        
     }    
 
-    if (!Files.exists(Paths.get(secondaryJobPath))) {
+    if (!Files.exists(Paths.get(dataPathSecondary))) {
         logSevere("Secondary Data Path not found, creating now - Error: 136");
-        createDataFolder(secondaryJobPath, "secondary");        
+        createDataFolder(dataPathSecondary, "secondary");        
     }    
 
 }// end of SharedSettings::verifyDataPathsAndCreateIfMissing

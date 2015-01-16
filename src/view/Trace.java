@@ -18,6 +18,7 @@ package view;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import model.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -26,10 +27,13 @@ import java.awt.geom.Ellipse2D;
 
 public class Trace{
 
-    private int index;
-    private int width;
-    private int height;
+    private IniFile configFile;
+    
+    private String title, shortTitle;
+    private int chartGroupIndex, chartIndex, graphIndex, index;
+    private int width, height;
     private int maxY;
+    private int numDataPoints;
     private int data[];
     private int flags[];
     private int dataInsertPos = 0;
@@ -72,21 +76,66 @@ public Trace()
 // in an array of the creating object.
 //
 
-public void init(int pIndex, int pWidth, int pHeight, Color pTraceColor,
-                                                        boolean pConnectPoints)
+public void init(int pChartGroupIndex, int pChartIndex, int pGraphIndex,
+                    int pIndex, int pWidth, int pHeight, IniFile pConfigFile)
 {
 
-    index = pIndex; width = pWidth; height = pHeight; maxY = height - 1;
-    connectPoints = pConnectPoints;
+    chartGroupIndex = pChartGroupIndex; chartIndex = pChartIndex;
+    graphIndex = pGraphIndex; index = pIndex; 
+    width = pWidth; height = pHeight;
+    configFile = pConfigFile;
+
+    loadConfigSettings();
     
-    data = new int[width];
+    maxY = height - 1;
+    
+    data = new int[numDataPoints];
 
-    flags = new int[width];
-    for (int i = 0; i<width; i++){ flags[i] = DEFAULT_FLAGS; }
-
-    traceColor = pTraceColor;
+    flags = new int[numDataPoints];
+    for (int i = 0; i<flags.length; i++){ flags[i] = DEFAULT_FLAGS; }
 
 }// end of Trace::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::loadConfigSettings
+//
+// Loads settings for the object from configFile.
+//
+
+private void loadConfigSettings()
+{
+
+    String section = "Chart Group " + chartGroupIndex + " Chart " + chartIndex
+            + " Graph " + graphIndex + " Trace " + index;
+
+    title = configFile.readString(
+                        section, "title", "Annotation Graph " + (index + 1));
+
+    shortTitle = configFile.readString(
+                            section, "short title", "annograph" + (index + 1));
+
+    int configWidth = configFile.readInt(section, "width", 0);
+
+    if (configWidth > 0) width = configWidth; //override if > 0
+    
+    int configHeight = configFile.readInt(section, "height", 0);
+
+    if (configHeight > 0) height = configHeight; //override if > 0
+
+    connectPoints = configFile.readBoolean(
+                            section, "connect data points with line", false);
+    
+    traceColor = configFile.readColor(section, "color", Color.BLACK);
+    
+    numDataPoints = configFile.readInt(section, "number of data points", width);
+    
+    offset = configFile.readInt(section, "offset", 0);
+    xScale = configFile.readDouble(section, "x scale", 1.0);
+    yScale = configFile.readDouble(section, "y scale", 1.0);
+    baseLine = configFile.readInt(section, "baseline", 0);
+    
+}// end of Trace::loadConfigSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -185,8 +234,8 @@ public void insertDataPoint(int pData)
 public void resetData()
 {
 
-    for (int i = 0; i<width; i++){ data[i] = 0; }
-    for (int i = 0; i<width; i++){ flags[i] = DEFAULT_FLAGS; }
+    for (int i = 0; i<data.length; i++){ data[i] = 0; }
+    for (int i = 0; i<flags.length; i++){ flags[i] = DEFAULT_FLAGS; }
 
     dataInsertPos = 0;
 

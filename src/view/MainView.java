@@ -37,6 +37,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,6 +61,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
 import model.ADataClass;
+import model.IniFile;
+import model.SharedSettings;
 import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
@@ -69,10 +72,14 @@ import toolkit.Tools;
 public class MainView implements ActionListener, WindowListener, ChangeListener
 {
 
+    IniFile configFile;    
+    SharedSettings sharedSettings;
+
+    private int numChartGroups;
+    private ChartGroup chartGroups[];
+    
     private JFrame mainFrame;
     private JPanel mainPanel;
-
-    private Chart[] charts;
     
     private final ADataClass aDataClass;
 
@@ -142,12 +149,16 @@ public MainView(EventHandler pEventHandler, ADataClass pADataClass)
 // Initializes the object.  Must be called immediately after instantiation.
 //
 
-public void init(String pAppTitle)
+public void init(SharedSettings pSharedSettings)
 {
 
+    sharedSettings = pSharedSettings;
+ 
+    loadConfigSettings();
+    
     setupMainFrame();
 
-    mainFrame.setTitle(pAppTitle);
+    mainFrame.setTitle(sharedSettings.appTitle);
     
     //create a window for displaying messages and an object to handle updating
     //it in threadsafe manner
@@ -188,7 +199,7 @@ public void init(String pAppTitle)
 public void setupMainFrame()
 {
 
-    mainFrame = new JFrame("RayCo Log IV");
+    mainFrame = new JFrame("Universal Chart");
 
     //add a JPanel to the frame to provide a familiar container
     mainPanel = new JPanel();
@@ -234,7 +245,7 @@ private void setupGui()
      
     mainPanel.add(createControlsPanel());
     
-    mainPanel.add(createGraphingPanel());    
+    createChartGroups();
     
 }// end of MainView::setupGui
 //-----------------------------------------------------------------------------
@@ -590,44 +601,25 @@ private JPanel createOutputScalingPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::createGraphingPanel
+// MainView::createChartGroups
 //
-// Returns a JPanel containing the graph display GUI items.
+// Creates the chart groups and adds them to the panel.
 //
+// WIP MKS -- only works with one chart group right now -- need to specify
+// which frame/panel each group gets added to.
 
-private JPanel createGraphingPanel()
+private void createChartGroups()
 {
-        
-    JPanel panel = new JPanel(); 
-    //no border -- panel.setBorder(BorderFactory.createTitledBorder("Graphs"));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-
-    charts = new Chart[NUM_CHARTS];
-        
-    //create chart for Longitudinal
-    charts[LONG_CHART] = new Chart();
-    charts[LONG_CHART].init(
-           "Longitudinal", LONG_CHART, 2, true, 50, CHART_WIDTH, CHART_HEIGHT);
-    panel.add(charts[LONG_CHART]);
-
-    //create chart for Transverse
-    charts[TRANS_CHART] = new Chart();
-    charts[TRANS_CHART].init(
-             "Transverse", TRANS_CHART, 2, true, 50, CHART_WIDTH, CHART_HEIGHT);
-    panel.add(charts[TRANS_CHART]);
-  
-    //sample trace draws the sample points without connecting them
-    charts[TRANS_CHART].setTraceConnectPoints(0, SAMPLE_TRACE, false);
-
-    //create chart for Transverse
-    charts[WALL_CHART] = new Chart();
-    charts[WALL_CHART].init(
-                    "Wall", WALL_CHART, 1, false, 0, CHART_WIDTH, CHART_HEIGHT);
-    panel.add(charts[WALL_CHART]);
-
-    return(panel);
-     
-}// end of MainView::createGraphingPanel
+    
+    chartGroups = new ChartGroup[numChartGroups];
+    
+    for (int i = 0; i<numChartGroups; i++){
+        chartGroups[i] = new ChartGroup();
+        chartGroups[i].init(i, configFile);
+        mainPanel.add(chartGroups[i]);
+    }
+                 
+}// end of MainView::createChartGroups
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -661,14 +653,15 @@ public static void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
 //-----------------------------------------------------------------------------
 // MainView::insertDataPointInTrace
 //
-// Adds data point pData to pTrace of pGraph of pChart.
+// Adds data point pData to pTrace of pGraph of pChart of pChartGroup.
 //
 
-public void insertDataPointInTrace(int pChart, int pGraph,
+public void insertDataPointInTrace(int pChartGroup, int pChart, int pGraph,
                                                         int pTrace, int pData)
 {        
 
-    charts[pChart].insertDataPointInTrace(pGraph, pTrace, pData);
+    chartGroups[pChartGroup].insertDataPointInTrace(
+                                                pChart, pGraph, pTrace, pData);
     
 }// end of MainView::insertDataPointInTrace
 //-----------------------------------------------------------------------------
@@ -676,16 +669,18 @@ public void insertDataPointInTrace(int pChart, int pGraph,
 //-----------------------------------------------------------------------------
 // MainView::setTraceFlags
 //
-// Sets flag(s) pFlags at index pIndex of pTrace of pGraph of pChart.
+// Sets flag(s) pFlags at index pIndex of pTrace of pGraph of pChart of
+// pChartGroup.
 //
 // Each bit of pFlags represents a different flag.
 //
 
-public void setTraceFlags(int pChart, int pGraph, int pTrace, int pIndex,
-                                                                    int pFlags)
+public void setTraceFlags(int pChartGroup, int pChart, int pGraph, int pTrace,
+                                                        int pIndex, int pFlags)
 {        
 
-    charts[pChart].setTraceFlags(pGraph, pTrace, pIndex, pFlags);
+    chartGroups[pChartGroup].setTraceFlags(
+                                pChartGroup, pGraph, pTrace, pIndex, pFlags);
 
 }// end of MainView::setTraceFlags
 //-----------------------------------------------------------------------------
@@ -694,44 +689,49 @@ public void setTraceFlags(int pChart, int pGraph, int pTrace, int pIndex,
 // MainView::setTraceFlagsAtCurrentInsertionPoint
 //
 // Sets flag(s) pFlags at the current insertion point of pTrace of pGraph of
-// pChart.
+// pChart of pChartGroup.
 //
 // Each bit of pFlags represents a different flag.
 //
 
 public void setTraceFlagsAtCurrentInsertionPoint(
-                                int pChart, int pGraph, int pTrace, int pFlags)
+               int pChartGroup, int pChart, int pGraph, int pTrace, int pFlags)
 {        
 
-    charts[pChart].setTraceFlagsAtCurrentInsertionPoint(pGraph, pTrace, pFlags);
+    chartGroups[pChartGroup].
+           setTraceFlagsAtCurrentInsertionPoint(pChart, pGraph, pTrace, pFlags);
 
 }// end of MainView::setTraceFlagsAtCurrentInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::resetAllTraceDataForChart
+// MainView::resetAllTraceDataForChartGroup
 //
-// Clears all data from all traces of pChart and resets insertion pointer.
+// Clears all data from all traces of all charts of pChartGroup and resets
+// insertion pointer.
 //
 
-public void resetAllTraceDataForChart(int pChart)
+public void resetAllTraceDataForChartGroup(int pChartGroup)
 {        
     
-    charts[pChart].resetAllTraceData();
+    chartGroups[pChartGroup].resetAllTraceData();
     
-}// end of MainView::resetAllTraceDataForChart
+}// end of MainView::resetAllTraceDataForChartGroup
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // MainView::setAllChartAllTraceXScale
 //
-// Sets the display horizontal scale for all traces of all charts to pScale.
+// Sets the display horizontal scale for all traces of all charts of
+// all chart groups to pScale.
 //
 
 public void setAllChartAllTraceXScale(double pScale)
 {
     
-    for (Chart chart : charts) { chart.setAllTraceXScale(pScale); }
+    for (ChartGroup chartGroup : chartGroups) {
+        chartGroup.setAllChartAllTraceXScale(pScale);
+    }
 
 }// end of MainView::setAllChartAllTraceXScale
 //-----------------------------------------------------------------------------
@@ -739,14 +739,14 @@ public void setAllChartAllTraceXScale(double pScale)
 //-----------------------------------------------------------------------------
 // MainView::repaintCharts
 //
-// Forces all charts to be repainted.
+// Forces all charts of all chart groups to be repainted.
 //
 
 public void repaintCharts()
 {
     
-    for (Chart chart : charts) {
-        chart.repaint();
+    for (ChartGroup chartGroup : chartGroups) {
+        chartGroup.repaint();
     }
 
 }// end of MainView::repaintCharts
@@ -757,6 +757,7 @@ public void repaintCharts()
 //
 // Returns the chart width...the number of data points in the horizontal axis.
 //
+// WIP MKS -- need to get this value from the group/chart/graph itself?
 
 public int getChartWidth()
 {
@@ -1096,6 +1097,37 @@ public void setTextForDataTArea2(String pText)
     dataTArea2.setText(pText);
 
 }// end of MainView::setTextForDataTArea2
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::loadConfigSettings
+//
+// Loads settings from a config file.
+//
+// The config file is left open so that it can be passed to other objects to
+// allow them to load their settings as well.
+//
+
+public void loadConfigSettings()
+{
+
+    String filename = sharedSettings.jobPathPrimary + "00 - " +
+                sharedSettings.currentJobName + " Main Configuration.ini";
+    
+    try {
+        configFile = new IniFile(filename, sharedSettings.mainFileFormat);
+        configFile.init();
+    }
+    catch(IOException e){
+        MKSTools.logSevere(
+                      getClass().getName(), e.getMessage() + " - Error: 1103");
+        return;
+    }
+
+    numChartGroups = configFile.readInt(
+                                "Main Settings", "number of chart groups", 0);
+        
+}// end of MainView::loadConfigSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

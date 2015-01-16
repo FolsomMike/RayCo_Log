@@ -18,6 +18,7 @@ package view;
 
 import java.awt.*;
 import javax.swing.*;
+import model.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -26,10 +27,12 @@ import javax.swing.*;
 
 class ZoomGraph extends JPanel{
 
+    private IniFile configFile;
+    
     private String title;    
-    private int index;
-    private int width;
-    private int height;
+    private String shortTitle;
+    private int chartGroupIndex, chartIndex, index;
+    private int width, height;
 
 //-----------------------------------------------------------------------------
 // ZoomGraph::ZoomGraph (constructor)
@@ -53,15 +56,49 @@ public ZoomGraph()
 // in an array of the creating object.
 //
 
-public void init(String pTitle, int pIndex, int pWidth,int pHeight)
+public void init(int pChartGroupIndex, int pChartIndex, int pIndex,
+                                  int pWidth, int pHeight, IniFile pConfigFile)
 {
 
-    title = pTitle; index = pIndex;
-    width = pWidth; height = pHeight;    
+    chartGroupIndex = pChartGroupIndex; 
+    chartIndex = pChartIndex; index = pIndex; 
+    width = pWidth; height = pHeight;
+    configFile = pConfigFile;
 
+    loadConfigSettings();
+    
     setSizes(this, width, height);
     
 }// end of ZoomGraph::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::loadConfigSettings
+//
+// Loads settings for the object from configFile.
+//
+
+private void loadConfigSettings()
+{
+
+    String section = "Chart Group " + chartGroupIndex + " Chart " + chartIndex
+            + " Annotation Graph " + index;
+
+    title = configFile.readString(
+                        section, "title", "Annotation Graph " + (index + 1));
+
+    shortTitle = configFile.readString(
+                            section, "short title", "annograph" + (index + 1));
+
+    int configWidth = configFile.readInt(section, "width", 0);
+
+    if (configWidth > 0) width = configWidth; //override if > 0
+    
+    int configHeight = configFile.readInt(section, "height", 0);
+
+    if (configHeight > 0) height = configHeight; //override if > 0
+    
+}// end of ZoomGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

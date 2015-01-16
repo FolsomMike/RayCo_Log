@@ -18,6 +18,7 @@ package view;
 
 import java.awt.*;
 import javax.swing.*;
+import model.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -26,16 +27,16 @@ import javax.swing.*;
 
 class Chart extends JPanel{
 
-    private String title;    
-    private int index;
+    private IniFile configFile;
+    
+    private String title, shortTitle;
+    private int chartGroupIndex, index;
+    private int graphWidth, graphHeight;    
     int numGraphs;
     boolean hasAnnotationGraph;
-    int annotationGraphHeight;
-    private int width;
-    private int height;
-
-    Graph graphs[];
-    ZoomGraph zoomGraph;
+ 
+    private Graph graphs[];
+    private ZoomGraph zoomGraph;
 
 
 //-----------------------------------------------------------------------------
@@ -60,37 +61,74 @@ public Chart()
 // in an array of the creating object.
 //
 
-public void init(String pTitle, int pIndex, int pNumGraphs,
-        boolean pHasAnnotationGraph, int pAnnotationGraphHeight,
-        int pWidth,int pHeight)
+public void init(int pChartGroupIndex, int pIndex, int pDefaultGraphWidth,
+        int pDefaultGraphHeight, IniFile pConfigFile)
 {
 
-    title = pTitle; index = pIndex; numGraphs = pNumGraphs;
-    hasAnnotationGraph = pHasAnnotationGraph;
-    annotationGraphHeight = pAnnotationGraphHeight;
-    width = pWidth; height = pHeight;
+    chartGroupIndex = pChartGroupIndex; index = pIndex;
+    configFile = pConfigFile;
     
-    setBorder(BorderFactory.createTitledBorder(title));
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    graphWidth = pDefaultGraphWidth;
+    graphHeight = pDefaultGraphHeight;
 
+    loadConfigSettings();
+
+    setBorder(BorderFactory.createTitledBorder(title));
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));    
+    
     graphs = new Graph[numGraphs];
     
     for (int i = 0; i<numGraphs; i++){
         graphs[i] = new Graph(); //the traces are drawn on this panel
-        graphs[i].init(index, i, width, height);
+        graphs[i].init(chartGroupIndex, index, i,
+                                    graphWidth, graphHeight, configFile);
         add(graphs[i]);
         if(i<numGraphs-1){ addGraphSeparatorPanel(); }
     }
     
     if (hasAnnotationGraph){
         zoomGraph = new ZoomGraph();
-        zoomGraph.init("Longitudinal Zoom", 0, width, annotationGraphHeight);
+        zoomGraph.init(chartGroupIndex, index, 0,
+                                           graphWidth, graphHeight, configFile);
         addGraphSeparatorPanel();
         add(zoomGraph);
     }
-    
-    
+
 }// end of Chart::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::loadConfigSettings
+//
+// Loads settings for the object from configFile.
+//
+
+private void loadConfigSettings()
+{
+
+    String section = "Chart Group " + chartGroupIndex + " Chart " + index;
+
+    title = configFile.readString(section, "title", "Chart " + (index + 1));
+
+    shortTitle = configFile.readString(
+                                section, "short title", "chart" + (index + 1));    
+    
+    numGraphs = configFile.readInt(section, "number of graphs", 0);
+    
+    hasAnnotationGraph = configFile.readBoolean(
+                                       section, "has annotation graph", false);
+    
+    int configWidth = configFile.readInt(
+                                   section, "default width for all graphs", 0);
+
+    if (configWidth > 0) graphWidth = configWidth; //override if > 0
+    
+    int configHeight = configFile.readInt(
+                                  section, "default height for all graphs", 0);
+
+    if (configHeight > 0) graphHeight = configHeight; //override if > 0
+    
+}// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -105,7 +143,7 @@ public void addGraphSeparatorPanel()
 
     SeparatorPanel spanel = new SeparatorPanel();
     
-    spanel.init(width, 1, Color.LIGHT_GRAY , 1);
+    spanel.init(graphWidth, 1, Color.LIGHT_GRAY , 1);
     
     add(spanel);
     
@@ -180,7 +218,7 @@ public void paintTraces (Graphics2D pG2)
 public void insertDataPointInTrace(int pGraph, int pTrace, int pData)
 {
 
-    if (pGraph < 0 || pGraph > graphs.length){ return; }
+    if (pGraph < 0 || pGraph >= graphs.length){ return; }
 
     graphs[pGraph].insertDataPointInTrace(pTrace, pData);
 
@@ -211,7 +249,7 @@ public void setAllTraceXScale(double pScale)
 public void setTraceYScale(int pGraph, int pTrace, double pScale)
 {
 
-    if (pGraph < 0 || pGraph > graphs.length){ return; }
+    if (pGraph < 0 || pGraph >= graphs.length){ return; }
 
     graphs[pGraph].setTraceYScale(pTrace, pScale);
 
@@ -228,7 +266,7 @@ public void setTraceYScale(int pGraph, int pTrace, double pScale)
 public void setTraceOffset(int pGraph, int pTrace, int pOffset)
 {
     
-    if (pGraph < 0 || pGraph > graphs.length){ return; }
+    if (pGraph < 0 || pGraph >= graphs.length){ return; }
 
     graphs[pGraph].setTraceOffset(pTrace, pOffset);
 
@@ -246,7 +284,7 @@ public void setTraceOffset(int pGraph, int pTrace, int pOffset)
 public void setTraceBaseLine(int pGraph, int pTrace, int pBaseLine)
 {
     
-    if (pGraph < 0 || pGraph > graphs.length){ return; }
+    if (pGraph < 0 || pGraph >= graphs.length){ return; }
 
     graphs[pGraph].setTraceBaseLine(pTrace, pBaseLine);
 
@@ -263,7 +301,7 @@ public void setTraceBaseLine(int pGraph, int pTrace, int pBaseLine)
 public void setTraceConnectPoints(int pGraph, int pTrace, boolean pValue)
 {
 
-    if (pGraph < 0 || pGraph > graphs.length){ return; }
+    if (pGraph < 0 || pGraph >= graphs.length){ return; }
 
     graphs[pGraph].setTraceConnectPoints(pTrace, pValue);
     
@@ -281,7 +319,7 @@ public void setTraceConnectPoints(int pGraph, int pTrace, boolean pValue)
 public void setTraceFlags(int pGraph, int pTrace, int pIndex, int pFlags)
 {
 
-   if (pGraph < 0 || pGraph > graphs.length){ return; }
+   if (pGraph < 0 || pGraph >= graphs.length){ return; }
 
    graphs[pGraph].setTraceFlags(pTrace, pIndex, pFlags);
 
@@ -300,7 +338,7 @@ public void setTraceFlagsAtCurrentInsertionPoint(int pGraph, int pTrace,
                                                                     int pFlags)
 {
 
-   if (pGraph < 0 || pGraph > graphs.length){ return; }
+   if (pGraph < 0 || pGraph >= graphs.length){ return; }
 
    graphs[pGraph].setTraceFlagsAtCurrentInsertionPoint(pTrace, pFlags);
 
@@ -348,7 +386,7 @@ public void resetAllTraceData()
 public int getNumTraces(int pGraph)
 {
 
-    if (pGraph < 0 || pGraph > graphs.length){ return(0); }
+    if (pGraph < 0 || pGraph >= graphs.length){ return(0); }
     
     return(graphs[pGraph].getNumTraces());
 
@@ -364,7 +402,7 @@ public int getNumTraces(int pGraph)
 public Trace getTrace(int pGraph, int pTrace)
 {
 
-    if (pGraph < 0 || pGraph > graphs.length){ return(null); }
+    if (pGraph < 0 || pGraph >= graphs.length){ return(null); }
 
     return(graphs[pGraph].getTrace(pTrace));
 
