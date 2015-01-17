@@ -3,8 +3,17 @@
 * Author: Mike Schoonover
 * Date: 01/16/15
 *
+* -- WARNING --
+* Do not use this class or its subclasses for time sensitive loops where a
+* lot of data is being processed at hight speed. Generics cannot use primitives
+* so every primitive value (int, double, etc.) must be autoboxed/unboxed into
+* its corresponding object (Integer, Double, etc.) when methods in this class
+* are called. The autoboxing/unboxing process causes overhead since an object
+* is created and released each time.
+*  
+* 
 * Purpose:
-*
+* 
 * This is a Generic class used to detect and store highest peak values.
 * A new value replaces the previously stored peak if the new value is greater
 * than the old peak.
@@ -19,11 +28,15 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
+
+import toolkit.MKSInteger;
+import toolkit.MKSWrapper;
+
 //-----------------------------------------------------------------------------
 // class HighPeakBuffer
 //
 
-public class HighPeakBuffer<T extends Comparable<T>> extends PeakBuffer<T>
+public class HighPeakBuffer<T extends MKSWrapper> extends PeakBuffer<T>
 {
     
 //-----------------------------------------------------------------------------
@@ -36,21 +49,6 @@ public HighPeakBuffer(int pIndex)
     super(pIndex);
     
 }//end of HighPeakBuffer::HighPeakBuffer (constructor)
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// HighPeakBuffer::init
-//
-// Initializes the object.  Must be called immediately after instantiation.
-//
-
-@Override
-public void init()
-{
-
-    super.init();
-
-}// end of HighPeakBuffer::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -72,6 +70,19 @@ public synchronized void catchPeak(T pValue)
     if (pValue.compareTo(peak) > 0){ peak = pValue; }
     
 }// end of HighPeakBuffer::catchPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// HighPeakBuffer::setResetValue
+//
+
+@Override
+public synchronized void setResetValue(Object pO)
+{
+
+    ((MKSInteger)peakReset).x = ((MKSInteger)pO).x;
+    
+}// end of HighPeakBuffer::setResetValue
 //-----------------------------------------------------------------------------
 
 }//end of class HighPeakBuffer

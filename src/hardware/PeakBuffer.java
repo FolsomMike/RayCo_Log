@@ -3,8 +3,28 @@
 * Author: Mike Schoonover
 * Date: 01/16/15
 *
-* Purpose:
+* NOTE: there is no clean way to create this class using Generics which don't
+* require that the peak value is an object which must be recreated each time a
+* peak is stored, since Integer and Double type wrappers are immutable.
+* Generics cannot be used with primitives (int , double) as the parameterized
+* class so that requires auto boxing/unboxing to compare and set the peak
+* object. In the end this version compiles but HAS NOT been tested...the
+* concept is being checked into Git and abandoned. Classes using Objects and
+* casting by subclasses will be used instead even though the casting does cost
+* overhead. Note that the casting is required in this Generic version anyway.
+* 
+* 
+* -- WARNING --
+* Do not use this class or its subclasses for time sensitive loops where a
+* lot of data is being processed at hight speed. Generics cannot use primitives
+* so every primitive value (int, double, etc.) must be autoboxed/unboxed into
+* its corresponding object (Integer, Double, etc.) when methods in this class
+* are called. The autoboxing/unboxing process causes overhead since an object
+* is created and released each time.
 *
+* 
+* Purpose:
+*  
 * This is a Generic parent class used to detect and store peak values.
 * The subclasses override the catchPeak method to provide specific code
 * for catching different types of peaks, such as highest value, lowest value,
@@ -20,17 +40,20 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
+
+import toolkit.MKSWrapper;
+
 //-----------------------------------------------------------------------------
 // class PeakBuffer
 //
 
-public class PeakBuffer<T extends Comparable<T>>
+public class PeakBuffer<T extends MKSWrapper>
 {
 
     private final int index;
 
     T peak;
-    private T peakReset;
+    T peakReset;
     
 //-----------------------------------------------------------------------------
 // PeakBuffer::PeakBuffer (constructor)
@@ -49,11 +72,25 @@ public PeakBuffer(int pIndex)
 //
 // Initializes the object.  Must be called immediately after instantiation.
 //
+// The peak object needs to be a persistent object during the life of the
+// PeakBuffer object. Java Generics does not allow simple creation of a
+// parameter type, such as:
+//      peak = new T();  // not allowed!
+// Rather the object must be created using "reflection" (yucky but necessary).
+// This can be done by having the creating object call this init method with
+// the type the PeakBuffer subclass will be used with:
+//      peakBuffer = new HighPeakBuffer<>(0);
+//      peakBuffer.init(Integer.class); //or whatever type will be used
+//
+// This workaround is described in the Oracle Java Tutorial.
+//
 
-public void init()
+public void init(Class<T> cls)
 {
 
-
+    try{peak = cls.newInstance();}
+    catch(InstantiationException | IllegalAccessException e){}
+    
 }// end of PeakBuffer::init
 //-----------------------------------------------------------------------------
 
@@ -70,44 +107,6 @@ public synchronized void catchPeak(T pValue)
     
 }// end of PeakBuffer::catchPeak
 //-----------------------------------------------------------------------------
-
-/*
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::catchHighPeak
-//
-// If pValue > old peak, pValue is stored as the new peak.
-//
-// Must use compareTo because == only works with primitives and since the
-// class is Generic, Java can't be sure what types will be compared.
-//
-
-public synchronized void catchHighPeak(T pValue)
-{
-    
-    if (peak.compareTo(pValue) > 0){ peak = pValue; }
-    
-}// end of PeakBuffer::catchHighPeak
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::catchLowPeak
-//
-// If pValue < old peak, pValue is stored as the new peak.
-//
-// Must use compareTo because == only works with primitives and since the
-// class is Generic, Java can't be sure what types will be compared.
-//
-
-public synchronized void catchLowPeak(T pValue)
-{
-    
-    if (peak.compareTo(pValue) < 0){ peak = pValue; }
-    
-}// end of PeakBuffer::catchLowPeak
-//-----------------------------------------------------------------------------
-
-*/
 
 //-----------------------------------------------------------------------------
 // PeakBuffer::setPeak
@@ -144,10 +143,9 @@ public synchronized void reset()
 // retrieved and a new peak is to be found.
 //
 
-public synchronized void setResetValue(T pValue)
+public synchronized void setResetValue(Object pO)
 {
 
-    peakReset = pValue;
     
 }// end of PeakBuffer::setResetValue
 //-----------------------------------------------------------------------------

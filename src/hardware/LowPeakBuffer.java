@@ -3,6 +3,15 @@
 * Author: Mike Schoonover
 * Date: 01/16/15
 *
+* -- WARNING --
+* Do not use this class or its subclasses for time sensitive loops where a
+* lot of data is being processed at hight speed. Generics cannot use primitives
+* so every primitive value (int, double, etc.) must be autoboxed/unboxed into
+* its corresponding object (Integer, Double, etc.) when methods in this class
+* are called. The autoboxing/unboxing process causes overhead since an object
+* is created and released each time.
+*
+* 
 * Purpose:
 *
 * This is a Generic class used to detect and store lowest peak values.
@@ -19,11 +28,15 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
+
+import toolkit.MKSInteger;
+import toolkit.MKSWrapper;
+
 //-----------------------------------------------------------------------------
 // class LowPeakBuffer
 //
 
-public class LowPeakBuffer<T extends Comparable<T>> extends PeakBuffer<T>
+public class LowPeakBuffer<T extends MKSWrapper> extends PeakBuffer<T>
 {
     
 //-----------------------------------------------------------------------------
@@ -36,21 +49,6 @@ public LowPeakBuffer(int pIndex)
     super(pIndex);
     
 }//end of LowPeakBuffer::LowPeakBuffer (constructor)
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// LowPeakBuffer::init
-//
-// Initializes the object.  Must be called immediately after instantiation.
-//
-
-@Override
-public void init()
-{
-
-    super.init();
-
-}// end of LowPeakBuffer::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -69,10 +67,26 @@ public void init()
 public synchronized void catchPeak(T pValue)
 {
    
-    if (pValue.compareTo(peak) < 0){ peak = pValue; }
-    
+    if (pValue.compareTo(peak) < 0){ 
+        ((MKSInteger)peak).x = ((MKSInteger)pValue).x; 
+    }
+
 }// end of LowPeakBuffer::catchPeak
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// LowPeakBuffer::setResetValue
+//
+
+@Override
+public synchronized void setResetValue(Object pO)
+{
+
+    ((MKSInteger)peakReset).x = ((MKSInteger)pO).x;
+    
+}// end of LowPeakBuffer::setResetValue
+//-----------------------------------------------------------------------------
+
 
 }//end of class LowPeakBuffer
 //-----------------------------------------------------------------------------
