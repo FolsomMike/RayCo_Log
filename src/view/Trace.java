@@ -45,6 +45,11 @@ public class Trace{
     private final Color circleColor = DEFAULT_CIRCLE_COLOR;
     private boolean visible = true;
     private boolean connectPoints = true;
+
+    int peakType;
+            
+    public static final int CATCH_HIGHEST = 0;
+    public static final int CATCH_LOWEST = 1;
     
     public static final int DEFAULT_FLAGS = 0x00;
     public static final int VERTICAL_BAR = 0x01;
@@ -134,10 +139,33 @@ private void loadConfigSettings()
     xScale = configFile.readDouble(section, "x scale", 1.0);
     yScale = configFile.readDouble(section, "y scale", 1.0);
     baseLine = configFile.readInt(section, "baseline", 0);
+
+    String peakTypeText = configFile.readString(
+                                        section, "peak type", "catch highest");
+    parsePeakType(peakTypeText);
     
 }// end of Trace::loadConfigSettings
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Trace::parsePeakType
+//
+// Converts the descriptive string loaded from the config file for the peak
+// type (catch highest, lowest value, etc.) into the corresponding constant.
+//
+
+public void parsePeakType(String pValue)
+{
+
+    switch (pValue) {
+         case "catch highest": peakType = CATCH_HIGHEST; break;
+         case "catch lowest" : peakType = CATCH_LOWEST;  break;
+         default : peakType = CATCH_LOWEST;  break;
+    }
+    
+}// end of Trace::parsePeakType
+//-----------------------------------------------------------------------------
+    
 //-----------------------------------------------------------------------------
 // Trace::setXScale
 //

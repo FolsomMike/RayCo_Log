@@ -134,11 +134,14 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
 // MainView::MainView (constructor)
 //
 
-public MainView(EventHandler pEventHandler, ADataClass pADataClass)
+public MainView(EventHandler pEventHandler, ADataClass pADataClass,
+                    SharedSettings pSharedSettings, IniFile pConfigFile)
 {
 
     eventHandler = pEventHandler;
     aDataClass = pADataClass;
+    sharedSettings = pSharedSettings;
+    configFile = pConfigFile;
 
 }//end of MainView::MainView (constructor)
 //-----------------------------------------------------------------------------
@@ -149,10 +152,8 @@ public MainView(EventHandler pEventHandler, ADataClass pADataClass)
 // Initializes the object.  Must be called immediately after instantiation.
 //
 
-public void init(SharedSettings pSharedSettings)
+public void init()
 {
-
-    sharedSettings = pSharedSettings;
  
     loadConfigSettings();
     
@@ -1110,19 +1111,6 @@ public void setTextForDataTArea2(String pText)
 
 public void loadConfigSettings()
 {
-
-    String filename = sharedSettings.jobPathPrimary + "00 - " +
-                sharedSettings.currentJobName + " Main Configuration.ini";
-    
-    try {
-        configFile = new IniFile(filename, sharedSettings.mainFileFormat);
-        configFile.init();
-    }
-    catch(IOException e){
-        MKSTools.logSevere(
-                      getClass().getName(), e.getMessage() + " - Error: 1103");
-        return;
-    }
 
     numChartGroups = configFile.readInt(
                                 "Main Settings", "number of chart groups", 0);

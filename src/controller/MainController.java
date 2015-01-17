@@ -35,16 +35,20 @@
 
 package controller;
 
+import hardware.MainHandler;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import mksystems.mswing.MFloatSpinner;
 import model.ADataClass;
+import model.IniFile;
 import model.Options;
 import model.SharedSettings;
+import view.MKSTools;
 import view.MainView;
 
 //-----------------------------------------------------------------------------
@@ -55,6 +59,12 @@ import view.MainView;
 public class MainController implements EventHandler, Runnable
 {
 
+    IniFile configFile;
+    
+    SharedSettings sharedSettings;
+
+    MainHandler mainHandler;
+    
     private ADataClass aDataClass;
 
     private MainView mainView;
@@ -101,15 +111,17 @@ public MainController()
 public void init()
 {
 
-    SharedSettings sharedSettings = new SharedSettings();
+    sharedSettings = new SharedSettings();
     //main frame is not yet created, so pass null
     sharedSettings.init(null);
+
+    loadConfigSettings();
     
     aDataClass = new ADataClass();
     aDataClass.init();
 
-    mainView = new MainView(this, aDataClass);
-    mainView.init(sharedSettings);
+    mainView = new MainView(this, aDataClass, sharedSettings, configFile);
+    mainView.init();
 
     aDataClass.setMainView(mainView); //give Model a pointer to View
     
@@ -125,7 +137,38 @@ public void init()
     
     aDataClass.updateWaveforms();
 
+    mainHandler = new MainHandler(0, sharedSettings, configFile);
+    mainHandler.init();
+    
 }// end of MainController::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::loadConfigSettings
+//
+// Loads settings from a config file.
+//
+// The config file is left open so that it can be passed to other objects to
+// allow them to load their settings as well.
+//
+
+public void loadConfigSettings()
+{
+
+    String filename = sharedSettings.jobPathPrimary + "00 - " +
+                sharedSettings.currentJobName + " Main Configuration.ini";
+    
+    try {
+        configFile = new IniFile(filename, sharedSettings.mainFileFormat);
+        configFile.init();
+    }
+    catch(IOException e){
+        MKSTools.logSevere(
+                      getClass().getName(), e.getMessage() + " - Error: 1103");
+        return;
+    }
+        
+}// end of MainController::loadConfigSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
