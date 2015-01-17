@@ -5,17 +5,10 @@
 *
 * Purpose:
 *
-* This class is the parent class for subclasses which store peak values.
-* Various types of variables are handled as well as different methods of
-* determining a peak, i.e. larger values, smaller values, or values closest to
-* a target value.
-* 
-* Since each data type is handled separately, a single PeakBuffer object could
-* be used to handle one integer peak, one double peak, and so.
-* 
-* New data types and peak algorithms can be added as required.
-* 
-* This class could probably simplified by converting it to a Generic.
+* This is a Generic parent class used to detect and store peak values.
+* The subclasses override the catchPeak method to provide specific code
+* for catching different types of peaks, such as highest value, lowest value,
+* closest to a target value, etc...
 * 
 * The methods to store a peak, retrieve a peak, and set a peak are all
 * synchronized so they are thread safe.
@@ -31,17 +24,13 @@ package hardware;
 // class PeakBuffer
 //
 
-public class PeakBuffer
+public class PeakBuffer<T extends Comparable<T>>
 {
 
     private final int index;
 
-    private int peakInt = 0;
-    private double peakDouble = 0;
-    
-    private int peakIntReset = 0;
-    private double peakDoubleReset = 0;
-
+    T peak;
+    private T peakReset;
     
 //-----------------------------------------------------------------------------
 // PeakBuffer::PeakBuffer (constructor)
@@ -69,15 +58,34 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// PeakBuffer::catchPeak
+//
+// This method must be overridden by subclasses to provide the specific
+// comparison to a catch the desire type of peak, such as the highest value,
+// lowest value, closest to a target value, etc.
+//
+
+public synchronized void catchPeak(T pValue)
+{
+    
+}// end of PeakBuffer::catchPeak
+//-----------------------------------------------------------------------------
+
+/*
+
+//-----------------------------------------------------------------------------
 // PeakBuffer::catchHighPeak
 //
 // If pValue > old peak, pValue is stored as the new peak.
 //
+// Must use compareTo because == only works with primitives and since the
+// class is Generic, Java can't be sure what types will be compared.
+//
 
-public synchronized void catchHighPeak(double pValue)
+public synchronized void catchHighPeak(T pValue)
 {
-
-    if (pValue > peakDouble) { peakDouble = pValue; }
+    
+    if (peak.compareTo(pValue) > 0){ peak = pValue; }
     
 }// end of PeakBuffer::catchHighPeak
 //-----------------------------------------------------------------------------
@@ -87,42 +95,19 @@ public synchronized void catchHighPeak(double pValue)
 //
 // If pValue < old peak, pValue is stored as the new peak.
 //
+// Must use compareTo because == only works with primitives and since the
+// class is Generic, Java can't be sure what types will be compared.
+//
 
-public synchronized void catchLowPeak(double pValue)
+public synchronized void catchLowPeak(T pValue)
 {
-
-    if (pValue < peakDouble) { peakDouble = pValue; }
+    
+    if (peak.compareTo(pValue) < 0){ peak = pValue; }
     
 }// end of PeakBuffer::catchLowPeak
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// PeakBuffer::catchHighPeak
-//
-// If pValue > old peak, pValue is stored as the new peak.
-//
-
-public synchronized void catchHighPeak(int pValue)
-{
-
-    if (pValue > peakInt) { peakInt = pValue; }
-    
-}// end of PeakBuffer::catchHighPeak
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::catchLowPeak
-//
-// If pValue < old peak, pValue is stored as the new peak.
-//
-
-public synchronized void catchLowPeak(int pValue)
-{
-
-    if (pValue < peakInt) { peakInt = pValue; }
-    
-}// end of PeakBuffer::catchLowPeak
-//-----------------------------------------------------------------------------
+*/
 
 //-----------------------------------------------------------------------------
 // PeakBuffer::setPeak
@@ -130,54 +115,26 @@ public synchronized void catchLowPeak(int pValue)
 // Forces peak to pValue.
 //
 
-public synchronized void setPeak(double pValue)
+public synchronized void setPeak(T pValue)
 {
 
-    peakDouble = pValue;
+    peak = pValue;
     
 }// end of PeakBuffer::setPeak
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PeakBuffer::setPeak
-//
-// Forces peak to pValue.
-//
-
-public synchronized void setPeak(int pValue)
-{
-
-    peakInt = pValue;
-    
-}// end of PeakBuffer::setPeak
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::resetDouble
+// PeakBuffer::reset
 //
 // Forces peak to the reset value, usually in preparation to find a new peak.
 //
 
-public synchronized void resetDouble()
+public synchronized void reset()
 {
 
-    peakDouble = peakDoubleReset;
+    peak = peakReset;
     
-}// end of PeakBuffer::resetDouble
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::resetInt
-//
-// Forces peak to the reset value, usually in preparation to find a new peak.
-//
-
-public synchronized void resetInt()
-{
-
-    peakInt = peakIntReset;
-    
-}// end of PeakBuffer::resetInt
+}// end of PeakBuffer::reset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -187,89 +144,43 @@ public synchronized void resetInt()
 // retrieved and a new peak is to be found.
 //
 
-public synchronized void setResetValue(double pValue)
+public synchronized void setResetValue(T pValue)
 {
 
-    peakDoubleReset = pValue;
+    peakReset = pValue;
     
 }// end of PeakBuffer::setResetValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PeakBuffer::setResetValue
-//
-// Sets the value to which the peak is reset when the previous peak has been
-// retrieved and a new peak is to be found.
-//
-
-public synchronized void setResetValue(int pValue)
-{
-
-    peakIntReset = pValue;
-    
-}// end of PeakBuffer::setResetValue
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::getPeakDbl
+// PeakBuffer::getPeak
 //
 // Retrieves the current value of the peak without resetting it.
 //
 
-public synchronized double getPeakDbl()
+public synchronized T getPeak()
 {
 
-    return(peakDouble);
+    return(peak);
     
-}// end of PeakBuffer::getPeakDbl
+}// end of PeakBuffer::getPeak
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PeakBuffer::getPeakInt
-//
-// Retrieves the current value of the peak without resetting it.
-//
-
-public synchronized double getPeakInt()
-{
-
-    return(peakDouble);
-    
-}// end of PeakBuffer::getPeakInt
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::getPeakDblAndReset
+// PeakBuffer::getPeakAndReset
 //
 // Retrieves the current value of the peak and resets the peak to the reset
 // value.
 //
 
-public synchronized double getPeakDblAndReset()
+public synchronized T getPeakAndReset()
 {
 
-    double value = peakDouble; peakDouble = peakDoubleReset;
+    T value = peak; peak = peakReset;
     
     return(value);
     
-}// end of PeakBuffer::getPeakDblAndReset
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakBuffer::getPeakIntAndReset
-//
-// Retrieves the current value of the peak and resets the peak to the reset
-// value.
-//
-
-public synchronized int getPeakIntAndReset()
-{
-
-    int value = peakInt; peakInt = peakIntReset;
-    
-    return(value);
-    
-}// end of PeakBuffer::getPeakIntAndReset
+}// end of PeakBuffer::getPeakAndReset
 //-----------------------------------------------------------------------------
 
 }//end of class PeakBuffer
