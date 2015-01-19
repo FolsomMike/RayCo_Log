@@ -66,7 +66,7 @@ public void init(int pChartGroupIndex, int pChartIndex, int pIndex,
     
     setSizes(this, width, height);
     
-    createTraces(); //debug mks -- do this in the config section
+    createTraces();
     
 }// end of Graph::init
 //-----------------------------------------------------------------------------

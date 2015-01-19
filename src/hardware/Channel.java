@@ -17,6 +17,8 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.IniFile;
+import toolkit.MKSInteger;
+import toolkit.MKSWrapper;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -40,6 +42,8 @@ public class Channel
     
     int peakType;
     PeakBuffer peakBuffer;
+    
+    MKSInteger data = new MKSInteger(0);
     
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
@@ -85,18 +89,18 @@ public void setUpPeakBuffer()
     switch (peakType){
         
         case CATCH_HIGHEST: 
-            peakBuffer = new HighPeakBuffer<>(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE);
+            peakBuffer = new HighPeakBufferInteger(0);
+            peakBuffer.setResetValue(new MKSInteger(Integer.MIN_VALUE));
             break;
         
         case CATCH_LOWEST: 
-            peakBuffer = new LowPeakBuffer<>(0);
-            peakBuffer.setResetValue(Integer.MAX_VALUE);
+            peakBuffer = new LowPeakBufferInteger(0);
+            peakBuffer.setResetValue(new MKSInteger(Integer.MAX_VALUE));
             break;
         
         default: 
-            peakBuffer = new HighPeakBuffer<>(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE);
+            peakBuffer = new HighPeakBufferInteger(0);
+            peakBuffer.setResetValue(new MKSInteger(Integer.MIN_VALUE));
             break;
             
     }
@@ -166,10 +170,10 @@ public void parsePeakType(String pValue)
 // This method returns an object as the peak may be of various data types.
 //
 
-public Object getPeakAndReset()
+public void getPeakAndReset(Object pPeakValue)
 {
     
-    return (peakBuffer.getPeakAndReset() );
+    peakBuffer.getPeakAndReset(pPeakValue);
     
 }// end of Channel::getPeakAndReset
 //-----------------------------------------------------------------------------

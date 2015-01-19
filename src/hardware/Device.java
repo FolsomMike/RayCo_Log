@@ -112,10 +112,10 @@ void loadConfigSettings()
 // This class returns an object as the peak may be of various data types.
 //
 
-public Object getPeakForChannelAndReset(int pChannel)
+public void getPeakForChannelAndReset(int pChannel, Object pPeakValue)
 {
     
-    return (channels[pChannel].getPeakAndReset() );
+    channels[pChannel].getPeakAndReset(pPeakValue);
     
 }// end of Device::getPeakForChannelAndReset
 //-----------------------------------------------------------------------------

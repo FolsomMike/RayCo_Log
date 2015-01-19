@@ -24,7 +24,7 @@
 * 
 * To optimize the class for speed, it accepts and returns data through objects
 * rather than using any primitives. Any primitives would require boxing/unboxing
-* to compare with, be set equal to, or applied to the objects used in the class
+* to compare with, be set equal to(vice versa), to the objects used in the class
 * for storing the peak value. Any objects used in the class are created one
 * time to avoid repeated object allocation. That is also why the Java wrapper
 * classes are not used (Integer, Double, etc.) as they are immutable and require
