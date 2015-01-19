@@ -2,30 +2,37 @@
 * Title: PeakBuffer.java
 * Author: Mike Schoonover
 * Date: 01/16/15
-*
-* NOTE: there is no clean way to create this class using Generics which don't
-* require that the peak value is an object which must be recreated each time a
-* peak is stored, since Integer and Double type wrappers are immutable.
-* Generics cannot be used with primitives (int , double) as the parameterized
-* class so that requires auto boxing/unboxing to compare and set the peak
-* object. In the end this version compiles but HAS NOT been tested...the
-* concept is being checked into Git and abandoned. Classes using Objects and
-* casting by subclasses will be used instead even though the casting does cost
-* overhead. Note that the casting is required in this Generic version anyway.
 * 
 * 
-* -- WARNING --
-* Do not use this class or its subclasses for time sensitive loops where a
-* lot of data is being processed at hight speed. Generics cannot use primitives
-* so every primitive value (int, double, etc.) must be autoboxed/unboxed into
-* its corresponding object (Integer, Double, etc.) when methods in this class
-* are called. The autoboxing/unboxing process causes overhead since an object
-* is created and released each time.
-*
+* -- Note --
+* 
+* An attempt was made to make this class a Generic, but Generics only work
+* with Objects and not primitives. If an Object wrapper (Integer, Double, etc.)
+* was used to store the peak, it would have been inefficient as those objects
+* must be recreated each time their value is changed as they are immutable.
+* It became very convoluted.
+* 
+* This version accepts Objects for all parameters and the subclasses cast the
+* Objects to the desired class before processing. This allows the subclasses
+* to override methods in the PeakBuffer class and then work with them as
+* different types.
+* 
+* There is overhead with the casting...but the overhead of "if" statements is
+* no longer expended in the main code which were required to differentiate
+* between high/low peaks and data types. The tradeoff is probably worth the
+* cleaner code.
+* 
+* To optimize the class for speed, it accepts and returns data through objects
+* rather than using any primitives. Any primitives would require boxing/unboxing
+* to compare with, be set equal to, or applied to the objects used in the class
+* for storing the peak value. Any objects used in the class are created one
+* time to avoid repeated object allocation. That is also why the Java wrapper
+* classes are not used (Integer, Double, etc.) as they are immutable and require
+* new object creation each time their value is changed.
 * 
 * Purpose:
 *  
-* This is a Generic parent class used to detect and store peak values.
+* This is a parent class used to detect and store peak values.
 * The subclasses override the catchPeak method to provide specific code
 * for catching different types of peaks, such as highest value, lowest value,
 * closest to a target value, etc...
@@ -40,20 +47,13 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
-
-import toolkit.MKSWrapper;
-
-//-----------------------------------------------------------------------------
 // class PeakBuffer
 //
 
-public class PeakBuffer<T extends MKSWrapper>
+public class PeakBuffer
 {
 
     private final int index;
-
-    T peak;
-    T peakReset;
     
 //-----------------------------------------------------------------------------
 // PeakBuffer::PeakBuffer (constructor)
@@ -68,33 +68,6 @@ public PeakBuffer(int pIndex)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PeakBuffer::init
-//
-// Initializes the object.  Must be called immediately after instantiation.
-//
-// The peak object needs to be a persistent object during the life of the
-// PeakBuffer object. Java Generics does not allow simple creation of a
-// parameter type, such as:
-//      peak = new T();  // not allowed!
-// Rather the object must be created using "reflection" (yucky but necessary).
-// This can be done by having the creating object call this init method with
-// the type the PeakBuffer subclass will be used with:
-//      peakBuffer = new HighPeakBuffer<>(0);
-//      peakBuffer.init(Integer.class); //or whatever type will be used
-//
-// This workaround is described in the Oracle Java Tutorial.
-//
-
-public void init(Class<T> cls)
-{
-
-    try{peak = cls.newInstance();}
-    catch(InstantiationException | IllegalAccessException e){}
-    
-}// end of PeakBuffer::init
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // PeakBuffer::catchPeak
 //
 // This method must be overridden by subclasses to provide the specific
@@ -102,8 +75,10 @@ public void init(Class<T> cls)
 // lowest value, closest to a target value, etc.
 //
 
-public synchronized void catchPeak(T pValue)
+public synchronized void catchPeak(Object pO)
 {
+    
+    // This method must be overridden by subclasses.
     
 }// end of PeakBuffer::catchPeak
 //-----------------------------------------------------------------------------
@@ -114,10 +89,10 @@ public synchronized void catchPeak(T pValue)
 // Forces peak to pValue.
 //
 
-public synchronized void setPeak(T pValue)
+public synchronized void setPeak(Object pO)
 {
-
-    peak = pValue;
+    
+    // This method must be overridden by subclasses.    
     
 }// end of PeakBuffer::setPeak
 //-----------------------------------------------------------------------------
@@ -131,7 +106,7 @@ public synchronized void setPeak(T pValue)
 public synchronized void reset()
 {
 
-    peak = peakReset;
+    // This method must be overridden by subclasses.    
     
 }// end of PeakBuffer::reset
 //-----------------------------------------------------------------------------
@@ -146,6 +121,7 @@ public synchronized void reset()
 public synchronized void setResetValue(Object pO)
 {
 
+    // This method must be overridden by subclasses.    
     
 }// end of PeakBuffer::setResetValue
 //-----------------------------------------------------------------------------
@@ -156,10 +132,10 @@ public synchronized void setResetValue(Object pO)
 // Retrieves the current value of the peak without resetting it.
 //
 
-public synchronized T getPeak()
+public synchronized void getPeak(Object pO)
 {
 
-    return(peak);
+    // This method must be overridden by subclasses.
     
 }// end of PeakBuffer::getPeak
 //-----------------------------------------------------------------------------
@@ -171,12 +147,10 @@ public synchronized T getPeak()
 // value.
 //
 
-public synchronized T getPeakAndReset()
+public synchronized void getPeakAndReset(Object pO)
 {
 
-    T value = peak; peak = peakReset;
-    
-    return(value);
+    // This method must be overridden by subclasses.
     
 }// end of PeakBuffer::getPeakAndReset
 //-----------------------------------------------------------------------------

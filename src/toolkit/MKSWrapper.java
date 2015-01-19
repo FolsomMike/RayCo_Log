@@ -14,11 +14,6 @@
 * (Integer, Double, etc.) are inefficient because they are immutable and must
 * be recreated each time their value is changed.
 * 
-* It also implements Comparable so it can be used in Generic classes which
-* compare values. Generics cannot use primitives directly and if they use
-* the wrapper classes (Integer, Double, etc.) then this requires time costing
-* boxing/unboxing when passing primitives into the class.
-* 
 * The Java Integer class is immutable and does not allow the wrapped value to
 * be changed after creation so a new object must be created each time the value
 * is changed. This is inefficient for use in speed sensitive code.
@@ -41,7 +36,7 @@ package toolkit;
 // class MKSWrapper
 //
 
-public class MKSWrapper implements Comparable<MKSWrapper>
+public class MKSWrapper
 {
     
 
@@ -57,8 +52,7 @@ public class MKSWrapper implements Comparable<MKSWrapper>
 // NOTE: This method should be overridden by subclasses.
 //
     
-    @Override
-    public int compareTo(MKSWrapper pX)
+public int compareTo(Object O)
 {
 
     return(0);
