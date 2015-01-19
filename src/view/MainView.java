@@ -37,7 +37,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -500,7 +499,7 @@ private JPanel createSampleFrequencyPanel()
     
     //add unit selection drop box
     String[] units = { "Hz", "kHz", "MHz" };
-    sampleFreqUnitsInput = new JComboBox(units);
+    sampleFreqUnitsInput = new JComboBox<>(units);
     sampleFreqUnitsInput.setSelectedIndex(0);
     Tools.setSizes(sampleFreqUnitsInput, 60, 24);        
     panel.add(sampleFreqUnitsInput);
@@ -1245,7 +1244,7 @@ public void init()
     
     //add unit selection drop box
     String[] units = { "Hz", "kHz", "MHz" };
-    unitsInput = new JComboBox(units);
+    unitsInput = new JComboBox<>(units);
     unitsInput.setSelectedIndex(0);
     Tools.setSizes(unitsInput, 60, 24);        
     subPanel.add(unitsInput);

@@ -72,7 +72,7 @@ public class ADataClass extends Object{
     boolean displayFilteredWaveForm;
     int filterOutputScalingDivisor;
 
-    ArrayList<Integer> samples = new ArrayList();    
+    ArrayList<Integer> samples = new ArrayList<>();    
     
     // position in list of strings for each setting as returned from the View
 
@@ -155,7 +155,7 @@ public void setMainView(MainView pMainView)
 public void loadUserSettingsFromFile()
 {
 
-    ArrayList<String> list = new ArrayList();
+    ArrayList<String> list = new ArrayList<>();
     
     loadFromTextFile("User Settings.txt", list);
     
@@ -173,7 +173,7 @@ public void loadUserSettingsFromFile()
 public void saveUserSettingsToFile()
 {
 
-    ArrayList<String> list = new ArrayList();    
+    ArrayList<String> list = new ArrayList<>();    
     
     mainView.getAllUserInputData(list);
     
@@ -522,7 +522,7 @@ private void updateSettingsFromUserInputs()
 
     formatFIRCoefficientsFromUserInputs(); //reformat coefficient inputs
     
-    ArrayList<String> list = new ArrayList();    
+    ArrayList<String> list = new ArrayList<>();    
     
     mainView.getAllUserInputData(list);
     
