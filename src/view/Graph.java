@@ -16,6 +16,7 @@
 
 package view;
 
+import controller.GUIDataSet;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -38,6 +39,8 @@ public class Graph extends JPanel{
     private String title, shortTitle;
     private int chartGroupIndex, chartIndex, index;
     private int width, height;
+
+    private int tracePtr;
     
 //-----------------------------------------------------------------------------
 // Graph::Graph (constructor)
@@ -341,6 +344,79 @@ public void insertDataPointInTrace(int pTrace, int pData)
     traces[pTrace].insertDataPoint(pData);
 
 }// end of Graph::insertDataPointInTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::initForGUIChildrenScan
+//
+// Prepares for iteration through all traces.
+//
+
+public void initForGUIChildrenScan()
+{
+    
+    tracePtr = 0;
+
+}// end of Chart::initForGUIChildrenScan
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::getNextGUIChild
+//
+// Returns the index of the next GUI child object in the scan order in the
+// appropriate variable in guiDataSet.
+//
+// Returns 0 if a valid child other than the last is being returned, -1 if
+// not valid children are available, and 1 if the last child is being returned.
+//
+// If the variable in guiDataSet for the next child layer is not the RESET
+// value, then the index for the next child object is returned as well.
+//
+// This method can be used to iterate through all subsequent layers of child
+// objects by setting all the index number variables in guiDataSet to any
+// value other than RESET.
+//
+
+public int getNextGUIChild(GUIDataSet pGuiDataSet)
+{
+    
+    int status;
+
+    if(tracePtr >= traces.length){
+        //no more children
+        pGuiDataSet.traceNum = -1;
+        return(-1);
+    }else if (tracePtr == traces.length - 1){
+        //this is the last child
+        status = 1;
+        pGuiDataSet.traceNum = tracePtr;
+    }else{
+        //this is a valid child but not the last one
+        status = 0;
+        pGuiDataSet.traceNum = tracePtr;
+    }
+    
+    tracePtr++;
+
+    return(status);
+        
+}// end of Graph::getNextGUIChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::getTrace
+//
+// Returns the reference to trace pTrace.
+//
+
+public Trace getTrace(int pGraph, int pTrace)
+{
+
+    if (pTrace < 0 || pTrace >= traces.length){ return(null); }            
+    
+    return( traces[pTrace] );
+    
+}// end of Graph::getTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

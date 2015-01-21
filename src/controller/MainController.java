@@ -36,6 +36,7 @@
 package controller;
 
 import hardware.MainHandler;
+import hardware.PeakData;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
@@ -45,11 +46,13 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import mksystems.mswing.MFloatSpinner;
 import model.ADataClass;
+import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
 import view.MKSTools;
 import view.MainView;
+import view.Trace;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -59,11 +62,13 @@ import view.MainView;
 public class MainController implements EventHandler, Runnable
 {
 
-    IniFile configFile;
+    private IniFile configFile;
     
-    SharedSettings sharedSettings;
+    private SharedSettings sharedSettings;
 
-    MainHandler mainHandler;
+    private MainHandler mainHandler;
+
+    private PeakData<Integer> peakData;
     
     private ADataClass aDataClass;
 
@@ -92,6 +97,14 @@ public class MainController implements EventHandler, Runnable
 
     private final String newline = "\n";
 
+    private final GUIDataSet guiDataSet = new GUIDataSet();
+
+    private int numTraces;
+    private Trace traces[];
+        
+    private int numDataBuffers;
+    private DataTransferIntBuffer dataBuffers[];
+    
 //-----------------------------------------------------------------------------
 // MainController::MainController (constructor)
 //
@@ -116,6 +129,8 @@ public void init()
     sharedSettings.init(null);
 
     loadConfigSettings();
+
+    peakData = new PeakData<>(0);
     
     aDataClass = new ADataClass();
     aDataClass.init();
@@ -123,6 +138,9 @@ public void init()
     mainView = new MainView(this, aDataClass, sharedSettings, configFile);
     mainView.init();
 
+    //create data transfer buffers
+    setUpDataTransferBuffers();
+    
     aDataClass.setMainView(mainView); //give Model a pointer to View
     
     loadUserSettingsFromFile();    
@@ -169,6 +187,53 @@ public void loadConfigSettings()
     }
         
 }// end of MainController::loadConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::setUpDataTransferBuffers
+//
+// Creates and initializes the buffers used to store incoming data for access
+// by other threads for processing and display.
+//
+
+private void setUpDataTransferBuffers()
+{
+    
+    //prepare to iterate through all traces
+    mainView.initForGUIChildrenScan();
+    
+    //set all to zero so every child type will be scanned
+    guiDataSet.setGUIChildNums(0);
+    
+    //scan all traces to get total number of traces
+    numTraces = 0;
+    while (mainView.getNextGUIChild(guiDataSet) != -1){ numTraces++; }
+
+    numDataBuffers = numTraces;
+    traces = new Trace[numTraces];
+    dataBuffers = new DataTransferIntBuffer[numDataBuffers];
+
+    //prepare to iterate through all traces
+    mainView.initForGUIChildrenScan();
+    
+    //set all to zero so every child type will be scanned
+    guiDataSet.setGUIChildNums(0);
+    
+    int i = 0;
+    
+    //scan all traces again to set up a data transfer buffer for each
+    while (mainView.getNextGUIChild(guiDataSet) != -1){
+
+        traces[i] = mainView.getTrace(guiDataSet);
+        
+        dataBuffers[i] = new DataTransferIntBuffer(
+                        traces[i].getNumDataPoints(), traces[i].getPeakType());
+        dataBuffers[i].init(); dataBuffers[i].reset();
+        
+        i++;
+    }
+    
+}// end of MainController::setUpDataTransferBuffers
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -332,8 +397,31 @@ public void saveUserSettingsToFile()
 public void doTimerActions()
 {
 
+    updateGUIPeriodically();
 
 }//end of MainController::doTimerActions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::updateGUIPeriodically
+//
+// Handles updating the GUI with data in a timer loop. Used to transfer data
+// collected from the hardware to the screen display controls such as traces,
+// numeric displays, graphs, etc.
+//
+
+private void updateGUIPeriodically()
+{
+/* debug mks
+    mainHandler.initForPeakScan();
+    
+    while (mainHandler.getNextPeakData(peakData) != -1){
+           mainView.addDataToTrace(peakData);
+    }
+        
+        */
+    
+}// end of MainController::updateGUIPeriodically
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

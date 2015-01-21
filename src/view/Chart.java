@@ -16,6 +16,7 @@
 
 package view;
 
+import controller.GUIDataSet;
 import java.awt.*;
 import javax.swing.*;
 import model.IniFile;
@@ -38,6 +39,7 @@ class Chart extends JPanel{
     private Graph graphs[];
     private ZoomGraph zoomGraph;
 
+    private int graphPtr;
 
 //-----------------------------------------------------------------------------
 // Chart::Chart (constructor)
@@ -394,18 +396,87 @@ public int getNumTraces(int pGraph)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::initForGUIChildrenScan
+//
+// Prepares for iteration through all GUI child objects.
+//
+
+public void initForGUIChildrenScan()
+{
+    
+    graphPtr = 0;
+    
+    for (Graph graph : graphs) { graph.initForGUIChildrenScan(); }
+
+}// end of Chart::initForGUIChildrenScan
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::getNextGUIChild
+//
+// Returns the index of the next GUI child object in the scan order in the
+// appropriate variable in guiDataSet.
+//
+// Returns 0 if a valid child other than the last is being returned, -1 if
+// not valid children are available, and 1 if the last child is being returned.
+//
+// If the variable in guiDataSet for the next child layer is not the RESET
+// value, then the index for the next child object is returned as well.
+//
+// This method can be used to iterate through all subsequent layers of child
+// objects by setting all the index number variables in guiDataSet to any
+// value other than RESET.
+//
+
+public int getNextGUIChild(GUIDataSet pGuiDataSet)
+{
+    
+    int status;
+
+    if(graphPtr >= graphs.length){ 
+        pGuiDataSet.graphNum = -1;
+        return(-1);
+    }else if (graphPtr == graphs.length - 1){
+        status = 1;
+        pGuiDataSet.graphNum = graphPtr;
+    }else{
+        status = 0;
+        pGuiDataSet.graphNum = graphPtr;
+    }
+    
+    if(pGuiDataSet.traceNum == GUIDataSet.RESET){        
+        //don't scan deeper layer of children, move to the next child        
+        graphPtr++;
+        return(status);
+    }else{     
+        // scan the next layer of children as well, only moving to the next
+        // local child when all next layer children have been scanned
+        
+        int grandChildStatus = 
+                    graphs[graphPtr].getNextGUIChild(pGuiDataSet);
+        //if last child's last child returned, move to next child for next call
+        if (grandChildStatus == 1){ graphPtr++; }
+        //if last grandchild of last child, flag so parent moves to next child 
+        if (grandChildStatus == 1 && status == 1){ return(status);}
+        else{ return(0); }
+    }
+    
+}// end of Chart::getNextGUIChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::getTrace
 //
-// Returns Trace pTrace of Graph pGraph.
+// Returns the reference to trace pTrace of pGraph.
 //
 
 public Trace getTrace(int pGraph, int pTrace)
 {
+    
+    if (pGraph < 0 || pGraph >= graphs.length){ return(null); }        
 
-    if (pGraph < 0 || pGraph >= graphs.length){ return(null); }
-
-    return(graphs[pGraph].getTrace(pTrace));
-
+    return( graphs[pGraph].getTrace(pTrace) );
+    
 }// end of Chart::getTrace
 //-----------------------------------------------------------------------------
 

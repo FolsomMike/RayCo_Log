@@ -18,7 +18,6 @@ package hardware;
 
 import model.IniFile;
 import toolkit.MKSInteger;
-import toolkit.MKSWrapper;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

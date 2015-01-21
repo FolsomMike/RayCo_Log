@@ -47,7 +47,15 @@ public class Trace{
     private boolean connectPoints = true;
 
     int peakType;
-            
+
+    //simple getters & setters
+    
+    public int getWidth(){ return(width); }
+    public int getPeakType(){ return(peakType); }
+    public int getNumDataPoints() { return(numDataPoints); }
+    
+    //constants
+    
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
     
@@ -312,20 +320,6 @@ public int getDataInsertPos()
     return(dataInsertPos);
 
 }// end of Trace::getDataInsertPos
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::getWidth
-//
-// Returns width.
-//
-
-public int getWidth()
-{
-
-    return(width);
-
-}// end of Trace::getWidth
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

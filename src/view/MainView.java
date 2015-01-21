@@ -25,6 +25,7 @@ package view;
 //-----------------------------------------------------------------------------
 
 import controller.EventHandler;
+import controller.GUIDataSet;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -76,6 +77,8 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
 
     private int numChartGroups;
     private ChartGroup chartGroups[];
+    
+    private int chartGroupPtr;
     
     private JFrame mainFrame;
     private JPanel mainPanel;
@@ -768,6 +771,41 @@ public int getChartWidth()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::getTrace
+//
+// Returns the reference to trace pTrace of pGraph of pChart of pChartGroup.
+//
+
+public Trace getTrace(int pChartGroup, int pChart, int pGraph, int pTrace)
+{
+
+    if (pChartGroup < 0 || pChartGroup >= chartGroups.length){ return(null); }
+    
+    return( chartGroups[pChartGroup].getTrace(pChart, pGraph, pTrace) );
+    
+}// end of MainView::getTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::getTrace
+//
+// Returns the reference to Trace of Graph of Chart of ChartGroup as specified
+// by the values in pGuiDataSet.
+// 
+//
+
+public Trace getTrace(GUIDataSet pGuiDataSet)
+{
+    
+    return( getTrace(pGuiDataSet.chartGroupNum,
+                     pGuiDataSet.chartNum,
+                     pGuiDataSet.graphNum,
+                     pGuiDataSet.traceNum) );
+    
+}// end of MainView::getTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::setAllUserInputData
 //
 // Sets the values for all of the user input GUI controls to values in pList.
@@ -1115,6 +1153,77 @@ public void loadConfigSettings()
                                 "Main Settings", "number of chart groups", 0);
         
 }// end of MainView::loadConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::initForGUIChildrenScan
+//
+// Prepares for iteration through all GUI child objects.
+//
+
+public void initForGUIChildrenScan()
+{
+    
+    chartGroupPtr = 0;
+    
+    for (ChartGroup chartGroup : chartGroups) { 
+        chartGroup.initForGUIChildrenScan();
+    }
+
+}// end of MainView::initForGUIChildrenScan
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::getNextGUIChild
+//
+// Returns the index of the next GUI child object in the scan order in the
+// appropriate variable in guiDataSet.
+//
+// Returns 0 if a valid child other than the last is being returned, -1 if
+// not valid children are available, and 1 if the last child is being returned.
+//
+// If the variable in guiDataSet for the next child layer is not the RESET
+// value, then the index for the next child object is returned as well.
+//
+// This method can be used to iterate through all subsequent layers of child
+// objects by setting all the index number variables in guiDataSet to any
+// value other than RESET.
+//
+
+public int getNextGUIChild(GUIDataSet pGuiDataSet)
+{
+    
+    int status;
+
+    if(chartGroupPtr >= chartGroups.length){ 
+        pGuiDataSet.chartGroupNum = -1;
+        return(-1);
+    }else if (chartGroupPtr == chartGroups.length - 1){
+        status = 1;
+        pGuiDataSet.chartGroupNum = chartGroupPtr;
+    }else{
+        status = 0;
+        pGuiDataSet.chartGroupNum = chartGroupPtr;
+    }
+    
+    if(pGuiDataSet.chartNum == GUIDataSet.RESET){        
+        //don't scan deeper layer of children, move to the next child        
+        chartGroupPtr++;
+        return(status);
+    }else{     
+        // scan the next layer of children as well, only moving to the next
+        // local child when all next layer children have been scanned
+        
+        int grandChildStatus = 
+                    chartGroups[chartGroupPtr].getNextGUIChild(pGuiDataSet);
+        //if last child's last child returned, move to next child for next call
+        if (grandChildStatus == 1){ chartGroupPtr++; }
+        //if last grandchild of last child, flag so parent moves to next child 
+        if (grandChildStatus == 1 && status == 1){ return(status);}
+        else{ return(0); }
+    }
+    
+}// end of MainView::getNextGUIChild
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
