@@ -31,7 +31,7 @@ class Chart extends JPanel{
     private IniFile configFile;
     
     private String title, shortTitle;
-    private int chartGroupIndex, index;
+    private int chartGroupNum, chartNum;
     private int graphWidth, graphHeight;    
     int numGraphs;
     boolean hasAnnotationGraph;
@@ -63,11 +63,11 @@ public Chart()
 // in an array of the creating object.
 //
 
-public void init(int pChartGroupIndex, int pIndex, int pDefaultGraphWidth,
+public void init(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
         int pDefaultGraphHeight, IniFile pConfigFile)
 {
 
-    chartGroupIndex = pChartGroupIndex; index = pIndex;
+    chartGroupNum = pChartGroupNum; chartNum = pChartNum;
     configFile = pConfigFile;
     
     graphWidth = pDefaultGraphWidth;
@@ -82,7 +82,7 @@ public void init(int pChartGroupIndex, int pIndex, int pDefaultGraphWidth,
     
     for (int i = 0; i<numGraphs; i++){
         graphs[i] = new Graph(); //the traces are drawn on this panel
-        graphs[i].init(chartGroupIndex, index, i,
+        graphs[i].init(chartGroupNum, chartNum, i,
                                     graphWidth, graphHeight, configFile);
         add(graphs[i]);
         if(i<numGraphs-1){ addGraphSeparatorPanel(); }
@@ -90,7 +90,7 @@ public void init(int pChartGroupIndex, int pIndex, int pDefaultGraphWidth,
     
     if (hasAnnotationGraph){
         zoomGraph = new ZoomGraph();
-        zoomGraph.init(chartGroupIndex, index, 0,
+        zoomGraph.init(chartGroupNum, chartNum, 0,
                                            graphWidth, graphHeight, configFile);
         addGraphSeparatorPanel();
         add(zoomGraph);
@@ -108,12 +108,12 @@ public void init(int pChartGroupIndex, int pIndex, int pDefaultGraphWidth,
 private void loadConfigSettings()
 {
 
-    String section = "Chart Group " + chartGroupIndex + " Chart " + index;
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum;
 
-    title = configFile.readString(section, "title", "Chart " + (index + 1));
+    title = configFile.readString(section, "title", "Chart " + (chartNum + 1));
 
     shortTitle = configFile.readString(
-                                section, "short title", "chart" + (index + 1));    
+                             section, "short title", "chart" + (chartNum + 1));
     
     numGraphs = configFile.readInt(section, "number of graphs", 0);
     

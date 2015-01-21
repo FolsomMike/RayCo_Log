@@ -37,7 +37,7 @@ public class Graph extends JPanel{
     private Trace[] traces;
 
     private String title, shortTitle;
-    private int chartGroupIndex, chartIndex, index;
+    private int chartGroupNum, chartNum, graphNum;
     private int width, height;
 
     private int tracePtr;
@@ -56,12 +56,12 @@ public Graph()
 // Graph::init
 //
 
-public void init(int pChartGroupIndex, int pChartIndex, int pIndex,
+public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
                                   int pWidth, int pHeight, IniFile pConfigFile)
 {
 
-    chartGroupIndex = pChartGroupIndex; 
-    chartIndex = pChartIndex; index = pIndex; 
+    chartGroupNum = pChartGroupNum; 
+    chartNum = pChartNum; graphNum = pGraphNum; 
     width = pWidth; height = pHeight;
     configFile = pConfigFile;
 
@@ -83,13 +83,13 @@ public void init(int pChartGroupIndex, int pChartIndex, int pIndex,
 private void loadConfigSettings()
 {
 
-    String section = "Chart Group " + chartGroupIndex + " Chart " + chartIndex
-                                                            + " Graph " + index;
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
+                                                        + " Graph " + graphNum;
 
-    title = configFile.readString(section, "title", "Graph " + (index + 1));
+    title = configFile.readString(section, "title", "Graph " + (graphNum + 1));
 
     shortTitle = configFile.readString(
-                                section, "short title", "graph" + (index + 1));
+                             section, "short title", "graph" + (graphNum + 1));
         
     numTraces = configFile.readInt(section, "number of traces", 0);
         
@@ -118,7 +118,7 @@ private void createTraces()
     for(int i=0; i<traces.length; i++){
 
         traces[i] = new Trace();
-        traces[i].init(chartGroupIndex, chartIndex, index, i,
+        traces[i].init(chartGroupNum, chartNum, graphNum, i,
                                                     width, height, configFile);
     }
 

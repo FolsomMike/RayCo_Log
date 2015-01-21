@@ -30,7 +30,7 @@ public class Trace{
     private IniFile configFile;
     
     private String title, shortTitle;
-    private int chartGroupIndex, chartIndex, graphIndex, index;
+    private int chartGroupNum, chartNum, graphNum, traceNum;
     private int width, height;
     private int maxY;
     private int numDataPoints;
@@ -89,12 +89,12 @@ public Trace()
 // in an array of the creating object.
 //
 
-public void init(int pChartGroupIndex, int pChartIndex, int pGraphIndex,
-                    int pIndex, int pWidth, int pHeight, IniFile pConfigFile)
+public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
+                   int pTraceNum, int pWidth, int pHeight, IniFile pConfigFile)
 {
 
-    chartGroupIndex = pChartGroupIndex; chartIndex = pChartIndex;
-    graphIndex = pGraphIndex; index = pIndex; 
+    chartGroupNum = pChartGroupNum; chartNum = pChartNum;
+    graphNum = pGraphNum; traceNum = pTraceNum;
     width = pWidth; height = pHeight;
     configFile = pConfigFile;
 
@@ -119,14 +119,14 @@ public void init(int pChartGroupIndex, int pChartIndex, int pGraphIndex,
 private void loadConfigSettings()
 {
 
-    String section = "Chart Group " + chartGroupIndex + " Chart " + chartIndex
-            + " Graph " + graphIndex + " Trace " + index;
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
+                                + " Graph " + graphNum + " Trace " + traceNum;
 
     title = configFile.readString(
-                        section, "title", "Annotation Graph " + (index + 1));
+                        section, "title", "Trace " + (traceNum + 1));
 
     shortTitle = configFile.readString(
-                            section, "short title", "annograph" + (index + 1));
+                            section, "short title", "trace" + (traceNum + 1));
 
     int configWidth = configFile.readInt(section, "width", 0);
 

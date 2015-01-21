@@ -30,7 +30,7 @@ class ChartGroup extends JPanel{
     private IniFile configFile;
     
     private String title, shortTitle;
-    private int index;
+    private int chartGroupNum;
     private int graphWidth, graphHeight;        
     private int numCharts;
     private Chart charts[];
@@ -59,10 +59,10 @@ public ChartGroup()
 // in an array of the creating object.
 //
 
-public void init(int pIndex, IniFile pConfigFile)
+public void init(int pChartGroupNum, IniFile pConfigFile)
 {
 
-    index = pIndex; configFile = pConfigFile;
+    chartGroupNum = pChartGroupNum; configFile = pConfigFile;
     
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     
@@ -111,7 +111,7 @@ private void createCharts()
     
     for (int i = 0; i<charts.length; i++){
         charts[i] = new Chart();
-        charts[i].init(index, i, graphWidth, graphHeight, configFile);
+        charts[i].init(chartGroupNum, i, graphWidth, graphHeight, configFile);
         add(charts[i]);
     }
     
@@ -127,13 +127,13 @@ private void createCharts()
 private void loadConfigSettings()
 {
 
-    String section = "Chart Group " + index;
+    String section = "Chart Group " + chartGroupNum;
     
     title = configFile.readString(
-                                section, "title", "Chart Group " + (index + 1));
+                       section, "title", "Chart Group " + (chartGroupNum + 1));
 
     shortTitle = configFile.readString(
-                                section, "short title", "chgrp" + (index + 1));    
+                        section, "short title", "chgrp" + (chartGroupNum + 1));
         
     numCharts = configFile.readInt(section, "number of charts", 0);
     

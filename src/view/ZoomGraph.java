@@ -31,7 +31,7 @@ class ZoomGraph extends JPanel{
     
     private String title;    
     private String shortTitle;
-    private int chartGroupIndex, chartIndex, index;
+    private int chartGroupNum, chartNum, graphNum;
     private int width, height;
 
 //-----------------------------------------------------------------------------
@@ -56,12 +56,12 @@ public ZoomGraph()
 // in an array of the creating object.
 //
 
-public void init(int pChartGroupIndex, int pChartIndex, int pIndex,
+public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
                                   int pWidth, int pHeight, IniFile pConfigFile)
 {
 
-    chartGroupIndex = pChartGroupIndex; 
-    chartIndex = pChartIndex; index = pIndex; 
+    chartGroupNum = pChartGroupNum;
+    chartNum = pChartNum; graphNum = pGraphNum;
     width = pWidth; height = pHeight;
     configFile = pConfigFile;
 
@@ -81,14 +81,14 @@ public void init(int pChartGroupIndex, int pChartIndex, int pIndex,
 private void loadConfigSettings()
 {
 
-    String section = "Chart Group " + chartGroupIndex + " Chart " + chartIndex
-            + " Annotation Graph " + index;
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
+                                            + " Annotation Graph " + graphNum;
 
     title = configFile.readString(
-                        section, "title", "Annotation Graph " + (index + 1));
+                       section, "title", "Annotation Graph " + (graphNum + 1));
 
     shortTitle = configFile.readString(
-                            section, "short title", "annograph" + (index + 1));
+                         section, "short title", "annograph" + (graphNum + 1));
 
     int configWidth = configFile.readInt(section, "width", 0);
 
