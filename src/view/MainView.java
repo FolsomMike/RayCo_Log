@@ -1189,6 +1189,15 @@ public void initForGUIChildrenScan()
 // objects by setting all the index number variables in guiDataSet to any
 // value other than RESET.
 //
+// This method can be used to iterate through only chart groups, charts,
+// graphs, or all traces. Setting appropriate values in pGuiDataSet to -1
+// limits the depth of the iteration:
+//
+// chartGroupNum=0,chartNum=-1,graphNum=-1,traceNum=-1 => iterate groups only
+// chartGroupNum=0,chartNum=0,graphNum=-1,traceNum=-1 =>groups/charts
+// chartGroupNum=0,chartNum=0,graphNum=0,traceNum=-1 =>groups/charts/graphs
+// chartGroupNum=0,chartNum=0,graphNum=0,traceNum=0 => group/chart/graphs/traces
+//
 
 public int getNextGUIChild(GUIDataSet pGuiDataSet)
 {
