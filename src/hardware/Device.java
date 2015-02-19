@@ -27,7 +27,7 @@ public class Device
 {
 
     final IniFile configFile;
-    final int index;
+    final int deviceNum;
     String title = "", shortTitle = "";
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
@@ -37,10 +37,10 @@ public class Device
 // Device::Device (constructor)
 //
 
-public Device(int pIndex, IniFile pConfigFile)
+public Device(int pDeviceNum, IniFile pConfigFile)
 {
 
-    index = pIndex; configFile = pConfigFile;
+    deviceNum = pDeviceNum; configFile = pConfigFile;
     
 }//end of Device::Device (constructor)
 //-----------------------------------------------------------------------------
@@ -74,12 +74,32 @@ void setUpChannels()
     
     for(int i=0; i<numChannels; i++){
      
-        channels[i] = new Channel(index, i, configFile);
+        channels[i] = new Channel(deviceNum, i, configFile);
         channels[i].init();
         
     }
     
 }// end of Device::setUpChannels
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::collectData
+//
+// Collects data from source(s) -- remote hardware devices, databases,
+// simulations, etc.
+//
+// Should be called periodically to allow collection of data buffered in the
+// source.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+public void collectData()
+{
+    
+    
+    
+}// end of Device::collectData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -91,15 +111,15 @@ void setUpChannels()
 void loadConfigSettings()
 {
     
-    String section = "Device " + index + " Settings";
+    String section = "Device " + deviceNum + " Settings";
 
-    title = configFile.readString(section, "title", "Device " + index);
+    title = configFile.readString(section, "title", "Device " + deviceNum);
     
     shortTitle = configFile.readString(section, "short title", 
-                                                            "Device " + index);
+                                                        "Device " + deviceNum);
 
     numChannels = configFile.readInt(section, "number of channels", 0);
-    
+
 }// end of Device::loadConfigSettings
 //-----------------------------------------------------------------------------
 

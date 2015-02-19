@@ -69,7 +69,7 @@ void loadConfigSettings()
     
     super.loadConfigSettings();
     
-    String section = "Device " + index + " Settings";
+    String section = "Device " + deviceNum + " Settings";
 
 }// end of Multi_IO_A_Wall::loadConfigSettings
 //-----------------------------------------------------------------------------

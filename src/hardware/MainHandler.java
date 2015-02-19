@@ -19,6 +19,8 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.util.ArrayList;
+import java.util.ListIterator;
 import model.IniFile;
 import model.SharedSettings;
 
@@ -30,13 +32,14 @@ import model.SharedSettings;
 public class MainHandler
 {
 
-    private final int index;
+    private final int handlerNum;
     private final IniFile configFile;    
     private final SharedSettings sharedSettings;
 
-    private final int NUM_DEVICES = 3;
+    private int numDevices;
 
     Device devices[];
+    ArrayList<String> deviceTypes;
     
     private static final int LONG = 0;  //longitudinal system
     private static final int TRANS = 1; //transverse system
@@ -46,12 +49,14 @@ public class MainHandler
 // MainHandler::MainHandler (constructor)
 //
 
-public MainHandler(int pIndex, SharedSettings pSharedSettings,
+public MainHandler(int pHandlerNum, SharedSettings pSharedSettings,
                                                         IniFile pConfigFile)
 {
 
-    index = pIndex; sharedSettings = pSharedSettings;
+    handlerNum = pHandlerNum; sharedSettings = pSharedSettings;
     configFile = pConfigFile;
+    
+    deviceTypes = new ArrayList<>();
     
 }//end of MainHandler::MainHandler (constructor)
 //-----------------------------------------------------------------------------
@@ -81,24 +86,59 @@ public void init()
 // Creates and sets up the devices for communicating with the data acquisition
 // and control boards.
 //
+// The type of class to create for each device is determined by the string
+// in the deviceTypes list.
+//
 
 private void setUpDevices()
 {
 
-    devices = new Device[NUM_DEVICES];
+    devices = new Device[numDevices];
     
-    devices[LONG] = new Multi_IO_A_Longitudinal(LONG, configFile);
-    devices[LONG].init();
-
-    devices[TRANS] = new Multi_IO_A_Transverse(TRANS, configFile);
-    devices[TRANS].init();
-
-    devices[WALL] = new Multi_IO_A_Wall(WALL, configFile);
-    devices[WALL].init();
+    int index = 0;    
+    
+    ListIterator iter = deviceTypes.listIterator();
+    
+    while(iter.hasNext()){
+        
+        devices[index] = createDevice((String) iter.next(), index, configFile);
+        devices[index].init();
+    
+    }
 
 }// end of MainHandler::setUpDevices
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::createDevice
+//
+// Creates and returns an object of a child class of Device. The particular
+// child class is specified by pDeviceType. The new object will be assigned
+// an index number of pIndex for its internal use and a reference to a
+// configuration file of pConfigFile.
+//
+
+private Device createDevice(String pDeviceType, int pIndex, IniFile pConfigFile)
+{
         
+    switch(pDeviceType){
+    
+        case "Longitudinal ~ RayCo Log ~ A" : 
+            return (new Multi_IO_A_Longitudinal(pIndex, pConfigFile));
+
+        case "Transverse ~ RayCo Log ~ A" :
+            return (new Multi_IO_A_Transverse(pIndex, pConfigFile));
+            
+        case "Wall ~ RayCo Log ~ A" :
+            return (new Multi_IO_A_Wall(pIndex, pConfigFile));
+
+        default: return(null);
+            
+    }
+    
+}// end of MainHandler::createDevice
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // MainHandler::loadConfigSettings
 //
@@ -109,7 +149,15 @@ private void loadConfigSettings()
 {
     
     String section = "Hardware Settings";
-    
+
+    numDevices =  configFile.readInt(section, "number of devices", 0);
+
+    //read in the device type string for each device
+    for(int i=0; i<numDevices; i++){
+        String s = configFile.readString(section, "device " + i + " type", "");
+        deviceTypes.add(s);
+    }
+
 }// end of MainHandler::loadConfigSettings
 //-----------------------------------------------------------------------------
 
