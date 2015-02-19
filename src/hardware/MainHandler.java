@@ -40,6 +40,8 @@ public class MainHandler
 
     Device devices[];
     ArrayList<String> deviceTypes;
+
+    public boolean ready = false;
     
     private static final int LONG = 0;  //longitudinal system
     private static final int TRANS = 1; //transverse system
@@ -76,7 +78,9 @@ public void init()
     //and control boards
 
     setUpDevices();
-        
+    
+    ready = true; //devices are ready for access
+    
 }// end of MainHandler::init
 //-----------------------------------------------------------------------------
 
@@ -100,10 +104,9 @@ private void setUpDevices()
     ListIterator iter = deviceTypes.listIterator();
     
     while(iter.hasNext()){
-        
         devices[index] = createDevice((String) iter.next(), index, configFile);
         devices[index].init();
-    
+        index++;
     }
 
 }// end of MainHandler::setUpDevices
@@ -137,6 +140,24 @@ private Device createDevice(String pDeviceType, int pIndex, IniFile pConfigFile)
     }
     
 }// end of MainHandler::createDevice
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::collectData
+//
+// Collects data from all source(s) -- remote hardware devices, databases,
+// simulations, etc.
+//
+// Should be called periodically to allow collection of data buffered in the
+// source.
+//
+
+public void collectData()
+{
+    
+    for(Device device : devices){ device.collectData(); }
+    
+}// end of MainHandler::collectData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

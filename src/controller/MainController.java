@@ -583,7 +583,7 @@ public void run()
         control();
 
         //sleep for 2 seconds -- all timing is based on this period
-        threadSleep(2000);
+        threadSleep(300);
 
     }
 
@@ -620,7 +620,9 @@ public void control()
         //call function to update stuff here
     }
 
-
+    //periodically collect all data from input sources
+    if(mainHandler != null && mainHandler.ready){ mainHandler.collectData(); }
+    
     //If a shut down is initiated, clean up and exit the program.
 
     if(shutDown){
