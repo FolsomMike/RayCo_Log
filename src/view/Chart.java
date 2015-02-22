@@ -480,6 +480,21 @@ public Trace getTrace(int pGraph, int pTrace)
 }// end of Chart::getTrace
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Chart::paintLastTraceDataPoint
+//
+// Draws line from data point before the last inserted to the last inserted
+// data point in the buffer for pTrace of pGraph.
+//
+
+public void paintLastTraceDataPoint(int pGraph, int pTrace)
+{
+
+    graphs[pGraph].paintLastTraceDataPoint(pTrace);
+
+}// end of Chart::paintLastTraceDataPoint
+//-----------------------------------------------------------------------------
+
 }//end of class Chart
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

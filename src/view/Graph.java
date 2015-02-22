@@ -1,5 +1,5 @@
 /******************************************************************************
-* Title: Chart.java
+* Title: Graph.java
 * Author: Mike Schoonover
 * Date: 01/14/15
 *
@@ -146,12 +146,42 @@ public void paintComponent (Graphics g)
 // Paints all the traces on the canvas.
 //
 
-public void paintTraces (Graphics2D pG2)
+public void paintTraces(Graphics2D pG2)
 {
     
-    for (Trace trace : traces) { trace.paint(pG2); }
+    for (Trace trace : traces) { trace.paintTrace(pG2); }
 
 }// end of Graph::paintTraces
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::paintSingleTraceDataPoint
+//
+// Draws line from data point specified by pIndex to the next point in the
+// buffer for pTrace.
+//
+
+public void paintSingleTraceDataPoint(int pTrace, int pIndex)
+{
+
+    traces[pTrace].paintTrace((Graphics2D) getGraphics());
+
+}// end of Graph::paintSingleTraceDataPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::paintLastTraceDataPoint
+//
+// Draws line from data point before the last inserted to the last inserted
+// data point in the buffer for pTrace.
+//
+
+public void paintLastTraceDataPoint(int pTrace)
+{
+    
+    traces[pTrace].paintLastTraceDataPoint((Graphics2D) getGraphics());
+
+}// end of Graph::paintLastTraceDataPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

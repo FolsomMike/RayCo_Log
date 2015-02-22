@@ -10,7 +10,9 @@
 * number, the chart group/chart/graph/trace to which the data should be applied,
 * and any other pertinent information.
 * 
-* The class is a Generic so that the type of the data peak can be specified.
+* The class is a not a Generic because that comes with a lot of overhead since
+* Generic classes can only handle Objects and not primitives. Classes such as
+* Integer are immutable and must be recreated each time they are changed.
 *
 */
 
@@ -25,7 +27,7 @@ package hardware;
 // class PeakData
 //
 
-public class PeakData<T>
+public class PeakData
 {
 
 int index = 0;
@@ -35,7 +37,7 @@ public int chart = -1;
 public int graph = -1;
 public int trace = -1;
 
-public T peak;
+public int peak = 0;
     
 //-----------------------------------------------------------------------------
 // PeakData::PeakData (constructor)

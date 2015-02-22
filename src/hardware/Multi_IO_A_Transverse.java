@@ -30,10 +30,10 @@ public class Multi_IO_A_Transverse extends Device
 // Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //
 
-public Multi_IO_A_Transverse(int pIndex, IniFile pConfigFile)
+public Multi_IO_A_Transverse(int pIndex, IniFile pConfigFile, boolean pSimMode)
 {
 
-    super(pIndex, pConfigFile);
+    super(pIndex, pConfigFile, pSimMode);
     
 }//end of Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //-----------------------------------------------------------------------------

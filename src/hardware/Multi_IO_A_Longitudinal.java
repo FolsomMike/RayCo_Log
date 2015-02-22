@@ -17,6 +17,7 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.IniFile;
+import toolkit.MKSInteger;
 
 //-----------------------------------------------------------------------------
 // class Multi_IO_A_Longitudinal
@@ -25,15 +26,27 @@ import model.IniFile;
 public class Multi_IO_A_Longitudinal extends Device
 {
 
+    byte[] packet;
+
+    MKSInteger data = new MKSInteger(0);    
+    
+    Simulator simulator = null;
+
+    static final int PACKET_SIZE = 9;
     
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //
 
-public Multi_IO_A_Longitudinal(int pIndex, IniFile pConfigFile)
+public Multi_IO_A_Longitudinal(
+                            int pIndex, IniFile pConfigFile, boolean pSimMode)
 {
 
-    super(pIndex, pConfigFile);
+    super(pIndex, pConfigFile, pSimMode);
+
+    packet = new byte[PACKET_SIZE];
+
+    if(simMode){ simulator = new SimulatorLongitudinal(0); }
     
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //-----------------------------------------------------------------------------
@@ -55,6 +68,40 @@ public void init()
     setUpChannels();    
 
 }// end of Multi_IO_A_Longitudinal::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Longitudinal::collectData
+//
+// Collects data from source(s) -- remote hardware devices, databases,
+// simulations, etc.
+//
+// Should be called periodically to allow collection of data buffered in the
+// source.
+//
+
+@Override
+public void collectData()
+{
+    
+    if (!simMode){ 
+        getRunPacketFromDevice(packet);
+    }else{        
+        simulator.getRunPacket(packet);
+    }
+    
+    //first channel's buffer location specifies start of channel data section
+    int index = channels[0].getBufferLoc();
+    
+    for(Channel channel : channels){
+     
+        data.x = getUnsignedShortFromPacket(packet, index);
+        channel.catchPeak(data);
+        index += 2;
+        
+    }
+    
+}// end of Multi_IO_A_Longitudinal::collectData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

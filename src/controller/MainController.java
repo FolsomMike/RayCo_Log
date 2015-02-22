@@ -50,6 +50,7 @@ import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
+import toolkit.MKSInteger;
 import view.MKSTools;
 import view.MainView;
 import view.Trace;
@@ -68,7 +69,7 @@ public class MainController implements EventHandler, Runnable
 
     private MainHandler mainHandler;
 
-    private PeakData<Integer> peakData;
+    private PeakData peakData;
     
     private ADataClass aDataClass;
 
@@ -130,7 +131,7 @@ public void init()
 
     loadConfigSettings();
 
-    peakData = new PeakData<>(0);
+    peakData = new PeakData(0);
     
     aDataClass = new ADataClass();
     aDataClass.init();
@@ -153,7 +154,7 @@ public void init()
 
     mainView.setupAndStartMainTimer();
     
-    aDataClass.updateWaveforms();
+//debug mks -- remove this    aDataClass.updateWaveforms();
 
     mainHandler = new MainHandler(0, sharedSettings, configFile);
     mainHandler.init();
@@ -409,19 +410,42 @@ public void doTimerActions()
 // collected from the hardware to the screen display controls such as traces,
 // numeric displays, graphs, etc.
 //
+// Also updates all other data which does not originate from devices.
+//
 
 private void updateGUIPeriodically()
 {
-/* debug mks
+    //periodically collect all data from input sources
+    if(mainHandler != null && mainHandler.ready){ displayDataFromDevices(); }
+      
+}// end of MainController::updateGUIPeriodically
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayDataFromDevices
+//
+// Handles updating the GUI with data in a timer loop. Used to transfer data
+// collected from the hardware to the screen display controls such as traces,
+// numeric displays, graphs, etc.
+//
+
+private void displayDataFromDevices()
+{
+  
+    //prepares to scan through all channels
     mainHandler.initForPeakScan();
     
+    //get peak data for each channel
     while (mainHandler.getNextPeakData(peakData) != -1){
-           mainView.addDataToTrace(peakData);
+           mainView.insertDataPointInTrace(peakData.chartGroup, peakData.chart,
+                                peakData.graph, peakData.trace, peakData.peak);
+           
+            mainView.paintLastTraceDataPoint(peakData.chartGroup, 
+                               peakData.chart, peakData.graph, peakData.trace);
+           
     }
-        
-        */
     
-}// end of MainController::updateGUIPeriodically
+}// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -582,8 +606,8 @@ public void run()
 
         control();
 
-        //sleep for 2 seconds -- all timing is based on this period
-        threadSleep(300);
+        //sleep for a bit
+        threadSleep(10);
 
     }
 

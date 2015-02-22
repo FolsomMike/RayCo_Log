@@ -33,11 +33,17 @@ public class Channel
     String title, shortTitle;
 
     int chartGroup, chart, graph, trace;
-
+    
     public int getChartGroup(){ return(chartGroup); }
     public int getChart(){ return(chart); }
     public int getGraph(){ return(graph); }
     public int getTrace(){ return(trace); }
+
+    private int dataType;
+    public int getDataType(){ return (dataType);}
+    
+    private int bufferLoc;    
+    public int getBufferLoc(){ return (bufferLoc);}
     
     int peakType;
     PeakBuffer peakBuffer;
@@ -46,6 +52,9 @@ public class Channel
     
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
+    
+    public static final int INTEGER_TYPE = 0;
+    public static final int DOUBLE_TYPE = 1;
     
 //-----------------------------------------------------------------------------
 // Channel::Channel (constructor)
@@ -134,9 +143,15 @@ private void loadConfigSettings()
     
     trace = configFile.readInt(section, "trace", -1);    
     
-    String peakTypeText = configFile.readString(
-                                        section, "peak type", "catch highest");
-    parsePeakType(peakTypeText);
+    String s;
+            
+    s = configFile.readString(section, "peak type", "catch highest");
+    parsePeakType(s);
+    
+    s = configFile.readString(section, "data type", "integer");
+    parseDataType(s);
+
+    bufferLoc = configFile.readInt(section, "buffer location", -1);
     
 }// end of Trace::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -161,6 +176,40 @@ public void parsePeakType(String pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::parseDataType
+//
+// Converts the descriptive string loaded from the config file for the data
+// type (integer, double, etc.) into the corresponding constant.
+//
+
+public void parseDataType(String pValue)
+{
+
+    switch (pValue) {
+         case "integer": dataType = INTEGER_TYPE; break;
+         case "double" : dataType = DOUBLE_TYPE;  break;
+         default : dataType = INTEGER_TYPE;  break;
+    }
+    
+}// end of Channel::parseDataType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::catchPeak
+//
+// Stores value incapsulated in pPeakValue as a new peak if it is
+// greater/lesser (depending on peak type) than the current peak. 
+//
+
+public void catchPeak(Object pPeakValue)
+{
+    
+    peakBuffer.catchPeak(pPeakValue);
+    
+}// end of Channel::catchPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::getPeakAndReset
 //
 // Retrieves the current value of the peak and resets the peak to the reset
@@ -175,6 +224,28 @@ public void getPeakAndReset(Object pPeakValue)
     peakBuffer.getPeakAndReset(pPeakValue);
     
 }// end of Channel::getPeakAndReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getPeakData
+//
+// Retrieves the current value of the peak along with all relevant info for the
+// channel such as the chart & trace to which it is attached.
+//
+// Resets the peak to the reset value.
+//
+
+public void getPeakData(PeakData pPeakData)
+{
+    
+    peakBuffer.getPeakAndReset(data);    
+    pPeakData.peak = data.x;
+    pPeakData.chartGroup = chartGroup;
+    pPeakData.chart = chart;
+    pPeakData.graph = graph;
+    pPeakData.trace = trace;
+    
+}// end of Channel::getPeakData
 //-----------------------------------------------------------------------------
 
 }//end of class Channel

@@ -806,6 +806,22 @@ public Trace getTrace(GUIDataSet pGuiDataSet)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::paintLastTraceDataPoint
+//
+// Draws line from data point before the last inserted to the last inserted
+// data point in the buffer for pTrace of pGraph of pChart of pChartGroup
+//
+
+public void paintLastTraceDataPoint(
+                           int pChartGroup, int pChart, int pGraph, int pTrace)
+{
+
+    chartGroups[pChartGroup].paintLastTraceDataPoint(pChart, pGraph, pTrace);
+
+}// end of MainView::paintLastTraceDataPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::setAllUserInputData
 //
 // Sets the values for all of the user input GUI controls to values in pList.
@@ -1101,8 +1117,7 @@ public void updateModelDataSet1()
 public void setupAndStartMainTimer()
 {
 
-    //main timer has 2 second period
-    mainTimer = new javax.swing.Timer (2000, this);
+    mainTimer = new javax.swing.Timer (10, this);
     mainTimer.setActionCommand ("Timer");
     mainTimer.start();
 
