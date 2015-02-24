@@ -60,10 +60,8 @@ public void init()
 public void getRunPacket(byte[] pPacket)
 {
 
-    getRunPacket2(pPacket); //debug mks remove this
+    //getRunPacket2(pPacket); //debug mks remove this
     
-    
-/*     debug mks -- put this back in
     int index = 0;
     
     addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
@@ -73,9 +71,7 @@ public void getRunPacket(byte[] pPacket)
     addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
     index += 2;
     addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal());
-  
-*/        
-        
+      
 }// end of SimulatorLongitudinal::getRunPacket
 //-----------------------------------------------------------------------------
 

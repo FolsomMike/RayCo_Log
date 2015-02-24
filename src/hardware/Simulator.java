@@ -29,7 +29,7 @@ public class Simulator
     static final int AD_MAX_SWING = 511;
     static final int AD_ZERO_OFFSET = 511;
     static final int SIM_NOISE = 10;
-    static final double SPIKE_ODDS = .10;
+    static final double SPIKE_ODDS = 2;
         
 //-----------------------------------------------------------------------------
 // Simulator::Simulator (constructor)
@@ -118,8 +118,8 @@ int simulatePositiveSignal()
     
     value += (int)(SIM_NOISE * Math.random());
     
-    if (Math.random() > SPIKE_ODDS){
-        value += (int)(AD_MAX_SWING * Math.random());
+    if ((int)(100*Math.random()) < SPIKE_ODDS){
+        value += (int)(100 * Math.random());
     }
     
     if (value > AD_MAX_VALUE) { value = AD_MAX_VALUE; }
@@ -143,8 +143,8 @@ int simulateNegativeSignal()
     
     value -= (int)(SIM_NOISE * Math.random());
     
-    if (Math.random() > SPIKE_ODDS){
-        value -= (int)(AD_MAX_SWING * Math.random());
+    if ((int)(100*Math.random()) < SPIKE_ODDS){
+        value += (int)(100 * Math.random());
     }
     
     if (value < AD_MIN_VALUE) { value = AD_MIN_VALUE; }
