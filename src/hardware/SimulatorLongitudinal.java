@@ -14,11 +14,6 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
-
-import model.IniFile;
-import model.SharedSettings;
-
-//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class SimulatorLongitudinal
 //
@@ -96,13 +91,16 @@ public void getRunPacket2(byte[] pPacket)
 
     int index = 0;
     
-    addUnsignedShortToPacket(pPacket, index, sawtooth);
+    int posSawtooth = AD_ZERO_OFFSET + sawtooth;
+    int negSawtooth = AD_ZERO_OFFSET - sawtooth;
+            
+    addUnsignedShortToPacket(pPacket, index, posSawtooth); // +shoe1
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, sawtooth);
+    addUnsignedShortToPacket(pPacket, index, negSawtooth); // -shoe1
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, sawtooth + 5);
+    addUnsignedShortToPacket(pPacket, index, posSawtooth + 5); // +shoe2
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, sawtooth + 5);
+    addUnsignedShortToPacket(pPacket, index, negSawtooth + 5); // -shoe2
 
     sawtooth++;
     if(sawtooth > 99) { sawtooth = 0; }

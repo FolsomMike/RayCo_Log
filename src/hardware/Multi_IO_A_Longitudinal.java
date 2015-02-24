@@ -33,7 +33,12 @@ public class Multi_IO_A_Longitudinal extends Device
     Simulator simulator = null;
 
     static final int PACKET_SIZE = 9;
-    
+
+    static final int AD_MAX_VALUE = 1023;
+    static final int AD_MIN_VALUE = 0;
+    static final int AD_MAX_SWING = 511;
+    static final int AD_ZERO_OFFSET = 511;
+        
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //
@@ -96,11 +101,12 @@ public void collectData()
     for(Channel channel : channels){
      
         data.x = getUnsignedShortFromPacket(packet, index);
+        data.x = Math.abs(data.x -= AD_ZERO_OFFSET);
         channel.catchPeak(data);
         index += 2;
         
     }
-    
+
 }// end of Multi_IO_A_Longitudinal::collectData
 //-----------------------------------------------------------------------------
 

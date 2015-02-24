@@ -50,7 +50,6 @@ import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
-import toolkit.MKSInteger;
 import view.MKSTools;
 import view.MainView;
 import view.Trace;
