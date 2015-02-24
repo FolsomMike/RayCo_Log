@@ -15,9 +15,6 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
-import model.IniFile;
-import model.SharedSettings;
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class SimulatorTransverse
@@ -30,8 +27,7 @@ public class SimulatorTransverse extends Simulator
 // SimulatorTransverse::SimulatorTransverse (constructor)
 //
     
-public SimulatorTransverse(int pSimulatorNum, SharedSettings pSharedSettings,
-                                                        IniFile pConfigFile)
+public SimulatorTransverse(int pSimulatorNum)
 {
 
     super(pSimulatorNum);
@@ -68,37 +64,37 @@ public void getRunPacket(byte[] pPacket)
 
     int index = 0;
     
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+1
+    addUnsignedShortToPacket(pPacket, index, 561 /*simulatePositiveSignal()*/); //+1
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-1
+    addUnsignedShortToPacket(pPacket, index, 461/*simulateNegativeSignal()*/); //-1
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+2
+    addUnsignedShortToPacket(pPacket, index, 511/*simulatePositiveSignal()*/); //+2
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-2
+    addUnsignedShortToPacket(pPacket, index, 511/*simulateNegativeSignal()*/); //-2
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+3
+    addUnsignedShortToPacket(pPacket, index, 511/*simulatePositiveSignal()*/); //+3
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-3
+    addUnsignedShortToPacket(pPacket, index, 511/*simulateNegativeSignal()*/); //-3
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+4
+    addUnsignedShortToPacket(pPacket, index, 511/*simulatePositiveSignal()*/); //+4
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-4
+    addUnsignedShortToPacket(pPacket, index, 511/*simulateNegativeSignal()*/); //-4
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+5
+    addUnsignedShortToPacket(pPacket, index, 511/*simulatePositiveSignal()*/); //+5
     index += 2;    
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-5
+    addUnsignedShortToPacket(pPacket, index, 511/*simulateNegativeSignal()*/); //-5
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+6
+    addUnsignedShortToPacket(pPacket, index, 511/*simulatePositiveSignal()*/); //+6
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-6
+    addUnsignedShortToPacket(pPacket, index, 511/*simulateNegativeSignal()*/); //-6
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+7
+    addUnsignedShortToPacket(pPacket, index, 511/*simulatePositiveSignal()*/); //+7
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-7
+    addUnsignedShortToPacket(pPacket, index, 511/*simulateNegativeSignal()*/); //-7
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+8
+    addUnsignedShortToPacket(pPacket, index, 511/*simulatePositiveSignal()*/); //+8
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-8
+    addUnsignedShortToPacket(pPacket, index, 511/*simulateNegativeSignal()*/); //-8
     
 }// end of SimulatorTransverse::getRunPacket
 //-----------------------------------------------------------------------------

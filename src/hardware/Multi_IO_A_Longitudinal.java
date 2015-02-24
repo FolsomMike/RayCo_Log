@@ -17,27 +17,13 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.IniFile;
-import toolkit.MKSInteger;
 
 //-----------------------------------------------------------------------------
 // class Multi_IO_A_Longitudinal
 //
 
-public class Multi_IO_A_Longitudinal extends Device
+public class Multi_IO_A_Longitudinal extends MultiIODevice
 {
-
-    byte[] packet;
-
-    MKSInteger data = new MKSInteger(0);    
-    
-    Simulator simulator = null;
-
-    static final int PACKET_SIZE = 9;
-
-    static final int AD_MAX_VALUE = 1023;
-    static final int AD_MIN_VALUE = 0;
-    static final int AD_MAX_SWING = 511;
-    static final int AD_ZERO_OFFSET = 511;
         
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
@@ -49,8 +35,8 @@ public Multi_IO_A_Longitudinal(
 
     super(pIndex, pConfigFile, pSimMode);
 
-    packet = new byte[PACKET_SIZE];
-
+    PACKET_SIZE = 9;
+    
     if(simMode){ simulator = new SimulatorLongitudinal(0); }
     
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)

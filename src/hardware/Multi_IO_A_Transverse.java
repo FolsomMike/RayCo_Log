@@ -6,7 +6,7 @@
 * Purpose:
 *
 * This class handles communication with a Multi-IO board configuration A
-* used for Longitudinal data acquisition.
+* used for Transverse data acquisition.
 *
 */
 
@@ -22,18 +22,22 @@ import model.IniFile;
 // class Multi_IO_A_Transverse
 //
 
-public class Multi_IO_A_Transverse extends Device
+public class Multi_IO_A_Transverse extends MultiIODevice
 {
 
-    
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //
 
-public Multi_IO_A_Transverse(int pIndex, IniFile pConfigFile, boolean pSimMode)
+public Multi_IO_A_Transverse(
+                            int pIndex, IniFile pConfigFile, boolean pSimMode)
 {
 
     super(pIndex, pConfigFile, pSimMode);
+    
+    PACKET_SIZE = 40;
+
+    if(simMode){ simulator = new SimulatorTransverse(0); }
     
 }//end of Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //-----------------------------------------------------------------------------
@@ -51,10 +55,45 @@ public void init()
     super.init();
 
     loadConfigSettings();
-
-    setUpChannels();
     
+    setUpChannels();    
+
 }// end of Multi_IO_A_Transverse::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Transverse::collectData
+//
+// Collects data from source(s) -- remote hardware devices, databases,
+// simulations, etc.
+//
+// Should be called periodically to allow collection of data buffered in the
+// source.
+//
+
+@Override
+public void collectData()
+{
+    
+    if (!simMode){ 
+        getRunPacketFromDevice(packet);
+    }else{        
+        simulator.getRunPacket(packet);
+    }
+    
+    //first channel's buffer location specifies start of channel data section
+    int index = channels[0].getBufferLoc();
+    
+    for(Channel channel : channels){
+     
+        data.x = getUnsignedShortFromPacket(packet, index);
+        data.x = Math.abs(data.x -= AD_ZERO_OFFSET);
+        channel.catchPeak(data);
+        index += 2;
+        
+    }
+
+}// end of Multi_IO_A_Transverse::collectData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

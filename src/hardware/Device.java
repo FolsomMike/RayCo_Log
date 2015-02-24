@@ -161,7 +161,7 @@ public void getPeakData(int pChannel, PeakData pPeakData)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Multi_IO_A_Longitudinal::getRunPacketFromDevice
+// Device::getRunPacketFromDevice
 //
 // Retrieves a run-time data packet from the remote device.
 //
@@ -169,11 +169,11 @@ public void getPeakData(int pChannel, PeakData pPeakData)
 void getRunPacketFromDevice(byte[] pPacket)
 {
     
-}// end of Multi_IO_A_Longitudinal::getRunPacketFromDevice
+}// end of Device::getRunPacketFromDevice
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::getIntFromPacket
+// Device::getIntFromPacket
 //
 // Extracts and combines four bytes from pPacket, MSB first starting at
 // location pIndex, and returns the value as an int.
@@ -189,11 +189,11 @@ int getIntFromPacket(byte[] pPacket, int pIndex)
             + (pPacket[pIndex++] & 0xff)
     );
     
-}//end of Simulator::getIntFromPacket
+}//end of Device::getIntFromPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::getUnsignedShortFromPacket
+// Device::getUnsignedShortFromPacket
 //
 // Extracts and combines two bytes representing an unsigned short from pPacket,
 // MSB first starting at location pIndex, and returns the value as an int.
@@ -207,9 +207,8 @@ int getUnsignedShortFromPacket(byte[] pPacket, int pIndex)
             + (int)(pPacket[pIndex++] & 0xff)    
     );
     
-}//end of Simulator::getUnsignedShortFromPacket
+}//end of Device::getUnsignedShortFromPacket
 //-----------------------------------------------------------------------------
-
 
 }//end of class Device
 //-----------------------------------------------------------------------------
