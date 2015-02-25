@@ -60,7 +60,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
-import model.ADataClass;
+import model.MainDataClass;
 import model.IniFile;
 import model.SharedSettings;
 import toolkit.Tools;
@@ -83,7 +83,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JFrame mainFrame;
     private JPanel mainPanel;
     
-    private final ADataClass aDataClass;
+    private final MainDataClass aDataClass;
 
     private MainMenu mainMenu;
 
@@ -136,7 +136,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
 // MainView::MainView (constructor)
 //
 
-public MainView(EventHandler pEventHandler, ADataClass pADataClass,
+public MainView(EventHandler pEventHandler, MainDataClass pADataClass,
                     SharedSettings pSharedSettings, IniFile pConfigFile)
 {
 

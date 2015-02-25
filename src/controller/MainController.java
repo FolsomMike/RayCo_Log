@@ -16,7 +16,7 @@
 * aspects of the control functions.
 *
 * In this implementation:
-*   the Model knows only about the View and can send data to it
+*   the Model knows only about itself
 *   the View knows only about the Model and can get data from it
 *   the Controller knows about the Model and the View and interacts with both
 *
@@ -42,10 +42,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import mksystems.mswing.MFloatSpinner;
-import model.ADataClass;
+import model.MainDataClass;
 import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.Options;
@@ -70,7 +71,7 @@ public class MainController implements EventHandler, Runnable
 
     private PeakData peakData;
     
-    private ADataClass aDataClass;
+    private MainDataClass mainDataClass;
 
     private MainView mainView;
 
@@ -132,16 +133,14 @@ public void init()
 
     peakData = new PeakData(0);
     
-    aDataClass = new ADataClass();
-    aDataClass.init();
+    mainDataClass = new MainDataClass();
+    mainDataClass.init();
 
-    mainView = new MainView(this, aDataClass, sharedSettings, configFile);
+    mainView = new MainView(this, mainDataClass, sharedSettings, configFile);
     mainView.init();
 
     //create data transfer buffers
     setUpDataTransferBuffers();
-    
-    aDataClass.setMainView(mainView); //give Model a pointer to View
     
     loadUserSettingsFromFile();    
     
@@ -273,10 +272,6 @@ public void actionPerformed(ActionEvent e)
         saveUserSettingsToFile();
     }
     
-    if ("Apply Settings to Waveforms".equals(e.getActionCommand())){
-        aDataClass.updateWaveforms();
-    }
-    
 }//end of MainController::actionPerformed
 //-----------------------------------------------------------------------------
 
@@ -367,8 +362,8 @@ public void paintComponent (Graphics g)
 public void loadUserSettingsFromFile()
 {
     
-    aDataClass.loadUserSettingsFromFile();
-    
+    mainView.setAllUserInputData(mainDataClass.loadUserSettingsFromFile());
+
 }//end of MainController::loadUserSettingsFromFile
 //-----------------------------------------------------------------------------
 
@@ -381,7 +376,11 @@ public void loadUserSettingsFromFile()
 public void saveUserSettingsToFile()
 {
     
-    aDataClass.saveUserSettingsToFile();
+    ArrayList<String> list = new ArrayList<>(); 
+    
+    mainView.getAllUserInputData(list);
+    
+    mainDataClass.saveUserSettingsToFile(list);
 
 }//end of MainController::saveUserSettingsToFile
 //-----------------------------------------------------------------------------
