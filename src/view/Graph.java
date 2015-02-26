@@ -22,6 +22,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JPanel;
+import model.DataTransferIntBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -170,18 +171,18 @@ public void paintSingleTraceDataPoint(int pTrace, int pIndex)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Graph::paintLastTraceDataPoint
+// Graph::updateTrace
 //
-// Draws line from data point before the last inserted to the last inserted
-// data point in the buffer for pTrace.
+// Plots all data added to dataBuffer and erases any data which has been
+// marked as erased for pTrace.
 //
 
-public void paintLastTraceDataPoint(int pTrace)
+public void updateTrace(int pTrace)
 {
     
-    traces[pTrace].paintLastTraceDataPoint((Graphics2D) getGraphics());
+    traces[pTrace].updateTrace((Graphics2D) getGraphics());
 
-}// end of Graph::paintLastTraceDataPoint
+}// end of Graph::updateTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -240,44 +241,11 @@ public void setVerticalBarAllTraces()
 {
 
     for (Trace trace : traces) {
-        trace.setFlags(trace.getDataInsertPos(), Trace.VERTICAL_BAR);
+        trace.getDataBuffer().setFlagsAtCurrentInsertionPoint(
+                                           DataTransferIntBuffer.VERTICAL_BAR);
     }
 
 }// end of Graph::setVerticalBarAllTraces
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Graph::setTraceFlagsAtCurrentInsertionPoint
-//
-// For Trace pTrace, OR's pFlags with flags[<current insertion point>] to set
-// one or more flag bits in the flags array at the current data insertionPoint.
-//
-
-public void setTraceFlagsAtCurrentInsertionPoint(int pTrace, int pFlags)
-{
-
-   if (pTrace < 0 || pTrace >= traces.length){ return; }
-
-   traces[pTrace].setFlagsAtCurrentInsertionPoint(pFlags);
-
-}// end of Graph::setTraceFlagsAtCurrentInsertionPoint
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::setTraceFlags
-//
-// For Trace pTrace, OR's pFlags of Trace pTrace with flags[pIndex] to set one
-// or more flag bits in the flags array at the specified position pIndex.
-//
-
-public void setTraceFlags(int pTrace, int pIndex, int pFlags)
-{
-
-   if (pTrace < 0 || pTrace >= traces.length){ return; }
-
-   traces[pTrace].setFlags(pIndex, pFlags);
-
-}// end of Chart::setTraceFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -358,22 +326,6 @@ public void setAllTraceXScale(double pScale)
     for (Trace trace : traces) { trace.setXScale(pScale); }
 
 }// end of Graph::setAllTraceXScale
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Graph::insertDataPointInTrace
-//
-// Stores pData in Trace pTrace.
-//
-
-public void insertDataPointInTrace(int pTrace, int pData)
-{
-
-    if (pTrace < 0 || pTrace >= traces.length){ return; }
-
-    traces[pTrace].insertDataPoint(pData);
-
-}// end of Graph::insertDataPointInTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

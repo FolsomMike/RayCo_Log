@@ -37,7 +37,7 @@ public Multi_IO_A_Transverse(
     
     PACKET_SIZE = 40;
 
-    if(simMode){ simulator = new SimulatorTransverse(0); }
+    if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
     
 }//end of Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //-----------------------------------------------------------------------------

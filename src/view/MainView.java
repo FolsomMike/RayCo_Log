@@ -654,60 +654,6 @@ public static void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::insertDataPointInTrace
-//
-// Adds data point pData to pTrace of pGraph of pChart of pChartGroup.
-//
-
-public void insertDataPointInTrace(int pChartGroup, int pChart, int pGraph,
-                                                        int pTrace, int pData)
-{        
-
-    chartGroups[pChartGroup].insertDataPointInTrace(
-                                                pChart, pGraph, pTrace, pData);
-    
-}// end of MainView::insertDataPointInTrace
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::setTraceFlags
-//
-// Sets flag(s) pFlags at index pIndex of pTrace of pGraph of pChart of
-// pChartGroup.
-//
-// Each bit of pFlags represents a different flag.
-//
-
-public void setTraceFlags(int pChartGroup, int pChart, int pGraph, int pTrace,
-                                                        int pIndex, int pFlags)
-{        
-
-    chartGroups[pChartGroup].setTraceFlags(
-                                pChartGroup, pGraph, pTrace, pIndex, pFlags);
-
-}// end of MainView::setTraceFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::setTraceFlagsAtCurrentInsertionPoint
-//
-// Sets flag(s) pFlags at the current insertion point of pTrace of pGraph of
-// pChart of pChartGroup.
-//
-// Each bit of pFlags represents a different flag.
-//
-
-public void setTraceFlagsAtCurrentInsertionPoint(
-               int pChartGroup, int pChart, int pGraph, int pTrace, int pFlags)
-{        
-
-    chartGroups[pChartGroup].
-           setTraceFlagsAtCurrentInsertionPoint(pChart, pGraph, pTrace, pFlags);
-
-}// end of MainView::setTraceFlagsAtCurrentInsertionPoint
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // MainView::resetAllTraceDataForChartGroup
 //
 // Clears all data from all traces of all charts of pChartGroup and resets
@@ -806,19 +752,18 @@ public Trace getTrace(GUIDataSet pGuiDataSet)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::paintLastTraceDataPoint
+// MainView::updateTrace
 //
-// Draws line from data point before the last inserted to the last inserted
-// data point in the buffer for pTrace of pGraph of pChart of pChartGroup
+// Plots all data added to dataBuffer and erases any data which has been
+// marked as erased for pTrace of pGraph of pChart of pChartGroup.
 //
 
-public void paintLastTraceDataPoint(
-                           int pChartGroup, int pChart, int pGraph, int pTrace)
+public void updateTrace(int pChartGroup, int pChart, int pGraph, int pTrace)
 {
 
-    chartGroups[pChartGroup].paintLastTraceDataPoint(pChart, pGraph, pTrace);
+    chartGroups[pChartGroup].updateTrace(pChart, pGraph, pTrace);
 
-}// end of MainView::paintLastTraceDataPoint
+}// end of MainView::updateTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

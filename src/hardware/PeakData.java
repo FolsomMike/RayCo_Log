@@ -22,6 +22,9 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import model.DataTransferIntBuffer;
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class PeakData
@@ -31,6 +34,9 @@ public class PeakData
 {
 
 int index = 0;
+
+public Channel channel;
+public DataTransferIntBuffer dataBuffer;
 
 public int chartGroup = -1;
 public int chart = -1;

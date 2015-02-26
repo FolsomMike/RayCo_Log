@@ -175,56 +175,6 @@ public void resetAllTraceData()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChartGroup::insertDataPointInTrace
-//
-// Adds data point pData to pTrace of pGraph of pChart.
-//
-
-public void insertDataPointInTrace(int pChart, int pGraph,
-                                                        int pTrace, int pData)
-{        
-
-    charts[pChart].insertDataPointInTrace(pGraph, pTrace, pData);
-    
-}// end of ChartGroup::insertDataPointInTrace
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ChartGroup::setTraceFlags
-//
-// Sets flag(s) pFlags at index pIndex of pTrace of pGraph of pChart.
-//
-// Each bit of pFlags represents a different flag.
-//
-
-public void setTraceFlags(int pChart, int pGraph, int pTrace,
-                                                        int pIndex, int pFlags)
-{        
-
-    charts[pChart].setTraceFlags(pGraph, pTrace, pIndex, pFlags);
-
-}// end of ChartGroup::setTraceFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ChartGroup::setTraceFlagsAtCurrentInsertionPoint
-//
-// Sets flag(s) pFlags at the current insertion point of pTrace of pGraph of
-// pChart.
-//
-// Each bit of pFlags represents a different flag.
-//
-
-public void setTraceFlagsAtCurrentInsertionPoint(
-                                int pChart, int pGraph, int pTrace, int pFlags)
-{        
-
-    charts[pChart].setTraceFlagsAtCurrentInsertionPoint(pGraph, pTrace, pFlags);
-
-}// end of ChartGroup::setTraceFlagsAtCurrentInsertionPoint
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // ChartGroup::setAllChartAllTraceXScale
 //
 // Sets the display horizontal scale for all traces of all charts to pScale.
@@ -340,18 +290,18 @@ public Trace getTrace(int pChart, int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChartGroup::paintLastTraceDataPoint
+// ChartGroup::updateTrace
 //
-// Draws line from data point before the last inserted to the last inserted
-// data point in the buffer for pTrace of pGraph of pChart.
+// Plots all data added to dataBuffer and erases any data which has been
+// marked as erased for pTrace of pGraph of pChart.
 //
 
-public void paintLastTraceDataPoint(int pChart, int pGraph, int pTrace)
+public void updateTrace(int pChart, int pGraph, int pTrace)
 {
 
-    charts[pChart].paintLastTraceDataPoint(pGraph, pTrace);
+    charts[pChart].updateTrace(pGraph, pTrace);
 
-}// end of ChartGroup::paintLastTraceDataPoint
+}// end of ChartGroup::updateTrace
 //-----------------------------------------------------------------------------
 
 

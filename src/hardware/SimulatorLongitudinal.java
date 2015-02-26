@@ -45,6 +45,8 @@ public void init()
 
     super.init();
 
+    spikeOdds = 100;
+    
 }// end of SimulatorLongitudinal::init
 //-----------------------------------------------------------------------------
 

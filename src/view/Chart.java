@@ -212,22 +212,6 @@ public void paintTraces (Graphics2D pG2)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::insertDataPointInTrace
-//
-// Stores pData in Trace pTrace of Graph pGraph.
-//
-
-public void insertDataPointInTrace(int pGraph, int pTrace, int pData)
-{
-
-    if (pGraph < 0 || pGraph >= graphs.length){ return; }
-
-    graphs[pGraph].insertDataPointInTrace(pTrace, pData);
-
-}// end of Chart::insertDataPointInTrace
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Chart::setAllTraceXScale
 //
 // Sets the display horizontal scale for all traces of all graphs to pScale.
@@ -308,43 +292,6 @@ public void setTraceConnectPoints(int pGraph, int pTrace, boolean pValue)
     graphs[pGraph].setTraceConnectPoints(pTrace, pValue);
     
 }// end of Chart::setTraceConnectPoints
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::setTraceFlags
-//
-// For Trace pTrace of Graph pGraph, OR's pFlags of Trace pTrace with
-// flags[pIndex] to set one or more flag bits in the flags array at the
-// specified position pIndex.
-//
-
-public void setTraceFlags(int pGraph, int pTrace, int pIndex, int pFlags)
-{
-
-   if (pGraph < 0 || pGraph >= graphs.length){ return; }
-
-   graphs[pGraph].setTraceFlags(pTrace, pIndex, pFlags);
-
-}// end of Chart::setTraceFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::setTraceFlagsAtCurrentInsertionPoint
-//
-// For Trace pTrace of Graph pGraph, OR's pFlags with 
-// flags[<current insertion point>] to set one or more flag bits in the flags
-// array at the current data insertionPoint.
-//
-
-public void setTraceFlagsAtCurrentInsertionPoint(int pGraph, int pTrace,
-                                                                    int pFlags)
-{
-
-   if (pGraph < 0 || pGraph >= graphs.length){ return; }
-
-   graphs[pGraph].setTraceFlagsAtCurrentInsertionPoint(pTrace, pFlags);
-
-}// end of Chart::setTraceFlagsAtCurrentInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -481,18 +428,18 @@ public Trace getTrace(int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::paintLastTraceDataPoint
+// Chart::updateTrace
 //
-// Draws line from data point before the last inserted to the last inserted
-// data point in the buffer for pTrace of pGraph.
+// Plots all data added to dataBuffer and erases any data which has been
+// marked as erased for pTrace of pGraph.
 //
 
-public void paintLastTraceDataPoint(int pGraph, int pTrace)
+public void updateTrace(int pGraph, int pTrace)
 {
 
-    graphs[pGraph].paintLastTraceDataPoint(pTrace);
+    graphs[pGraph].updateTrace(pTrace);
 
-}// end of Chart::paintLastTraceDataPoint
+}// end of Chart::updateTrace
 //-----------------------------------------------------------------------------
 
 }//end of class Chart

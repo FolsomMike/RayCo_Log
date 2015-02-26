@@ -138,9 +138,6 @@ public void init()
 
     mainView = new MainView(this, mainDataClass, sharedSettings, configFile);
     mainView.init();
-
-    //create data transfer buffers
-    setUpDataTransferBuffers();
     
     loadUserSettingsFromFile();    
     
@@ -151,11 +148,12 @@ public void init()
     new Thread(this).start();
 
     mainView.setupAndStartMainTimer();
-    
-//debug mks -- remove this    aDataClass.updateWaveforms();
 
     mainHandler = new MainHandler(0, sharedSettings, configFile);
     mainHandler.init();
+
+    //create data transfer buffers
+    setUpDataTransferBuffers();
     
 }// end of MainController::init
 //-----------------------------------------------------------------------------
@@ -198,6 +196,25 @@ public void loadConfigSettings()
 private void setUpDataTransferBuffers()
 {
     
+    //create a buffer for each trace
+    createAndAssignDataBuffersToTraces();
+    
+    //link each channel with the appropriate data buffer
+    setChannelDataBuffers();
+    
+}// end of MainController::setUpDataTransferBuffers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::createAndAssignDataBuffersToTraces
+//
+// Scans through all traces and creates a DataTransferIntBuffer for each
+// one.
+//
+
+private void createAndAssignDataBuffersToTraces()
+{
+
     //prepare to iterate through all traces
     mainView.initForGUIChildrenScan();
     
@@ -229,10 +246,45 @@ private void setUpDataTransferBuffers()
                         traces[i].getNumDataPoints(), traces[i].getPeakType());
         dataBuffers[i].init(); dataBuffers[i].reset();
         
+        traces[i].setDataBuffer(dataBuffers[i]);
+        
+        dataBuffers[i].chartGroupNum = traces[i].chartGroupNum;
+        dataBuffers[i].chartNum = traces[i].chartNum;
+        dataBuffers[i].graphNum = traces[i].graphNum;
+        dataBuffers[i].traceNum = traces[i].traceNum;
+        
         i++;
     }
     
-}// end of MainController::setUpDataTransferBuffers
+}// end of MainController::createAndAssignDataBuffersToTraces
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::setChannelDataBuffers
+//
+// Scans through all channels and links each to the DataTransferIntBuffer to
+// which the trace associated with that channel has been linked. This allows
+// data from a channel to be passed to its associated trace.
+//
+// The getNextPeakData methods are used to scan through the channels as the
+// PeakData object returned contains a pointer to the channel.
+//
+
+private void setChannelDataBuffers()
+{
+  
+    //prepares to scan through all channels
+    mainHandler.initForPeakScan();
+    
+    //get peak data for each channel
+    while (mainHandler.getNextPeakData(peakData) != -1){
+        
+        peakData.channel.setDataBuffer(mainView.getTrace(peakData.chartGroup,
+               peakData.chart, peakData.graph, peakData.trace).getDataBuffer());
+                      
+    }
+    
+}// end of MainController::setChannelDataBuffers
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -435,12 +487,18 @@ private void displayDataFromDevices()
     
     //get peak data for each channel
     while (mainHandler.getNextPeakData(peakData) != -1){
-           mainView.insertDataPointInTrace(peakData.chartGroup, peakData.chart,
-                                peakData.graph, peakData.trace, peakData.peak);
-           
-            mainView.paintLastTraceDataPoint(peakData.chartGroup, 
-                               peakData.chart, peakData.graph, peakData.trace);
-           
+
+        //put data in the transfer buffer
+        peakData.dataBuffer.putData(peakData.peak);
+                      
+    }
+
+    for(DataTransferIntBuffer dataBuffer: dataBuffers){
+        //pace this with timer to control scan speed
+        dataBuffer.incrementPutPointerAndSetReadyFlag();
+        //update trace with all data changes
+        mainView.updateTrace(dataBuffer.chartGroupNum, dataBuffer.chartNum,
+                                     dataBuffer.graphNum, dataBuffer.traceNum);
     }
     
 }// end of MainController::displayDataFromDevices

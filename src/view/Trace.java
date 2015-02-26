@@ -19,6 +19,8 @@ package view;
 import controller.GUIDataSet;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import model.DataSetInt;
+import model.DataTransferIntBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -29,15 +31,20 @@ import model.IniFile;
 public class Trace{
 
     private IniFile configFile;
+
+    DataTransferIntBuffer dataBuffer;
+    DataSetInt dataSet = new DataSetInt();
+    
+    public void setDataBuffer(DataTransferIntBuffer pV) { dataBuffer = pV; }
+    public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
     
     private String title, shortTitle;
-    private int chartGroupNum, chartNum, graphNum, traceNum;
+    public int chartGroupNum, chartNum, graphNum, traceNum;
     private int width, height;
+    private int dataIndex = 0;
+    private int prevX = Integer.MAX_VALUE, prevY = Integer.MAX_VALUE;
     private int maxY;
     private int numDataPoints;
-    private int data[];
-    private int flags[];
-    private int dataInsertPos = 0;
     private double xScale = 1.0;    
     private double yScale = 1.0;
     private int offset = 0;
@@ -60,10 +67,6 @@ public class Trace{
     
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
-    
-    public static final int DEFAULT_FLAGS = 0x00;
-    public static final int VERTICAL_BAR = 0x01;
-    public static final int CIRCLE = 0x02;
 
     private static final Color VERTICAL_BAR_COLOR = Color.DARK_GRAY;
     private static final Color DEFAULT_CIRCLE_COLOR = Color.BLACK;
@@ -103,11 +106,6 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     loadConfigSettings();
     
     maxY = height - 1;
-    
-    data = new int[numDataPoints];
-
-    flags = new int[numDataPoints];
-    for (int i = 0; i<flags.length; i++){ flags[i] = DEFAULT_FLAGS; }
 
 }// end of Trace::init
 //-----------------------------------------------------------------------------
@@ -250,82 +248,21 @@ public void setConnectPoints(boolean pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::insertDataPoint
-//
-// Stores pData at data[dataInsertPos] and incremements dataInsertPos.
-//
-
-public void insertDataPoint(int pData)
-{
-
-    if(dataInsertPos == data.length){ return; }
-    
-    data[dataInsertPos] = pData;
-    dataInsertPos++;
-
-}// end of Trace::insertDataPoint
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Trace::resetData
 //
-// Resets all data to zero and all flags to DEFAULT_FLAGS. Reses dataInsertPos
-// to zero.
+// Resets all data to zero and all flags to default. Resets all buffer pointers
+// to starting positions.
 //
 
 public void resetData()
 {
-
-    for (int i = 0; i<data.length; i++){ data[i] = 0; }
-    for (int i = 0; i<flags.length; i++){ flags[i] = DEFAULT_FLAGS; }
-
-    dataInsertPos = 0;
+    
+    dataBuffer.reset();
+    
+    dataIndex = 0;
+    prevX = Integer.MAX_VALUE; prevY = Integer.MAX_VALUE;
 
 }// end of Trace::resetData
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::setFlags
-//
-// OR's pFlags with flags[pIndex] to set one or more flag bits in the flags
-// array at the specified position pIndex.
-//
-
-public void setFlags(int pIndex, int pFlags)
-{
-
-    flags[pIndex] |= pFlags;
-
-}// end of Trace::setFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::setFlagsAtCurrentInsertionPoint
-//
-// OR's pFlags with flags[<current insertion point>] to set one or more flag
-// bits in the flags array at the current data insertion point.
-//
-
-public void setFlagsAtCurrentInsertionPoint(int pFlags)
-{
-
-    flags[getDataInsertPos()] |= pFlags;
-
-}// end of Trace::setFlagsAtCurrentInsertionPoint
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::getDataInsertPos
-//
-// Returns dataInsertPos.
-//
-
-public int getDataInsertPos()
-{
-
-    return(dataInsertPos);
-
-}// end of Trace::getDataInsertPos
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -377,7 +314,7 @@ public void paintTrace(Graphics2D pG2)
     
     for(int i = 0; i<width-1; i++){
 
-        paintSingleTraceDataPoint(pG2, i);
+//debug mks        paintSingleTraceDataPoint(pG2, i);
         
     }
 
@@ -387,82 +324,78 @@ public void paintTrace(Graphics2D pG2)
 //-----------------------------------------------------------------------------
 // Trace::paintSingleTraceDataPoint
 //
-// Draws line from data point specified by pIndex to the next point in the
-// buffer.
+// Draws line from the last point drawn to data point pX, pY and processes
+// pFlags as appropriate.
 //
 
-public void paintSingleTraceDataPoint(Graphics2D pG2, int pIndex)
+public void paintSingleTraceDataPoint(Graphics2D pG2,int pX, int pY, int pFlags)
 {
 
     if(!visible) { return; }
-
-    int i = pIndex;
     
-    int x1 = (int)Math.round(i * xScale);
-    int x2 = (int)Math.round((i+1) * xScale);
+    int x = (int)Math.round(pX * xScale);
 
     //draw a vertical line if the flag is set
-    if ((flags[i] & VERTICAL_BAR) != 0){
+    if ((pFlags & DataTransferIntBuffer.VERTICAL_BAR) != 0){
         pG2.setColor(VERTICAL_BAR_COLOR);
-        pG2.drawLine(x1, 0, x1, maxY);
+        pG2.drawLine(x, 0, x, maxY);
     }
 
     pG2.setColor(traceColor);
 
-    //apply baseline shift
-    int y1 = (int)(data[i] - baseLine);
-    int y2 = (int)(data[i+1] - baseLine);
+    int y = (int)(pY - baseLine);
 
-    //apply scaling and display offset
-    y1 = (int)(y1 * yScale) + offset;
-    y2 = (int)(y2 * yScale) + offset;
+    y = (int)(y * yScale) + offset;
 
-    //if so configured, invert y1 & y2 so zero is at the bottom of the chart
+    //if so configured, invert y so zero is at the bottom of the chart
 
     if(invertTrace){
-        if(y1 > maxY){ y1 = 0; }
-        else { y1 = maxY - y1; }
-
-        if(y2 > maxY){ y2 = 0; }
-        else { y2 = maxY - y2; }
+        if(y > maxY){ y = 0; }
+        else { y = maxY - y; }
     }
-
+    
     //draw between each two points
     if(connectPoints) { 
-        pG2.drawLine(x1, y1, x2, y2);
+        pG2.drawLine(prevX, prevY, x, y);
     }
     else{
-        if(data[i] != Integer.MAX_VALUE){
-            pG2.drawLine(x1, y1, x1, y1);
-        }
+        pG2.drawLine(x, y, x, y);
     }
 
+    prevX = x; prevY = y;
+    
     //draw a circle on the datapoint if the CIRCLE flag is set
-    if ((flags[i] & CIRCLE) != 0){
+    if ((pFlags & DataTransferIntBuffer.CIRCLE) != 0){
         pG2.setColor(circleColor);
-        pG2.draw(new Ellipse2D.Double(x1-3, y1-3, 6, 6));
+        pG2.draw(new Ellipse2D.Double(x-3, y-3, 6, 6));
     }
 
 }// end of Trace::paintSingleTraceDataPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::paintLastTraceDataPoint
+// Trace::updateTrace
 //
-// Draws line from data point before the last inserted to the last inserted
-// data point in the buffer for pTrace.
+// Plots all data added to dataBuffer and erases any data which has been
+// marked as erased.
 //
 
-public void paintLastTraceDataPoint(Graphics2D pG2)
+public void updateTrace(Graphics2D pG2)
 {
-
-    if (getDataInsertPos() < 2) { return; }
     
-    paintSingleTraceDataPoint(pG2, getDataInsertPos() - 2);
+    int r;
+    
+    while((r = dataBuffer.getDataChange(dataSet)) != 0){
+            
+        paintSingleTraceDataPoint(pG2, dataIndex, dataSet.d, dataSet.flags);
 
-}// end of Trace::paintLastTraceDataPoint
+        if(r == 1){ dataIndex++; }
+        else if(r == -1){ dataIndex--; }
+        
+    }
+        
+}// end of Trace::updateTrace
 //-----------------------------------------------------------------------------
-
 
 }//end of class Trace
 //-----------------------------------------------------------------------------

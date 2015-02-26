@@ -16,6 +16,7 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import model.DataTransferIntBuffer;
 import model.IniFile;
 import toolkit.MKSInteger;
 
@@ -28,6 +29,11 @@ public class Channel
 {
 
     IniFile configFile;
+
+    DataTransferIntBuffer dataBuffer;
+    
+    public void setDataBuffer(DataTransferIntBuffer pV) { dataBuffer = pV; }    
+    public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
     
     private final int deviceIndex, index;
     String title, shortTitle;
@@ -237,6 +243,9 @@ public void getPeakAndReset(Object pPeakValue)
 
 public void getPeakData(PeakData pPeakData)
 {
+
+    pPeakData.channel = this;
+    pPeakData.dataBuffer = dataBuffer;
     
     peakBuffer.getPeakAndReset(data);    
     pPeakData.peak = data.x;

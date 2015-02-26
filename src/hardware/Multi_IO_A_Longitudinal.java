@@ -37,7 +37,7 @@ public Multi_IO_A_Longitudinal(
 
     PACKET_SIZE = 9;
     
-    if(simMode){ simulator = new SimulatorLongitudinal(0); }
+    if(simMode){ simulator = new SimulatorLongitudinal(0); simulator.init(); }
     
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //-----------------------------------------------------------------------------
