@@ -17,6 +17,7 @@
 package view;
 
 import controller.GUIDataSet;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -40,8 +41,12 @@ public class Graph extends JPanel{
     private String title, shortTitle;
     private int chartGroupNum, chartNum, graphNum;
     private int width, height;
-
+    Color backgroundColor;
+    Color gridColor;
+    
     private int tracePtr;
+
+    private boolean invertGraph;
     
 //-----------------------------------------------------------------------------
 // Graph::Graph (constructor)
@@ -67,6 +72,9 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     configFile = pConfigFile;
 
     loadConfigSettings();
+    
+    setOpaque(true);
+    setBackground(backgroundColor);
     
     setSizes(this, width, height);
     
@@ -101,6 +109,13 @@ private void loadConfigSettings()
     int configHeight = configFile.readInt(section, "height", 0);
 
     if (configHeight > 0) height = configHeight; //override if > 0
+
+    backgroundColor = configFile.readColor(
+                        section, "background color", new Color(238, 238, 238));
+
+    gridColor = configFile.readColor(section, "grid color", Color.BLACK);
+    
+    invertGraph = configFile.readBoolean(section, "invert graph", true);
     
 }// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -120,7 +135,7 @@ private void createTraces()
 
         traces[i] = new Trace();
         traces[i].init(chartGroupNum, chartNum, graphNum, i,
-                                                    width, height, configFile);
+                        width, height, backgroundColor, gridColor, configFile);
     }
 
 }//end of Graph::createTraces
@@ -134,7 +149,15 @@ private void createTraces()
 public void paintComponent (Graphics g)
 {
 
+    super.paintComponent(g);
+    
     Graphics2D g2 = (Graphics2D) g;
+
+    //draw a baseline
+    int y;
+    if(invertGraph) { y=getHeight()-1; } else { y=0; }
+    g2.setColor(gridColor);
+    g2.drawLine(0, y, width-1, y);    
 
     paintTraces(g2);
 

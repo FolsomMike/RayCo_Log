@@ -41,9 +41,11 @@ public class Trace{
     private String title, shortTitle;
     public int chartGroupNum, chartNum, graphNum, traceNum;
     private int width, height;
+    Color backgroundColor;
+    Color gridColor;
     private int dataIndex = 0;
     private int prevX = Integer.MAX_VALUE, prevY = Integer.MAX_VALUE;
-    private int maxY;
+    private int xMax, yMax;
     private int numDataPoints;
     private double xScale = 1.0;    
     private double yScale = 1.0;
@@ -54,6 +56,7 @@ public class Trace{
     private boolean visible = true;
     private boolean connectPoints = true;
     private boolean invertTrace;
+    private boolean leadDataPlotter;
     
     int peakType;
 
@@ -95,17 +98,19 @@ public Trace()
 //
 
 public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
-                   int pTraceNum, int pWidth, int pHeight, IniFile pConfigFile)
+              int pTraceNum, int pWidth, int pHeight, Color pBackgroundColor,
+                                        Color pGridColor, IniFile pConfigFile)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
     graphNum = pGraphNum; traceNum = pTraceNum;
     width = pWidth; height = pHeight;
+    backgroundColor = pBackgroundColor; gridColor = pGridColor;
     configFile = pConfigFile;
 
     loadConfigSettings();
-    
-    maxY = height - 1;
+
+    xMax = width - 1; yMax = height - 1;
 
 }// end of Trace::init
 //-----------------------------------------------------------------------------
@@ -153,6 +158,9 @@ private void loadConfigSettings()
     String peakTypeText = configFile.readString(
                                         section, "peak type", "catch highest");
     parsePeakType(peakTypeText);
+    
+    leadDataPlotter = configFile.readBoolean(
+                                          section, "lead data plotter", true);    
     
 }// end of Trace::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -322,6 +330,24 @@ public void paintTrace(Graphics2D pG2)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Trace::drawGrid
+//
+// Draw grid lines and dots and other related objects.
+//
+
+public void drawGrid (Graphics2D pG2, int pX)
+{
+    
+    //draw a baseline
+    int y;
+    if(invertTrace) { y=yMax; } else { y=0; }
+    pG2.setColor(gridColor);
+    pG2.drawLine(pX, y, pX, y);
+
+}// end of Trace::drawGrid
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Trace::paintSingleTraceDataPoint
 //
 // Draws line from the last point drawn to data point pX, pY and processes
@@ -334,11 +360,31 @@ public void paintSingleTraceDataPoint(Graphics2D pG2,int pX, int pY, int pFlags)
     if(!visible) { return; }
     
     int x = (int)Math.round(pX * xScale);
+    
+    //scroll chart left if enabled and new point is off the chart
+    if(x > width){
 
+        if (leadDataPlotter){
+            
+
+                //if this is lead Plotter object, shift chart left and erase right slice
+
+                //scroll the screen to the left
+                pG2.copyArea(1, 0, width, height, -1, 0);
+                //erase the line at the far right
+                pG2.setColor(backgroundColor);
+                pG2.drawLine(xMax, 0, xMax, height);
+                
+        }
+        x = xMax; prevX--;
+    }
+    
+    if (leadDataPlotter){ drawGrid(pG2, x); }
+    
     //draw a vertical line if the flag is set
     if ((pFlags & DataTransferIntBuffer.VERTICAL_BAR) != 0){
         pG2.setColor(VERTICAL_BAR_COLOR);
-        pG2.drawLine(x, 0, x, maxY);
+        pG2.drawLine(x, 0, x, yMax);
     }
 
     pG2.setColor(traceColor);
@@ -350,8 +396,8 @@ public void paintSingleTraceDataPoint(Graphics2D pG2,int pX, int pY, int pFlags)
     //if so configured, invert y so zero is at the bottom of the chart
 
     if(invertTrace){
-        if(y > maxY){ y = 0; }
-        else { y = maxY - y; }
+        if(y > yMax){ y = 0; }
+        else { y = yMax - y; }
     }
     
     //draw between each two points
