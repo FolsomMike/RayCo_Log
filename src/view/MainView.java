@@ -285,6 +285,10 @@ private JPanel createControlsPanel()
             
     panel.add(Box.createVerticalGlue());
     
+    panel.add(createModeButtonPanel());
+            
+    panel.add(Box.createVerticalGlue());    
+    
 /*
     
    
@@ -475,6 +479,52 @@ private JPanel createApplyButtonPanel()
     return(panel);
         
 }// end of MainView::createApplyButtonPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::createModeButtonPanel
+//
+// Returns a JPanel containing the mode buttons, such as Scan, Inspect, Stop.
+//
+
+private JPanel createModeButtonPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    Tools.setSizes(panel, 206, 30);
+  
+    JButton button;
+    
+    //add button
+    button = new JButton("Inspect");
+    button.setActionCommand("Start Inspect Mode");
+    button.addActionListener(this);
+    button.setToolTipText("Start Inspect mode.");        
+    panel.add(button);
+
+    addHorizontalSpacer(panel, 3);
+    
+    //add button
+    button = new JButton("Scan");
+    button.setActionCommand("Start Scan Mode");
+    button.addActionListener(this);
+    button.setToolTipText("Start Scan mode.");        
+    panel.add(button);
+
+    addHorizontalSpacer(panel, 3);    
+    
+    //add button
+    button = new JButton("Stop");
+    button.setActionCommand("Start Stop Mode");
+    button.addActionListener(this);
+    button.setToolTipText("Start Stop mode.");        
+    panel.add(button);
+        
+    return(panel);
+        
+}// end of MainView::createModeButtonPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -105,6 +105,12 @@ public class MainController implements EventHandler, Runnable
         
     private int numDataBuffers;
     private DataTransferIntBuffer dataBuffers[];
+
+    private int mode;
+    
+    public static final int STOP_MODE = 0;
+    public static final int SCAN_MODE = 1;
+    public static final int INSPECT_MODE = 2;
     
 //-----------------------------------------------------------------------------
 // MainController::MainController (constructor)
@@ -125,6 +131,8 @@ public MainController()
 public void init()
 {
 
+    mode = STOP_MODE;
+    
     sharedSettings = new SharedSettings();
     //main frame is not yet created, so pass null
     sharedSettings.init(null);
@@ -302,26 +310,44 @@ private void setChannelDataBuffers()
 public void actionPerformed(ActionEvent e)
 {
 
-    if ("Timer".equals(e.getActionCommand())) {doTimerActions();}
+    if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
 
-    if ("Display Log".equals(e.getActionCommand())) {displayLog();}
+    if ("Display Log".equals(e.getActionCommand())) {displayLog(); return;}
 
-    if ("Display Help".equals(e.getActionCommand())) {displayHelp();}
+    if ("Display Help".equals(e.getActionCommand())) {displayHelp(); return;}
 
-    if ("Display About".equals(e.getActionCommand())) {displayAbout();}
+    if ("Display About".equals(e.getActionCommand())) {displayAbout(); return;}
 
-    if ("New File".equals(e.getActionCommand())) {doSomething1();}
+    if ("New File".equals(e.getActionCommand())) {doSomething1(); return;}
 
     if ("Open File".equals(e.getActionCommand())) {
         doSomething2();
+        return;
     }
 
     if ("Load Data From File".equals(e.getActionCommand())){
         loadUserSettingsFromFile();
+        return;
     }
 
     if ("Save Data To File".equals(e.getActionCommand())){
         saveUserSettingsToFile();
+        return;
+    }
+    
+    if ("Start Stop Mode".equals(e.getActionCommand())) {
+        mode = STOP_MODE;
+        return;
+    }
+    
+    if ("Start Scan Mode".equals(e.getActionCommand())) {
+        mode = SCAN_MODE;
+        return;
+    }
+    
+    if ("Start Inspect Mode".equals(e.getActionCommand())) {
+        mode = INSPECT_MODE;
+        return;
     }
     
 }//end of MainController::actionPerformed
@@ -481,7 +507,9 @@ private void updateGUIPeriodically()
 
 private void displayDataFromDevices()
 {
-  
+
+    if(mode == STOP_MODE) { return; }
+    
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
     
@@ -701,7 +729,10 @@ public void control()
     }
 
     //periodically collect all data from input sources
-    if(mainHandler != null && mainHandler.ready){ mainHandler.collectData(); }
+    if((mode==SCAN_MODE || mode==INSPECT_MODE)
+                                 && mainHandler != null && mainHandler.ready){
+        mainHandler.collectData();
+    }
     
     //If a shut down is initiated, clean up and exit the program.
 
