@@ -121,7 +121,9 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JLabel statusLabel, infoLabel;
     private JLabel progressLabel;
 
-    private static final int CHART_WIDTH = 1000; //1650 for LG screen at RGNDT
+    private JButton scanBtn, inspectBtn, stopBtn;
+    
+    private static final int CHART_WIDTH = 1000; //1670 for LG screen at RGNDT
     private static final int CHART_HEIGHT = 100;
     
     public static final int NUM_CHARTS = 3;
@@ -498,29 +500,29 @@ private JPanel createModeButtonPanel()
     JButton button;
     
     //add button
-    button = new JButton("Inspect");
-    button.setActionCommand("Start Inspect Mode");
-    button.addActionListener(this);
-    button.setToolTipText("Start Inspect mode.");        
-    panel.add(button);
+    inspectBtn = new JButton("Inspect");
+    inspectBtn.setActionCommand("Start Inspect Mode");
+    inspectBtn.addActionListener(this);
+    inspectBtn.setToolTipText("Start Inspect mode.");        
+    panel.add(inspectBtn);
 
     addHorizontalSpacer(panel, 3);
     
     //add button
-    button = new JButton("Scan");
-    button.setActionCommand("Start Scan Mode");
-    button.addActionListener(this);
-    button.setToolTipText("Start Scan mode.");        
-    panel.add(button);
+    scanBtn = new JButton("Scan");
+    scanBtn.setActionCommand("Start Scan Mode");
+    scanBtn.addActionListener(this);
+    scanBtn.setToolTipText("Start Scan mode.");        
+    panel.add(scanBtn);
 
     addHorizontalSpacer(panel, 3);    
     
     //add button
-    button = new JButton("Stop");
-    button.setActionCommand("Start Stop Mode");
-    button.addActionListener(this);
-    button.setToolTipText("Start Stop mode.");        
-    panel.add(button);
+    stopBtn = new JButton("Stop");
+    stopBtn.setActionCommand("Start Stop Mode");
+    stopBtn.addActionListener(this);
+    stopBtn.setToolTipText("Start Stop mode.");        
+    panel.add(stopBtn);
         
     return(panel);
         
@@ -1256,9 +1258,39 @@ public int getNextGUIChild(GUIDataSet pGuiDataSet)
 public void actionPerformed(ActionEvent e)
 {
 
-    eventHandler.actionPerformed(e);
+    actionPerformedLocal(e); //local processing
+    
+    eventHandler.actionPerformed(e); //parent handler processing
 
 }//end of MainView::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::actionPerformedLocal
+//
+// Responds to events with handling local to this class
+//
+
+
+public void actionPerformedLocal(ActionEvent e)
+{
+
+    if ("Start Stop Mode".equals(e.getActionCommand())) {
+        inspectBtn.setEnabled(true); scanBtn.setEnabled(true);
+        return;
+    }
+    
+    if ("Start Scan Mode".equals(e.getActionCommand())) {
+        inspectBtn.setEnabled(false); scanBtn.setEnabled(false);
+        return;
+    }
+    
+    if ("Start Inspect Mode".equals(e.getActionCommand())) {
+        inspectBtn.setEnabled(false); scanBtn.setEnabled(false);
+        return;
+    }
+
+}//end of MainView::actionPerformedLocal
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
