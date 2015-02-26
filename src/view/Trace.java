@@ -57,9 +57,12 @@ public class Trace{
     private boolean connectPoints = true;
     private boolean invertTrace;
     private boolean leadDataPlotter;
+    private int gridXTrack = 0;
+    private int peakType;
+    int gridXSpacing = 10;
+    int gridYSpacing;
+    int gridY1; 
     
-    int peakType;
-
     //simple getters & setters
     
     public int getWidth(){ return(width); }
@@ -99,13 +102,17 @@ public Trace()
 
 public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
               int pTraceNum, int pWidth, int pHeight, Color pBackgroundColor,
-                                        Color pGridColor, IniFile pConfigFile)
+   Color pGridColor, int pGridXSpacing, int pGridYSpacing, IniFile pConfigFile)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
     graphNum = pGraphNum; traceNum = pTraceNum;
     width = pWidth; height = pHeight;
     backgroundColor = pBackgroundColor; gridColor = pGridColor;
+    gridXSpacing = pGridXSpacing; gridYSpacing = pGridYSpacing;
+    
+    gridY1 = gridYSpacing-1; //do math once for repeated use
+    
     configFile = pConfigFile;
 
     loadConfigSettings();
@@ -269,7 +276,8 @@ public void resetData()
     
     dataIndex = 0;
     prevX = Integer.MAX_VALUE; prevY = Integer.MAX_VALUE;
-
+    gridXTrack = 0;
+    
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
 
@@ -338,11 +346,20 @@ public void paintTrace(Graphics2D pG2)
 public void drawGrid (Graphics2D pG2, int pX)
 {
     
-    //draw a baseline
-    int y;
-    if(invertTrace) { y=yMax; } else { y=0; }
     pG2.setColor(gridColor);
-    pG2.drawLine(pX, y, pX, y);
+    
+    for(int i=0; i<pX-prevX; i++){
+        //draw a baseline
+        int x=pX+i, y;
+        if(invertTrace) { y=yMax; } else { y=0; }
+        pG2.drawLine(x, y, x, y);
+        
+        if((x % 10) == 0){        
+            for(int j=gridY1; j<yMax; j+=gridYSpacing){
+                pG2.drawLine(x, j, x, j);
+            }
+        }        
+    }
 
 }// end of Trace::drawGrid
 //-----------------------------------------------------------------------------
@@ -360,6 +377,8 @@ public void paintSingleTraceDataPoint(Graphics2D pG2,int pX, int pY, int pFlags)
     if(!visible) { return; }
     
     int x = (int)Math.round(pX * xScale);
+    
+    int xDelta = prevX-x; //number of pixels between current and previous x
     
     //scroll chart left if enabled and new point is off the chart
     if(x > width){

@@ -43,7 +43,9 @@ public class Graph extends JPanel{
     private int width, height;
     Color backgroundColor;
     Color gridColor;
-    
+    int gridXSpacing = 10;
+    int gridYSpacing = 10;
+
     private int tracePtr;
 
     private boolean invertGraph;
@@ -117,6 +119,11 @@ private void loadConfigSettings()
     
     invertGraph = configFile.readBoolean(section, "invert graph", true);
     
+    int numVerGridDivisions = 
+      configFile.readInt(section, "number of vertical grid divisions", 10);
+    
+    gridYSpacing = height / numVerGridDivisions;
+    
 }// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -134,8 +141,8 @@ private void createTraces()
     for(int i=0; i<traces.length; i++){
 
         traces[i] = new Trace();
-        traces[i].init(chartGroupNum, chartNum, graphNum, i,
-                        width, height, backgroundColor, gridColor, configFile);
+        traces[i].init(chartGroupNum, chartNum, graphNum, i, width, height,
+            backgroundColor, gridColor, gridXSpacing, gridYSpacing, configFile);
     }
 
 }//end of Graph::createTraces
