@@ -1,11 +1,12 @@
 /******************************************************************************
-* Title: ZoomGraph.java
+* Title: ChartInfoPanel.java
 * Author: Mike Schoonover
-* Date: 01/14/15
+* Date: 02/27/15
 *
 * Purpose:
 *
-* This class subclasses a JPanel to display zoomed views of signal indications.
+* This class subclasses a JPanel to display information about a chart, such
+* as a color key, monitoring info, etc.
 *
 * Open Source Policy:
 *
@@ -17,92 +18,73 @@
 package view;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.ListIterator;
 import javax.swing.*;
-import model.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class ZoomGraph
+// class ChartInfoPanel
 //
 
-class ZoomGraph extends JPanel{
-
-    private IniFile configFile;
+class ChartInfoPanel extends JPanel{
     
     private String title;    
     private String shortTitle;
-    private int chartGroupNum, chartNum, graphNum;
+    private int chartGroupNum, chartNum;
     private int width, height;
-
+    ArrayList<ColorKeyInfo> colorKeys = new ArrayList<>();
+    
 //-----------------------------------------------------------------------------
-// ZoomGraph::ZoomGraph (constructor)
+// ChartInfoPanel::ChartInfoPanel (constructor)
 //
 //
 
-public ZoomGraph()
+public ChartInfoPanel()
 {
 
-}//end of Chart::ZoomGraph (constructor)
+}//end of ChartInfoPanel::ChartInfoPanel (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ZoomGraph::init
+// ChartInfoPanel::init
 //
 // Initializes the object.  Must be called immediately after instantiation.
-//
-// pTitle is the text title for the graph.
 //
 // pIndex is a unique identifier for the object -- usually it's index position
 // in an array of the creating object.
 //
 
-public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
-                                  int pWidth, int pHeight, IniFile pConfigFile)
+public void init(int pChartGroupNum, int pChartNum, int pWidth, int pHeight)
 {
 
-    chartGroupNum = pChartGroupNum;
-    chartNum = pChartNum; graphNum = pGraphNum;
+    chartGroupNum = pChartGroupNum; chartNum = pChartNum;
     width = pWidth; height = pHeight;
-    configFile = pConfigFile;
-
-    loadConfigSettings();
     
     setSizes(this, width, height);
     
-}// end of ZoomGraph::init
+}// end of ChartInfoPanel::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ZoomGraph::loadConfigSettings
+// ChartInfoPanel::addColorKey
 //
-// Loads settings for the object from configFile.
+// Adds a color key item to the list so it will be displayed. Color keys
+// display a colored square with a note to explain the color's meaning and
+// usage.
 //
 
-private void loadConfigSettings()
+public void addColorKey(Color pKeyColor, String pKeyDescription,
+                                                          int pXPos, int pYPos)
 {
 
-    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
-                                            + " Annotation Graph " + graphNum;
-
-    title = configFile.readString(
-                       section, "title", "Annotation Graph " + (graphNum + 1));
-
-    shortTitle = configFile.readString(
-                         section, "short title", "annograph" + (graphNum + 1));
-
-    int configWidth = configFile.readInt(section, "width", 0);
-
-    if (configWidth > 0) width = configWidth; //override if > 0
+    colorKeys.add(new ColorKeyInfo(pKeyColor, pKeyDescription, pXPos, pYPos));
     
-    int configHeight = configFile.readInt(section, "height", 0);
-
-    if (configHeight > 0) height = configHeight; //override if > 0
-    
-}// end of ZoomGraph::loadConfigSettings
+}// end of ChartInfoPanel::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ZoomGraph::setSizes
+// ChartInfoPanel::setSizes
 //
 // Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
 //
@@ -114,11 +96,11 @@ private void setSizes(Component pComponent, int pWidth, int pHeight)
     pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
     pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
 
-}//end of ZoomGraph::setSizes
+}//end of ChartInfoPanel::setSizes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ZoomGraph::paintComponent
+// ChartInfoPanel::paintComponent
 //
 
 @Override
@@ -126,11 +108,17 @@ public void paintComponent (Graphics g)
 {
 
     super.paintComponent(g);
+ 
+    ListIterator iter = colorKeys.listIterator();
     
-}// end of ZoomGraph::paintComponent
+    while(iter.hasNext()){
+        ((ColorKeyInfo)iter.next()).paint((Graphics2D)g);
+    }
+        
+}// end of ChartInfoPanel::paintComponent
 //-----------------------------------------------------------------------------
 
 
-}//end of class ZoomGraph
+}//end of class ChartInfoPanel
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

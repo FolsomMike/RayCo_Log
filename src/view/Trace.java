@@ -39,6 +39,10 @@ public class Trace{
     public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
     
     private String title, shortTitle;
+    public Color traceColor;    
+    public String colorKeyText;
+    public int colorKeyXPos;
+    public int colorKeyYPos;    
     public int chartGroupNum, chartNum, graphNum, traceNum;
     private int width, height;
     Color backgroundColor;
@@ -51,7 +55,6 @@ public class Trace{
     private double yScale = 1.0;
     private int offset = 0;
     private int baseLine = 0;
-    private Color traceColor;
     private final Color circleColor = DEFAULT_CIRCLE_COLOR;
     private boolean visible = true;
     private boolean connectPoints = true;
@@ -140,6 +143,12 @@ private void loadConfigSettings()
     shortTitle = configFile.readString(
                             section, "short title", "trace" + (traceNum + 1));
 
+    traceColor = configFile.readColor(section, "color", Color.BLACK);    
+    
+    colorKeyText = configFile.readString(section, "color key text", "hidden");
+    colorKeyXPos = configFile.readInt(section, "color key x position", 0);
+    colorKeyYPos = configFile.readInt(section, "color key y position", 0);    
+        
     int configWidth = configFile.readInt(section, "width", 0);
 
     if (configWidth > 0) width = configWidth; //override if > 0
@@ -152,9 +161,7 @@ private void loadConfigSettings()
                             section, "connect data points with line", false);
     
     invertTrace = configFile.readBoolean(section, "invert trace", true);
-    
-    traceColor = configFile.readColor(section, "color", Color.BLACK);
-    
+
     numDataPoints = configFile.readInt(section, "number of data points", width);
     
     offset = configFile.readInt(section, "offset", 0);

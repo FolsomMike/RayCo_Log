@@ -35,10 +35,12 @@ class Chart extends JPanel{
     private int graphWidth, graphHeight;    
     int numGraphs;
     boolean hasAnnotationGraph;
+    boolean hasInfoPanel;
  
     private Graph graphs[];
     private ZoomGraph zoomGraph;
-
+    private ChartInfoPanel infoPanel;
+    
     private int graphPtr;
 
 //-----------------------------------------------------------------------------
@@ -78,6 +80,24 @@ public void init(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
     setBorder(BorderFactory.createTitledBorder(title));
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));    
     
+    addGraphs();
+    
+    if (hasAnnotationGraph){ addAnnotationGraph(); }
+    
+    if(hasInfoPanel){ addInfoPanel(); }
+
+}// end of Chart::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::addGraphs
+//
+// Adds basic graphs to the chart.
+//
+
+private void addGraphs()
+{
+    
     graphs = new Graph[numGraphs];
     
     for (int i = 0; i<numGraphs; i++){
@@ -87,16 +107,55 @@ public void init(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
         add(graphs[i]);
         if(i<numGraphs-1){ addGraphSeparatorPanel(); }
     }
+
+}// end of Chart::addGraphs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::addAnnotationGraph
+//
+// Adds an annotation graph to the chart.
+//
+
+private void addAnnotationGraph()
+{
+
+    zoomGraph = new ZoomGraph();
+    zoomGraph.init(chartGroupNum, chartNum, 0,
+                                       graphWidth, graphHeight, configFile);
+    addGraphSeparatorPanel();
+    add(zoomGraph);
+
+}// end of Chart::addAnnotationGraph
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::addInfoPanel
+//
+// Adds an information panel to the chart for use in explaining color keys,
+// displaying monitoring info, etc.
+//
+
+private void addInfoPanel()
+{
+
+    infoPanel = new ChartInfoPanel();
+    infoPanel.init(chartGroupNum, chartNum, graphWidth, 12);
+    add(infoPanel);
+
+    //add a color key for each trace
     
-    if (hasAnnotationGraph){
-        zoomGraph = new ZoomGraph();
-        zoomGraph.init(chartGroupNum, chartNum, 0,
-                                           graphWidth, graphHeight, configFile);
-        addGraphSeparatorPanel();
-        add(zoomGraph);
+    for(Graph graph: graphs){     
+        for(int i=0; i<graph.getNumTraces(); i++){        
+            Trace trace = graph.getTrace(i);
+            if (!trace.colorKeyText.equals("hidden")){
+                infoPanel.addColorKey(trace.traceColor, trace.colorKeyText, 
+                                    trace.colorKeyXPos, trace.colorKeyYPos);
+            }
+        }
     }
 
-}// end of Chart::init
+}// end of Chart::addInfoPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -119,7 +178,9 @@ private void loadConfigSettings()
     
     hasAnnotationGraph = configFile.readBoolean(
                                        section, "has annotation graph", false);
-    
+
+    hasInfoPanel = configFile.readBoolean(section, "has info panel", false);
+
     int configWidth = configFile.readInt(
                                    section, "default width for all graphs", 0);
 
