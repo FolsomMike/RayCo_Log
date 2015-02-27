@@ -62,6 +62,7 @@ public class Trace{
     private boolean leadDataPlotter;
     private int gridTrigger = 0;
     private int peakType;
+    boolean drawGridBaseline;
     int gridXSpacing = 10;
     int gridYSpacing;
     int gridY1; 
@@ -105,13 +106,15 @@ public Trace()
 
 public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
               int pTraceNum, int pWidth, int pHeight, Color pBackgroundColor,
-   Color pGridColor, int pGridXSpacing, int pGridYSpacing, IniFile pConfigFile)
+              boolean pDrawGridBaseline, Color pGridColor, int pGridXSpacing,
+              int pGridYSpacing, IniFile pConfigFile)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
     graphNum = pGraphNum; traceNum = pTraceNum;
     width = pWidth; height = pHeight;
-    backgroundColor = pBackgroundColor; gridColor = pGridColor;
+    backgroundColor = pBackgroundColor;
+    drawGridBaseline = pDrawGridBaseline; gridColor = pGridColor;
     gridXSpacing = pGridXSpacing; gridYSpacing = pGridYSpacing;
     
     gridY1 = gridYSpacing-1; //do math once for repeated use
@@ -360,10 +363,14 @@ public void drawGrid (Graphics2D pG2, int pX)
     pG2.setColor(gridColor);
     
     for(int i=0; i<pX-prevX; i++){
-        //draw a baseline
-        int x=pX+i, y;
-        if(invertTrace) { y=yMax; } else { y=0; }
-        pG2.drawLine(x, y, x, y);
+        
+        int x=pX+i;
+
+        if (drawGridBaseline) { 
+            int y;
+            if(invertTrace) { y=yMax; } else { y=0; }
+            pG2.drawLine(x, y, x, y);
+        }
         
         if((gridTrigger++ % 10) == 0){        
             for(int j=gridY1; j<yMax; j+=gridYSpacing){

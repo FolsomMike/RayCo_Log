@@ -45,6 +45,7 @@ public class Graph extends JPanel{
     Color gridColor;
     int gridXSpacing = 10;
     int gridYSpacing = 10;
+    private boolean drawGridBaseline;
 
     private int tracePtr;
 
@@ -117,6 +118,9 @@ private void loadConfigSettings()
 
     gridColor = configFile.readColor(section, "grid color", Color.BLACK);
     
+    drawGridBaseline = 
+                configFile.readBoolean(section, "draw grid baseline", false);
+    
     invertGraph = configFile.readBoolean(section, "invert graph", true);
     
     int numVerGridDivisions = 
@@ -142,7 +146,8 @@ private void createTraces()
 
         traces[i] = new Trace();
         traces[i].init(chartGroupNum, chartNum, graphNum, i, width, height,
-            backgroundColor, gridColor, gridXSpacing, gridYSpacing, configFile);
+            backgroundColor, drawGridBaseline, gridColor, gridXSpacing,
+            gridYSpacing, configFile);
     }
 
 }//end of Graph::createTraces
@@ -160,11 +165,12 @@ public void paintComponent (Graphics g)
     
     Graphics2D g2 = (Graphics2D) g;
 
-    //draw a baseline
-    int y;
-    if(invertGraph) { y=getHeight()-1; } else { y=0; }
-    g2.setColor(gridColor);
-    g2.drawLine(0, y, width-1, y);    
+    if (drawGridBaseline){
+        int y;
+        if(invertGraph) { y=getHeight()-1; } else { y=0; }
+        g2.setColor(gridColor);
+        g2.drawLine(0, y, width-1, y);
+    }
 
     paintTraces(g2);
 
