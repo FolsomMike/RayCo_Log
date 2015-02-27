@@ -89,7 +89,7 @@ public void addColorKey(Color pKeyColor, String pKeyDescription,
 
     colorKeys.add(new ColorKeyInfo(pKeyColor, pKeyDescription, pXPos, pYPos));
     
-}// end of ChartInfoPanel::init
+}// end of ChartInfoPanel::addColorKey
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
