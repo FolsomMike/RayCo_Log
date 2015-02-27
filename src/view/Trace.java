@@ -57,7 +57,7 @@ public class Trace{
     private boolean connectPoints = true;
     private boolean invertTrace;
     private boolean leadDataPlotter;
-    private int gridXTrack = 0;
+    private int gridTrigger = 0;
     private int peakType;
     int gridXSpacing = 10;
     int gridYSpacing;
@@ -276,7 +276,7 @@ public void resetData()
     
     dataIndex = 0;
     prevX = Integer.MAX_VALUE; prevY = Integer.MAX_VALUE;
-    gridXTrack = 0;
+    gridTrigger = 0;
     
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
@@ -342,6 +342,10 @@ public void paintTrace(Graphics2D pG2)
 //
 // Draw grid lines and dots and other related objects.
 //
+// Note that gridTrigger is never reset while grid is being drawn, but it will
+// never reach Integer.MAX_VALUE as that would take a long, long time. It is
+// more efficient not to reset it during use.
+//
 
 public void drawGrid (Graphics2D pG2, int pX)
 {
@@ -354,7 +358,7 @@ public void drawGrid (Graphics2D pG2, int pX)
         if(invertTrace) { y=yMax; } else { y=0; }
         pG2.drawLine(x, y, x, y);
         
-        if((x % 10) == 0){        
+        if((gridTrigger++ % 10) == 0){        
             for(int j=gridY1; j<yMax; j+=gridYSpacing){
                 pG2.drawLine(x, j, x, j);
             }
