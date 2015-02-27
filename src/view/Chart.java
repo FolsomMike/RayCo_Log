@@ -140,7 +140,7 @@ private void addInfoPanel()
 {
 
     infoPanel = new ChartInfoPanel();
-    infoPanel.init(chartGroupNum, chartNum, graphWidth, 12);
+    infoPanel.init(chartGroupNum, chartNum, graphWidth, 15);
     add(infoPanel);
 
     //add a color key for each trace
