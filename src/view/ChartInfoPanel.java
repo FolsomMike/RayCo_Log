@@ -62,6 +62,15 @@ public void init(int pChartGroupNum, int pChartNum, int pWidth, int pHeight)
     width = pWidth; height = pHeight;
     
     setSizes(this, width, height);
+ 
+    setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+    
+    JButton calBtn;
+    
+    calBtn = new JButton("Calibrate");
+    calBtn.setMargin(new Insets(0, 0, 0, 0));
+    setSizes(calBtn, 65, 15);
+    add(calBtn);
     
 }// end of ChartInfoPanel::init
 //-----------------------------------------------------------------------------
