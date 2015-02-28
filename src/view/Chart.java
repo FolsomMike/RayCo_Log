@@ -37,7 +37,7 @@ class Chart extends JPanel{
     boolean hasAnnotationGraph;
     boolean hasInfoPanel;
  
-    private Graph graphs[];
+    private SimpleGraph graphs[];
     private ZoomGraph zoomGraph;
     private ChartInfoPanel infoPanel;
     
@@ -98,10 +98,10 @@ public void init(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
 private void addGraphs()
 {
     
-    graphs = new Graph[numGraphs];
+    graphs = new SimpleGraph[numGraphs];
     
     for (int i = 0; i<numGraphs; i++){
-        graphs[i] = new Graph(); //the traces are drawn on this panel
+        graphs[i] = new SimpleGraph(); //the traces are drawn on this panel
         graphs[i].init(chartGroupNum, chartNum, i,
                                     graphWidth, graphHeight, configFile);
         add(graphs[i]);
@@ -145,7 +145,7 @@ private void addInfoPanel()
 
     //add a color key for each trace
     
-    for(Graph graph: graphs){     
+    for(SimpleGraph graph: graphs){     
         for(int i=0; i<graph.getNumTraces(); i++){        
             Trace trace = graph.getTrace(i);
             if (!trace.colorKeyText.equals("hidden")){
@@ -281,7 +281,7 @@ public void paintTraces (Graphics2D pG2)
 public void setAllTraceXScale(double pScale)
 {
     
-    for (Graph graph : graphs) { graph.setAllTraceXScale(pScale); }
+    for (SimpleGraph graph : graphs) { graph.setAllTraceXScale(pScale); }
 
 }// end of Chart::setAllTraceXScale
 //-----------------------------------------------------------------------------
@@ -289,7 +289,7 @@ public void setAllTraceXScale(double pScale)
 //-----------------------------------------------------------------------------
 // Chart::setTraceYScale
 //
-// For Trace pTrace of Graph pGraph, sets the display vertical scale for
+// For Trace pTrace of SimpleGraph pGraph, sets the display vertical scale for
 // to pScale
 //
 
@@ -306,7 +306,7 @@ public void setTraceYScale(int pGraph, int pTrace, double pScale)
 //-----------------------------------------------------------------------------
 // Chart::setTraceOffset
 //
-// For Trace pTrace of Graph pGraph, sets the display offset for Trace pTrace
+// For Trace pTrace of SimpleGraph pGraph, sets the display offset for Trace pTrace
 // to pOffset.
 //
 
@@ -323,7 +323,7 @@ public void setTraceOffset(int pGraph, int pTrace, int pOffset)
 //-----------------------------------------------------------------------------
 // Chart::setTraceBaseLine
 //
-// For Trace pTrace of Graph pGraph, sets the baseLine value to pBaseLine.
+// For Trace pTrace of SimpleGraph pGraph, sets the baseLine value to pBaseLine.
 // This will cause the pBaseline value to be shifted to zero when the trace is
 // drawn.
 //
@@ -341,7 +341,7 @@ public void setTraceBaseLine(int pGraph, int pTrace, int pBaseLine)
 //-----------------------------------------------------------------------------
 // Chart::setTraceConnectPoints
 //
-// For Trace pTrace of Graph pGraph, sets the connectPoints flag. If true,
+// For Trace pTrace of SimpleGraph pGraph, sets the connectPoints flag. If true,
 // points will be connected by a line.
 //
 
@@ -365,7 +365,7 @@ public void setTraceConnectPoints(int pGraph, int pTrace, boolean pValue)
 public void setVerticalBarAllTraces()
 {
 
-    for (Graph graph : graphs) { graph.setVerticalBarAllTraces(); }
+    for (SimpleGraph graph : graphs) { graph.setVerticalBarAllTraces(); }
 
 }// end of Chart::setVerticalBarAllTraces
 //-----------------------------------------------------------------------------
@@ -380,7 +380,7 @@ public void setVerticalBarAllTraces()
 public void resetAllTraceData()
 {
 
-    for (Graph graph: graphs){        
+    for (SimpleGraph graph: graphs){        
             graph.resetAllTraceData();
         }
 
@@ -390,7 +390,7 @@ public void resetAllTraceData()
 //-----------------------------------------------------------------------------
 // Chart::getNumTracesForGraph
 //
-// Returns numTraces from Graph pGraph.
+// Returns numTraces from SimpleGraph pGraph.
 //
 
 public int getNumTraces(int pGraph)
@@ -414,7 +414,7 @@ public void initForGUIChildrenScan()
     
     graphPtr = 0;
     
-    for (Graph graph : graphs) { graph.initForGUIChildrenScan(); }
+    for (SimpleGraph graph : graphs) { graph.initForGUIChildrenScan(); }
 
 }// end of Chart::initForGUIChildrenScan
 //-----------------------------------------------------------------------------

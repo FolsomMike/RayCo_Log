@@ -19,7 +19,6 @@ package view;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.ListIterator;
-import javax.swing.*;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -27,15 +26,8 @@ import model.IniFile;
 // class ZoomGraph
 //
 
-class ZoomGraph extends JPanel{
-
-    private IniFile configFile;
-    
-    private String title;    
-    private String shortTitle;
-    private int chartGroupNum, chartNum, graphNum;
-    private int width, height;
-    
+class ZoomGraph extends Graph{
+        
     ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
 
 //-----------------------------------------------------------------------------
@@ -60,19 +52,14 @@ public ZoomGraph()
 // in an array of the creating object.
 //
 
+@Override
 public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
                                 int pWidth, int pHeight, IniFile pConfigFile)
 {
 
-    chartGroupNum = pChartGroupNum;
-    chartNum = pChartNum; graphNum = pGraphNum;
-    width = pWidth; height = pHeight;
-    configFile = pConfigFile;
+    super.init(pChartGroupNum, pChartNum, pGraphNum,
+                                               pWidth,   pHeight, pConfigFile);
 
-    loadConfigSettings();
-    
-    setSizes(this, width, height);
-    
     //debug mks -- remove this
     addZoomBox(chartGroupNum, chartNum, graphNum, 0, 0, 10, 100, 50);
     zoomBoxes.get(0).setData(simulateZoomGraph());
@@ -116,43 +103,17 @@ private int[] simulateZoomGraph()
 // Loads settings for the object from configFile.
 //
 
-private void loadConfigSettings()
+@Override
+void loadConfigSettings()
 {
 
-    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
+    configFileSection = 
+            "Chart Group " + chartGroupNum + " Chart " + chartNum
                                             + " Annotation Graph " + graphNum;
 
-    title = configFile.readString(
-                       section, "title", "Annotation Graph " + (graphNum + 1));
-
-    shortTitle = configFile.readString(
-                         section, "short title", "annograph" + (graphNum + 1));
-
-    int configWidth = configFile.readInt(section, "width", 0);
-
-    if (configWidth > 0) width = configWidth; //override if > 0
-    
-    int configHeight = configFile.readInt(section, "height", 0);
-
-    if (configHeight > 0) height = configHeight; //override if > 0
+    super.loadConfigSettings();
     
 }// end of ZoomGraph::loadConfigSettings
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ZoomGraph::setSizes
-//
-// Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
-//
-
-private void setSizes(Component pComponent, int pWidth, int pHeight)
-{
-
-    pComponent.setMinimumSize(new Dimension(pWidth, pHeight));
-    pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
-    pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
-
-}//end of ZoomGraph::setSizes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -190,7 +151,6 @@ public void addZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
     
 }// end of ChartInfoPanel::addZoomBox
 //-----------------------------------------------------------------------------
-
 
 }//end of class ZoomGraph
 //-----------------------------------------------------------------------------
