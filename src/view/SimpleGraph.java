@@ -46,9 +46,13 @@ public class SimpleGraph extends Graph{
 // SimpleGraph::SimpleGraph (constructor)
 //
 
-public SimpleGraph()
+public SimpleGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
+            int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile)
 {
-    
+
+    super(pChartGroupNum, pChartNum, pGraphNum,
+                                     pWidth, pHeight, pChartInfo, pConfigFile);
+
 }//end of SimpleGraph::SimpleGraph (constructor)
 //-----------------------------------------------------------------------------
 
@@ -57,12 +61,10 @@ public SimpleGraph()
 //
 
 @Override
-public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
-                                  int pWidth, int pHeight, IniFile pConfigFile)
+public void init()
 {
 
-    super.init(pChartGroupNum, pChartNum, pGraphNum,
-                                               pWidth,   pHeight, pConfigFile);
+    super.init();
         
     setOpaque(true);
     setBackground(backgroundColor);    
@@ -121,7 +123,7 @@ private void createTraces()
         traces[i] = new Trace();
         traces[i].init(chartGroupNum, chartNum, graphNum, i, width, height,
             backgroundColor, drawGridBaseline, gridColor, gridXSpacing,
-            gridYSpacing, configFile);
+            gridYSpacing, graphInfo, configFile);
     }
 
 }//end of SimpleGraph::createTraces
@@ -223,6 +225,23 @@ public int getNumTraces()
     return(numTraces);
 
 }// end of SimpleGraph::getNumTraces
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimpleGraph::resetAll
+//
+// Resets all values and child values to default.
+//
+
+@Override
+public void resetAll()
+{
+
+    super.resetAll();
+    
+    for (Trace trace : traces) { trace.resetData(); }
+
+}// end of SimpleGraph::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -35,9 +35,13 @@ class ZoomGraph extends Graph{
 //
 //
 
-public ZoomGraph()
+public ZoomGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
+            int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile)
 {
 
+    super(pChartGroupNum, pChartNum, pGraphNum,
+                                     pWidth, pHeight, pChartInfo, pConfigFile);
+        
 }//end of Chart::ZoomGraph (constructor)
 //-----------------------------------------------------------------------------
 
@@ -53,13 +57,11 @@ public ZoomGraph()
 //
 
 @Override
-public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
-                                int pWidth, int pHeight, IniFile pConfigFile)
+public void init()
 {
 
-    super.init(pChartGroupNum, pChartNum, pGraphNum,
-                                               pWidth,   pHeight, pConfigFile);
-
+    super.init();
+    
     //debug mks -- remove this
     addZoomBox(chartGroupNum, chartNum, graphNum, 0, 0, 10, 100, 50);
     zoomBoxes.get(0).setData(simulateZoomGraph());

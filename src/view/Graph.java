@@ -26,11 +26,13 @@ import model.IniFile;
 // class Graph
 //
 
-class Graph extends JPanel{
+public class Graph extends JPanel{
 
     IniFile configFile;
-
     String configFileSection;
+    
+    ChartInfo chartInfo;
+    public GraphInfo graphInfo = new GraphInfo();
     
     String title;    
     String shortTitle;
@@ -43,9 +45,15 @@ class Graph extends JPanel{
 //
 //
 
-public Graph()
+public Graph(int pChartGroupNum, int pChartNum, int pGraphNum,
+            int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile)
 {
 
+    chartGroupNum = pChartGroupNum;
+    chartNum = pChartNum; graphNum = pGraphNum;
+    width = pWidth; height = pHeight;
+    chartInfo = pChartInfo; configFile = pConfigFile;
+    
 }//end of Chart::Graph (constructor)
 //-----------------------------------------------------------------------------
 
@@ -60,20 +68,29 @@ public Graph()
 // in an array of the creating object.
 //
 
-public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
-                                int pWidth, int pHeight, IniFile pConfigFile)
+public void init()
 {
-
-    chartGroupNum = pChartGroupNum;
-    chartNum = pChartNum; graphNum = pGraphNum;
-    width = pWidth; height = pHeight;
-    configFile = pConfigFile;
 
     loadConfigSettings();
     
     setSizes(this, width, height);
     
 }// end of Graph::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::resetAll
+//
+// Resets all values and child values to default.
+//
+
+public void resetAll()
+{
+
+    graphInfo.scrollOffset = 0;
+    graphInfo.lastScrollPixAmount = 0;
+    
+}// end of Graph::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

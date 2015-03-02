@@ -32,6 +32,8 @@ public class Trace{
 
     private IniFile configFile;
 
+    private GraphInfo graphInfo;
+    
     DataTransferIntBuffer dataBuffer;
     DataSetInt dataSet = new DataSetInt();
     
@@ -47,8 +49,9 @@ public class Trace{
     private int width, height;
     Color backgroundColor;
     Color gridColor;
+    int gridTrack;
     private int dataIndex = 0;
-    private int prevX = Integer.MAX_VALUE, prevY = Integer.MAX_VALUE;
+    private int prevX = -1, prevY = Integer.MAX_VALUE;
     private int xMax, yMax;
     private int numDataPoints;
     private double xScale = 1.0;    
@@ -60,12 +63,11 @@ public class Trace{
     private boolean connectPoints = true;
     private boolean invertTrace;
     private boolean leadDataPlotter;
-    private int gridTrigger = 0;
     private int peakType;
     boolean drawGridBaseline;
     int gridXSpacing = 10;
     int gridYSpacing;
-    int gridY1; 
+    int gridY1;
     
     //simple getters & setters
     
@@ -107,7 +109,7 @@ public Trace()
 public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
               int pTraceNum, int pWidth, int pHeight, Color pBackgroundColor,
               boolean pDrawGridBaseline, Color pGridColor, int pGridXSpacing,
-              int pGridYSpacing, IniFile pConfigFile)
+              int pGridYSpacing, GraphInfo pGraphInfo, IniFile pConfigFile)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
@@ -119,6 +121,7 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     
     gridY1 = gridYSpacing-1; //do math once for repeated use
     
+    graphInfo = pGraphInfo;
     configFile = pConfigFile;
 
     loadConfigSettings();
@@ -284,9 +287,8 @@ public void resetData()
     
     dataBuffer.reset();
     
-    dataIndex = 0;
-    prevX = Integer.MAX_VALUE; prevY = Integer.MAX_VALUE;
-    gridTrigger = 0;
+    dataIndex = 0; gridTrack = 0;
+    prevX = -1; prevY = Integer.MAX_VALUE;
     
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
@@ -352,29 +354,31 @@ public void paintTrace(Graphics2D pG2)
 //
 // Draw grid lines and dots and other related objects.
 //
-// Note that gridTrigger is never reset while grid is being drawn, but it will
-// never reach Integer.MAX_VALUE as that would take a long, long time. It is
-// more efficient not to reset it during use.
+// Value pX is the x location before taking into account the scroll offset. It
+// is used to calculate whether a grid line should be drawn, then offset is
+// factored in to calculate the position on the graph.
 //
 
 public void drawGrid (Graphics2D pG2, int pX)
 {
     
     pG2.setColor(gridColor);
-    
-    for(int i=0; i<pX-prevX; i++){
-        
-        int x=pX+i;
 
+    //adjust for any scrolling that has occurred
+    int xAdj = pX - graphInfo.scrollOffset;
+    int prevXAdj = prevX - graphInfo.scrollOffset;
+
+    for(int i=prevXAdj+1; i<=xAdj; i++){    
         if (drawGridBaseline) { 
             int y;
             if(invertTrace) { y=yMax; } else { y=0; }
-            pG2.drawLine(x, y, x, y);
+            pG2.drawLine(i, y, i, y);
         }
         
-        if((gridTrigger++ % 10) == 0){        
+        if((++gridTrack) == 10){
+            gridTrack = 0;
             for(int j=gridY1; j<yMax; j+=gridYSpacing){
-                pG2.drawLine(x, j, x, j);
+                pG2.drawLine(i, j, i, j);
             }
         }        
     }
@@ -383,45 +387,81 @@ public void drawGrid (Graphics2D pG2, int pX)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::paintSingleTraceDataPoint
+// Trace::scrollGraph
 //
-// Draws line from the last point drawn to data point pX, pY and processes
-// pFlags as appropriate.
+// Scrolls the graph area to the left and erases the right most slice.
+// The graph will be scrolled until location pX would be located on the graph.
+//
+// All decorator methods will be called to allow them to decorate each pixel.
+//
+// Note that pX may skip several values since the last pX if the scale is larger
+// than 1, so it may be necessary to shift the graph more than one pixel to
+// bring the new pX value onto the graph range.
 //
 
-public void paintSingleTraceDataPoint(Graphics2D pG2,int pX, int pY, int pFlags)
+public void scrollGraph (Graphics2D pG2, int pX)
+{
+    //number of pixels to shift to bring pX back on the graph
+    int shiftAmt = pX - graphInfo.scrollOffset - xMax;
+    
+    //scroll the screen to the left
+    pG2.copyArea(0, 0, width, height, -1 * shiftAmt, 0);
+    //erase the line at the far right
+    pG2.setColor(backgroundColor);
+    pG2.drawLine(width-shiftAmt, 0, xMax, height);
+    
+    graphInfo.scrollOffset += shiftAmt;
+    
+}// end of Trace::scrollGraph
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::handleLeadPlotterActions
+//
+// Performs all actions which only need to be done once for all traces on the
+// graph. These actions, such as scrolling, grid drawing, etc. are triggered
+// by the lead plotter being updated.
+//
+
+public void handleLeadPlotterActions (Graphics2D pG2, int pX)
+{
+
+    //scroll chart left if enabled and new point is off the chart
+    if((pX - graphInfo.scrollOffset) > xMax){ scrollGraph(pG2, pX); }
+    
+    drawGrid(pG2, pX);
+        
+}// end of Trace::handleLeadPlotterActions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::paintSingleTraceDataPoint
+//
+// Draws line from the last point drawn to data point pDataIndex, pY and
+// processes pFlags as appropriate where pDataIndex is used to calculate the
+// x position of the data point by applying scaling and scroll offset.
+//
+
+public void paintSingleTraceDataPoint(
+                             Graphics2D pG2,int pDataIndex, int pY, int pFlags)
 {
 
     if(!visible) { return; }
     
-    int x = (int)Math.round(pX * xScale);
-    
-    int xDelta = prevX-x; //number of pixels between current and previous x
-    
-    //scroll chart left if enabled and new point is off the chart
-    if(x > width){
+    //calculate the x position in pixels
+    int x = (int)Math.round(pDataIndex * xScale);
 
-        if (leadDataPlotter){
-            
-
-                //if this is lead Plotter object, shift chart left and erase right slice
-
-                //scroll the screen to the left
-                pG2.copyArea(1, 0, width, height, -1, 0);
-                //erase the line at the far right
-                pG2.setColor(backgroundColor);
-                pG2.drawLine(xMax, 0, xMax, height);
-                
-        }
-        x = xMax; prevX--;
-    }
+    //lead plotter invokes scrolling and decorating
+    if (leadDataPlotter){ handleLeadPlotterActions(pG2, x); }
     
-    if (leadDataPlotter){ drawGrid(pG2, x); }
-    
+    //adjust for any scrolling that has occurred before plotting
+    int xAdj = x - graphInfo.scrollOffset;
+    int prevXAdj = prevX - graphInfo.scrollOffset;
+
     //draw a vertical line if the flag is set
     if ((pFlags & DataTransferIntBuffer.VERTICAL_BAR) != 0){
         pG2.setColor(VERTICAL_BAR_COLOR);
-        pG2.drawLine(x, 0, x, yMax);
+        pG2.drawLine(xAdj, 0, xAdj, yMax);
     }
 
     pG2.setColor(traceColor);
@@ -439,10 +479,10 @@ public void paintSingleTraceDataPoint(Graphics2D pG2,int pX, int pY, int pFlags)
     
     //draw between each two points
     if(connectPoints) { 
-        pG2.drawLine(prevX, prevY, x, y);
+        pG2.drawLine(prevXAdj, prevY, xAdj, y);
     }
     else{
-        pG2.drawLine(x, y, x, y);
+        pG2.drawLine(xAdj, y, xAdj, y);
     }
 
     prevX = x; prevY = y;
@@ -450,7 +490,7 @@ public void paintSingleTraceDataPoint(Graphics2D pG2,int pX, int pY, int pFlags)
     //draw a circle on the datapoint if the CIRCLE flag is set
     if ((pFlags & DataTransferIntBuffer.CIRCLE) != 0){
         pG2.setColor(circleColor);
-        pG2.draw(new Ellipse2D.Double(x-3, y-3, 6, 6));
+        pG2.draw(new Ellipse2D.Double(xAdj-3, y-3, 6, 6));
     }
 
 }// end of Trace::paintSingleTraceDataPoint

@@ -36,7 +36,9 @@ class Chart extends JPanel{
     int numGraphs;
     boolean hasAnnotationGraph;
     boolean hasInfoPanel;
- 
+
+    ChartInfo chartInfo = new ChartInfo();
+    
     private SimpleGraph graphs[];
     private ZoomGraph zoomGraph;
     private ChartInfoPanel infoPanel;
@@ -101,9 +103,9 @@ private void addGraphs()
     graphs = new SimpleGraph[numGraphs];
     
     for (int i = 0; i<numGraphs; i++){
-        graphs[i] = new SimpleGraph(); //the traces are drawn on this panel
-        graphs[i].init(chartGroupNum, chartNum, i,
-                                    graphWidth, graphHeight, configFile);
+        graphs[i] = new SimpleGraph(chartGroupNum, chartNum, i,
+                               graphWidth, graphHeight, chartInfo, configFile);
+        graphs[i].init();
         add(graphs[i]);
         if(i<numGraphs-1){ addGraphSeparatorPanel(); }
     }
@@ -120,9 +122,9 @@ private void addGraphs()
 private void addAnnotationGraph()
 {
 
-    zoomGraph = new ZoomGraph();
-    zoomGraph.init(chartGroupNum, chartNum, 0,
-                                       graphWidth, graphHeight, configFile);
+    zoomGraph = new ZoomGraph(chartGroupNum, chartNum, 0,
+                               graphWidth, graphHeight, chartInfo, configFile);
+    zoomGraph.init();
     addGraphSeparatorPanel();
     add(zoomGraph);
 
