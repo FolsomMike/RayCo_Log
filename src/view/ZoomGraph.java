@@ -30,6 +30,10 @@ class ZoomGraph extends Graph{
         
     ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
 
+    int annoX = 0, annoY = 10;
+    int annoWidth = 100, annoHeight = 50;
+    int gap;
+    
 //-----------------------------------------------------------------------------
 // ZoomGraph::ZoomGraph (constructor)
 //
@@ -62,60 +66,7 @@ public void init()
 
     super.init();
     
-    //debug mks -- remove this
-    addZoomBox(chartGroupNum, chartNum, graphNum, 0, 0, 10, 100, 50);
-    zoomBoxes.get(0).setData(simulateZoomGraph());
-    addZoomBox(chartGroupNum, chartNum, graphNum, 1, 105, 10, 100, 50);    
-    zoomBoxes.get(1).setData(simulateZoomGraph());    
-    //debug mks -- end remove this
-    
 }// end of ZoomGraph::init
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ZoomGraph::simulateZoomGraph
-//
-// Creates a simulated data stream representing a high resolution graph of
-// an indication.
-
-private int[] simulateZoomGraph()
-{
-    
-    
-    int data[] = new int[100];
-    
-    for(int i=0; i<data.length; i++){
-        data[i] = (int)(5 * Math.random());
-    }
-
-    int spikeLoc = (int)(40 + 20 * Math.random());
-    
-    data[spikeLoc-2] = 20 + (int)(5 * Math.random());
-    data[spikeLoc] = - 20 - (int)(5 * Math.random());
-    data[spikeLoc+2] = 20 + (int)(5 * Math.random());
-    
-    return(data);
-    
-}// end of ZoomGraph::simulateZoomGraph
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ZoomGraph::loadConfigSettings
-//
-// Loads settings for the object from configFile.
-//
-
-@Override
-void loadConfigSettings()
-{
-
-    configFileSection = 
-            "Chart Group " + chartGroupNum + " Chart " + chartNum
-                                            + " Annotation Graph " + graphNum;
-
-    super.loadConfigSettings();
-    
-}// end of ZoomGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -143,13 +94,17 @@ public void paintComponent (Graphics g)
 // A ZoomBox to the list so it will be displayed on the graph.
 //
 
-public void addZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum, 
-                      int pZoomBoxNum, int pX, int pY, int pWidth, int pHeight)
+public void addZoomBox(int pZoomBoxNum, int[] dataSet)
 {
 
-    zoomBoxes.add(
-        new ZoomBox(pChartGroupNum, pChartNum, pGraphNum, 
-                                    pZoomBoxNum, pX, pY, pWidth, pHeight));
+    zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, pZoomBoxNum,
+                annoX - graphInfo.scrollOffset, annoY, annoWidth, annoHeight));
+
+    annoX += annoWidth + gap; //prepare x to add next anno object to the right
+    
+    zoomBoxes.get(zoomBoxes.size()-1).setData(dataSet);
+    
+    zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
     
 }// end of ChartInfoPanel::addZoomBox
 //-----------------------------------------------------------------------------
@@ -171,9 +126,51 @@ public void scrollGraph (int pShiftAmount)
     //erase the line at the far right
     g2.setColor(backgroundColor);
     g2.fillRect(width-pShiftAmount, 0, pShiftAmount, height);
+
+    graphInfo.scrollOffset += pShiftAmount;
+    graphInfo.lastScrollAmount = pShiftAmount;
     
 }// end of ZoomGraph::scrollGraph
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::resetAll
+//
+// Resets all values and child values to default.
+//
+
+@Override
+public void resetAll()
+{
+    
+    super.resetAll();
+
+    annoX = 0; //adding anno objects starts over at left edge
+    
+}// end of ZoomGraph::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::loadConfigSettings
+//
+// Loads settings for the object from configFile.
+//
+
+@Override
+void loadConfigSettings()
+{
+
+    configFileSection = 
+            "Chart Group " + chartGroupNum + " Chart " + chartNum
+                                            + " Annotation Graph " + graphNum;
+
+    super.loadConfigSettings();
+
+    gap = configFile.readInt(configFileSection, "gap between annotations", 4);
+    
+}// end of ZoomGraph::loadConfigSettings
+//-----------------------------------------------------------------------------
+
 
 }//end of class ZoomGraph
 //-----------------------------------------------------------------------------

@@ -36,10 +36,11 @@ class Chart extends JPanel{
     int numGraphs;
     boolean hasAnnotationGraph;
     boolean hasInfoPanel;
-
+    int prevXGraph0Trace0;
+    
     ChartInfo chartInfo = new ChartInfo();
     
-    private SimpleGraph graphs[];
+    private TraceGraph graphs[];
     private ZoomGraph zoomGraph;
     private ChartInfoPanel infoPanel;
     
@@ -100,10 +101,10 @@ public void init(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
 private void addGraphs()
 {
     
-    graphs = new SimpleGraph[numGraphs];
+    graphs = new TraceGraph[numGraphs];
     
     for (int i = 0; i<numGraphs; i++){
-        graphs[i] = new SimpleGraph(chartGroupNum, chartNum, i,
+        graphs[i] = new TraceGraph(chartGroupNum, chartNum, i,
                                graphWidth, graphHeight, chartInfo, configFile);
         graphs[i].init();
         add(graphs[i]);
@@ -147,7 +148,7 @@ private void addInfoPanel()
 
     //add a color key for each trace
     
-    for(SimpleGraph graph: graphs){     
+    for(TraceGraph graph: graphs){     
         for(int i=0; i<graph.getNumTraces(); i++){        
             Trace trace = graph.getTrace(i);
             if (!trace.colorKeyText.equals("hidden")){
@@ -283,7 +284,7 @@ public void paintTraces (Graphics2D pG2)
 public void setAllTraceXScale(double pScale)
 {
     
-    for (SimpleGraph graph : graphs) { graph.setAllTraceXScale(pScale); }
+    for (TraceGraph graph : graphs) { graph.setAllTraceXScale(pScale); }
 
 }// end of Chart::setAllTraceXScale
 //-----------------------------------------------------------------------------
@@ -291,7 +292,7 @@ public void setAllTraceXScale(double pScale)
 //-----------------------------------------------------------------------------
 // Chart::setTraceYScale
 //
-// For Trace pTrace of SimpleGraph pGraph, sets the display vertical scale for
+// For Trace pTrace of TraceGraph pGraph, sets the display vertical scale for
 // to pScale
 //
 
@@ -308,7 +309,7 @@ public void setTraceYScale(int pGraph, int pTrace, double pScale)
 //-----------------------------------------------------------------------------
 // Chart::setTraceOffset
 //
-// For Trace pTrace of SimpleGraph pGraph, sets the display offset for Trace pTrace
+// For Trace pTrace of TraceGraph pGraph, sets the display offset for Trace pTrace
 // to pOffset.
 //
 
@@ -325,7 +326,7 @@ public void setTraceOffset(int pGraph, int pTrace, int pOffset)
 //-----------------------------------------------------------------------------
 // Chart::setTraceBaseLine
 //
-// For Trace pTrace of SimpleGraph pGraph, sets the baseLine value to pBaseLine.
+// For Trace pTrace of TraceGraph pGraph, sets the baseLine value to pBaseLine.
 // This will cause the pBaseline value to be shifted to zero when the trace is
 // drawn.
 //
@@ -343,7 +344,7 @@ public void setTraceBaseLine(int pGraph, int pTrace, int pBaseLine)
 //-----------------------------------------------------------------------------
 // Chart::setTraceConnectPoints
 //
-// For Trace pTrace of SimpleGraph pGraph, sets the connectPoints flag. If true,
+// For Trace pTrace of TraceGraph pGraph, sets the connectPoints flag. If true,
 // points will be connected by a line.
 //
 
@@ -367,32 +368,34 @@ public void setTraceConnectPoints(int pGraph, int pTrace, boolean pValue)
 public void setVerticalBarAllTraces()
 {
 
-    for (SimpleGraph graph : graphs) { graph.setVerticalBarAllTraces(); }
+    for (TraceGraph graph : graphs) { graph.setVerticalBarAllTraces(); }
 
 }// end of Chart::setVerticalBarAllTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::resetAllTraceData
+// Chart::resetAll
 //
 // For all traces of all graphs resets all data to zero and all flags to
 // DEFAULT_FLAGS. Resets dataInsertPos to zero.
 //
 
-public void resetAllTraceData()
+public void resetAll()
 {
 
-    for (SimpleGraph graph: graphs){        
-            graph.resetAllTraceData();
-        }
+    prevXGraph0Trace0 = -1;
+    
+    for (TraceGraph graph: graphs){ graph.resetAllTraceData(); }
 
-}// end of Chart::resetAllTraceData
+    if (hasAnnotationGraph) { zoomGraph.resetAll(); }
+    
+}// end of Chart::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Chart::getNumTracesForGraph
 //
-// Returns numTraces from SimpleGraph pGraph.
+// Returns numTraces from TraceGraph pGraph.
 //
 
 public int getNumTraces(int pGraph)
@@ -416,7 +419,7 @@ public void initForGUIChildrenScan()
     
     graphPtr = 0;
     
-    for (SimpleGraph graph : graphs) { graph.initForGUIChildrenScan(); }
+    for (TraceGraph graph : graphs) { graph.initForGUIChildrenScan(); }
 
 }// end of Chart::initForGUIChildrenScan
 //-----------------------------------------------------------------------------
@@ -491,10 +494,41 @@ public Trace getTrace(int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::updateAnnotationGraph
+//
+// Plots data added to annoBuffer and/or erases any data which has been
+// flagged as erased.
+//
+// If prevXGraph0Trace0 == -1, then no update is performed as the first time
+// through is skipped as the annotation object should not be added until the
+// trace as passed the right edge of the space for that object.
+//
+
+public void updateAnnotationGraph()
+{
+
+    if(!hasAnnotationGraph){ return; }
+    
+    int prevX = graphs[0].getTrace(0).getPrevX();    
+    
+    if (prevXGraph0Trace0 == -1){ 
+        prevXGraph0Trace0 = prevX;
+        return;
+    }
+    
+    if (prevX != prevXGraph0Trace0 && (prevX % 105 == 0)){    
+        prevXGraph0Trace0 = prevX;
+        zoomGraph.addZoomBox(0, simulateZoomGraph());
+    }
+    
+}// end of Chart::updateAnnotationGraph
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::updateTrace
 //
-// Plots all data added to dataBuffer and erases any data which has been
-// marked as erased for pTrace of pGraph.
+// Plots all data added to dataBuffer and/or erases any data which has been
+// flagged as erased for pTrace of pGraph.
 //
 // If graph 0 gets scrolled, the annotation graph is scrolled by the same
 // amount so it tracks.
@@ -516,6 +550,36 @@ public void updateTrace(int pGraph, int pTrace)
 
 }// end of Chart::updateTrace
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::simulateZoomGraph
+//
+// Creates a simulated data stream representing a high resolution graph of
+// an indication.
+//
+// debug mks -- move this to a simulator class
+//
+
+private int[] simulateZoomGraph()
+{
+        
+    int data[] = new int[100];
+    
+    for(int i=0; i<data.length; i++){
+        data[i] = (int)(5 * Math.random());
+    }
+
+    int spikeLoc = (int)(40 + 20 * Math.random());
+    
+    data[spikeLoc-2] = 20 + (int)(5 * Math.random());
+    data[spikeLoc] = - 20 - (int)(5 * Math.random());
+    data[spikeLoc+2] = 20 + (int)(5 * Math.random());
+    
+    return(data);
+    
+}// end of ZoomGraph::simulateZoomGraph
+//-----------------------------------------------------------------------------
+
 
 }//end of class Chart
 //-----------------------------------------------------------------------------

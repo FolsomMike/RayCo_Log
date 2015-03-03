@@ -51,7 +51,9 @@ public class Trace{
     Color gridColor;
     int gridTrack;
     private int dataIndex = 0;
+    public int getDataIndex(){ return dataIndex; }
     private int prevX = -1, prevY = Integer.MAX_VALUE;
+    public int getPrevX(){ return prevX; }
     private int xMax, yMax;
     private int numDataPoints;
     private double xScale = 1.0;    
@@ -283,7 +285,7 @@ public void setConnectPoints(boolean pValue)
 public void resetData()
 {
     
-    dataBuffer.reset();
+    if (dataBuffer!=null) { dataBuffer.reset(); }
     
     dataIndex = 0; gridTrack = 0;
     prevX = -1; prevY = Integer.MAX_VALUE;

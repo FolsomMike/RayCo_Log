@@ -160,18 +160,18 @@ public void repaintGroup()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChartGroup::resetAllTraceData
+// ChartGroup::resetAll
 //
 // For all traces of all charts - resets all data to zero and all flags to
 // DEFAULT_FLAGS. Resets dataInsertPos to zero.
 //
 
-public void resetAllTraceData()
+public void resetAll()
 {
 
-    for (Chart chart: charts){ chart.resetAllTraceData(); }
+    for (Chart chart: charts){ chart.resetAll(); }
 
-}// end of ChartGroup::resetAllTraceData
+}// end of ChartGroup::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -287,6 +287,21 @@ public Trace getTrace(int pChart, int pGraph, int pTrace)
     return( charts[pChart].getTrace(pGraph, pTrace) );
     
 }// end of ChartGroup::getTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::updateAnnotationGraphs
+//
+// Plots data added to annoBuffer and/or erases any data which has been
+// flagged as erased for the annotation graphs of all charts.
+//
+
+public void updateAnnotationGraphs()
+{
+
+    for(Chart chart: charts){ chart.updateAnnotationGraph(); }
+
+}// end of ChartGroup::updateAnnotationGraphs
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

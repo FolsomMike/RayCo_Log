@@ -264,6 +264,8 @@ private void createAndAssignDataBuffersToTraces()
         i++;
     }
     
+    mainView.resetAll();    
+    
 }// end of MainController::createAndAssignDataBuffersToTraces
 //-----------------------------------------------------------------------------
 
@@ -529,6 +531,9 @@ private void displayDataFromDevices()
                                      dataBuffer.graphNum, dataBuffer.traceNum);
     }
     
+    
+    mainView.updateAnnotationGraphs(0);
+
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
 

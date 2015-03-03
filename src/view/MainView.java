@@ -706,18 +706,18 @@ public static void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::resetAllTraceDataForChartGroup
+// MainView::resetAll
 //
-// Clears all data from all traces of all charts of pChartGroup and resets
-// insertion pointer.
+// Clears all data from all traces of all charts of all chart groups and resets
+// insertion pointers.
 //
 
-public void resetAllTraceDataForChartGroup(int pChartGroup)
+public void resetAll()
 {        
     
-    chartGroups[pChartGroup].resetAllTraceData();
+    for(ChartGroup chartGroup: chartGroups){ chartGroup.resetAll(); }
     
-}// end of MainView::resetAllTraceDataForChartGroup
+}// end of MainView::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -801,6 +801,21 @@ public Trace getTrace(GUIDataSet pGuiDataSet)
                      pGuiDataSet.traceNum) );
     
 }// end of MainView::getTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::updateAnnotationGraphs
+//
+// Plots data added to annoBuffer and/or erases any data which has been
+// flagged as erased for the annotation graph of all charts of pChartGroup.
+//
+
+public void updateAnnotationGraphs(int pChartGroup)
+{
+
+    chartGroups[pChartGroup].updateAnnotationGraphs();
+
+}// end of MainView::updateAnnotationGraphs
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

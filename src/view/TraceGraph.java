@@ -1,11 +1,11 @@
 /******************************************************************************
-* Title: Simple.java
+* Title: TraceGraph.java
 * Author: Mike Schoonover
 * Date: 01/14/15
 *
 * Purpose:
 *
-* This class subclasses a JPanel to represent a graph with traces.
+* This class subclasses Graph to represent a graph with traces.
 *
 * Open Source Policy:
 *
@@ -25,10 +25,10 @@ import model.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class SimpleGraph
+// class TraceGraph
 //
 
-public class SimpleGraph extends Graph{
+public class TraceGraph extends Graph{
     
     private int numTraces;
     private Trace[] traces;
@@ -43,21 +43,21 @@ public class SimpleGraph extends Graph{
     private boolean invertGraph;
     
 //-----------------------------------------------------------------------------
-// SimpleGraph::SimpleGraph (constructor)
+// TraceGraph::TraceGraph (constructor)
 //
 
-public SimpleGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
+public TraceGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
             int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile)
 {
 
     super(pChartGroupNum, pChartNum, pGraphNum,
                                      pWidth, pHeight, pChartInfo, pConfigFile);
 
-}//end of SimpleGraph::SimpleGraph (constructor)
+}//end of TraceGraph::TraceGraph (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::init
+// TraceGraph::init
 //
 
 @Override
@@ -70,11 +70,11 @@ public void init()
     setBackground(backgroundColor);    
     createTraces();
     
-}// end of SimpleGraph::init
+}// end of TraceGraph::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::loadConfigSettings
+// TraceGraph::loadConfigSettings
 //
 // Loads settings for the object from configFile.
 //
@@ -108,7 +108,7 @@ void loadConfigSettings()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::createTraces
+// TraceGraph::createTraces
 //
 // Creates and sets up the traces.
 //
@@ -126,11 +126,11 @@ private void createTraces()
             gridYSpacing, graphInfo, configFile);
     }
 
-}//end of SimpleGraph::createTraces
+}//end of TraceGraph::createTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::paintComponent
+// TraceGraph::paintComponent
 //
 
 @Override
@@ -150,11 +150,11 @@ public void paintComponent (Graphics g)
 
     paintTraces(g2);
 
-}// end of SimpleGraph::paintComponent
+}// end of TraceGraph::paintComponent
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::paintTraces
+// TraceGraph::paintTraces
 //
 // Paints all the traces on the canvas.
 //
@@ -164,11 +164,11 @@ public void paintTraces(Graphics2D pG2)
     
     for (Trace trace : traces) { trace.paintTrace(pG2); }
 
-}// end of SimpleGraph::paintTraces
+}// end of TraceGraph::paintTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::paintSingleTraceDataPoint
+// TraceGraph::paintSingleTraceDataPoint
 //
 // Draws line from data point specified by pIndex to the next point in the
 // buffer for pTrace.
@@ -179,11 +179,11 @@ public void paintSingleTraceDataPoint(int pTrace, int pIndex)
 
     traces[pTrace].paintTrace((Graphics2D) getGraphics());
 
-}// end of SimpleGraph::paintSingleTraceDataPoint
+}// end of TraceGraph::paintSingleTraceDataPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::updateTrace
+// TraceGraph::updateTrace
 //
 // Plots all data added to dataBuffer and erases any data which has been
 // marked as erased for pTrace.
@@ -194,11 +194,11 @@ public void updateTrace(int pTrace)
     
     traces[pTrace].updateTrace((Graphics2D) getGraphics());
 
-}// end of SimpleGraph::updateTrace
+}// end of TraceGraph::updateTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::getTrace
+// TraceGraph::getTrace
 //
 // Returns Trace pTrace.
 //
@@ -210,11 +210,11 @@ public Trace getTrace(int pTrace)
 
     return(traces[pTrace]);
 
-}// end of SimpleGraph::getTrace
+}// end of TraceGraph::getTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::getNumTraces
+// TraceGraph::getNumTraces
 //
 // Returns numTraces.
 //
@@ -224,11 +224,11 @@ public int getNumTraces()
 
     return(numTraces);
 
-}// end of SimpleGraph::getNumTraces
+}// end of TraceGraph::getNumTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::resetAll
+// TraceGraph::resetAll
 //
 // Resets all values and child values to default.
 //
@@ -241,11 +241,11 @@ public void resetAll()
     
     for (Trace trace : traces) { trace.resetData(); }
 
-}// end of SimpleGraph::resetAll
+}// end of TraceGraph::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::resetAllTraceData
+// TraceGraph::resetAllTraceData
 //
 // For all traces resets all data to zero and all flags to DEFAULT_FLAGS.
 // Resets dataInsertPos to zero.
@@ -256,11 +256,11 @@ public void resetAllTraceData()
     
     for (Trace trace : traces) { trace.resetData(); }
 
-}// end of SimpleGraph::resetAllTraceData
+}// end of TraceGraph::resetAllTraceData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::setVerticalBarAllTraces
+// TraceGraph::setVerticalBarAllTraces
 //
 // Sets a vertical bar to be drawn at the current data insertion location for
 // all traces.
@@ -274,11 +274,11 @@ public void setVerticalBarAllTraces()
                                            DataTransferIntBuffer.VERTICAL_BAR);
     }
 
-}// end of SimpleGraph::setVerticalBarAllTraces
+}// end of TraceGraph::setVerticalBarAllTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::setTraceConnectPoints
+// TraceGraph::setTraceConnectPoints
 //
 // For Trace pTrace, sets the connectPoints flag. If true,
 // points will be connected by a line.
@@ -291,11 +291,11 @@ public void setTraceConnectPoints(int pTrace, boolean pValue)
 
     traces[pTrace].setConnectPoints(pValue);
     
-}// end of SimpleGraph::setTraceConnectPoints
+}// end of TraceGraph::setTraceConnectPoints
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::setTraceYScale
+// TraceGraph::setTraceYScale
 //
 // For Trace pTrace, sets the display vertical scale to pScale
 //
@@ -307,11 +307,11 @@ public void setTraceYScale(int pTrace, double pScale)
 
     traces[pTrace].setYScale(pScale);
 
-}// end of SimpleGraph::setTraceYScale
+}// end of TraceGraph::setTraceYScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::setTraceOffset
+// TraceGraph::setTraceOffset
 //
 // For Trace pTrace, sets the display offset to pOffset.
 //
@@ -323,11 +323,11 @@ public void setTraceOffset(int pTrace, int pOffset)
 
     traces[pTrace].setOffset(pOffset);
 
-}// end of SimpleGraph::setTraceOffset
+}// end of TraceGraph::setTraceOffset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::setTraceBaseLine
+// TraceGraph::setTraceBaseLine
 //
 // For Trace pTrace, sets the baseLine value for to pBaseLine. This will cause
 // the pBaseline value to be shifted to zero when the trace is drawn.
@@ -340,11 +340,11 @@ public void setTraceBaseLine(int pTrace, int pBaseLine)
 
     traces[pTrace].setBaseLine(pBaseLine);
 
-}// end of SimpleGraph::setTraceBaseLine
+}// end of TraceGraph::setTraceBaseLine
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::setAllTraceXScale
+// TraceGraph::setAllTraceXScale
 //
 // Sets the display horizontal scale for all traces to pScale.
 //
@@ -354,7 +354,7 @@ public void setAllTraceXScale(double pScale)
     
     for (Trace trace : traces) { trace.setXScale(pScale); }
 
-}// end of SimpleGraph::setAllTraceXScale
+}// end of TraceGraph::setAllTraceXScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -372,7 +372,7 @@ public void initForGUIChildrenScan()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::getNextGUIChild
+// TraceGraph::getNextGUIChild
 //
 // Returns the index of the next GUI child object in the scan order in the
 // appropriate variable in guiDataSet.
@@ -411,11 +411,11 @@ public int getNextGUIChild(GUIDataSet pGuiDataSet)
 
     return(status);
         
-}// end of SimpleGraph::getNextGUIChild
+}// end of TraceGraph::getNextGUIChild
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimpleGraph::getTrace
+// TraceGraph::getTrace
 //
 // Returns the reference to trace pTrace.
 //
@@ -427,9 +427,9 @@ public Trace getTrace(int pGraph, int pTrace)
     
     return( traces[pTrace] );
     
-}// end of SimpleGraph::getTrace
+}// end of TraceGraph::getTrace
 //-----------------------------------------------------------------------------
 
-}//end of class SimpleGraph
+}//end of class TraceGraph
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
