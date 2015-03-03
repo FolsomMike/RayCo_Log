@@ -118,12 +118,10 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     backgroundColor = pBackgroundColor;
     drawGridBaseline = pDrawGridBaseline; gridColor = pGridColor;
     gridXSpacing = pGridXSpacing; gridYSpacing = pGridYSpacing;
-    
+    graphInfo = pGraphInfo; configFile = pConfigFile;
+
     gridY1 = gridYSpacing-1; //do math once for repeated use
     
-    graphInfo = pGraphInfo;
-    configFile = pConfigFile;
-
     loadConfigSettings();
 
     xMax = width - 1; yMax = height - 1;
@@ -392,11 +390,9 @@ public void drawGrid (Graphics2D pG2, int pX)
 // Scrolls the graph area to the left and erases the right most slice.
 // The graph will be scrolled until location pX would be located on the graph.
 //
-// All decorator methods will be called to allow them to decorate each pixel.
-//
-// Note that pX may skip several values since the last pX if the scale is larger
-// than 1, so it may be necessary to shift the graph more than one pixel to
-// bring the new pX value onto the graph range.
+// Note that pX may have skipped several values since the last pX if the x scale
+// is larger than 1, so the graph may be shifted more than one pixel to bring
+// the new pX value onto the graph range.
 //
 
 public void scrollGraph (Graphics2D pG2, int pX)
@@ -411,6 +407,7 @@ public void scrollGraph (Graphics2D pG2, int pX)
     pG2.fillRect(width-shiftAmt, 0, shiftAmt, height);
 
     graphInfo.scrollOffset += shiftAmt;
+    graphInfo.lastScrollAmount = shiftAmt;
     
 }// end of Trace::scrollGraph
 //-----------------------------------------------------------------------------

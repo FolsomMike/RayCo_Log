@@ -88,7 +88,7 @@ public void resetAll()
 {
 
     graphInfo.scrollOffset = 0;
-    graphInfo.lastScrollPixAmount = 0;
+    graphInfo.lastScrollAmount = 0;
     
 }// end of Graph::resetAll
 //-----------------------------------------------------------------------------

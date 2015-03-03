@@ -26,7 +26,7 @@ public class GraphInfo{
     public int scrollOffset;    
     
     //specifies amount graph was scrolled for the last scroll operation
-    public int lastScrollPixAmount;
+    public int lastScrollAmount;
 
 }//end of class GraphInfo
 //-----------------------------------------------------------------------------

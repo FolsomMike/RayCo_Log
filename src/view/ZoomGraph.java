@@ -154,6 +154,27 @@ public void addZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
 }// end of ChartInfoPanel::addZoomBox
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ZoomGraph::scrollGraph
+//
+// Scrolls the graph area to the left by pShiftAmount and erases the right most
+// slice.
+//
+
+public void scrollGraph (int pShiftAmount)
+{
+    
+    Graphics2D g2 = (Graphics2D) getGraphics();
+    
+    //scroll the screen to the left
+    g2.copyArea(0, 0, width, height, -1 * pShiftAmount, 0);
+    //erase the line at the far right
+    g2.setColor(backgroundColor);
+    g2.fillRect(width-pShiftAmount, 0, pShiftAmount, height);
+    
+}// end of ZoomGraph::scrollGraph
+//-----------------------------------------------------------------------------
+
 }//end of class ZoomGraph
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

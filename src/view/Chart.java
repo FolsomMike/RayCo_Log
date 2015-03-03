@@ -496,11 +496,23 @@ public Trace getTrace(int pGraph, int pTrace)
 // Plots all data added to dataBuffer and erases any data which has been
 // marked as erased for pTrace of pGraph.
 //
+// If graph 0 gets scrolled, the annotation graph is scrolled by the same
+// amount so it tracks.
+//
 
 public void updateTrace(int pGraph, int pTrace)
 {
 
     graphs[pGraph].updateTrace(pTrace);
+
+    if((pGraph == 0) && hasAnnotationGraph && 
+                                graphs[pGraph].graphInfo.lastScrollAmount!= 0){
+        
+    zoomGraph.scrollGraph(graphs[pGraph].graphInfo.lastScrollAmount);
+        
+    graphs[pGraph].graphInfo.lastScrollAmount = 0;
+        
+    }
 
 }// end of Chart::updateTrace
 //-----------------------------------------------------------------------------
