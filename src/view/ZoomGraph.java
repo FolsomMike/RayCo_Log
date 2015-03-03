@@ -28,11 +28,13 @@ import model.IniFile;
 
 class ZoomGraph extends Graph{
         
-    ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
+    private final ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
 
-    int annoX = 0, annoY = 10;
-    int annoWidth = 100, annoHeight = 50;
-    int gap;
+    private int annoX = 0;
+    private final int annoY = 10;
+    private final int annoWidth = 100, annoHeight = 50;
+    private int gap;
+    private int maxNumZoomBoxes;
     
 //-----------------------------------------------------------------------------
 // ZoomGraph::ZoomGraph (constructor)
@@ -105,6 +107,10 @@ public void addZoomBox(int pZoomBoxNum, int[] dataSet)
     zoomBoxes.get(zoomBoxes.size()-1).setData(dataSet);
     
     zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
+
+    //limit number of boxes
+    if (zoomBoxes.size() > maxNumZoomBoxes){ 
+        zoomBoxes.remove(0); }
     
 }// end of ChartInfoPanel::addZoomBox
 //-----------------------------------------------------------------------------
@@ -167,6 +173,9 @@ void loadConfigSettings()
     super.loadConfigSettings();
 
     gap = configFile.readInt(configFileSection, "gap between annotations", 4);
+    
+    maxNumZoomBoxes = configFile.readInt(
+            configFileSection, "maximum number of annotation objects", 20);
     
 }// end of ZoomGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
