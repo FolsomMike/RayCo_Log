@@ -66,14 +66,13 @@ public static final int CATCH_HIGHEST = 0;
 public static final int CATCH_LOWEST = 1;
 
 private static int DATA_RESET_VALUE = 0;
-private static final int FLAG_RESET_VALUE = 0;
 
-
-public final static int DATA_VALID =    0x0000000000000001;
-public final static int DATA_READY =    0x0000000000000002;
-public final static int DATA_ERASED =   0x0000000000000004;
-public static final int VERTICAL_BAR =  0x0000000000000008;
-public static final int CIRCLE =        0x0000000000000010;
+private static final int FLAG_RESET_VALUE = 0x0000000000000000;
+public final static int DATA_VALID =        0x0000000000000001;
+public final static int DATA_READY =        0x0000000000000002;
+public final static int DATA_ERASED =       0x0000000000000004;
+public static final int VERTICAL_BAR =      0x0000000000000008;
+public static final int CIRCLE =            0x0000000000000010;
 
 
 //-----------------------------------------------------------------------------

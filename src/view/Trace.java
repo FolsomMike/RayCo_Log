@@ -127,7 +127,7 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     loadConfigSettings();
 
     xMax = width - 1; yMax = height - 1;
-
+        
 }// end of Trace::init
 //-----------------------------------------------------------------------------
 
@@ -408,8 +408,8 @@ public void scrollGraph (Graphics2D pG2, int pX)
     pG2.copyArea(0, 0, width, height, -1 * shiftAmt, 0);
     //erase the line at the far right
     pG2.setColor(backgroundColor);
-    pG2.drawLine(width-shiftAmt, 0, xMax, height);
-    
+    pG2.fillRect(width-shiftAmt, 0, shiftAmt, height);
+
     graphInfo.scrollOffset += shiftAmt;
     
 }// end of Trace::scrollGraph
