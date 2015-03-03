@@ -516,7 +516,7 @@ public void updateAnnotationGraph()
         return;
     }
     
-    if (prevX != prevXGraph0Trace0 && (prevX % 105 == 0)){    
+    if (prevX != prevXGraph0Trace0 && (prevX % 104 == 0)){    
         prevXGraph0Trace0 = prevX;
         zoomGraph.addZoomBox(0, simulateZoomGraph());
     }
