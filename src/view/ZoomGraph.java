@@ -56,11 +56,6 @@ public ZoomGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
 //
 // Initializes the object.  Must be called immediately after instantiation.
 //
-// pTitle is the text title for the graph.
-//
-// pIndex is a unique identifier for the object -- usually it's index position
-// in an array of the creating object.
-//
 
 @Override
 public void init()
@@ -91,12 +86,12 @@ public void paintComponent (Graphics g)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChartInfoPanel::addZoomBox
+// ZoomGraph::addZoomBox
 //
 // A ZoomBox to the list so it will be displayed on the graph.
 //
 
-public void addZoomBox(int pZoomBoxNum, int[] dataSet)
+public void addZoomBox(int pZoomBoxNum, int[] pDataSet)
 {
 
     zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, pZoomBoxNum,
@@ -104,7 +99,7 @@ public void addZoomBox(int pZoomBoxNum, int[] dataSet)
 
     annoX += annoWidth + gap; //prepare x to add next anno object to the right
     
-    zoomBoxes.get(zoomBoxes.size()-1).setData(dataSet);
+    zoomBoxes.get(zoomBoxes.size()-1).setData(pDataSet);
     
     zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
 
@@ -112,31 +107,7 @@ public void addZoomBox(int pZoomBoxNum, int[] dataSet)
     if (zoomBoxes.size() > maxNumZoomBoxes){ 
         zoomBoxes.remove(0); }
     
-}// end of ChartInfoPanel::addZoomBox
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ZoomGraph::scrollGraph
-//
-// Scrolls the graph area to the left by pShiftAmount and erases the right most
-// slice.
-//
-
-public void scrollGraph (int pShiftAmount)
-{
-    
-    Graphics2D g2 = (Graphics2D) getGraphics();
-    
-    //scroll the screen to the left
-    g2.copyArea(0, 0, width, height, -1 * pShiftAmount, 0);
-    //erase the line at the far right
-    g2.setColor(backgroundColor);
-    g2.fillRect(width-pShiftAmount, 0, pShiftAmount, height);
-
-    graphInfo.scrollOffset += pShiftAmount;
-    graphInfo.lastScrollAmount = pShiftAmount;
-    
-}// end of ZoomGraph::scrollGraph
+}// end of ZoomGraph::addZoomBox
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
