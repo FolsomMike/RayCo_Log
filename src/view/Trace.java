@@ -192,7 +192,7 @@ private void loadConfigSettings()
 // type (catch highest, lowest value, etc.) into the corresponding constant.
 //
 
-public void parsePeakType(String pValue)
+private void parsePeakType(String pValue)
 {
 
     switch (pValue) {
