@@ -19,6 +19,7 @@ package view;
 import controller.GUIDataSet;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
 import model.DataSetInt;
 import model.DataTransferIntBuffer;
 import model.IniFile;
@@ -40,7 +41,7 @@ public class Trace{
     public void setDataBuffer(DataTransferIntBuffer pV) { dataBuffer = pV; }
     public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
     
-    private String title, shortTitle;
+    private String title, shortTitle, objectType;
     public Color traceColor;    
     public String colorKeyText;
     public int colorKeyXPos;
@@ -149,6 +150,8 @@ private void loadConfigSettings()
     shortTitle = configFile.readString(
                             section, "short title", "trace" + (traceNum + 1));
 
+    objectType = configFile.readString(section, "object type", "trace");    
+    
     traceColor = configFile.readColor(section, "color", Color.BLACK);    
     
     colorKeyText = configFile.readString(section, "color key text", "hidden");
@@ -517,6 +520,23 @@ public void updateTrace(Graphics2D pG2)
     }
         
 }// end of Trace::updateTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::scanForGUIObjectsOfAType
+//
+// Scans recursively all children, grandchildren, and so on for all objects
+// with objectType which matches pObjectType. Each matching object should
+// add itself to the ArrayList pObjectList and query its own children.
+//
+
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+                                                           String pObjectType)
+{
+
+    if (objectType.equals(pObjectType)){ pObjectList.add(this); }
+    
+}// end of Trace::scanForGUIObjectsOfAType
 //-----------------------------------------------------------------------------
 
 }//end of class Trace

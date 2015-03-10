@@ -43,6 +43,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.ListIterator;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import mksystems.mswing.MFloatSpinner;
@@ -99,10 +100,7 @@ public class MainController implements EventHandler, Runnable
     private final String newline = "\n";
 
     private final GUIDataSet guiDataSet = new GUIDataSet();
-
-    private int numTraces;
-    private Trace traces[];
-        
+       
     private int numDataBuffers;
     private DataTransferIntBuffer dataBuffers[];
 
@@ -223,43 +221,32 @@ private void setUpDataTransferBuffers()
 private void createAndAssignDataBuffersToTraces()
 {
 
+    ArrayList<Object> traces = new ArrayList<>();
+    
     //prepare to iterate through all traces
-    mainView.initForGUIChildrenScan();
-    
-    //set all to zero so every child type will be scanned
-    guiDataSet.setGUIChildNums(0);
-    
-    //scan all traces to get total number of traces
-    numTraces = 0;
-    while (mainView.getNextGUIChild(guiDataSet) != -1){ numTraces++; }
+    mainView.scanForGUIObjectsOfAType(traces, "trace");
 
-    numDataBuffers = numTraces;
-    traces = new Trace[numTraces];
+    numDataBuffers = traces.size();
     dataBuffers = new DataTransferIntBuffer[numDataBuffers];
-
-    //prepare to iterate through all traces
-    mainView.initForGUIChildrenScan();
-    
-    //set all to zero so every child type will be scanned
-    guiDataSet.setGUIChildNums(0);
     
     int i = 0;
     
-    //scan all traces again to set up a data transfer buffer for each
-    while (mainView.getNextGUIChild(guiDataSet) != -1){
-
-        traces[i] = mainView.getTrace(guiDataSet);
+    ListIterator iter = traces.listIterator();
+    
+    while(iter.hasNext()){
+        
+        Trace trace = (Trace)iter.next();
         
         dataBuffers[i] = new DataTransferIntBuffer(
-                        traces[i].getNumDataPoints(), traces[i].getPeakType());
+                        trace.getNumDataPoints(), trace.getPeakType());
         dataBuffers[i].init(); dataBuffers[i].reset();
         
-        traces[i].setDataBuffer(dataBuffers[i]);
+        trace.setDataBuffer(dataBuffers[i]);
         
-        dataBuffers[i].chartGroupNum = traces[i].chartGroupNum;
-        dataBuffers[i].chartNum = traces[i].chartNum;
-        dataBuffers[i].graphNum = traces[i].graphNum;
-        dataBuffers[i].traceNum = traces[i].traceNum;
+        dataBuffers[i].chartGroupNum = trace.chartGroupNum;
+        dataBuffers[i].chartNum = trace.chartNum;
+        dataBuffers[i].graphNum = trace.graphNum;
+        dataBuffers[i].traceNum = trace.traceNum;
         
         i++;
     }
@@ -527,11 +514,10 @@ private void displayDataFromDevices()
         //pace this with timer to control scan speed
         dataBuffer.incrementPutPointerAndSetReadyFlag();
         //update trace with all data changes
-        mainView.updateTrace(dataBuffer.chartGroupNum, dataBuffer.chartNum,
+        mainView.updateChild(dataBuffer.chartGroupNum, dataBuffer.chartNum,
                                      dataBuffer.graphNum, dataBuffer.traceNum);
     }
-    
-    
+        
     mainView.updateAnnotationGraphs(0);
 
 }// end of MainController::displayDataFromDevices

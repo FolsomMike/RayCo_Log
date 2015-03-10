@@ -16,8 +16,8 @@
 
 package view;
 
-import controller.GUIDataSet;
 import java.awt.*;
+import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
 
@@ -30,21 +30,21 @@ class Chart extends JPanel{
 
     private IniFile configFile;
     
-    private String title, shortTitle;
+    private String title, shortTitle, objectType;
     private int chartGroupNum, chartNum;
     private int graphWidth, graphHeight;    
     int numGraphs;
-    boolean hasAnnotationGraph;
+    boolean hasZoomGraph = false;
     boolean hasInfoPanel;
     int prevXGraph0Trace0;
+
+    boolean graphsVisible;
     
     ChartInfo chartInfo = new ChartInfo();
     
-    private TraceGraph graphs[];
+    private Graph graphs[];
     private ZoomGraph zoomGraph;
     private ChartInfoPanel infoPanel;
-    
-    private int graphPtr;
 
 //-----------------------------------------------------------------------------
 // Chart::Chart (constructor)
@@ -84,52 +84,132 @@ public void init(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));    
     
     addGraphs();
-    
-    if (hasAnnotationGraph){ addAnnotationGraph(); }
-    
+
     if(hasInfoPanel){ addInfoPanel(); }
 
+    setGraphsVisible(graphsVisible);
+    
 }// end of Chart::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Chart::addGraphs
 //
-// Adds basic graphs to the chart.
-//
+// Adds basic graphs to the chart. The type of each graph is loaded from the
+// graph's section in the config file.
+// 
 
 private void addGraphs()
-{
-    
-    graphs = new TraceGraph[numGraphs];
+{    
+    graphs = new Graph[numGraphs];
     
     for (int i = 0; i<numGraphs; i++){
-        graphs[i] = new TraceGraph(chartGroupNum, chartNum, i,
+        
+        int graphType = loadGraphTypeFromConfigFile(i);
+        
+        if (graphType == Graph.TRACE_GRAPH){
+        
+            graphs[i] = new TraceGraph(chartGroupNum, chartNum, i,
                                graphWidth, graphHeight, chartInfo, configFile);
-        graphs[i].init();
-        add(graphs[i]);
-        if(i<numGraphs-1){ addGraphSeparatorPanel(); }
+            graphs[i].init();
+            add(graphs[i]);
+            addSeparatorPanelSpecifiedInConfigFile(i);
+            
+        } else if (graphType == Graph.ZOOM_GRAPH){
+
+            graphs[i] = new ZoomGraph(chartGroupNum, chartNum, i,
+                               graphWidth, graphHeight, chartInfo, configFile);
+            graphs[i].init();
+            add(graphs[i]);
+            addSeparatorPanelSpecifiedInConfigFile(i);
+            hasZoomGraph = true;
+            zoomGraph = (ZoomGraph)graphs[i]; //convenience reference
+                        
+        } else if (graphType == Graph.MAP3D_GRAPH){
+
+            graphs[i] = new Map3DGraph(chartGroupNum, chartNum, i,
+                               graphWidth, graphHeight, chartInfo, configFile);
+            graphs[i].init();
+            add(graphs[i]);
+            addSeparatorPanelSpecifiedInConfigFile(i);
+            
+        }
+        
     }
 
 }// end of Chart::addGraphs
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::addAnnotationGraph
+// Channel::loadGraphTypeFromConfigFile
 //
-// Adds an annotation graph to the chart.
+// Loads the graph type from the section in the config file for the graph
+// numbered pGraphNum.
 //
 
-private void addAnnotationGraph()
+private int loadGraphTypeFromConfigFile(int pGraphNum)
 {
 
-    zoomGraph = new ZoomGraph(chartGroupNum, chartNum, 0,
-                               graphWidth, graphHeight, chartInfo, configFile);
-    zoomGraph.init();
-    addGraphSeparatorPanel();
-    add(zoomGraph);
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
+                                                    + " Graph " + pGraphNum;
+            
+    String type  = configFile.readString(section, "graph type", "undefined");
+    
+    return (parseGraphType(type));
+    
+}// end of Channel::loadGraphTypeFromConfigFile
+//-----------------------------------------------------------------------------
 
-}// end of Chart::addAnnotationGraph
+//-----------------------------------------------------------------------------
+// Channel::addSeparatorPanelSpecifiedInConfigFile
+//
+// Loads the info from the graph pGraphNum's section in the config file for a
+// separator panel to be added to the parent container after the graph is added.
+//
+// If the pHeight value loaded from the config file is 0, no panel will be
+// added.
+//
+
+private void addSeparatorPanelSpecifiedInConfigFile(int pGraphNum)
+{
+
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
+                                                    + " Graph " + pGraphNum;
+            
+    int spHeight  = configFile.readInt(section, "separator panel height", 0);
+    
+    Color spLineColor = configFile.readColor(
+                          section, "separator panel line color", Color.BLACK);
+
+    int spLineThickness  = configFile.readInt(
+                                section, "separator panel line thickness", 1);
+
+    if (spHeight == 0){ return; } //no panel if height is zero
+    
+    
+    addGraphSeparatorPanel(spHeight, spLineColor, spLineThickness);
+                
+}// end of Channel::addSeparatorPanelSpecifiedInConfigFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::parseGraphType
+//
+// Converts the descriptive string loaded from the config file for the graph
+// type into the corresponding constant.
+//
+
+private int parseGraphType(String pValue)
+{
+
+    switch (pValue) {
+         case "trace graph": return(Graph.TRACE_GRAPH);
+         case "zoom graph" : return(Graph.ZOOM_GRAPH);
+         case "3D map graph" : return(Graph.MAP3D_GRAPH);
+         default : return(Graph.UNDEFINED_GRAPH);
+    }
+    
+}// end of Channel::parseGraphType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -148,8 +228,8 @@ private void addInfoPanel()
 
     //add a color key for each trace
     
-    for(TraceGraph graph: graphs){     
-        for(int i=0; i<graph.getNumTraces(); i++){        
+    for(Graph graph: graphs){     
+        for(int i=0; i<graph.getNumChildren(); i++){        
             Trace trace = graph.getTrace(i);
             if (!trace.colorKeyText.equals("hidden")){
                 infoPanel.addColorKey(trace.traceColor, trace.colorKeyText, 
@@ -161,6 +241,26 @@ private void addInfoPanel()
 }// end of Chart::addInfoPanel
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Chart::setGraphsVisible
+//
+// Sets the visibility of the graphs. The chart is never actually hidden,
+// rather the graphs it contains can be hidden so they take up no space which
+// allows the chart to be shrunken vertically so it takes up minimal space.
+//
+
+public void setGraphsVisible(boolean pState)
+{
+
+    graphsVisible = pState;
+    
+    for(Graph graph:graphs){ graph.setVisible(pState); }
+
+    if (hasZoomGraph){ zoomGraph.setVisible(pState); }
+    
+}// end of Chart::setFullyVisible
+//-----------------------------------------------------------------------------
+    
 //-----------------------------------------------------------------------------
 // Chart::loadConfigSettings
 //
@@ -177,10 +277,9 @@ private void loadConfigSettings()
     shortTitle = configFile.readString(
                              section, "short title", "chart" + (chartNum + 1));
     
-    numGraphs = configFile.readInt(section, "number of graphs", 0);
+    objectType = configFile.readString(section, "object type", "chart");
     
-    hasAnnotationGraph = configFile.readBoolean(
-                                       section, "has annotation graph", false);
+    numGraphs = configFile.readInt(section, "number of graphs", 0);
 
     hasInfoPanel = configFile.readBoolean(section, "has info panel", false);
 
@@ -193,6 +292,8 @@ private void loadConfigSettings()
                                   section, "default height for all graphs", 0);
 
     if (configHeight > 0) graphHeight = configHeight; //override if > 0
+
+    graphsVisible = configFile.readBoolean(section, "graphs are visible", true);
     
 }// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -204,12 +305,13 @@ private void loadConfigSettings()
 // line with specified color and thickness.
 //
 
-public void addGraphSeparatorPanel()
+public void addGraphSeparatorPanel(int pHeight, Color pLineColor,
+                                                            int pLineThickness)
 {
 
     SeparatorPanel spanel = new SeparatorPanel();
     
-    spanel.init(graphWidth, 1, Color.LIGHT_GRAY , 1);
+    spanel.init(graphWidth, pHeight, pLineColor , pLineThickness);
     
     add(spanel);
     
@@ -268,9 +370,7 @@ public void paintComponent (Graphics g)
 public void paintTraces (Graphics2D pG2)
 {
 
-    for(int i=0; i<numGraphs; i++){
-        graphs[i].paintTraces(pG2);
-    }
+    for(int i=0; i<numGraphs; i++){ graphs[i].paintChildren(pG2); }
 
 }// end of Chart::paintTraces
 //-----------------------------------------------------------------------------
@@ -284,100 +384,101 @@ public void paintTraces (Graphics2D pG2)
 public void setAllTraceXScale(double pScale)
 {
     
-    for (TraceGraph graph : graphs) { graph.setAllTraceXScale(pScale); }
+    for (Graph graph : graphs) { graph.setAllChildrenXScale(pScale); }
 
 }// end of Chart::setAllTraceXScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::setTraceYScale
+// Chart::setChildYScale
 //
-// For Trace pTrace of TraceGraph pGraph, sets the display vertical scale for
-// to pScale
+// For child pChildNum of Graph pGraphNum, sets the display vertical scale
+// to pScale.
+//
+// The child might be a trace or other plotting type depending on the graph
+// type.
 //
 
-public void setTraceYScale(int pGraph, int pTrace, double pScale)
+public void setChildYScale(int pGraphNum, int pChildNum, double pScale)
 {
 
-    if (pGraph < 0 || pGraph >= graphs.length){ return; }
+    if (pGraphNum < 0 || pGraphNum >= graphs.length){ return; }
 
-    graphs[pGraph].setTraceYScale(pTrace, pScale);
+    graphs[pGraphNum].setChildYScale(pChildNum, pScale);
 
-}// end of Chart::setTraceYScale
+}// end of Chart::setChildYScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::setTraceOffset
+// Chart::setChildOffset
 //
-// For Trace pTrace of TraceGraph pGraph, sets the display offset for Trace pTrace
-// to pOffset.
+// For child pChildNum of Graph pGraphNum, sets the display offset to pOffset.
 //
 
-public void setTraceOffset(int pGraph, int pTrace, int pOffset)
+public void setChildOffset(int pGraphNum, int pChildNum, int pOffset)
 {
     
-    if (pGraph < 0 || pGraph >= graphs.length){ return; }
+    if (pGraphNum < 0 || pGraphNum >= graphs.length){ return; }
 
-    graphs[pGraph].setTraceOffset(pTrace, pOffset);
+    graphs[pGraphNum].setChildOffset(pChildNum, pOffset);
 
-}// end of Chart::setTraceOffset
+}// end of Chart::setChildOffset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::setTraceBaseLine
+// Chart::setChildBaseLine
 //
-// For Trace pTrace of TraceGraph pGraph, sets the baseLine value to pBaseLine.
-// This will cause the pBaseline value to be shifted to zero when the trace is
+// For child pChildNum of Graph pGraphNum, sets the baseLine value to pBaseLine.
+// This will cause the pBaseline value to be shifted to zero when the child is
 // drawn.
 //
 
-public void setTraceBaseLine(int pGraph, int pTrace, int pBaseLine)
+public void setTraceBaseLine(int pGraphNum, int pTraceNum, int pBaseLine)
 {
     
-    if (pGraph < 0 || pGraph >= graphs.length){ return; }
+    if (pGraphNum < 0 || pGraphNum >= graphs.length){ return; }
 
-    graphs[pGraph].setTraceBaseLine(pTrace, pBaseLine);
+    graphs[pGraphNum].setChildBaseLine(pTraceNum, pBaseLine);
 
-}// end of Chart::setTraceBaseLine
+}// end of Chart::setChildBaseLine
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::setTraceConnectPoints
+// Chart::setChildConnectPoints
 //
-// For Trace pTrace of TraceGraph pGraph, sets the connectPoints flag. If true,
-// points will be connected by a line.
+// For child pChildNum of TraceGraph pGraphNum, sets the connectPoints flag. If
+// true, points will be connected by a line.
 //
 
-public void setTraceConnectPoints(int pGraph, int pTrace, boolean pValue)
+public void setChildConnectPoints(int pGraphNum, int pChildNum, boolean pValue)
 {
 
-    if (pGraph < 0 || pGraph >= graphs.length){ return; }
+    if (pGraphNum < 0 || pGraphNum >= graphs.length){ return; }
 
-    graphs[pGraph].setTraceConnectPoints(pTrace, pValue);
+    graphs[pGraphNum].setChildConnectPoints(pChildNum, pValue);
     
-}// end of Chart::setTraceConnectPoints
+}// end of Chart::setChildConnectPoints
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::setVerticalBarAllTraces
+// Chart::setVerticalBarAllChildren
 //
 // Sets a vertical bar to be drawn at the current data insertion location for
-// all traces on all graphs.
+// all children on all graphs.
 //
 
-public void setVerticalBarAllTraces()
+public void setVerticalBarAllChildren()
 {
 
-    for (TraceGraph graph : graphs) { graph.setVerticalBarAllTraces(); }
+    for (Graph graph : graphs) { graph.setVerticalBarAllChildren(); }
 
-}// end of Chart::setVerticalBarAllTraces
+}// end of Chart::setVerticalBarAllChildren
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Chart::resetAll
 //
-// For all traces of all graphs resets all data to zero and all flags to
-// DEFAULT_FLAGS. Resets dataInsertPos to zero.
+// Resets all graphs to default starting values.
 //
 
 public void resetAll()
@@ -385,96 +486,46 @@ public void resetAll()
 
     prevXGraph0Trace0 = -1;
     
-    for (TraceGraph graph: graphs){ graph.resetAllTraceData(); }
-
-    if (hasAnnotationGraph) { zoomGraph.resetAll(); }
+    for (Graph graph: graphs){ graph.resetAll(); }
     
 }// end of Chart::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::getNumTracesForGraph
+// Chart::getNumChildrenForGraph
 //
-// Returns numTraces from TraceGraph pGraph.
+// Returns number of children from Graph pGraphNum.
 //
 
-public int getNumTraces(int pGraph)
+public int getNumChildrenForGraph(int pGraphNum)
 {
 
-    if (pGraph < 0 || pGraph >= graphs.length){ return(0); }
+    if (pGraphNum < 0 || pGraphNum >= graphs.length){ return(0); }
     
-    return(graphs[pGraph].getNumTraces());
+    return(graphs[pGraphNum].getNumChildren());
 
-}// end of Chart::getNumTraces
+}// end of Chart::getNumChildrenForGraph
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::initForGUIChildrenScan
+// Chart::scanForGUIObjectsOfAType
 //
-// Prepares for iteration through all GUI child objects.
+// Scans recursively all children, grandchildren, and so on for all objects
+// with objectType which matches pObjectType. Each matching object should
+// add itself to the ArrayList pObjectList and query its own children.
 //
 
-public void initForGUIChildrenScan()
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+                                                           String pObjectType)
 {
     
-    graphPtr = 0;
+    if (objectType.equals(pObjectType)){ pObjectList.add(this); }
     
-    for (TraceGraph graph : graphs) { graph.initForGUIChildrenScan(); }
-
-}// end of Chart::initForGUIChildrenScan
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::getNextGUIChild
-//
-// Returns the index of the next GUI child object in the scan order in the
-// appropriate variable in guiDataSet.
-//
-// Returns 0 if a valid child other than the last is being returned, -1 if
-// not valid children are available, and 1 if the last child is being returned.
-//
-// If the variable in guiDataSet for the next child layer is not the RESET
-// value, then the index for the next child object is returned as well.
-//
-// This method can be used to iterate through all subsequent layers of child
-// objects by setting all the index number variables in guiDataSet to any
-// value other than RESET.
-//
-
-public int getNextGUIChild(GUIDataSet pGuiDataSet)
-{
-    
-    int status;
-
-    if(graphPtr >= graphs.length){ 
-        pGuiDataSet.graphNum = -1;
-        return(-1);
-    }else if (graphPtr == graphs.length - 1){
-        status = 1;
-        pGuiDataSet.graphNum = graphPtr;
-    }else{
-        status = 0;
-        pGuiDataSet.graphNum = graphPtr;
+    for (Graph graph : graphs) { 
+        graph.scanForGUIObjectsOfAType(pObjectList, pObjectType);
     }
-    
-    if(pGuiDataSet.traceNum == GUIDataSet.RESET){        
-        //don't scan deeper layer of children, move to the next child        
-        graphPtr++;
-        return(status);
-    }else{     
-        // scan the next layer of children as well, only moving to the next
-        // local child when all next layer children have been scanned
-        
-        int grandChildStatus = 
-                    graphs[graphPtr].getNextGUIChild(pGuiDataSet);
-        //if last child's last child returned, move to next child for next call
-        if (grandChildStatus == 1){ graphPtr++; }
-        //if last grandchild of last child, flag so parent moves to next child 
-        if (grandChildStatus == 1 && status == 1){ return(status);}
-        else{ return(0); }
-    }
-    
-}// end of Chart::getNextGUIChild
+
+}// end of Chart::scanForGUIObjectsOfAType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -507,7 +558,7 @@ public Trace getTrace(int pGraph, int pTrace)
 public void updateAnnotationGraph()
 {
 
-    if(!hasAnnotationGraph){ return; }
+    if(!hasZoomGraph){ return; }
     
     int prevX = graphs[0].getTrace(0).getPrevX();    
     
@@ -525,34 +576,36 @@ public void updateAnnotationGraph()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::updateTrace
+// Chart::updateChild
 //
-// Plots all data added to dataBuffer and/or erases any data which has been
-// flagged as erased for pTrace of pGraph.
-//
-// If graph 0 gets scrolled, the annotation graph is scrolled by the same
-// amount so it tracks.
+// Plots all data added to the data transfer buffer and/or erases any data
+// which has been flagged as erased for pChildNum of pGraphNum.
 //
 
-public void updateTrace(int pGraph, int pTrace)
+public void updateChild(int pGraphNum, int pChildNum)
 {
 
-    graphs[pGraph].updateTrace(pTrace);
+    graphs[pGraphNum].updateChild(pChildNum);
 
-    if((pGraph == 0) && hasAnnotationGraph && 
-                                graphs[pGraph].graphInfo.lastScrollAmount!= 0){
+    //debug mks -- need to load from config file which graph the zoom graph
+    //tracks and scroll it when that graph is scrolled instead of hard coding
+    //to graph 0
+    
+    
+    if((pGraphNum == 0) && hasZoomGraph && 
+                            graphs[pGraphNum].graphInfo.lastScrollAmount!= 0){
         
-    zoomGraph.scrollGraph(graphs[pGraph].graphInfo.lastScrollAmount);
+        zoomGraph.scrollGraph(graphs[pGraphNum].graphInfo.lastScrollAmount);
         
-    graphs[pGraph].graphInfo.lastScrollAmount = 0;
+        graphs[pGraphNum].graphInfo.lastScrollAmount = 0;
         
     }
 
-}// end of Chart::updateTrace
+}// end of Chart::updateChild
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ZoomGraph::simulateZoomGraph
+// ???::simulateZoomGraph
 //
 // Creates a simulated data stream representing a high resolution graph of
 // an indication.
@@ -577,7 +630,7 @@ private int[] simulateZoomGraph()
     
     return(data);
     
-}// end of ZoomGraph::simulateZoomGraph
+}// end of ???::simulateZoomGraph
 //-----------------------------------------------------------------------------
 
 

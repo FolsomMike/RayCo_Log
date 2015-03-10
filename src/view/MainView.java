@@ -78,8 +78,6 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private int numChartGroups;
     private ChartGroup chartGroups[];
     
-    private int chartGroupPtr;
-    
     private JFrame mainFrame;
     private JPanel mainPanel;
     
@@ -819,18 +817,18 @@ public void updateAnnotationGraphs(int pChartGroup)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::updateTrace
+// MainView::updateChild
 //
-// Plots all data added to dataBuffer and erases any data which has been
-// marked as erased for pTrace of pGraph of pChart of pChartGroup.
+// Plots all data added to transfer data buffer and erases any data which has
+// been marked as erased for pTrace of pGraph of pChart of pChartGroup.
 //
 
-public void updateTrace(int pChartGroup, int pChart, int pGraph, int pTrace)
+public void updateChild(int pChartGroup, int pChart, int pGraph, int pTrace)
 {
 
-    chartGroups[pChartGroup].updateTrace(pChart, pGraph, pTrace);
+    chartGroups[pChartGroup].updateChild(pChart, pGraph, pTrace);
 
-}// end of MainView::updateTrace
+}// end of MainView::updateChild
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1183,83 +1181,22 @@ public void loadConfigSettings()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::initForGUIChildrenScan
+// MainView::scanForGUIObjectsOfAType
 //
-// Prepares for iteration through all GUI child objects.
+// Scans recursively all children, grandchildren, and so on for all objects
+// with objectType which matches pObjectType. Each matching object should
+// add itself to the ArrayList pObjectList and query its own children.
 //
 
-public void initForGUIChildrenScan()
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+                                                           String pObjectType)
 {
-    
-    chartGroupPtr = 0;
     
     for (ChartGroup chartGroup : chartGroups) { 
-        chartGroup.initForGUIChildrenScan();
+        chartGroup.scanForGUIObjectsOfAType(pObjectList, pObjectType);
     }
 
-}// end of MainView::initForGUIChildrenScan
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::getNextGUIChild
-//
-// Returns the index of the next GUI child object in the scan order in the
-// appropriate variable in guiDataSet.
-//
-// Returns 0 if a valid child other than the last is being returned, -1 if
-// not valid children are available, and 1 if the last child is being returned.
-//
-// If the variable in guiDataSet for the next child layer is not the RESET
-// value, then the index for the next child object is returned as well.
-//
-// This method can be used to iterate through all subsequent layers of child
-// objects by setting all the index number variables in guiDataSet to any
-// value other than RESET.
-//
-// This method can be used to iterate through only chart groups, charts,
-// graphs, or all traces. Setting appropriate values in pGuiDataSet to -1
-// limits the depth of the iteration:
-//
-// chartGroupNum=0,chartNum=-1,graphNum=-1,traceNum=-1 => iterate groups only
-// chartGroupNum=0,chartNum=0,graphNum=-1,traceNum=-1 =>groups/charts
-// chartGroupNum=0,chartNum=0,graphNum=0,traceNum=-1 =>groups/charts/graphs
-// chartGroupNum=0,chartNum=0,graphNum=0,traceNum=0 => group/chart/graphs/traces
-//
-
-public int getNextGUIChild(GUIDataSet pGuiDataSet)
-{
-    
-    int status;
-
-    if(chartGroupPtr >= chartGroups.length){ 
-        pGuiDataSet.chartGroupNum = -1;
-        return(-1);
-    }else if (chartGroupPtr == chartGroups.length - 1){
-        status = 1;
-        pGuiDataSet.chartGroupNum = chartGroupPtr;
-    }else{
-        status = 0;
-        pGuiDataSet.chartGroupNum = chartGroupPtr;
-    }
-    
-    if(pGuiDataSet.chartNum == GUIDataSet.RESET){        
-        //don't scan deeper layer of children, move to the next child        
-        chartGroupPtr++;
-        return(status);
-    }else{     
-        // scan the next layer of children as well, only moving to the next
-        // local child when all next layer children have been scanned
-        
-        int grandChildStatus = 
-                    chartGroups[chartGroupPtr].getNextGUIChild(pGuiDataSet);
-        //if last child's last child returned, move to next child for next call
-        if (grandChildStatus == 1){ chartGroupPtr++; }
-        //if last grandchild of last child, flag so parent moves to next child 
-        if (grandChildStatus == 1 && status == 1){ return(status);}
-        else{ return(0); }
-    }
-    
-}// end of MainView::getNextGUIChild
+}// end of MainView::scanForGUIObjectsOfAType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -16,10 +16,10 @@
 
 package view;
 
-import controller.GUIDataSet;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 import model.DataTransferIntBuffer;
 import model.IniFile;
 
@@ -37,8 +37,6 @@ public class TraceGraph extends Graph{
     int gridXSpacing = 10;
     int gridYSpacing = 10;
     private boolean drawGridBaseline;
-
-    private int tracePtr;
 
     private boolean invertGraph;
     
@@ -68,7 +66,7 @@ public void init()
         
     setOpaque(true);
     setBackground(backgroundColor);    
-    createTraces();
+    addTraces();
     
 }// end of TraceGraph::init
 //-----------------------------------------------------------------------------
@@ -108,12 +106,12 @@ void loadConfigSettings()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::createTraces
+// TraceGraph::addTraces
 //
-// Creates and sets up the traces.
+// Creates and sets up the traces and adds them to the panel.
 //
 
-private void createTraces()
+private void addTraces()
 {
 
     traces = new Trace[numTraces];
@@ -126,7 +124,7 @@ private void createTraces()
             gridYSpacing, graphInfo, configFile);
     }
 
-}//end of TraceGraph::createTraces
+}//end of TraceGraph::addTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -148,23 +146,24 @@ public void paintComponent (Graphics g)
         g2.drawLine(0, y, width-1, y);
     }
 
-    paintTraces(g2);
+    paintChildren(g2);
 
 }// end of TraceGraph::paintComponent
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::paintTraces
+// TraceGraph::paintChildren
 //
-// Paints all the traces on the canvas.
+// Paints all the traces and other child objects on the canvas.
 //
 
-public void paintTraces(Graphics2D pG2)
+@Override
+public void paintChildren(Graphics2D pG2)
 {
     
     for (Trace trace : traces) { trace.paintTrace(pG2); }
 
-}// end of TraceGraph::paintTraces
+}// end of TraceGraph::paintChildren
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -183,18 +182,19 @@ public void paintSingleTraceDataPoint(int pTrace, int pIndex)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::updateTrace
+// TraceGraph::updateChild
 //
-// Plots all data added to dataBuffer and erases any data which has been
-// marked as erased for pTrace.
+// Plots all data added to the data transfer buffer and erases any data which
+// has been marked as erased for pChildNum.
 //
 
-public void updateTrace(int pTrace)
+@Override
+public void updateChild(int pChildNum)
 {
     
-    traces[pTrace].updateTrace((Graphics2D) getGraphics());
+    traces[pChildNum].updateTrace((Graphics2D) getGraphics());
 
-}// end of TraceGraph::updateTrace
+}// end of TraceGraph::updateChild
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -203,6 +203,7 @@ public void updateTrace(int pTrace)
 // Returns Trace pTrace.
 //
 
+@Override
 public Trace getTrace(int pTrace)
 {
 
@@ -214,17 +215,18 @@ public Trace getTrace(int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::getNumTraces
+// TraceGraph::getNumChildren
 //
 // Returns numTraces.
 //
 
-public int getNumTraces()
+@Override
+public int getNumChildren()
 {
 
     return(numTraces);
 
-}// end of TraceGraph::getNumTraces
+}// end of TraceGraph::getNumChildren
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -245,28 +247,29 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::resetAllTraceData
+// TraceGraph::resetAllChildrenData
 //
 // For all traces resets all data to zero and all flags to DEFAULT_FLAGS.
 // Resets dataInsertPos to zero.
 //
 
-public void resetAllTraceData()
+public void resetAllChildrenData()
 {
     
     for (Trace trace : traces) { trace.resetData(); }
 
-}// end of TraceGraph::resetAllTraceData
+}// end of TraceGraph::resetAllChildrenData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::setVerticalBarAllTraces
+// TraceGraph::setVerticalBarAllChildren
 //
 // Sets a vertical bar to be drawn at the current data insertion location for
 // all traces.
 //
 
-public void setVerticalBarAllTraces()
+@Override
+public void setVerticalBarAllChildren()
 {
 
     for (Trace trace : traces) {
@@ -274,144 +277,91 @@ public void setVerticalBarAllTraces()
                                            DataTransferIntBuffer.VERTICAL_BAR);
     }
 
-}// end of TraceGraph::setVerticalBarAllTraces
+}// end of TraceGraph::setVerticalBarAllChildren
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::setTraceConnectPoints
+// TraceGraph::setChildConnectPoints
 //
-// For Trace pTrace, sets the connectPoints flag. If true,
-// points will be connected by a line.
+// For Trace pChildNum, sets the connectPoints flag. If true, points will be
+// connected by a line.
 //
 
-public void setTraceConnectPoints(int pTrace, boolean pValue)
+@Override
+public void setChildConnectPoints(int pChildNum, boolean pValue)
 {
 
-    if (pTrace < 0 || pTrace >= traces.length){ return; }
+    if (pChildNum < 0 || pChildNum >= traces.length){ return; }
 
-    traces[pTrace].setConnectPoints(pValue);
+    traces[pChildNum].setConnectPoints(pValue);
     
-}// end of TraceGraph::setTraceConnectPoints
+}// end of TraceGraph::setChildConnectPoints
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::setTraceYScale
+// TraceGraph::setChildYScale
 //
-// For Trace pTrace, sets the display vertical scale to pScale
+// For Trace pChildNum, sets the display vertical scale to pScale
 //
 
-public void setTraceYScale(int pTrace, double pScale)
+@Override
+public void setChildYScale(int pChildNum, double pScale)
 {
 
-    if (pTrace < 0 || pTrace >= traces.length){ return; }
+    if (pChildNum < 0 || pChildNum >= traces.length){ return; }
 
-    traces[pTrace].setYScale(pScale);
+    traces[pChildNum].setYScale(pScale);
 
-}// end of TraceGraph::setTraceYScale
+}// end of TraceGraph::setChildYScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::setTraceOffset
+// TraceGraph::setChildOffset
 //
-// For Trace pTrace, sets the display offset to pOffset.
+// For Trace pChildNum, sets the display offset to pOffset.
 //
 
-public void setTraceOffset(int pTrace, int pOffset)
+@Override
+public void setChildOffset(int pChildNum, int pOffset)
 {
     
-    if (pTrace < 0 || pTrace >= traces.length){ return; }
+    if (pChildNum < 0 || pChildNum >= traces.length){ return; }
 
-    traces[pTrace].setOffset(pOffset);
+    traces[pChildNum].setOffset(pOffset);
 
-}// end of TraceGraph::setTraceOffset
+}// end of TraceGraph::setChildOffset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::setTraceBaseLine
+// TraceGraph::setChildBaseLine
 //
-// For Trace pTrace, sets the baseLine value for to pBaseLine. This will cause
+// For trace pChildNum, sets the baseLine value to pBaseLine. This will cause
 // the pBaseline value to be shifted to zero when the trace is drawn.
 //
 
-public void setTraceBaseLine(int pTrace, int pBaseLine)
+public void setChildBaseLine(int pChildNum, int pBaseLine)
 {
     
-    if (pTrace < 0 || pTrace >= traces.length){ return; }
+    if (pChildNum < 0 || pChildNum >= traces.length){ return; }
 
-    traces[pTrace].setBaseLine(pBaseLine);
+    traces[pChildNum].setBaseLine(pBaseLine);
 
-}// end of TraceGraph::setTraceBaseLine
+}// end of TraceGraph::setChildBaseLine
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceGraph::setAllTraceXScale
+// TraceGraph::setAllChildrenXScale
 //
 // Sets the display horizontal scale for all traces to pScale.
 //
 
-public void setAllTraceXScale(double pScale)
+@Override
+public void setAllChildrenXScale(double pScale)
 {
     
     for (Trace trace : traces) { trace.setXScale(pScale); }
 
-}// end of TraceGraph::setAllTraceXScale
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::initForGUIChildrenScan
-//
-// Prepares for iteration through all traces.
-//
-
-public void initForGUIChildrenScan()
-{
-    
-    tracePtr = 0;
-
-}// end of Chart::initForGUIChildrenScan
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// TraceGraph::getNextGUIChild
-//
-// Returns the index of the next GUI child object in the scan order in the
-// appropriate variable in guiDataSet.
-//
-// Returns 0 if a valid child other than the last is being returned, -1 if
-// not valid children are available, and 1 if the last child is being returned.
-//
-// If the variable in guiDataSet for the next child layer is not the RESET
-// value, then the index for the next child object is returned as well.
-//
-// This method can be used to iterate through all subsequent layers of child
-// objects by setting all the index number variables in guiDataSet to any
-// value other than RESET.
-//
-
-public int getNextGUIChild(GUIDataSet pGuiDataSet)
-{
-    
-    int status;
-
-    if(tracePtr >= traces.length){
-        //no more children
-        pGuiDataSet.traceNum = -1;
-        return(-1);
-    }else if (tracePtr == traces.length - 1){
-        //this is the last child
-        status = 1;
-        pGuiDataSet.traceNum = tracePtr;
-    }else{
-        //this is a valid child but not the last one
-        status = 0;
-        pGuiDataSet.traceNum = tracePtr;
-    }
-    
-    tracePtr++;
-
-    return(status);
-        
-}// end of TraceGraph::getNextGUIChild
+}// end of TraceGraph::setAllChildrenXScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -429,6 +379,30 @@ public Trace getTrace(int pGraph, int pTrace)
     
 }// end of TraceGraph::getTrace
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// TraceGraph::scanForGUIObjectsOfAType
+//
+// Scans recursively all children, grandchildren, and so on for all objects
+// with objectType which matches pObjectType. Each matching object should
+// add itself to the ArrayList pObjectList and query its own children.
+//
+//
+
+@Override
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+                                                           String pObjectType)
+{
+    
+    super.scanForGUIObjectsOfAType(pObjectList, pObjectType);
+    
+    for (Trace trace : traces) { 
+        trace.scanForGUIObjectsOfAType(pObjectList, pObjectType);
+    }
+
+}// end of TraceGraph::scanForGUIObjectsOfAType
+//-----------------------------------------------------------------------------
+
 
 }//end of class TraceGraph
 //-----------------------------------------------------------------------------

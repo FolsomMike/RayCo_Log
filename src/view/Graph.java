@@ -18,6 +18,7 @@
 package view;
 
 import java.awt.*;
+import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
 
@@ -34,11 +35,18 @@ public class Graph extends JPanel{
     ChartInfo chartInfo;
     public GraphInfo graphInfo = new GraphInfo();
     
-    String title;    
-    String shortTitle;
+    String title, shortTitle, objectType;
     int chartGroupNum, chartNum, graphNum;
     int width, height;
     Color backgroundColor;
+ 
+    
+    //type of graph subclasses
+    
+    public static final int UNDEFINED_GRAPH = 0;
+    public static final int TRACE_GRAPH = 1;
+    public static final int ZOOM_GRAPH = 2;
+    public static final int MAP3D_GRAPH = 3;
     
 //-----------------------------------------------------------------------------
 // Graph::Graph (constructor)
@@ -118,6 +126,175 @@ public void scrollGraph (int pShiftAmount)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::getTrace
+//
+// Returns Trace pTrace.
+//
+// Generally overridden by subclasses to return a valid value.
+//
+
+public Trace getTrace(int pTrace)
+{
+
+    return(null);
+    
+}// end of Graph::getTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::getNumChildren
+//
+// Returns the number of child objects.
+//
+// Generally overridden by subclasses to return a valid value.
+//
+
+public int getNumChildren()
+{
+
+    return(0);
+
+}// end of Graph::getNumChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setAllChildrenXScale
+//
+// Sets the display horizontal scale for all children to pScale.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setAllChildrenXScale(double pScale)
+{
+    
+
+}// end of Graph::setAllChildrenXScale
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setChildYScale
+//
+// For child pChildNum, sets the display vertical scale to pScale
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setChildYScale(int pChildNum, double pScale)
+{
+
+}// end of Graph::setChildYScale
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setChildOffset
+//
+// For Trace pChildNum, sets the display offset to pOffset.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setChildOffset(int pChildNum, int pOffset)
+{
+    
+}// end of Graph::setChildOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setChildBaseLine
+//
+// For child pChildNum, sets the baseLine value to pBaseLine. This will cause
+// the pBaseline value to be shifted to zero when the child is drawn.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setChildBaseLine(int pChildNum, int pBaseLine)
+{   
+ 
+}// end of Graph::setChildBaseLine
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setChildConnectPoints
+//
+// For child pChildNum, sets the connectPoints flag. If true, points will be
+// connected by a line.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setChildConnectPoints(int pChildNum, boolean pValue)
+{
+
+    
+}// end of Graph::setChildConnectPoints
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setVerticalBarAllChildren
+//
+// Sets a vertical bar to be drawn at the current data insertion location for
+// all traces.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setVerticalBarAllChildren()
+{
+
+}// end of Graph::setVerticalBarAllChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::scanForGUIObjectsOfAType
+//
+// Scans recursively all children, grandchildren, and so on for all objects
+// with objectType which matches pObjectType. Each matching object should
+// add itself to the ArrayList pObjectList and query its own children.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+                                                           String pObjectType)
+{
+    
+    if (objectType.equals(pObjectType)){ pObjectList.add(this); }
+
+}// end of Graph::scanForGUIObjectsOfAType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::updateChild
+//
+// Plots all data added to the data transfer buffer and erases any data which
+// has been marked as erased for pChildNum.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void updateChild(int pChildNum)
+{
+
+}// end of Graph::updateChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::paintChildren
+//
+// Paints all the child objects on the canvas.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void paintChildren(Graphics2D pG2)
+{
+    
+}// end of Graph::paintChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::loadConfigSettings
 //
 // Loads settings for the object from configFile.
@@ -132,6 +309,9 @@ void loadConfigSettings()
     shortTitle = configFile.readString(
                configFileSection, "short title", "annograph" + (graphNum + 1));
 
+    objectType = configFile.readString(
+                                    configFileSection, "object type", "graph");
+    
     int configWidth = configFile.readInt(configFileSection, "width", 0);
 
     if (configWidth > 0) width = configWidth; //override if > 0

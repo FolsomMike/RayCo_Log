@@ -18,10 +18,12 @@
 * to 2-D transformation after taking a photograph because, essentially,
 * that is the goal of the task, to create a realistic, photographic image
 * of a 3-D object.
+*
 * An object in 3-D space is usually given as a set of coordinates in the
 * world coordinate system, which is just a fancy name for the standard (x,y,z)
 * Euclidean space. The goal is to project the 3-D object onto a viewing plane
 * in such a way that the image appears realistic.
+*
 * The eye coordinate system was defined specifically for that purpose.
 * The transformation from world coordinates into eye coordinates is a
 * simple multiplication by a 3x3 matrix. When expressed in terms of
@@ -93,6 +95,7 @@
 * Then, an UP VECTOR is defined in world coordinates. The UP VECTOR determines
 * the orientation of the view volume. Finally, a viewing angle is defined to
 * specify the breadth of the view volume.
+* 
 * When these parameters have been specified, the transformation from world
 * coordinates to eye coordinates is fixed. The from point is mapped to the
 * origin of the eye coordinate space. The at point determines the positive
@@ -151,6 +154,8 @@ class Map3D{
     int Degree;                   // rotational viewing angle
     int StretchX, StretchY;       // grid spacing between points
 
+    int xMaxPix, yMaxPix;
+    
     int criticalValue;
     int warnValue;
     int normalValue;
@@ -167,14 +172,17 @@ class Map3D{
                                 //   around the actual data points
 
     double Xres, Yres;              // X, Y resolution
-    double fx, fy, fz;              // From-Point, Never change
-    double ax, ay;                  // At-Point, Never change
-    double ux, uy, uz;              // Up-Point, Never change
+    double fx, fy, fz;              // From-Point
+    double ax, ay;                  // At-Point
+    double ux, uy, uz;              // Up-Point
     double zNear, zFar;             // for View volum
     double angle;                   // View Angle, to control zoom in/out
     double m[][] = new double[3][3];// Transformation Matrix
     double cx1, cy1, cz1;
     double cx2, cy2, cz2;
+    int width, height;
+    double xCenter; 
+    double yCenter;
 
     Vertex p = new Vertex();
     Vertex orthoP = new Vertex();
@@ -185,7 +193,10 @@ class Map3D{
     
     ScreenPlane screenPlane = new ScreenPlane();
     
-    Point[] quadPoly = new Point[4];  //used to draw polygons
+    //used to draw polygons
+    int[] xPoints = new int[4];
+    int[] yPoints = new int[4];
+    Polygon quadPoly = new Polygon(xPoints, yPoints, 4); 
     
     int[] Height = new int[4];
 
@@ -207,9 +218,9 @@ class Map3D{
     static final int THRESHOLD = 0;
     static final double PI = 3.1415926;
     static final double ROUND = 0.5;
-    static final double CENTRE_X = 350.0; // centre of the screen = half of the screen's X, Y
-    static final double CENTRE_Y = 200.0;
-    static final double RESOLUTION = 5.0; //2,4,6,8,10,12 bigger number lower resolution
+    // centre of the screen = half of the screen's X, Y    
+    //2,4,6,8,10,12 bigger number lower resolution    
+    static final double RESOLUTION = 5.0; 
         
 //-----------------------------------------------------------------------------
 // Map3D::Map3D (constructor)
@@ -234,15 +245,22 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     DataXMax = pDataXMax; DataYMax = pDataYMax;
     XMax = DataXMax + 2; YMax = DataYMax + 2;
 
+    xCenter = pWidth / 2; yCenter = pHeight / 2;
+    
+    xMaxPix = pWidth - 1; yMaxPix = pHeight - 1;
+    
+   // xCenter = 350.0; //debug mks -- remove this
+   // yCenter = 200.0; //debug mks -- remove this
+    
     points = new int[XMax][YMax];
         
     s = new ScreenPlane[XMax][YMax];
     orthoS = new ScreenPlane[XMax][YMax];    
-
+    
     for(int i=0; i<s.length; i++){
         for(int j=0; j<s[i].length; j++){
             s[i][j] = new ScreenPlane();
-            orthoS[i][j] = new ScreenPlane();            
+            orthoS[i][j] = new ScreenPlane();
         }
     }
         
@@ -258,10 +276,6 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     dAngle = 0;                 // zoom in/out
     Degree = 0;                 // rotation angle
     StretchX = 1; StretchY = 1; // grid spacing
-    
-    for(int i=0; i<quadPoly.length; i++){
-        quadPoly[i] = new Point();
-    }
     
     // initialize the magic transformation matrix m[][], which is used to
     // transform world coordinate 3d to 2d screen coordinate
@@ -295,17 +309,6 @@ public void init()
 
     
 }// end of Map3D::init
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Map3D::paint
-//
-
-public void paint(Graphics2D pG2)
-{
-
-        
-}// end of Map3D::paint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -349,7 +352,7 @@ public void resetAll()
 // orthoS[][] is used to store the orthographical screen position of data point
 //
 
-private void createArrays()
+public void createArrays()
 {
 
     points = new int[XMax][YMax];
@@ -368,19 +371,19 @@ private void createArrays()
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-// Map3D::zeroGridArray
+// Map3D::fillInputArray
 //
-// This function is used to set points array values to zero.
+// This function is used to set input points array values to pValue.
 //
 
-private void zeroGridArray()
+public void fillInputArray(int pValue)
 {
 
     for ( int i = 0; i < XMax; i++){
-        for ( int j = 0; j < YMax; j++){ points[i][j] = 0; }
+        for ( int j = 0; j < YMax; j++){ points[i][j] = pValue; }
     }
 
-}//end of Map3D::zeroGridArray
+}//end of Map3D::fillInputArray
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -420,9 +423,9 @@ public void setDataRow(int _XPos, int[] _DataRow)
 public void setDataPoint(int _XPos, int _YPos, int _Value)
 {
 
-assert(_XPos < DataXMax && _YPos < DataYMax);
+    assert(_XPos < DataXMax && _YPos < DataYMax);
 
-points[_XPos + 1][_YPos + 1] = _Value;
+    points[_XPos + 1][_YPos + 1] = _Value;
 
 }//end of Map3D::setDataPoint
 //---------------------------------------------------------------------------
@@ -433,6 +436,8 @@ points[_XPos + 1][_YPos + 1] = _Value;
 // This function is used to set the value of world coordinate for the map,
 // and transform the world coordinate to the screen coordinate.
 //
+
+//debug mks -- function uses class Degree rather than _Degree -- should use _Degree
 
 private void worldToScreen(int _Degree, int _StretchX, int _StretchY)
 {
@@ -471,8 +476,8 @@ private void worldToScreen(int _Degree, int _StretchX, int _StretchY)
             orthoP.y=tmp2;
 
             // get value of screen plane points
-            s[i][j] = vTrans3Dto2D(p);
-            orthoS[i][j]=vTrans3Dto2D(orthoP);
+            vTrans3Dto2D(s[i][j], p);
+            vTrans3Dto2D(orthoS[i][j], orthoP);
             }
         }
 
@@ -485,8 +490,11 @@ private void worldToScreen(int _Degree, int _StretchX, int _StretchY)
 // This function is used to transform the 3D world coordinate to the 2D screen
 // coordinate using the magic transformation matrix m[][].
 //
+// The input point is in pSP and the transformed output will be placed in
+// pPlane.
+//
 
-private ScreenPlane vTrans3Dto2D(Vertex pSP)
+private void vTrans3Dto2D(ScreenPlane pPlane, Vertex pSP)
 {
 
     double vx, vy, vz;
@@ -505,17 +513,15 @@ private ScreenPlane vTrans3Dto2D(Vertex pSP)
     ez = RESOLUTION;
 
     //  Translate to screen coordinates.
-    screenPlane.x = (int)((cx1 * ex / ez + cx2 + ROUND) + CENTRE_X + dx);
-    screenPlane.y = (int)(Yres-(cy1 * ey / ez + cy2 + ROUND)+ CENTRE_Y+dy);
+    pPlane.x = (int)((cx1 * ex / ez + cx2 + ROUND) + xCenter + dx);
+    pPlane.y = (int)(Yres-(cy1 * ey / ez + cy2 + ROUND)+ yCenter + dy);
     ez = cz1 - cz2 / ez;
 
     // Count Z buffer
     //    if (ez < 0)        ez = 0;
     //    if (ez > 65535.0)  ez = 65535;
 
-    screenPlane.zDepth = (int)ez;
-
-    return screenPlane;
+    pPlane.zDepth = (int)ez;
 
 }// end of Map3D::vTrans3Dto2D
 //---------------------------------------------------------------------------
@@ -538,7 +544,7 @@ private void calculate(int _az, int _dAngle)
     if(az > 25) az = 25; if(dAngle <= -6) dAngle = -5;
 
     // World-to-Eye transformation
-    // Get transformation Matirx
+    // Get transformation Matrix
     // Compute Z axis
     p1.x = ax - fx;
     p1.y = ay - fy;
@@ -572,7 +578,7 @@ private void calculate(int _az, int _dAngle)
        //MessageDlg("Calc Xnorm = 0", mtInformation, TMsgDlgButtons()<<mbOK, 0);
     }
         
-    //compute Y axis
+    //compute Y axis //debug mks -- move vCross and "norm =" before if statement?
     if(norm!=0){
         vCross (p2, p1, p3);
         norm = Math.sqrt (p3.x * p3.x + p3.y * p3.y + p3.z * p3.z);
@@ -586,12 +592,12 @@ private void calculate(int _az, int _dAngle)
     }
         
     // Magic M transformation
-    norm = 2.0 * Math.tan ((angle+dAngle) * 3.14159265 / 360.0);
+    norm = 2.0 * Math.tan ((angle+dAngle) * 3.14159265 / 360 /* debug mks was 360.0*/);
     cx1 = Xres /  norm;
     cx2 = Xres / 2.0;
     cy1 = Yres / norm;
     cy2 = Yres / 2.0;
-    cz1 = 65535.0 * zFar / (zFar - zNear);
+    cz1 = Integer.MAX_VALUE /*debug mks was 65535.0*/ * zFar / (zFar - zNear);
     cz2 = cz1 * zNear;
 
 }//end of Map3D::calculate
@@ -616,6 +622,7 @@ private void vCross(Vertex p1, Vertex p2, Vertex p)
 // This function is used to receive parameters sent by the caller function,
 // and call all functions to paint a map on the image, then transfer this image
 // to the paintbox.
+//
 // To avoid the flicker problem, we first plot the polygons and lines on to a
 // image, which is invisible to viewer, then transfer the image to a bitmap,
 // finally, draw this bitmap on the paintbox, which is visible to the viewer.
@@ -625,7 +632,7 @@ private void vCross(Vertex p1, Vertex p2, Vertex p)
 // implemented later if necessary.
 //
 
-public void paint(int _az, int _dx, int _dy,
+public void paint(Graphics2D pG2, int _az, int _dx, int _dy,
                 int _dAngle, int _degree, int _StretchX, int _StretchY,
                 boolean _HiddenSurfaceViewMode, boolean _WireFrameViewMode,
                 boolean _BirdsEyeViewMode,
@@ -649,20 +656,24 @@ HiddenSurfaceViewMode = _HiddenSurfaceViewMode; //show hidden line view if true
 WireFrameViewMode = _WireFrameViewMode; //show wire frame view if true
 BirdsEyeViewMode = _BirdsEyeViewMode; //show bird's eye view if true
 
+//debug mks -- erase the screen here?
 //Paint a rectangle with the size of paintbox
-TRect rect = paintbox->ClientRect;
-image->Canvas->Brush->Color = clWhite;
-image->Canvas->FillRect(rect);
+//TRect rect = paintbox->ClientRect;
+//image->Canvas->Brush->Color = clWhite;
+//image->Canvas->FillRect(rect);
 
 // calculate the mapping parameters and the magic matrix
 calculate(_az, _dAngle);
 // 3D-2D coordinate transformation
 worldToScreen(Degree, StretchX, StretchY);
 
+
+pG2.setColor(Color.BLACK);
+
 //create the image on a hidden canvas (to avoid flicker)
-if(HiddenSurfaceViewMode) hiddenSurfaceDraw();
-if(WireFrameViewMode) drawWireFrame();
-if(BirdsEyeViewMode) birdsEyeView();
+if(HiddenSurfaceViewMode) hiddenSurfaceDraw(pG2);
+if(WireFrameViewMode) drawWireFrame(pG2);
+if(BirdsEyeViewMode) birdsEyeView(pG2);
 
 }//end of Map3D::paint
 //---------------------------------------------------------------------------
@@ -683,13 +694,14 @@ private void birdsEyeView(Graphics2D pG2)
     for ( int i = 0; i < XMax; i++){
 
         pG2.setColor(Color.BLUE);
-        pG2.drawLine(850-i*10, 0, 850-i*10, 0);
+
+        pG2.drawLine(xMaxPix-i*10, 0, xMaxPix-i*10, 0);
 
         for ( int j = 0; j < YMax; j++){
             
             if (points[i][j] > THRESHOLD){
                 pG2.setColor(Color.RED);
-                pG2.drawLine(850-i*10, j*10,850-i*10, j*10);
+                pG2.drawLine(xMaxPix-i*10, j*10,xMaxPix-i*10, j*10);
             }
         }
     }
@@ -724,6 +736,11 @@ private void drawWireFrame(Graphics2D pG2)
                                     s[i+1][YMax -1].x, s[i+1][YMax -1].y);
     }
 
+    //debug mks
+    //pG2.drawLine(s[1][YMax -1].x, s[1][YMax -1].y, 0, 100);
+    //debug mks end
+    
+    
 }//end of map3D::drawWireFrame
 //---------------------------------------------------------------------------
 
@@ -760,75 +777,75 @@ private void drawWireFrame(Graphics2D pG2)
 private void hiddenSurfaceDraw(Graphics2D pG2)
 {
 
-// draw the grid without peaks - flat plane
+    // draw the grid without peaks - flat plane
 
-for ( int i = 0; i < XMax - 1; i++)
-    for ( int j = 0; j < YMax - 1; j++){
-        pG2.drawLine(orthoS[i][j].x, orthoS[i][j].y,
+    for ( int i = 0; i < XMax - 1; i++)
+        for ( int j = 0; j < YMax - 1; j++){
+            pG2.drawLine(orthoS[i][j].x, orthoS[i][j].y,
                                 orthoS[i+1][j].x, orthoS[i+1][j].y); //plot row
-        pG2.drawLine(orthoS[i][j].x, orthoS[i][j].y,
-                            orthoS[i][j+1].x, orthoS[i][j+1].y); //plot column
+            pG2.drawLine(orthoS[i][j].x, orthoS[i][j].y,
+                             orthoS[i][j+1].x, orthoS[i][j+1].y); //plot column
+            }
+
+    if(pG2 == null) { return; } //debug mks -- remove this
+    
+    // draw the closing edges of the grid
+
+    //along the Y axis
+    for (int i = 0; i < XMax - 1; i++){
+        pG2.drawLine(s[i][YMax - 1].x, s[i][YMax - 1].y,
+                                    s[i + 1][YMax - 1].x, s[i + 1][YMax - 1].y);
         }
 
-// draw the closing edges of the grid
+    //along the X axis
+    for (int i = 0; i < YMax - 1; i++){
+        pG2.drawLine(s[XMax - 1][i].x, s[XMax - 1][i].y,
+                                    s[XMax - 1][i + 1].x, s[XMax - 1][i + 1].y);
+        }
 
-//along the Y axis
-for (int i = 0; i < XMax - 1; i++){
-    pG2.drawLine(s[i][YMax - 1].x, s[i][YMax - 1].y,
-                                s[i + 1][YMax - 1].x, s[i + 1][YMax - 1].y);
-    }
-
-//along the X axis
-for (int i = 0; i < YMax - 1; i++){
-    pG2.drawLine(s[XMax - 1][i].x, s[XMax - 1][i].y,
-                                s[XMax - 1][i + 1].x, s[XMax - 1][i + 1].y);
-    }
-
-// Uncomment the next two lines to display a vertical line at the 0,0 point
-// of the 3D image grid - this is useful when debugging.
-// image->Canvas->MoveTo(s[0][0].x, s[0][0].y);
-// image->Canvas->LineTo(s[0][0].x, s[0][0].y - 150);
+    // Uncomment the next two lines to display a vertical line at the 0,0 point
+    // of the 3D image grid - this is useful when debugging.
+    // image->Canvas->MoveTo(s[0][0].x, s[0][0].y);
+    // image->Canvas->LineTo(s[0][0].x, s[0][0].y - 150);
 
 
-//draw the polygons to create the 3D image
-//the non data zero point values along the edges of the grid are also processed
-//because they are part of the polygons connected with the edgemost data points
+    //draw the polygons to create the 3D image
+    //the non data zero point values along the edges of the grid are also
+    //processed because they are part of the polygons connected with the
+    //edgemost data points
 
-//drawing always starts at the furthest corner from the viewer and commences
-//forward towards the viewer so that the front faces cover the back faces -
-//the starting point on the grid and direction of drawing depend on the current
-//viewing angle so that drawing always starts at the furthest corner
+    //drawing always starts at the furthest corner from the viewer and commences
+    //forward towards the viewer so that the front faces cover the back faces -
+    //the starting point on the grid and direction of drawing depend on the
+    //current viewing angle so that drawing always starts at the furthest corner
 
-int XStart, XStop, XDirection, YStart, YStop, YDirection;
-int XPolyDirection, YPolyDirection;
+    int XStart, XStop, XDirection, YStart, YStop, YDirection;
+    int XPolyDirection, YPolyDirection;
 
-if ((Degree >= 0 && Degree < 45) || (Degree >= 315 && Degree < 360)){
-    XStart = 1; XStop = XMax; XDirection = 1; XPolyDirection = -1;
-    YStart = 1; YStop = YMax; YDirection = 1; YPolyDirection = -1;
-    }
-else
-if (Degree >= 45 && Degree < 135){
-    XStart = 1; XStop = XMax; XDirection = 1; XPolyDirection = -1;
-    YStart = YMax - 2; YStop = -1; YDirection = -1; YPolyDirection = 1;
-    }
-else
-if (Degree >= 135 && Degree < 225){
-    XStart = XMax - 2; XStop = -1; XDirection = -1; XPolyDirection = 1;
-    YStart = YMax - 2; YStop = -1; YDirection = -1; YPolyDirection = 1;
-    }
-else
-if (Degree >= 225 && Degree < 315){
-    XStart = XMax - 2; XStop = -1; XDirection = -1; XPolyDirection = 1;
-    YStart = 1; YStop = YMax; YDirection = 1; YPolyDirection = -1;
-    }
-else
-    return;
+    if ((Degree >= 0 && Degree < 45) || (Degree >= 315 && Degree < 360)){
+        XStart = 1; XStop = XMax; XDirection = 1; XPolyDirection = -1;
+        YStart = 1; YStop = YMax; YDirection = 1; YPolyDirection = -1;
+        }
+    else
+    if (Degree >= 45 && Degree < 135){
+        XStart = 1; XStop = XMax; XDirection = 1; XPolyDirection = -1;
+        YStart = YMax - 2; YStop = -1; YDirection = -1; YPolyDirection = 1;
+        }
+    else
+    if (Degree >= 135 && Degree < 225){
+        XStart = XMax - 2; XStop = -1; XDirection = -1; XPolyDirection = 1;
+        YStart = YMax - 2; YStop = -1; YDirection = -1; YPolyDirection = 1;
+        }
+    else
+    if (Degree >= 225 && Degree < 315){
+        XStart = XMax - 2; XStop = -1; XDirection = -1; XPolyDirection = 1;
+        YStart = 1; YStop = YMax; YDirection = 1; YPolyDirection = -1;
+        }
+    else
+        return;
 
-
-//draw all the polygons to create the 3D image - the polygons are drawn on the
-//hidden image and need to be transferred to the visible paintbox afterwards
-
-drawPolygons(pG2, XStart, XStop, XDirection, XPolyDirection,
+    //draw all the polygons to create the 3D image
+    drawPolygons(pG2, XStart, XStop, XDirection, XPolyDirection,
                              YStart, YStop, YDirection, YPolyDirection, false);
 
 }// end of Map3D.hiddenSurfaceDraw
@@ -874,11 +891,10 @@ drawPolygons(pG2, XStart, XStop, XDirection, XPolyDirection,
 // function is being called by function QuickDrawSingleRow during real time
 // data display.  Because this mode does not render and clear the entire screen
 // but instead draws one row at a time, old graphics are not cleared above the
-// grid plane.  Specifically, the option is valid when viewing the map at a
-// rotational angle of 135 degrees and data progression is from left to right.
+// grid plane.
 //
-// The function is declared inline to provide the best possible speed when used
-// in looping operations.
+// Example 1: erasing option is valid when viewing the map at a rotational
+//          angle of 135 degrees and data progression is from left to right.
 //
 
 private void drawPolygons(
@@ -898,30 +914,37 @@ private void drawPolygons(
 
         //clear area above the grid plane from the edge to the top of the canvas
         //this erases the "sky" - see function header for more info
+        //this is done by redrawing the polygons with background and foreground
+        //colors set to the background color of the graphics object
+        
         if(_ClearAreaAboveGrid){
 
             j = _YStart;
 
-            quadPoly[0].x = s[i][j + _YPolyDirection].x;
-            quadPoly[0].y = s[i][j + _YPolyDirection].y;
+            quadPoly.xpoints[0] = s[i][j + _YPolyDirection].x;
+            quadPoly.ypoints[0] = s[i][j + _YPolyDirection].y;
 
-            quadPoly[1].x = s[i + _XPolyDirection][j + _YPolyDirection].x;
-            quadPoly[1].y = s[i + _XPolyDirection][j + _YPolyDirection].y;
+            quadPoly.xpoints[1] = s[i + _XPolyDirection][j + _YPolyDirection].x;
+            quadPoly.ypoints[1] = s[i + _XPolyDirection][j + _YPolyDirection].y;
             
-            quadPoly[2].x = s[i + _XPolyDirection][j + _YPolyDirection].x;
-            quadPoly[2].y = 0;
+            quadPoly.xpoints[2] = s[i + _XPolyDirection][j + _YPolyDirection].x;
+            quadPoly.ypoints[2] = 0;
             
-            quadPoly[3].x = s[i][j + _YPolyDirection].x;
-            quadPoly[3].y = 0;
+            quadPoly.xpoints[3] = s[i][j + _YPolyDirection].x;
+            quadPoly.ypoints[3] = 0;
 
-            //erase to standard window color
+            quadPoly.invalidate(); //force use of new data
+            
+            //erase to background color
             pG2.setColor(pG2.getBackground());
             
             //draw the quadrilateral on the hidden image canvas
-            pG2.drawPolygon(quadPoly, 3);
+            pG2.draw(quadPoly);
 
             //polygon outlines are black - return pen color to black
-            pG2.setColor(Color.BLACK);
+            pG2.setColor(Color.BLACK); //debug mks -- actually need to set color used to paint sides
+                                       //C++ painted outlines with pen and panels with brush
+                                       //Java paints both with current color but uses two different commands
 
         }
 
@@ -931,29 +954,41 @@ private void drawPolygons(
             //assign the points around the current point to a quadrilateral
             //(the other three points are toward the far sides of the grid
             // from the viewer)
-            QuadPoly[0] = Point(s[i][j].x, s[i][j].y);
-            QuadPoly[1] = Point(s[i + _XPolyDirection][j].x,
-                                    s[i + _XPolyDirection][j].y);
-            QuadPoly[2] = Point(s[i + _XPolyDirection][j + _YPolyDirection].x,
-                                    s[i + _XPolyDirection][j + _YPolyDirection].y);
-            QuadPoly[3] = Point(s[i][j + _YPolyDirection].x,
-                                    s[i][j + _YPolyDirection].y);
+            
+            quadPoly.xpoints[0] = s[i][j].x;
+            quadPoly.ypoints[0] = s[i][j].y;
+            
+            quadPoly.xpoints[1] = s[i + _XPolyDirection][j].x;
+            quadPoly.ypoints[1] = s[i + _XPolyDirection][j].y;
+            
+            quadPoly.xpoints[2] = s[i + _XPolyDirection][j + _YPolyDirection].x;
+            quadPoly.ypoints[2] = s[i + _XPolyDirection][j + _YPolyDirection].y;
+                                    
+            quadPoly.xpoints[3] = s[i][j + _YPolyDirection].x;
+            quadPoly.ypoints[3] = s[i][j + _YPolyDirection].y;
 
+            quadPoly.invalidate(); //force use of new data
+            
             //get the height for each point - these are the values from the
             //original data input array - the viewing array x,y points are
             //distorted to show the heights as a 3D image on a 2D screen and
             //thus do not make sense for this purpose
+            
             Height[0] = points[i][j];
             Height[1] = points[i + _XPolyDirection][j];
             Height[2] = points[i + _XPolyDirection][j + _YPolyDirection];
             Height[3] = points[i][j + _YPolyDirection];
-
+            
             //assign a color to the quadrilateral based on the height of its
             //highest point
-            pG2.setColor(assignColor(Height));
-
+            pG2.setColor(assignColor(pG2, Height));
             //draw the quadrilateral on the hidden image canvas
-            _Canvas->Polygon(QuadPoly, 3);
+            pG2.fill(quadPoly);
+            
+            //outline the polygon in black to give it definition
+            pG2.setColor(Color.BLACK);
+            pG2.draw(quadPoly);
+            
 
         }
 
@@ -970,7 +1005,7 @@ private void drawPolygons(
 // pHeight.
 //
 
-private Color assignColor(int[] pHeight)
+private Color assignColor(Graphics2D pG2, int[] pHeight)
 {
 
     if (pHeight[0] >= criticalValue || pHeight[1] >= criticalValue
@@ -988,7 +1023,7 @@ private Color assignColor(int[] pHeight)
     if (pHeight[0] > 0 || pHeight[1] > 0 || pHeight[2] > 0 || pHeight[3] > 0)
         return(Color.LIGHT_GRAY);
     else
-        return(Color.WHITE);
+        return(pG2.getBackground());
 
 }//end of Map3D.assignColor
 //---------------------------------------------------------------------------
