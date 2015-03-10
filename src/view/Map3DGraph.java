@@ -89,6 +89,10 @@ private void addMaps()
 }//end of Map3DGraph::addMaps
 //-----------------------------------------------------------------------------
 
+/*
+
+    Defaults from C++ code
+
     private static final int ANALYSIS_AZ = 5;
     private static final int ANALYSIS_DX = -19;
     private static final int ANALYSIS_DY = -110;
@@ -96,6 +100,19 @@ private void addMaps()
     private static final int ANALYSIS_DEGREE = 135;
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 2;
+    private static final int ANALYSIS_NORMAL_LEVEL = 25;
+    private static final int ANALYSIS_WARNING_LEVEL = 65;
+    private static final int ANALYSIS_CRITICAL_LEVEL = 100;
+*/
+
+
+    private static final int ANALYSIS_AZ = 5;
+    private static final int ANALYSIS_DX = -19;
+    private static final int ANALYSIS_DY = -110;
+    private static final int ANALYSIS_DANGLE = 1;
+    private static final int ANALYSIS_DEGREE = 200;
+    private static final int ANALYSIS_STRETCHX = 1;
+    private static final int ANALYSIS_STRETCHY = 1;
     private static final int ANALYSIS_NORMAL_LEVEL = 25;
     private static final int ANALYSIS_WARNING_LEVEL = 65;
     private static final int ANALYSIS_CRITICAL_LEVEL = 100;
@@ -114,7 +131,7 @@ public void paintComponent (Graphics g)
            
         map.paint((Graphics2D)g,
                 ANALYSIS_AZ, ANALYSIS_DX, ANALYSIS_DY,
-                1/*ANALYSIS_DANGLE*/, /*ANALYSIS_DEGREE*/200, 
+                ANALYSIS_DANGLE, ANALYSIS_DEGREE, 
                 ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
                 true, false, false,
                 90, 50, 10);
