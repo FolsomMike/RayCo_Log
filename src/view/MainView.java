@@ -308,7 +308,7 @@ private JPanel createModeButtonPanel()
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(panel, 206, 30);
+    Tools.setSizes(panel, 202, 30);
   
     JButton button;
     

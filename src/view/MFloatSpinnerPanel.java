@@ -88,7 +88,7 @@ public void init()
 
     setSizes(this, panelWidth, panelHeight);
 
-    add(new JLabel(label1Text));
+    if(!label1Text.isEmpty()){ add(new JLabel(label1Text)); }
 
     addHorizontalSpacer(this, 3);
     
@@ -102,7 +102,7 @@ public void init()
    
     addHorizontalSpacer(this, 3);
     
-    add(new JLabel(label2Text));    
+    if(!label2Text.isEmpty()){ add(new JLabel(label2Text)); }
     
 }// end of MFloatSpinnerPanel::init
 //-----------------------------------------------------------------------------
