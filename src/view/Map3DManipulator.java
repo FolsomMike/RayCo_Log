@@ -103,7 +103,7 @@ public void setupGUI()
     viewAngle = new MFloatSpinnerPanel("View Angle",
             "Adjusts the angle of view -- how much is in the view. "
             +" Acts as zoom in/out. (viewAngle variable)",
-            actionListener, 1, 1, 179, 1, "##0", 60, 20,
+            actionListener, 7, 1, 179, 1, "##0", 60, 20,
              "View Angle", "degrees", ACTION_COMMAND, 175, 25);
     viewAngle.init();
     viewAngle.setAlignmentX(Component.LEFT_ALIGNMENT);    

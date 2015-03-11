@@ -137,7 +137,7 @@ public void update(ArrayList <Object> pValues)
     private static final int ANALYSIS_AZ = 5;
     private int xPos = -19;
     private int yPos = -110;
-    private int viewAngle = 1;
+    private int viewAngle = 7;
     private int rotation = 200;
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;

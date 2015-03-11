@@ -64,8 +64,8 @@
 * eye through the center of the two clipping planes.
 * 
 * The view angle is defined as the angle formed by the opposing walls
-* of the viewing volume. The viewing volume can be illustrated with the
-* following diagram:
+* of the viewing volume (the cone from the eye to the target). The viewing
+* volume can be illustrated with the following diagram:
 * 
 *      Y    X
 *      |   /
@@ -184,7 +184,6 @@ class Map3D{
     double ax, ay;                  // At-Point
     double ux, uy, uz;              // Up-Point
     double zNear, zFar;             // for View volume
-    double angle;                   // View Angle, to control zoom in/out
     double m[][] = new double[3][3];// Transformation Matrix
     double cx1, cy1, cz1;
     double cx2, cy2, cz2;
@@ -272,7 +271,6 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     xRes = 10; yRes = 10;        // resolution of X, Y
     ux = 0.0; uy = 0.0; uz = 1; // up points, x, y, z
     zNear = -10; zFar = 100;    // To control view volumn
-    angle = 6;                  // zoom in/out
     cx1 = 0.0; cy1 = 0.0; cz1 = 0.1;
     cx2 = 0.0; cy2 = 0.0; cz2 = 0.0;
     fx = 15; fy = 9; fz = 26;   // from points, x, y, z
@@ -546,7 +544,7 @@ private void calculate(int _az, int pViewAngle)
     viewAngle = pViewAngle;
 
     //protect map data
-    if(az > 25) az = 25; if(viewAngle <= -6) viewAngle = -5;
+    if(az > 25) az = 25; if(viewAngle < -5) viewAngle = -5;
 
     // World-to-Eye transformation
     // Get transformation Matrix
@@ -597,7 +595,7 @@ private void calculate(int _az, int pViewAngle)
     }
         
     // Magic M transformation
-    norm = 2.0 * Math.tan ((angle+viewAngle) * PI / 360 /* debug mks should be 180? or different for this case?*/);
+    norm = Math.tan ((viewAngle) * PI / 180);
     cx1 = xRes /  norm;
     cx2 = xRes / 2.0;
     cy1 = yRes / norm;
