@@ -109,6 +109,8 @@ public void update(ArrayList <Object> pValues)
     
     rotation = (Integer)pValues.get(i++);
     
+    viewAngle = (Integer)pValues.get(i++);
+    
     repaint();
 
 }// end of Map3DGraph::update
@@ -135,7 +137,7 @@ public void update(ArrayList <Object> pValues)
     private static final int ANALYSIS_AZ = 5;
     private int xPos = -19;
     private int yPos = -110;
-    private static final int ANALYSIS_DANGLE = 1;
+    private int viewAngle = 1;
     private int rotation = 200;
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
@@ -156,8 +158,7 @@ public void paintComponent (Graphics g)
     for(Map3D map : maps){
            
         map.paint((Graphics2D)g,
-                ANALYSIS_AZ, xPos, yPos,
-                ANALYSIS_DANGLE, rotation, 
+                ANALYSIS_AZ, xPos, yPos, viewAngle, rotation, 
                 ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
                 true, false, false,
                 90, 50, 10);

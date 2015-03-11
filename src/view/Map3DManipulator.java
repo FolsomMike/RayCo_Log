@@ -37,7 +37,8 @@ class Map3DManipulator extends JPanel implements ControlsGroup{
     
     private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
-
+    private MFloatSpinnerPanel viewAngle;
+    
     ArrayList<Object> values = new ArrayList<>();
     
     private static final String ACTION_COMMAND = "Handle 3D Map Control Change";
@@ -92,11 +93,22 @@ public void setupGUI()
     rotation = new MFloatSpinnerPanel("Rotation",
             "Adjusts the rotation of the display. (rotation variable)",
             actionListener, 200, 0, 359, 1, "##0", 60, 20,
-             "Rotation", "degrees", ACTION_COMMAND, 153, 25);
+             "Rotation", "degrees", ACTION_COMMAND, 160, 25);
     rotation.init();
     rotation.setAlignmentX(Component.LEFT_ALIGNMENT);    
     add(rotation);
+
+    addVerticalSpacer(this, 5);
         
+    viewAngle = new MFloatSpinnerPanel("View Angle",
+            "Adjusts the angle of view -- how much is in the view. "
+            +" Acts as zoom in/out. (viewAngle variable)",
+            actionListener, 1, 1, 179, 1, "##0", 60, 20,
+             "View Angle", "degrees", ACTION_COMMAND, 175, 25);
+    viewAngle.init();
+    viewAngle.setAlignmentX(Component.LEFT_ALIGNMENT);    
+    add(viewAngle);
+    
 }// end of Map3DManipulator::setupGUI
 //-----------------------------------------------------------------------------
 
@@ -169,6 +181,8 @@ public ArrayList<Object> getAllValues()
     values.add(yPos.getIntValue());    
     
     values.add(rotation.getIntValue());
+    
+    values.add(viewAngle.getIntValue());    
     
     return(values);
     

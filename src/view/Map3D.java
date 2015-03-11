@@ -156,7 +156,8 @@ class Map3D{
 
     //user controlled mapping parameters
     int   xPos, yPos;             // x,y position of the grid
-    double dAngle;                // the change of zoom in/out
+    int viewAngle;                // view angle, equates to zoom in/out
+                                  // (this is the angle of what is in the view)
     double az;                    // At-Point's az
     int rotation;                 // degrees of rotation of the grid
     int stretchX, stretchY;       // grid spacing between points
@@ -276,9 +277,9 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     cx2 = 0.0; cy2 = 0.0; cz2 = 0.0;
     fx = 15; fy = 9; fz = 26;   // from points, x, y, z
     ax = 11; ay = 5; az = 20;   // at points, x,y, z
-    xPos = 0; yPos = 0;         // change the x,y position
-    dAngle = 0;                 // zoom in/out
-    rotation = 0;                 // rotation angle
+    xPos = 0; yPos = 0;
+    viewAngle = 0;
+    rotation = 0;
     stretchX = 1; stretchY = 1; // grid spacing
     
     // initialize the magic transformation matrix m[][], which is used to
@@ -537,15 +538,15 @@ private void vTrans3Dto2D(ScreenPlane pPlane, Vertex pSP)
 // which is related to From Point (fx, fy, fz) and At Point (ax, ay, az).
 //
 
-private void calculate(int _az, int _dAngle)
+private void calculate(int _az, int pViewAngle)
 {
 
     double    norm;
     az = _az;
-    dAngle = _dAngle;
+    viewAngle = pViewAngle;
 
     //protect map data
-    if(az > 25) az = 25; if(dAngle <= -6) dAngle = -5;
+    if(az > 25) az = 25; if(viewAngle <= -6) viewAngle = -5;
 
     // World-to-Eye transformation
     // Get transformation Matrix
@@ -596,7 +597,7 @@ private void calculate(int _az, int _dAngle)
     }
         
     // Magic M transformation
-    norm = 2.0 * Math.tan ((angle+dAngle) * PI / 360 /* debug mks should be 180? or different for this case?*/);
+    norm = 2.0 * Math.tan ((angle+viewAngle) * PI / 360 /* debug mks should be 180? or different for this case?*/);
     cx1 = xRes /  norm;
     cx2 = xRes / 2.0;
     cy1 = yRes / norm;
