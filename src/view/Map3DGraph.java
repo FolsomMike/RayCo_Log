@@ -100,8 +100,14 @@ private void addMaps()
 @Override
 public void update(ArrayList <Object> pValues)
 {
+
+    int i = 1;
     
-    analysisDegree = (Integer)pValues.get(1);
+    xPos = (Integer)pValues.get(i++);
+    
+    yPos = (Integer)pValues.get(i++); yPos = -yPos;
+    
+    rotation = (Integer)pValues.get(i++);
     
     repaint();
 
@@ -127,10 +133,10 @@ public void update(ArrayList <Object> pValues)
 
 
     private static final int ANALYSIS_AZ = 5;
-    private static final int ANALYSIS_DX = -19;
-    private static final int ANALYSIS_DY = -110;
+    private int xPos = -19;
+    private int yPos = -110;
     private static final int ANALYSIS_DANGLE = 1;
-    private int analysisDegree = 200;
+    private int rotation = 200;
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
     private static final int ANALYSIS_NORMAL_LEVEL = 25;
@@ -150,8 +156,8 @@ public void paintComponent (Graphics g)
     for(Map3D map : maps){
            
         map.paint((Graphics2D)g,
-                ANALYSIS_AZ, ANALYSIS_DX, ANALYSIS_DY,
-                ANALYSIS_DANGLE, analysisDegree, 
+                ANALYSIS_AZ, xPos, yPos,
+                ANALYSIS_DANGLE, rotation, 
                 ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
                 true, false, false,
                 90, 50, 10);

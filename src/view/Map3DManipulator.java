@@ -17,13 +17,14 @@
 
 package view;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import static view.MainView.addVerticalSpacer;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -34,6 +35,7 @@ class Map3DManipulator extends JPanel implements ControlsGroup{
 
     ActionListener actionListener;
     
+    private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
 
     ArrayList<Object> values = new ArrayList<>();
@@ -75,7 +77,7 @@ public void init()
 
 public void setupGUI()
 {
-
+    
     //panel.setBorder(BorderFactory.createTitledBorder("3D Map Manipulator"));
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
@@ -83,13 +85,53 @@ public void setupGUI()
     
     addVerticalSpacer(this, 10);
     
-    rotation = new MFloatSpinnerPanel("Rotation", "Adjusts the rotation.",
+    createXYPositionPanel();
+
+    addVerticalSpacer(this, 5);
+        
+    rotation = new MFloatSpinnerPanel("Rotation",
+            "Adjusts the rotation of the display. (rotation variable)",
             actionListener, 200, 0, 359, 1, "##0", 60, 20,
-             "Rotation", "degrees", ACTION_COMMAND, 150, 25);
+             "Rotation", "degrees", ACTION_COMMAND, 153, 25);
     rotation.init();
+    rotation.setAlignmentX(Component.LEFT_ALIGNMENT);    
     add(rotation);
-    
+        
 }// end of Map3DManipulator::setupGUI
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::createXYPositionPanel
+//
+// Creates a panel with an x and a y position adjustment control.
+//
+
+public void createXYPositionPanel()
+{
+
+    JPanel panel = new JPanel();
+    
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    xPos = new MFloatSpinnerPanel("X Position",
+            "Adjusts the x position of the display. (xPos variable)",
+            actionListener, -19, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            "##0", 55, 20, "X,Y Position", "", ACTION_COMMAND, 125, 25);
+    xPos.init();
+    panel.add(xPos);
+
+    yPos = new MFloatSpinnerPanel("Y Position",
+            "Adjusts the y position of the display. (yPos variable)",
+            actionListener, 110, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
+    yPos.init();
+    panel.add(yPos);
+    
+    add(panel);
+    
+}// end of Map3DManipulator::createXYPositionPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -122,6 +164,10 @@ public ArrayList<Object> getAllValues()
     
     values.add("Map3DManipulator");
     
+    values.add(xPos.getIntValue());    
+    
+    values.add(yPos.getIntValue());    
+    
     values.add(rotation.getIntValue());
     
     return(values);
@@ -144,6 +190,34 @@ public void setAllValues(ArrayList<Object> pValues)
     
     
 }// end of Map3DManipulator::setAllValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::addVerticalSpacer
+//
+// Adds a vertical spacer of pNumPixels height to JPanel pTarget.
+//
+
+public void addVerticalSpacer(JPanel pTarget, int pNumPixels)
+{
+
+    pTarget.add(Box.createRigidArea(new Dimension(0,pNumPixels)));
+    
+}// end of Map3DManipulator::addVerticalSpacer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::addHorizontalSpacer
+//
+// Adds a horizontal spacer of pNumPixels width to JPanel pTarget.
+//
+
+public void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
+{
+
+    pTarget.add(Box.createRigidArea(new Dimension(pNumPixels,0)));
+    
+}// end of Map3DManipulator::addHorizontalSpacer
 //-----------------------------------------------------------------------------
 
 
