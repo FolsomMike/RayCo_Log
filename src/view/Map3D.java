@@ -155,10 +155,10 @@ import java.awt.*;
 class Map3D{
 
     //user controlled mapping parameters
-    int   dx,dy;                  // the change of screen position
+    int   xPos, yPos;             // x,y position of the grid
     double dAngle;                // the change of zoom in/out
     double az;                    // At-Point's az
-    int degree;                   // rotational viewing angle
+    int rotation;                 // degrees of rotation of the grid
     int stretchX, stretchY;       // grid spacing between points
 
     int xMaxPix, yMaxPix;
@@ -256,9 +256,6 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     
     xMaxPix = pWidth - 1; yMaxPix = pHeight - 1;
     
-   // xCenter = 350.0; //debug mks -- remove this
-   // yCenter = 200.0; //debug mks -- remove this
-    
     points = new int[xMax][yMax];
         
     s = new ScreenPlane[xMax][yMax];
@@ -279,9 +276,9 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     cx2 = 0.0; cy2 = 0.0; cz2 = 0.0;
     fx = 15; fy = 9; fz = 26;   // from points, x, y, z
     ax = 11; ay = 5; az = 20;   // at points, x,y, z
-    dx = 0; dy = 0;             // change with the central position
+    xPos = 0; yPos = 0;         // change the x,y position
     dAngle = 0;                 // zoom in/out
-    degree = 0;                 // rotation angle
+    rotation = 0;                 // rotation angle
     stretchX = 1; stretchY = 1; // grid spacing
     
     // initialize the magic transformation matrix m[][], which is used to
@@ -453,8 +450,8 @@ private void worldToScreen(int _Degree, int _StretchX, int _StretchY)
 
     // int maxZ; //Z-axis length
 
-    co = Math.cos( PI * (double)degree / 180.0 );
-    si = Math.sin( PI * (double)degree / 180.0 );
+    co = Math.cos( PI * (double)rotation / 180.0 );
+    si = Math.sin( PI * (double)rotation / 180.0 );
 
     for ( int i = 0; i < xMax; i++){
         
@@ -520,8 +517,8 @@ private void vTrans3Dto2D(ScreenPlane pPlane, Vertex pSP)
     ez = RESOLUTION;
 
     //  Translate to screen coordinates.
-    pPlane.x = (int)((cx1 * ex / ez + cx2 + ROUND) + xCenter + dx);
-    pPlane.y = (int)(yRes-(cy1 * ey / ez + cy2 + ROUND)+ yCenter + dy);
+    pPlane.x = (int)((cx1 * ex / ez + cx2 + ROUND) + xCenter + xPos);
+    pPlane.y = (int)(yRes-(cy1 * ey / ez + cy2 + ROUND)+ yCenter + yPos);
     ez = cz1 - cz2 / ez;
 
     // Count Z buffer
@@ -604,7 +601,7 @@ private void calculate(int _az, int _dAngle)
     cx2 = xRes / 2.0;
     cy1 = yRes / norm;
     cy2 = yRes / 2.0;
-    cz1 = Integer.MAX_VALUE /*debug mks was 65535.0*/ * zFar / (zFar - zNear);
+    cz1 = Integer.MAX_VALUE * zFar / (zFar - zNear);
     cz2 = cz1 * zNear;
 
 }//end of Map3D::calculate
@@ -639,7 +636,7 @@ private void vCross(Vertex p1, Vertex p2, Vertex p)
 // implemented later if necessary.
 //
 
-public void paint(Graphics2D pG2, int pAz, int pDx, int pDy,
+public void paint(Graphics2D pG2, int pAz, int pXPos, int pYPos,
                 int pDAngle, int pDegree, int pStretchX, int pStretchY,
                 boolean pHiddenSurfaceViewMode, boolean pWireFrameViewMode,
                 boolean pBirdsEyeViewMode, int pCriticalValue,
@@ -651,8 +648,8 @@ if (points == null) return;
 
 //store view parameters
 
-dx = pDx; dy =pDy; //screen position
-degree = pDegree;
+xPos = pXPos; yPos = pYPos; //screen position
+rotation = pDegree;
 stretchX = pStretchX; stretchY = pStretchY;
 
 criticalValue = pCriticalValue;
@@ -673,7 +670,7 @@ birdsEyeViewMode = pBirdsEyeViewMode; //show bird's eye view if true
 calculate(pAz, pDAngle);
 
 // 3D-2D coordinate transformation
-worldToScreen(degree, stretchX, stretchY);
+worldToScreen(rotation, stretchX, stretchY);
 
 pG2.setColor(Color.BLACK);
 
@@ -824,22 +821,22 @@ private void hiddenSurfaceDraw(Graphics2D pG2)
     int XStart, XStop, XDirection, YStart, YStop, YDirection;
     int XPolyDirection, YPolyDirection;
 
-    if ((degree >= 0 && degree < 45) || (degree >= 315 && degree < 360)){
+    if ((rotation >= 0 && rotation < 45) || (rotation >= 315 && rotation < 360)){
         XStart = 1; XStop = xMax; XDirection = 1; XPolyDirection = -1;
         YStart = 1; YStop = yMax; YDirection = 1; YPolyDirection = -1;
         }
     else
-    if (degree >= 45 && degree < 135){
+    if (rotation >= 45 && rotation < 135){
         XStart = 1; XStop = xMax; XDirection = 1; XPolyDirection = -1;
         YStart = yMax - 2; YStop = -1; YDirection = -1; YPolyDirection = 1;
         }
     else
-    if (degree >= 135 && degree < 225){
+    if (rotation >= 135 && rotation < 225){
         XStart = xMax - 2; XStop = -1; XDirection = -1; XPolyDirection = 1;
         YStart = yMax - 2; YStop = -1; YDirection = -1; YPolyDirection = 1;
         }
     else
-    if (degree >= 225 && degree < 315){
+    if (rotation >= 225 && rotation < 315){
         XStart = xMax - 2; XStop = -1; XDirection = -1; XPolyDirection = 1;
         YStart = 1; YStop = yMax; YDirection = 1; YPolyDirection = -1;
         }
@@ -1058,7 +1055,7 @@ void quickDrawSingleRow(Graphics2D pG2,
     //perform 3D-2D coordinate transformation so any new data points are
     //processed using the previously set viewing parameters
 
-    worldToScreen(degree, stretchX, stretchY);
+    worldToScreen(rotation, stretchX, stretchY);
 
     //draw all the polygons to create the 3D image - the polygons are drawn
     //directly onto the visible canvas so it is not necessary to transfer the
