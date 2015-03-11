@@ -17,6 +17,7 @@
 package view;
 
 import java.awt.*;
+import java.util.ArrayList;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -89,6 +90,25 @@ private void addMaps()
 }//end of Map3DGraph::addMaps
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Map3DGraph::update
+//
+// Updates with new parameters and forces a repaint. The new parameters are
+// stored as objects in pValues.
+//
+
+@Override
+public void update(ArrayList <Object> pValues)
+{
+    
+    analysisDegree = (Integer)pValues.get(1);
+    
+    repaint();
+
+}// end of Map3DGraph::update
+//-----------------------------------------------------------------------------
+
+
 /*
 
     Defaults from C++ code
@@ -110,7 +130,7 @@ private void addMaps()
     private static final int ANALYSIS_DX = -19;
     private static final int ANALYSIS_DY = -110;
     private static final int ANALYSIS_DANGLE = 1;
-    private static final int ANALYSIS_DEGREE = 200;
+    private int analysisDegree = 200;
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
     private static final int ANALYSIS_NORMAL_LEVEL = 25;
@@ -131,7 +151,7 @@ public void paintComponent (Graphics g)
            
         map.paint((Graphics2D)g,
                 ANALYSIS_AZ, ANALYSIS_DX, ANALYSIS_DY,
-                ANALYSIS_DANGLE, ANALYSIS_DEGREE, 
+                ANALYSIS_DANGLE, analysisDegree, 
                 ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
                 true, false, false,
                 90, 50, 10);

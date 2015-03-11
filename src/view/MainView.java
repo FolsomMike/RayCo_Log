@@ -85,6 +85,8 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
 
     private MainMenu mainMenu;
 
+    private ControlsGroup currentControlPanel;
+    
     private JTextField dataVersionTField;
     private JTextField dataTArea1;
     private JTextField dataTArea2;
@@ -93,10 +95,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JTextField upSampleMultiplierInput;
     private JTextField sampleFreqInput;    
     private JComboBox sampleFreqUnitsInput;
-    
-    private WaveFormControls waveForm1Controls;
-    private WaveFormControls waveForm2Controls;   
-    
+        
     private JCheckBox displaySamplesInput;
     private JCheckBox displayZeroStuffedWaveFormInput;
     private JCheckBox displayFilteredWaveFormInput;
@@ -267,126 +266,16 @@ private JPanel createControlsPanel()
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     
     addVerticalSpacer(panel, 10);
-    
-    panel.add(createTimeScaleControlPanel());
-    
-    panel.add(createUpSamplingControlPanel());
-    
-    panel.add(createSampleFrequencyPanel());    
-    
-    panel.add(waveForm1Controls = new WaveFormControls("Input WaveForm 1"));
-    waveForm1Controls.init();
-    panel.add(waveForm2Controls = new WaveFormControls("Input WaveForm 2"));
-    waveForm2Controls.init();
 
-    panel.add(createOutputControlPanel());
+    Map3DManipulator map3DManip = new Map3DManipulator(this);
+    map3DManip.init();
+    panel.add(map3DManip);
 
-    panel.add(createApplyButtonPanel());
-            
+    currentControlPanel = map3DManip;
+    
     panel.add(Box.createVerticalGlue());
     
     panel.add(createModeButtonPanel());
-            
-    panel.add(Box.createVerticalGlue());    
-    
-/*
-    
-   
-    //create a label to display good/warning/bad system status
-    statusLabel = new JLabel("Status");
-    statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(statusLabel);
-
-    addVerticalSpacer(panel, 20);
-
-    //create a label to display miscellaneous info
-    infoLabel = new JLabel("Info");
-    infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(infoLabel);
-
-    addVerticalSpacer(panel, 20);
-
-    //add text field
-    dataVersionTField = new JTextField("unknown");
-    dataVersionTField.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(dataVersionTField, 100, 24);
-    //text fields don't have action commands or action listeners
-    dataVersionTField.setToolTipText("The data format version.");
-    panel.add(dataVersionTField);
-
-    addVerticalSpacer(panel, 3);
-    
-    //add text field
-    dataTArea1 = new JTextField("");
-    dataTArea1.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(dataTArea1, 100, 24);
-    //text fields don't have action commands or action listeners
-    dataTArea1.setToolTipText("A data entry.");
-    panel.add(dataTArea1);
-    
-    addVerticalSpacer(panel, 3);    
-
-    //add text field
-    dataTArea2 = new JTextField("");
-    dataTArea2.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(dataTArea2, 100, 24);
-    //text fields don't have action commands or action listeners
-    dataTArea2.setToolTipText("A data entry.");
-    panel.add(dataTArea2);
-
-    addVerticalSpacer(panel, 20);
-
-    //add button
-    JButton loadBtn = new JButton("Load");
-    loadBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-    loadBtn.setActionCommand("Load Data From File");
-    loadBtn.addActionListener(this);
-    loadBtn.setToolTipText("Load data from file.");
-    panel.add(loadBtn);
-
-    addVerticalSpacer(panel, 10);
-    
-    //add a button
-    JButton saveBtn = new JButton("Save");
-    saveBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-    saveBtn.setActionCommand("Save Data To File");
-    saveBtn.addActionListener(this);
-    saveBtn.setToolTipText("Save data to file.");
-    panel.add(saveBtn);
-
-    addVerticalSpacer(panel, 10);    
-
-    progressLabel = new JLabel("Progress");
-    progressLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(progressLabel);
-
-    addVerticalSpacer(panel, 10);    
-
-    //set this spinner up for use with doubles
-    //the format string "##0" has decimal places
-    //use intSpinner1.getIntValue() to retrieve the value as an integer
-    
-    MFloatSpinner doubleSpinner1 = 
-            new MFloatSpinner(5.5, 1.1, 9.9, 0.1, "##0.0", 60, 20);
-    doubleSpinner1.setName("Double Spinner 1 -- used for doubles");
-    doubleSpinner1.addChangeListener(this);
-    doubleSpinner1.setToolTipText("This is float spinner #1!");
-    panel.add(doubleSpinner1);
-
-    addVerticalSpacer(panel, 10);
-    
-    //set this spinner up for use with integers
-    //the format string "##0" has no decimal places
-    //use intSpinner1.getIntValue() to retrieve the value as an integer
-    
-    MFloatSpinner intSpinner1 = 
-            new MFloatSpinner(1, 1, 100000, 1, "##0", 60, 20);
-    intSpinner1.setName("Integer Spinner 1 -- used for integers");
-    intSpinner1.addChangeListener(this);
-    intSpinner1.setToolTipText("This is float spinner #1!");
-    panel.add(intSpinner1);
-   
-        */
         
     return(panel);
         
@@ -394,91 +283,17 @@ private JPanel createControlsPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::createTimeScaleControlPanel
+// MainView::getAllValuesFromCurrentControlPanel
 //
-// Returns a JPanel containing the controls for setting the time (Y axis)
-// scale factor. Allows user to shrink or stretch the time scale.
+// 
 //
 
-private JPanel createTimeScaleControlPanel()
+public ArrayList<Object> getAllValuesFromCurrentControlPanel()
 {
-        
-    JPanel panel = new JPanel();    
-    panel.setBorder(BorderFactory.createTitledBorder("Time Scale"));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    
-    //add text field
-    timeScaleInput = new JTextField("");
-    Tools.setSizes(timeScaleInput, 100, 24);
-    //text fields don't have action commands or action listeners
-    timeScaleInput.setToolTipText("Time zoom scale.");
-    panel.add(timeScaleInput);
-        
-    JLabel unitsLabel = new JLabel(" scale ");
-    panel.add(unitsLabel);
-    
-    return(panel);
-        
-}// end of MainView::createTimeScaleControlPanel
-//-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// MainView::createUpSamplingControlPanel
-//
-// Returns a JPanel containing the controls for setting the up-sample factor.
-//
-
-private JPanel createUpSamplingControlPanel()
-{
-        
-    JPanel panel = new JPanel();    
-    panel.setBorder(BorderFactory.createTitledBorder("Up Sampling"));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    return(currentControlPanel.getAllValues());
     
-    //add text field
-    upSampleMultiplierInput = new JTextField("");
-    Tools.setSizes(upSampleMultiplierInput, 100, 24);
-    //text fields don't have action commands or action listeners
-    upSampleMultiplierInput.setToolTipText("Multiplier for upsample rate.");
-    panel.add(upSampleMultiplierInput);
-        
-    JLabel unitsLabel = new JLabel(" multiplier ");
-    panel.add(unitsLabel);
-    
-    return(panel);
-        
-}// end of MainView::createUpSamplingControlPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createApplyButtonPanel
-//
-// Returns a JPanel containing the Apply button. It is placed in its own panel
-// so that it can be centered.
-//
-
-private JPanel createApplyButtonPanel()
-{
-        
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(panel, 150, 30);
-  
-    //add button
-    JButton button = new JButton("Apply");
-    button.setAlignmentX(Component.CENTER_ALIGNMENT);
-    button.setActionCommand("Apply Settings to Waveforms");
-    button.addActionListener(this);
-    button.setToolTipText("Apply settings to waveforms.");
-        
-    panel.add(button);
-    
-    return(panel);
-        
-}// end of MainView::createApplyButtonPanel
+}// end of MainView::getAllValuesFromCurrentControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -525,132 +340,6 @@ private JPanel createModeButtonPanel()
     return(panel);
         
 }// end of MainView::createModeButtonPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createSampleFrequencyPanel
-//
-// Returns a JPanel containing the controls for setting the sample frequency.
-//
-
-private JPanel createSampleFrequencyPanel()
-{
-        
-    JPanel panel = new JPanel();    
-    panel.setBorder(BorderFactory.createTitledBorder("Sampling Frequency"));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    
-    //add text field
-    sampleFreqInput = new JTextField("");
-    Tools.setSizes(sampleFreqInput, 100, 24);
-    //text fields don't have action commands or action listeners
-    sampleFreqInput.setToolTipText("Sampling frequency.");
-    panel.add(sampleFreqInput);
-    
-    addHorizontalSpacer(panel, 3);
-    
-    //add unit selection drop box
-    String[] units = { "Hz", "kHz", "MHz" };
-    sampleFreqUnitsInput = new JComboBox<>(units);
-    sampleFreqUnitsInput.setSelectedIndex(0);
-    Tools.setSizes(sampleFreqUnitsInput, 60, 24);        
-    panel.add(sampleFreqUnitsInput);
-    
-    return(panel);
-        
-}// end of MainView::createSampleFrequencyPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createOutputControlPanel
-//
-// Returns a JPanel containing the controls for controlling the output wave
-// display.
-//
-
-private JPanel createOutputControlPanel()
-{
-        
-    JPanel panel = new JPanel();    
-    panel.setBorder(BorderFactory.createTitledBorder("Output Waveforms"));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    displaySamplesInput = new JCheckBox("Display Sampled Data Points");
-    displaySamplesInput.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(displaySamplesInput, 200, 24);
-    displaySamplesInput.setToolTipText(
-                        "Displays the data points sampled from the input.");
-    panel.add(displaySamplesInput);
-        
-    displayZeroStuffedWaveFormInput = 
-                                new JCheckBox("Display Zero-Stuffed Waveform");
-    displayZeroStuffedWaveFormInput.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(displayZeroStuffedWaveFormInput, 200, 24);
-    displayZeroStuffedWaveFormInput.setToolTipText(
-                     "Displays the unfiltered, zero-stuffed output waveform.");
-    panel.add(displayZeroStuffedWaveFormInput);
-
-    displayFilteredWaveFormInput = new JCheckBox("Display Filtered Waveform");
-    displayFilteredWaveFormInput.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(displayFilteredWaveFormInput, 175, 24);
-    displayFilteredWaveFormInput.setToolTipText(
-                                    "Displays the filtered output waveform.");
-    panel.add(displayFilteredWaveFormInput);
-    
-    addHorizontalSpacer(panel, 3);
-
-    panel.add(new JLabel("FIR Filter Coefficients"));
-    
-    filterCoeffInput = new JTextArea(19, 0);
-    JScrollPane scrollPane = new JScrollPane(filterCoeffInput, 
-                            ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-                            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    Tools.setSizes(scrollPane, 160, 100);   
-    scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);    
-    panel.add(scrollPane);
-
-    panel.add(createOutputScalingPanel());
-    
-    return(panel);
-        
-}// end of MainView::createOutputControlPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createOutputScalingPanel
-//
-// Returns a JPanel containing the controls for adjusting the output scaling
-// value.
-//
-
-private JPanel createOutputScalingPanel()
-{
-        
-    JPanel panel = new JPanel();    
-    panel.setBorder(BorderFactory.createTitledBorder("Output Scaling"));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    //set this spinner up for use with integers
-    //the format string "##0" has no decimal places
-    //use intSpinner1.getIntValue() to retrieve the value as an integer
-    
-    filteredOutputScaling = 
-            new MFloatSpinner(50000, 1, 1000000, 1, "##0", 80, 20);
-    filteredOutputScaling.setName("Output Waveform Scaling Factor");
-    filteredOutputScaling.setToolTipText(
-            "The amplitude of the filtered output waveform "
-                                    + "attenuated by dividing by this value.");
-    panel.add(filteredOutputScaling);
-        
-    JLabel unitsLabel = new JLabel(" divisor ");
-    panel.add(unitsLabel);
-    
-    return(panel);
-        
-}// end of MainView::createOutputScalingPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -845,34 +534,14 @@ public void setAllUserInputData(ArrayList<String> pList)
     ListIterator iter = pList.listIterator();
 
     if (!iter.hasNext()){ return; }
-    timeScaleInput.setText((String)iter.next());    
+//    timeScaleInput.setText((String)iter.next());    
     if (!iter.hasNext()){ return; }
-    upSampleMultiplierInput.setText((String)iter.next());
-    if (!iter.hasNext()){ return; }
-    sampleFreqInput.setText((String)iter.next());
-    if (!iter.hasNext()){ return; }
-    sampleFreqUnitsInput.setSelectedIndex(Integer.valueOf((String)iter.next()));
-
-    //allow other objects to add their data to the list
-    waveForm1Controls.setAllUserInputData(iter);
-    waveForm2Controls.setAllUserInputData(iter);
-
+//    sampleFreqUnitsInput.setSelectedIndex(Integer.valueOf((String)iter.next()));
     if (!iter.hasNext()){ return; }    
-    displaySamplesInput.setSelected(Boolean.parseBoolean((String)iter.next()));
-        
-    if (!iter.hasNext()){ return; }    
-    displayZeroStuffedWaveFormInput.setSelected(
-                            Boolean.parseBoolean((String)iter.next()));
-        
-    if (!iter.hasNext()){ return; }    
-    displayFilteredWaveFormInput.setSelected(
-                            Boolean.parseBoolean((String)iter.next()));
-
+//    displaySamplesInput.setSelected(Boolean.parseBoolean((String)iter.next()));        
   if (!iter.hasNext()){ return; }    
-    filteredOutputScaling.setValue(Integer.parseInt((String)iter.next()));
-    
-    setUserFilterCoeffInput(iter);
-    
+//    filteredOutputScaling.setValue(Integer.parseInt((String)iter.next()));
+
 }//end of MainView::setAllUserInputData
 //-----------------------------------------------------------------------------
 
@@ -887,24 +556,13 @@ public void setAllUserInputData(ArrayList<String> pList)
 public void getAllUserInputData(ArrayList<String> pList)
 {
     
-    pList.add(timeScaleInput.getText());        
-    pList.add(upSampleMultiplierInput.getText());
-    pList.add(sampleFreqInput.getText());
-    pList.add("" + sampleFreqUnitsInput.getSelectedIndex());
+//    pList.add(timeScaleInput.getText());        
 
-    //allow other objects to add their data to the list
-    waveForm1Controls.getAllUserInputData(pList);
-    waveForm2Controls.getAllUserInputData(pList);
+//    pList.add("" + sampleFreqUnitsInput.getSelectedIndex());
     
-    pList.add("" + displaySamplesInput.isSelected());
+//    pList.add("" + displaySamplesInput.isSelected());
     
-    pList.add("" + displayZeroStuffedWaveFormInput.isSelected());
-    
-    pList.add("" + displayFilteredWaveFormInput.isSelected());
-
-    pList.add("" + filteredOutputScaling.getIntValue());    
-    
-    getUserFilterCoeffInput(pList);
+//    pList.add("" + filteredOutputScaling.getIntValue());    
     
 }//end of MainView::getAllUserInputData
 //-----------------------------------------------------------------------------
@@ -1197,6 +855,23 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
     }
 
 }// end of MainView::scanForGUIObjectsOfAType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::updateGraph
+//
+// Updates graph specified by pChartGroupNum/pChartNum/pGraphNum with new
+// parameters and forces it to repaint.
+//
+
+public void updateGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
+                                                     ArrayList<Object> pValues)
+{
+    
+    chartGroups[pChartGroupNum].getGraph(pChartNum, pGraphNum).update(
+                                                                    pValues);
+    
+}// end of MainView::updateGraph
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

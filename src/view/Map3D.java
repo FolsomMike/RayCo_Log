@@ -182,7 +182,7 @@ class Map3D{
     double fx, fy, fz;              // From-Point
     double ax, ay;                  // At-Point
     double ux, uy, uz;              // Up-Point
-    double zNear, zFar;             // for View volum
+    double zNear, zFar;             // for View volume
     double angle;                   // View Angle, to control zoom in/out
     double m[][] = new double[3][3];// Transformation Matrix
     double cx1, cy1, cz1;

@@ -102,6 +102,22 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::update
+//
+// Updates with new parameters and forces a repaint. The new parameters are
+// stored as objects in pValues.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void update(ArrayList <Object> pValues)
+{
+    
+
+}// end of Graph::update
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::scrollGraph
 //
 // Scrolls the graph area to the left by pShiftAmount and erases the right most

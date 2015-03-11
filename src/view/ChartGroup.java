@@ -16,7 +16,6 @@
 
 package view;
 
-import controller.GUIDataSet;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
@@ -226,6 +225,22 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
     }
 
 }// end of ChartGroup::scanForGUIObjectsOfAType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::getGraph
+//
+// Returns the reference to graph pGraph of pChart.
+//
+
+public Graph getGraph(int pChart, int pGraph)
+{
+
+    if (pChart < 0 || pChart >= charts.length){ return(null); }    
+    
+    return( charts[pChart].getGraph(pGraph) );
+    
+}// end of ChartGroup::getGraph
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

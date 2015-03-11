@@ -338,17 +338,40 @@ public void actionPerformed(ActionEvent e)
         mode = INSPECT_MODE;
         return;
     }
+
+    if ("Handle 3D Map Control Change".equals(e.getActionCommand())) {
+        handle3DMapManipulation();
+        return;
+    }
+    
     
 }//end of MainController::actionPerformed
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// MainController::handle3DMapManipulation
+//
+// Applies values from the 3D map controls panel to the map.
+//
+    
+public void handle3DMapManipulation()
+
+{
+
+
+    ArrayList <Object> values = mainView.getAllValuesFromCurrentControlPanel();
+ 
+    mainView.updateGraph(0, 3, 0, values);
+         
+}//end of MainController::handle3DMapManipulation
+//-----------------------------------------------------------------------------
+                  
 //-----------------------------------------------------------------------------
 // MainController::stateChanged
 //
     
 @Override
 public void stateChanged(ChangeEvent ce)
-
 {
     
     //if for some reason the object which changed state is not a subclass of

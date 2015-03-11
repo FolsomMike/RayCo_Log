@@ -529,6 +529,22 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::getGraph
+//
+// Returns a reference to graph pGraph.
+//
+
+public Graph getGraph(int pGraph)
+{
+
+    if (pGraph < 0 || pGraph >= graphs.length){ return(null); }    
+    
+    return( graphs[pGraph] );
+    
+}// end of Chart::getGraph
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::getTrace
 //
 // Returns the reference to trace pTrace of pGraph.
