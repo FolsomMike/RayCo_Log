@@ -118,6 +118,23 @@ public void update(ArrayList <Object> pValues)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::getParameters
+//
+// Retrieves parameters specific to the subclass via objects in an ArrayList.
+// Each subclass returns different parameters specific to its functionality.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public ArrayList<Object>getParameters()
+{
+    
+    return(null);
+
+}// end of Graph::getParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::scrollGraph
 //
 // Scrolls the graph area to the left by pShiftAmount and erases the right most

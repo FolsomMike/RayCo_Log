@@ -917,6 +917,25 @@ public void updateGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::getGraphParameters
+//
+// Retrieves parameters for graph specified by 
+//                                          pChartGroupNum/pChartNum/pGraphNum.
+//
+// The number and type of parameters is specific to each Graph subclass.
+//
+
+public ArrayList<Object> getGraphParameters(
+                            int pChartGroupNum, int pChartNum, int pGraphNum)
+{
+    
+    return(chartGroups[pChartGroupNum].getGraph(
+                                        pChartNum, pGraphNum).getParameters());
+    
+}// end of MainView::getGraphParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::actionPerformed
 //
 // Responds to events and passes them on to the "Controller" (MVC Concept)

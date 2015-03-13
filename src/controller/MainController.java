@@ -381,35 +381,9 @@ public void handle3DMapManipulation()
 public void set3DMapAllValues()
 {
 
-    ArrayList<Object> values = new ArrayList<>();
-            
-    values.clear();
-    
-    values.add("Map3DManipulator");
-    
-    values.add((Integer)(-24));     // xPos
-    
-    values.add((Integer)(-54));    // yPos
-    
-    values.add((Integer)(0));       // xFrom
-    
-    values.add((Integer)(10));      // yFrom
-    
-    values.add((Integer)(5));       // zFrom
-    
-    values.add((Integer)(0));       // xAt
-    
-    values.add((Integer)(0));       // yAt
-    
-    values.add((Integer)(0));       // zAt
-
-    values.add((Integer)(180));       // rotation
-    
-    values.add((Integer)(12));       // viewAngle
    
-    mainView.setAllValuesInCurrentControlPanel(values);
-    
-    mainView.updateGraph(0, 3, 0, values);
+    mainView.setAllValuesInCurrentControlPanel(
+                                mainView.getGraphParameters(0, 3, 0));
     
 }// end of Map3DManipulator::set3DMapAllValues
 //-----------------------------------------------------------------------------

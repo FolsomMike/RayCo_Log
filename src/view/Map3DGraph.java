@@ -27,15 +27,16 @@ import model.IniFile;
 
 class Map3DGraph extends Graph{
 
-    private int numMaps;
-    private Map3D[] maps;
+    private Map3D map3D;
 
-    private int xPos = -24, yPos = -54;
-    private int xFrom = 0, yFrom = 10, zFrom = 5;
-    private int xAt = 0, yAt = 0, zAt = 0;
-    private int xUp = 0, yUp = 0, zUp = 1;
-    private int rotation = 180;
-    private int viewAngle = 12;
+    private int xPos, yPos;
+    private int xFrom, yFrom, zFrom;
+    private int xAt, yAt, zAt;
+    private int xUp, yUp, zUp;
+    private int rotation;
+    private int viewAngle;
+
+    private int mapWidthInDataPoints, mapHeightInDataPoints;
     
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
@@ -84,30 +85,23 @@ public void init()
 private void addMaps()
 {
 
-    maps = new Map3D[numMaps];
+    map3D = new Map3D(chartGroupNum, chartNum, graphNum,
+        width, height,  mapWidthInDataPoints, mapHeightInDataPoints);
 
-    for(int i=0; i<maps.length; i++){
+    map3D.init();
+    map3D.createArrays();
+    map3D.fillInputArray(0);
 
-        maps[i] = new Map3D(chartGroupNum, chartNum, graphNum,
-            width, height, 100, 12);        
-        
-        maps[i].init();
-        maps[i].createArrays();
-        maps[i].fillInputArray(0);
-        
-    }
+    map3D.setDataPoint(10, 5, 15);
 
-    maps[0].setDataPoint(10, 5, 15);
-    
-    
 }//end of Map3DGraph::addMaps
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Map3DGraph::update
 //
-// Updates with new parameters and forces a repaint. The new parameters are
-// stored as objects in pValues.
+// Updates with new 3D view parameters and forces a repaint. The new parameters
+// are stored as objects in pValues.
 //
 
 @Override
@@ -142,6 +136,45 @@ public void update(ArrayList <Object> pValues)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::getParameters
+//
+// Retrieves parameters specific to this subclass via objects in an ArrayList.
+//
+
+@Override
+public ArrayList<Object> getParameters()
+{
+
+    ArrayList<Object> values = new ArrayList<>();
+    
+    values.add("Map3DManipulator");
+    
+    values.add(xPos);
+    
+    values.add(yPos);
+    
+    values.add(xFrom);
+    
+    values.add(yFrom);
+    
+    values.add(zFrom);
+    
+    values.add(xAt);
+    
+    values.add(yAt);
+    
+    values.add(zAt);
+
+    values.add(rotation);
+    
+    values.add(viewAngle);
+    
+    return(values);
+
+}// end of Map3DGraph::getParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::paintComponent
 //
 
@@ -150,16 +183,13 @@ public void paintComponent (Graphics g)
 {
 
     super.paintComponent(g);
-
-    for(Map3D map : maps){
            
-        map.paint((Graphics2D)g,
-                xFrom, yFrom, zFrom, xAt, yAt, zAt,
-                xPos, yPos, viewAngle, rotation, 
-                ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
-                true, false, false,
-                90, 50, 10);
-    }
+    map3D.paint((Graphics2D)g,
+            xFrom, yFrom, zFrom, xAt, yAt, zAt,
+            xPos, yPos, viewAngle, rotation, 
+            ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
+            true, false, false,
+            90, 50, 10);
     
 }// end of Map3DGraph::paintComponent
 //-----------------------------------------------------------------------------
@@ -208,8 +238,61 @@ void loadConfigSettings()
 
     super.loadConfigSettings();
 
-    numMaps = configFile.readInt(configFileSection, "number of maps", 0);    
+    double pixelWidthOfGridBlockInRuntimeLayout;
+    
+    pixelWidthOfGridBlockInRuntimeLayout = configFile.readDouble(
+            configFileSection, 
+            "pixel width of each grid block in runtime layout", 9.5);
+    
+    mapWidthInDataPoints = 
+       configFile.readInt(configFileSection, "width of map in data points", -1);
 
+    //if value in config file is -1, set such that the graph is filled
+    if (mapWidthInDataPoints == -1){
+        mapWidthInDataPoints = 
+                           (int)(width / pixelWidthOfGridBlockInRuntimeLayout);
+    }
+
+    mapHeightInDataPoints = 
+      configFile.readInt(configFileSection, "height of map in data points", 12);
+    
+    //3D map view parameters for runtime layout
+
+    xPos = configFile.readInt(
+            configFileSection, "xPos~3D map runtime layout view setting", 0);
+    yPos = configFile.readInt(
+            configFileSection, "yPos~3D map runtime layout view setting", -54);
+    xFrom = configFile.readInt(
+             configFileSection, "xFrom~3D map runtime layout view setting", 0);
+    yFrom = configFile.readInt(
+            configFileSection, "yFrom~3D map runtime layout view setting", 10);
+    zFrom = configFile.readInt(
+             configFileSection, "zFrom~3D map runtime layout view setting", 5);
+    xAt = configFile.readInt(
+               configFileSection, "xAt~3D map runtime layout view setting", 0);
+    yAt = configFile.readInt(
+               configFileSection, "yAt~3D map runtime layout view setting", 0);
+    zAt = configFile.readInt(
+               configFileSection, "zAt~3D map runtime layout view setting", 0);
+    xUp = configFile.readInt(
+               configFileSection, "xUp~3D map runtime layout view setting", 0);
+    yUp = configFile.readInt(
+               configFileSection, "yUp~3D map runtime layout view setting", 0);
+    zUp = configFile.readInt(
+               configFileSection, "zUp~3D map runtime layout view setting", 1);
+    rotation = configFile.readInt(
+        configFileSection, "rotation~3D map runtime layout view setting", 180);
+    viewAngle = configFile.readInt(
+        configFileSection, "viewAngle~3D map runtime layout view setting", 12);
+
+    
+    //if xPos is MAX_VALUE, adjust to set left edge of grid to left graph edge
+    if (xPos == Integer.MAX_VALUE){
+        xPos = (int)((width - 
+           (mapWidthInDataPoints * pixelWidthOfGridBlockInRuntimeLayout)) / 2);
+        xPos = -xPos;
+    }
+    
 }// end of Map3DGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
 
