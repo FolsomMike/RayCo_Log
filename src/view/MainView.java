@@ -31,6 +31,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -51,10 +53,8 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
@@ -118,6 +118,8 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JLabel statusLabel, infoLabel;
     private JLabel progressLabel;
 
+    private Dimension totalScreenSize, usableScreenSize;
+    
     private JButton scanBtn, inspectBtn, stopBtn;
     
     private static final int CHART_WIDTH = 1000; //1670 for LG screen at RGNDT
@@ -231,7 +233,35 @@ public void setupMainFrame()
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     //    setLocation((int)screenSize.getWidth() - getWidth(), 0);
 
+    getScreenSize();
+    
 }// end of MainView::setupMainFrame
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::getScreenSize
+//
+// Retrieves the current screen size along with the actual usable vertical
+// size after subtracting the size of the taskbar.
+//
+
+public void getScreenSize()
+{
+    
+    totalScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+
+    GraphicsConfiguration gc = mainFrame.getGraphicsConfiguration();
+
+    //height of the task bar
+    Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(
+                                        mainFrame.getGraphicsConfiguration());
+    int taskBarHeight = scnMax.bottom;
+
+    usableScreenSize = new Dimension(
+                  totalScreenSize.width, totalScreenSize.height-taskBarHeight);
+
+}// end of ChartGroup::getScreenSize
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -368,8 +398,8 @@ private void createChartGroups()
     chartGroups = new ChartGroup[numChartGroups];
     
     for (int i = 0; i<numChartGroups; i++){
-        chartGroups[i] = new ChartGroup();
-        chartGroups[i].init(i, configFile);
+        chartGroups[i] = new ChartGroup(i, configFile, usableScreenSize);
+        chartGroups[i].init();
         mainPanel.add(chartGroups[i]);
     }
                  

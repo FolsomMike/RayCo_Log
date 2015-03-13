@@ -16,6 +16,7 @@
 
 package view;
 
+import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
@@ -34,15 +35,22 @@ class ChartGroup extends JPanel{
     private int graphWidth, graphHeight;        
     private int numCharts;
     private Chart charts[];
+
+    private Dimension usableScreenSize;
     
 //-----------------------------------------------------------------------------
 // ChartGroup::ChartGroup (constructor)
 //
 //
 
-public ChartGroup()
+public ChartGroup(int pChartGroupNum, IniFile pConfigFile, 
+                                                Dimension pUsableScreenSize)
 {
 
+    chartGroupNum = pChartGroupNum; configFile = pConfigFile;
+
+    usableScreenSize = pUsableScreenSize;
+    
 }//end of ChartGroup::ChartGroup (constructor)
 //-----------------------------------------------------------------------------
 
@@ -57,10 +65,8 @@ public ChartGroup()
 // in an array of the creating object.
 //
 
-public void init(int pChartGroupNum, IniFile pConfigFile)
+public void init()
 {
-
-    chartGroupNum = pChartGroupNum; configFile = pConfigFile;
     
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     
@@ -69,32 +75,7 @@ public void init(int pChartGroupNum, IniFile pConfigFile)
     createCharts();
 
     add(Box.createVerticalGlue()); //force charts towards top of display
-    
-/*    
-    //create chart for Longitudinal
-    charts[LONG_CHART] = new Chart();
-    charts[LONG_CHART].init(
-           "Longitudinal", LONG_CHART, 2, true, 50, CHART_WIDTH, CHART_HEIGHT);
-    panel.add(charts[LONG_CHART]);
 
-    //create chart for Transverse
-    charts[TRANS_CHART] = new Chart();
-    charts[TRANS_CHART].init(
-             "Transverse", TRANS_CHART, 2, true, 50, CHART_WIDTH, CHART_HEIGHT);
-    panel.add(charts[TRANS_CHART]);
-  
-    //sample trace draws the sample points without connecting them
-    charts[TRANS_CHART].setTraceConnectPoints(0, SAMPLE_TRACE, false);
-
-    //create chart for Transverse
-    charts[WALL_CHART] = new Chart();
-    charts[WALL_CHART].init(
-                    "Wall", WALL_CHART, 1, false, 0, CHART_WIDTH, CHART_HEIGHT);
-    panel.add(charts[WALL_CHART]);
-    
-  */  
-    
-    
 }// end of Chart::init
 //-----------------------------------------------------------------------------
 
@@ -139,11 +120,18 @@ private void loadConfigSettings()
     
     numCharts = configFile.readInt(section, "number of charts", 0);
     
-    graphWidth = configFile.readInt(section, "default width for all graphs", 0);
+    graphWidth = 
+              configFile.readInt(section, "default width for all graphs", 500);
 
+    //if -1, set graphWidth to fill the screen
+    if(graphWidth == -1){ graphWidth = usableScreenSize.width - 245; }
+    
     graphHeight = configFile.readInt(
                                   section, "default height for all graphs", 0);
 
+    //if -1, set graphHeight to fill the screen
+    if(graphHeight == -1){ graphHeight = usableScreenSize.height - 50; }
+        
 }// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------
 
