@@ -286,7 +286,6 @@ private JPanel createControlsPanel()
 // MainView::getAllValuesFromCurrentControlPanel
 //
 // 
-//
 
 public ArrayList<Object> getAllValuesFromCurrentControlPanel()
 {
@@ -294,6 +293,19 @@ public ArrayList<Object> getAllValuesFromCurrentControlPanel()
     return(currentControlPanel.getAllValues());
     
 }// end of MainView::getAllValuesFromCurrentControlPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::setAllValuesInCurrentControlPanel
+//
+// 
+
+public void setAllValuesInCurrentControlPanel(ArrayList<Object> pValues)
+{
+
+    currentControlPanel.setAllValues(pValues);
+    
+}// end of MainView::setAllValuesInCurrentControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

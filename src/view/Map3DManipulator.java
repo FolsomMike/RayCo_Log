@@ -17,11 +17,11 @@
 
 package view;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -38,6 +38,8 @@ class Map3DManipulator extends JPanel implements ControlsGroup{
     private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
     private MFloatSpinnerPanel viewAngle;
+    private MFloatSpinnerPanel xFrom, yFrom, zFrom;
+    private MFloatSpinnerPanel xAt, yAt, zAt;
     
     ArrayList<Object> values = new ArrayList<>();
     
@@ -87,8 +89,16 @@ public void setupGUI()
     addVerticalSpacer(this, 10);
     
     createXYPositionPanel();
+    
+    addVerticalSpacer(this, 5);
+    
+    createViewFromPositionPanel();
 
     addVerticalSpacer(this, 5);
+    
+    createViewAtPositionPanel();
+    
+    addVerticalSpacer(this, 5);    
         
     rotation = new MFloatSpinnerPanel("Rotation",
             "Adjusts the rotation of the display. (rotation variable)",
@@ -122,7 +132,7 @@ public void createXYPositionPanel()
 {
 
     JPanel panel = new JPanel();
-    
+    panel.setBorder(BorderFactory.createTitledBorder("Position on Screen XY"));    
     panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
 
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -130,7 +140,7 @@ public void createXYPositionPanel()
     xPos = new MFloatSpinnerPanel("X Position",
             "Adjusts the x position of the display. (xPos variable)",
             actionListener, -19, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
-            "##0", 55, 20, "X,Y Position", "", ACTION_COMMAND, 125, 25);
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     xPos.init();
     panel.add(xPos);
 
@@ -141,9 +151,99 @@ public void createXYPositionPanel()
     yPos.init();
     panel.add(yPos);
     
+    setSizes(panel, 190, 47);
+    
     add(panel);
     
 }// end of Map3DManipulator::createXYPositionPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::createViewFromPositionPanel
+//
+// Creates a panel with x,y,z position adjustment controls to specify the
+// point in world coordinates where the user's eye is located.
+//
+
+public void createViewFromPositionPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setBorder(BorderFactory.createTitledBorder("View From Position XYZ"));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    xFrom = new MFloatSpinnerPanel("X From Position",
+            "Adjusts 'view from' position. (xFrom variable)",
+            actionListener, 15, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
+    xFrom.init();
+    panel.add(xFrom);
+
+    yFrom = new MFloatSpinnerPanel("Y From Position",
+            "Adjusts 'view from' position. (yFrom variable)",
+            actionListener, 9, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
+    yFrom.init();
+    panel.add(yFrom);
+
+    zFrom = new MFloatSpinnerPanel("Z From Position",
+            "Adjusts 'view from' position. (zFrom variable)",
+            actionListener, 26, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
+    zFrom.init();
+    panel.add(zFrom);
+        
+    setSizes(panel, 190, 47);    
+    
+    add(panel);
+    
+}// end of Map3DManipulator::createViewFromPositionPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::createViewAtPositionPanel
+//
+// Creates a panel with x,y,z position adjustment controls to specify the
+// point in world coordinates where the view target is located.
+//
+
+public void createViewAtPositionPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setBorder(BorderFactory.createTitledBorder("View At Position XYZ"));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    xAt = new MFloatSpinnerPanel("X At Position",
+            "Adjusts 'view at' position. (xAt variable)",
+            actionListener, 11, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
+    xAt.init();
+    panel.add(xAt);
+
+    yAt = new MFloatSpinnerPanel("Y At Position",
+            "Adjusts 'view at' position. (yAt variable)",
+            actionListener, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
+    yAt.init();
+    panel.add(yAt);
+
+    zAt = new MFloatSpinnerPanel("Z At Position",
+            "Adjusts 'view at' position. (zAt variable)",
+            actionListener, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
+    zAt.init();
+    panel.add(zAt);
+        
+    setSizes(panel, 190, 47);    
+    
+    add(panel);
+    
+}// end of Map3DManipulator::createViewAtPositionPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -180,6 +280,18 @@ public ArrayList<Object> getAllValues()
     
     values.add(yPos.getIntValue());    
     
+    values.add(xFrom.getIntValue());
+    
+    values.add(yFrom.getIntValue());
+    
+    values.add(zFrom.getIntValue());
+    
+    values.add(xAt.getIntValue());
+    
+    values.add(yAt.getIntValue());
+    
+    values.add(zAt.getIntValue());
+
     values.add(rotation.getIntValue());
     
     values.add(viewAngle.getIntValue());    
@@ -201,8 +313,28 @@ public ArrayList<Object> getAllValues()
 public void setAllValues(ArrayList<Object> pValues)
 {
 
+    int i = 1;
     
+    xPos.setValueAsInt((Integer)pValues.get(i++));
     
+    yPos.setValueAsInt((Integer)pValues.get(i++));
+
+    xFrom.setValueAsInt((Integer)pValues.get(i++));
+    
+    yFrom.setValueAsInt((Integer)pValues.get(i++));
+    
+    zFrom.setValueAsInt((Integer)pValues.get(i++));
+    
+    xAt.setValueAsInt((Integer)pValues.get(i++));
+    
+    yAt.setValueAsInt((Integer)pValues.get(i++));
+    
+    zAt.setValueAsInt((Integer)pValues.get(i++));
+        
+    rotation.setValueAsInt((Integer)pValues.get(i++));
+    
+    viewAngle.setValueAsInt((Integer)pValues.get(i++));
+        
 }// end of Map3DManipulator::setAllValues
 //-----------------------------------------------------------------------------
 
@@ -232,6 +364,22 @@ public void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
     pTarget.add(Box.createRigidArea(new Dimension(pNumPixels,0)));
     
 }// end of Map3DManipulator::addHorizontalSpacer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::setSizes
+//
+// Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
+//
+
+private void setSizes(Component pComponent, int pWidth, int pHeight)
+{
+
+    pComponent.setMinimumSize(new Dimension(pWidth, pHeight));
+    pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
+    pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
+
+}//end of Map3DManipulator::setSizes
 //-----------------------------------------------------------------------------
 
 

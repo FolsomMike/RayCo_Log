@@ -161,6 +161,8 @@ public void init()
     //create data transfer buffers
     setUpDataTransferBuffers();
     
+    set3DMapAllValues(); //debug mks -- remove this when settings loaded from config
+    
 }// end of MainController::init
 //-----------------------------------------------------------------------------
 
@@ -358,14 +360,60 @@ public void handle3DMapManipulation()
 
 {
 
-
     ArrayList <Object> values = mainView.getAllValuesFromCurrentControlPanel();
  
     mainView.updateGraph(0, 3, 0, values);
          
 }//end of MainController::handle3DMapManipulation
 //-----------------------------------------------------------------------------
-                  
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::set3DMapAllValues
+//
+// Sets all values in the 3D Map control panel.
+//
+// The first object will always be a string describing the control group so
+// that any receiving object can discern the content and ordering in the list.
+//
+// debug mks -- remove this function after values are loaded from config file
+//
+
+public void set3DMapAllValues()
+{
+
+    ArrayList<Object> values = new ArrayList<>();
+            
+    values.clear();
+    
+    values.add("Map3DManipulator");
+    
+    values.add((Integer)(-11));     // xPos
+    
+    values.add((Integer)(-202));    // yPos
+    
+    values.add((Integer)(0));       // xFrom
+    
+    values.add((Integer)(10));      // yFrom
+    
+    values.add((Integer)(4));       // zFrom
+    
+    values.add((Integer)(0));       // xAt
+    
+    values.add((Integer)(0));       // yAt
+    
+    values.add((Integer)(0));       // zAt
+
+    values.add((Integer)(0));       // rotation
+    
+    values.add((Integer)(6));       // viewAngle
+   
+    mainView.setAllValuesInCurrentControlPanel(values);
+    
+    mainView.updateGraph(0, 3, 0, values);
+    
+}// end of Map3DManipulator::set3DMapAllValues
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // MainController::stateChanged
 //

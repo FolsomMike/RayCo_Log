@@ -108,6 +108,34 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MFloatSpinnerPanel::setValueAsInt
+//
+// Sets the spinner's value using an integer.
+//
+
+public void setValueAsInt(int pValue)
+{
+
+    spinner.setValue(pValue);
+    
+}// end of MFloatSpinnerPanel::setValueAsInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MFloatSpinnerPanel::setValueAsDouble
+//
+// Sets the spinner's value using an double.
+//
+
+public void setValueAsDouble(double pValue)
+{
+
+    spinner.setValue(pValue);
+    
+}// end of MFloatSpinnerPanel::setValueAsDouble
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MFloatSpinnerPanel::stateChanged
 //
 // Catch all control changes such as those from MFloatSpinners.

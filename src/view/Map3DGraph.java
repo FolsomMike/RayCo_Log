@@ -30,6 +30,19 @@ class Map3DGraph extends Graph{
     private int numMaps;
     private Map3D[] maps;
 
+    private int xPos = -11, yPos = -202;
+    private int xFrom = 0, yFrom = 10, zFrom = 4;
+    private int xAt = 0, yAt = 0, zAt = 0;
+    private int xUp = 0, yUp = 0, zUp = 1;
+    private int rotation = 0;
+    private int viewAngle = 6;
+    
+    private static final int ANALYSIS_STRETCHX = 1;
+    private static final int ANALYSIS_STRETCHY = 1;
+    private static final int ANALYSIS_NORMAL_LEVEL = 25;
+    private static final int ANALYSIS_WARNING_LEVEL = 65;
+    private static final int ANALYSIS_CRITICAL_LEVEL = 100;
+        
 //-----------------------------------------------------------------------------
 // Map3DGraph::Map3DGraph (constructor)
 //
@@ -106,7 +119,19 @@ public void update(ArrayList <Object> pValues)
     xPos = (Integer)pValues.get(i++);
     
     yPos = (Integer)pValues.get(i++); yPos = -yPos;
+
+    xFrom = (Integer)pValues.get(i++);
     
+    yFrom = (Integer)pValues.get(i++);
+    
+    zFrom = (Integer)pValues.get(i++);    
+    
+    xAt = (Integer)pValues.get(i++);
+    
+    yAt = (Integer)pValues.get(i++);
+    
+    zAt = (Integer)pValues.get(i++);    
+        
     rotation = (Integer)pValues.get(i++);
     
     viewAngle = (Integer)pValues.get(i++);
@@ -115,35 +140,6 @@ public void update(ArrayList <Object> pValues)
 
 }// end of Map3DGraph::update
 //-----------------------------------------------------------------------------
-
-
-/*
-
-    Defaults from C++ code
-
-    private static final int ANALYSIS_AZ = 5;
-    private static final int ANALYSIS_DX = -19;
-    private static final int ANALYSIS_DY = -110;
-    private static final int ANALYSIS_DANGLE = 27;
-    private static final int ANALYSIS_DEGREE = 135;
-    private static final int ANALYSIS_STRETCHX = 1;
-    private static final int ANALYSIS_STRETCHY = 2;
-    private static final int ANALYSIS_NORMAL_LEVEL = 25;
-    private static final int ANALYSIS_WARNING_LEVEL = 65;
-    private static final int ANALYSIS_CRITICAL_LEVEL = 100;
-*/
-
-
-    private static final int ANALYSIS_AZ = 5;
-    private int xPos = -19;
-    private int yPos = -110;
-    private int viewAngle = 7;
-    private int rotation = 200;
-    private static final int ANALYSIS_STRETCHX = 1;
-    private static final int ANALYSIS_STRETCHY = 1;
-    private static final int ANALYSIS_NORMAL_LEVEL = 25;
-    private static final int ANALYSIS_WARNING_LEVEL = 65;
-    private static final int ANALYSIS_CRITICAL_LEVEL = 100;
 
 //-----------------------------------------------------------------------------
 // Map3DGraph::paintComponent
@@ -158,43 +154,12 @@ public void paintComponent (Graphics g)
     for(Map3D map : maps){
            
         map.paint((Graphics2D)g,
-                ANALYSIS_AZ, xPos, yPos, viewAngle, rotation, 
+                xFrom, yFrom, zFrom, xAt, yAt, zAt,
+                xPos, yPos, viewAngle, rotation, 
                 ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
                 true, false, false,
                 90, 50, 10);
     }
-    
-    /*
-    
-    //default settings for 3D Map in Analysis Window
-    const ANALYSIS_AZ = 5, ANALYSIS_DX = -19, ANALYSIS_DY = -110;
-    const ANALYSIS_DANGLE = 27, ANALYSIS_DEGREE = 135;
-    const ANALYSIS_STRETCHX = 1, ANALYSIS_STRETCHY = 2;
-    const ANALYSIS_NORMAL_LEVEL = 25, ANALYSIS_WARNING_LEVEL = 65;
-    const ANALYSIS_CRITICAL_LEVEL = 100;
- 
-    JobInfo->TopoMap.AZ = ANALYSIS_AZ; JobInfo->TopoMap.DX = ANALYSIS_DX;
-    JobInfo->TopoMap.DY = ANALYSIS_DY; JobInfo->TopoMap.DAngle = ANALYSIS_DANGLE;
-    JobInfo->TopoMap.Degree = ANALYSIS_DEGREE;
-    JobInfo->TopoMap.StretchX = ANALYSIS_STRETCHX;
-    JobInfo->TopoMap.StretchY = ANALYSIS_STRETCHY;
-
-    tmap->Paint(JobInfo->TopoMap.AZ, JobInfo->TopoMap.DX, JobInfo->TopoMap.DY,
-            JobInfo->TopoMap.DAngle, JobInfo->TopoMap.Degree,
-            JobInfo->TopoMap.StretchX, JobInfo->TopoMap.StretchY, true, false,
-            false, JobInfo->CriticalValue, JobInfo->WarnValue,
-            JobInfo->NormalValue);
-
-    
-    */
-    
-    //debug mks
-    //paint(Graphics2D pG2, int _az, int _dx, int _dy,
-    //            int _dAngle, int _degree, int _StretchX, int _StretchY,
-    //            boolean _HiddenSurfaceViewMode, boolean _WireFrameViewMode,
-    //            boolean _BirdsEyeViewMode,
-    //            int _criticalValue, int _warnValue, int _normalValue)
-    //debug mks end
     
 }// end of Map3DGraph::paintComponent
 //-----------------------------------------------------------------------------

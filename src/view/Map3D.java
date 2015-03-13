@@ -12,7 +12,7 @@
 *
 * World-to-Screen coordinate transformation
 *
-* Creating a 2-D image from a 3-D object, one of the easiest to understand,
+* For creating a 2-D image from a 3-D object, one of the easiest to understand,
 * and most intuitive methods comes from the concept of a "pin-hole" camera.
 * This method came about because it is intuitive for people to model the 3-D
 * to 2-D transformation after taking a photograph because, essentially,
@@ -45,8 +45,6 @@
 * origin, and all measurements are taken in 3-D Euclidean space
 * (E3 for you math majors) in terms of X, Y, and Z components.
 * This coordinate system is considered the world coordinate system.
-* In our problem, the input data is set to the value of Z, and the value of X,Y
-* is assigned by the program.
 *
 * Pin-Hole Camera:
 * 
@@ -126,6 +124,12 @@
 * mapping projects everything in the viewing volume to a plane at zEye = 1
 * where the boundary points are (1,1), (1,-1), (-1,-1), and (-1,1).
 * The image on the plane can then be drawn on a screen or paper.
+*
+* Positioning the Final 2D Image on the Screen
+* 
+* After the 2D image has been created, its position on the screen can be
+* adjusted for optimal viewing by adjusting xPos,yPos. This simply moves the
+* final image...the view angle and zoom factor are not altered.
 * 
 * Open Source Policy:
 *
@@ -155,10 +159,13 @@ import java.awt.*;
 class Map3D{
 
     //user controlled mapping parameters
-    int   xPos, yPos;             // x,y position of the grid
+    int   xPos, yPos;             // x,y position of the 2D view on the screen
     int viewAngle;                // view angle, equates to zoom in/out
                                   // (this is the angle of what is in the view)
-    double az;                    // At-Point's az
+    double xFrom, yFrom, zFrom;   // FROM POINT viewer's eyeball location
+    double xAt, yAt, zAt;         // AT POINT   target's position
+    double ux, uy, uz;            // UP VECTOR  view orientation
+    
     int rotation;                 // degrees of rotation of the grid
     int stretchX, stretchY;       // grid spacing between points
 
@@ -168,7 +175,7 @@ class Map3D{
     int warnValue;
     int normalValue;
 
-    //map parameters
+    //grid parameters
 
     int dataXMax;               // the size of data grid in X direction
     int dataYMax;               // the size of data grid in Y direction
@@ -180,9 +187,6 @@ class Map3D{
                                 //   around the actual data points
 
     double xRes, yRes;              // X, Y resolution
-    double fx, fy, fz;              // From-Point
-    double ax, ay;                  // At-Point
-    double ux, uy, uz;              // Up-Point
     double zNear, zFar;             // for View volume
     double m[][] = new double[3][3];// Transformation Matrix
     double cx1, cy1, cz1;
@@ -267,17 +271,17 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
             orthoS[i][j] = new ScreenPlane();
         }
     }
-        
+
+    viewAngle = 0;              // amount of target viewed
+    rotation = 0;               // rotation of target in world space
+    xPos = 0; yPos = 0;         // position of 2D image on screen
+
     xRes = 10; yRes = 10;        // resolution of X, Y
     ux = 0.0; uy = 0.0; uz = 1; // up points, x, y, z
     zNear = -10; zFar = 100;    // To control view volumn
     cx1 = 0.0; cy1 = 0.0; cz1 = 0.1;
     cx2 = 0.0; cy2 = 0.0; cz2 = 0.0;
-    fx = 15; fy = 9; fz = 26;   // from points, x, y, z
-    ax = 11; ay = 5; az = 20;   // at points, x,y, z
-    xPos = 0; yPos = 0;
-    viewAngle = 0;
-    rotation = 0;
+    
     stretchX = 1; stretchY = 1; // grid spacing
     
     // initialize the magic transformation matrix m[][], which is used to
@@ -505,9 +509,8 @@ private void vTrans3Dto2D(ScreenPlane pPlane, Vertex pSP)
 
     // Transform each vertex to eye coord.
 
-    vx = pSP.x - fx;
-    vy = pSP.y - fy;
-    vz = pSP.z - fz;
+    vx = pSP.x - xFrom; vy = pSP.y - yFrom; vz = pSP.z - zFrom;
+    
     ex = vx * m [0][0] + vy * m [0][1] + vz * m [0][2];
     ey = vx * m [1][0] + vy * m [1][1] + vz * m [1][2];
 
@@ -536,22 +539,20 @@ private void vTrans3Dto2D(ScreenPlane pPlane, Vertex pSP)
 // which is related to From Point (fx, fy, fz) and At Point (ax, ay, az).
 //
 
-private void calculate(int _az, int pViewAngle)
+private void calculate()
 {
 
     double    norm;
-    az = _az;
-    viewAngle = pViewAngle;
 
     //protect map data
-    if(az > 25) az = 25; if(viewAngle < -5) viewAngle = -5;
+    if(zAt > 25) zAt = 25; if(viewAngle < -5) viewAngle = -5;
 
     // World-to-Eye transformation
     // Get transformation Matrix
     // Compute Z axis
-    p1.x = ax - fx;
-    p1.y = ay - fy;
-    p1.z = az - fz;
+    p1.x = xAt - xFrom;
+    p1.y = yAt - yFrom;
+    p1.z = zAt - zFrom;
     norm = Math.sqrt (p1.x * p1.x + p1.y * p1.y + p1.z * p1.z);
 
     if (norm!=0) {
@@ -635,11 +636,13 @@ private void vCross(Vertex p1, Vertex p2, Vertex p)
 // implemented later if necessary.
 //
 
-public void paint(Graphics2D pG2, int pAz, int pXPos, int pYPos,
-                int pDAngle, int pDegree, int pStretchX, int pStretchY,
-                boolean pHiddenSurfaceViewMode, boolean pWireFrameViewMode,
-                boolean pBirdsEyeViewMode, int pCriticalValue,
-                int pWarnValue, int pNormalValue)
+public void paint(Graphics2D pG2, 
+            int pXFrom, int pYFrom, int pZFrom, int pXAt, int pYAt, int pZAt,
+            int pXPos, int pYPos, int pViewAngle, int pDegree,
+            int pStretchX, int pStretchY,
+            boolean pHiddenSurfaceViewMode, boolean pWireFrameViewMode,
+            boolean pBirdsEyeViewMode, int pCriticalValue,
+            int pWarnValue, int pNormalValue)
 {
 
 //if data arrays have not yet been created, do nothing
@@ -647,8 +650,11 @@ if (points == null) return;
 
 //store view parameters
 
-xPos = pXPos; yPos = pYPos; //screen position
+xFrom = pXFrom; yFrom = pYFrom; zFrom = pZFrom;
+xAt = pXAt; yAt = pYAt; zAt = pZAt;
+xPos = pXPos; yPos = pYPos;
 rotation = pDegree;
+viewAngle = pViewAngle;
 stretchX = pStretchX; stretchY = pStretchY;
 
 criticalValue = pCriticalValue;
@@ -666,7 +672,7 @@ birdsEyeViewMode = pBirdsEyeViewMode; //show bird's eye view if true
 //image->Canvas->FillRect(rect);
 
 // calculate the mapping parameters and the magic matrix
-calculate(pAz, pDAngle);
+calculate();
 
 // 3D-2D coordinate transformation
 worldToScreen(rotation, stretchX, stretchY);
