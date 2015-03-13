@@ -387,15 +387,15 @@ public void set3DMapAllValues()
     
     values.add("Map3DManipulator");
     
-    values.add((Integer)(-11));     // xPos
+    values.add((Integer)(-24));     // xPos
     
-    values.add((Integer)(-202));    // yPos
+    values.add((Integer)(-54));    // yPos
     
     values.add((Integer)(0));       // xFrom
     
     values.add((Integer)(10));      // yFrom
     
-    values.add((Integer)(4));       // zFrom
+    values.add((Integer)(5));       // zFrom
     
     values.add((Integer)(0));       // xAt
     
@@ -403,9 +403,9 @@ public void set3DMapAllValues()
     
     values.add((Integer)(0));       // zAt
 
-    values.add((Integer)(0));       // rotation
+    values.add((Integer)(180));       // rotation
     
-    values.add((Integer)(6));       // viewAngle
+    values.add((Integer)(12));       // viewAngle
    
     mainView.setAllValuesInCurrentControlPanel(values);
     

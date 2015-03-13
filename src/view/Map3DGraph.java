@@ -30,12 +30,12 @@ class Map3DGraph extends Graph{
     private int numMaps;
     private Map3D[] maps;
 
-    private int xPos = -11, yPos = -202;
-    private int xFrom = 0, yFrom = 10, zFrom = 4;
+    private int xPos = -24, yPos = -54;
+    private int xFrom = 0, yFrom = 10, zFrom = 5;
     private int xAt = 0, yAt = 0, zAt = 0;
     private int xUp = 0, yUp = 0, zUp = 1;
-    private int rotation = 0;
-    private int viewAngle = 6;
+    private int rotation = 180;
+    private int viewAngle = 12;
     
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
@@ -89,15 +89,15 @@ private void addMaps()
     for(int i=0; i<maps.length; i++){
 
         maps[i] = new Map3D(chartGroupNum, chartNum, graphNum,
-            width, height, 50, 12);        
+            width, height, 100, 12);        
         
         maps[i].init();
         maps[i].createArrays();
-        maps[i].fillInputArray(0); //debug mks -- set to 0
+        maps[i].fillInputArray(0);
         
     }
 
-    maps[0].setDataPoint(10, 5, 25);
+    maps[0].setDataPoint(10, 5, 15);
     
     
 }//end of Map3DGraph::addMaps
