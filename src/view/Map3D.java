@@ -1025,7 +1025,7 @@ private Color assignColor(Graphics2D pG2, int[] pHeight)
         return(Color.GREEN);
     else
     if (pHeight[0] > 0 || pHeight[1] > 0 || pHeight[2] > 0 || pHeight[3] > 0)
-        return(Color.LIGHT_GRAY);
+        return(Color.BLUE);
     else
         return(pG2.getBackground());
 
