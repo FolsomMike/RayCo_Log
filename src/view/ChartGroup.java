@@ -28,15 +28,15 @@ import model.IniFile;
 
 class ChartGroup extends JPanel{
 
-    private IniFile configFile;
+    private final IniFile configFile;
     
     private String title, shortTitle, objectType;
-    private int chartGroupNum;
+    private final int chartGroupNum;
     private int graphWidth, graphHeight;        
     private int numCharts;
     private Chart charts[];
 
-    private Dimension usableScreenSize;
+    private final Dimension usableScreenSize;
     
 //-----------------------------------------------------------------------------
 // ChartGroup::ChartGroup (constructor)

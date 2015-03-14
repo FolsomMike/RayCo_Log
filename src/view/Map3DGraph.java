@@ -285,7 +285,6 @@ void loadConfigSettings()
     viewAngle = configFile.readInt(
         configFileSection, "viewAngle~3D map runtime layout view setting", 12);
 
-    
     //if xPos is MAX_VALUE, adjust to set left edge of grid to left graph edge
     if (xPos == Integer.MAX_VALUE){
         xPos = (int)((width - 

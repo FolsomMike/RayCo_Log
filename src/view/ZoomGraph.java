@@ -139,7 +139,7 @@ void loadConfigSettings()
 
     configFileSection = 
             "Chart Group " + chartGroupNum + " Chart " + chartNum
-                                            + " Annotation Graph " + graphNum;
+                                            + " Graph " + graphNum;
 
     super.loadConfigSettings();
 

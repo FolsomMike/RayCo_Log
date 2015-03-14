@@ -19,6 +19,7 @@ package view;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.*;
 import model.IniFile;
 
@@ -39,7 +40,11 @@ public class Graph extends JPanel{
     int chartGroupNum, chartNum, graphNum;
     int width, height;
     Color backgroundColor;
- 
+
+    int scrollTrackChartGroupNum, scrollTrackChartNum, scrollTrackGraphNum;
+    ArrayList<Graph> graphsTrackingThisGraphsScrolling;
+    ArrayList<Graph> getGraphsTrackingThisGraphsScrolling(){
+                                return (graphsTrackingThisGraphsScrolling); }
     
     //type of graph subclasses
     
@@ -154,7 +159,7 @@ public void scrollGraph (int pShiftAmount)
 
     graphInfo.scrollOffset += pShiftAmount;
     graphInfo.lastScrollAmount = pShiftAmount;
-    
+        
 }// end of Graph::scrollGraph
 //-----------------------------------------------------------------------------
 
@@ -314,6 +319,54 @@ public void updateChild(int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::addGraphTrackingThisGraphsScrolling
+//
+// Adds graph pGraph to the list of graphs which should be scolled when this
+// graph is scrolled.
+//
+
+public void addGraphTrackingThisGraphsScrolling(Graph pGraph)
+{
+
+    
+    if (graphsTrackingThisGraphsScrolling == null){    
+        graphsTrackingThisGraphsScrolling = new ArrayList<>();        
+    }
+    
+    graphsTrackingThisGraphsScrolling.add(pGraph);
+    
+}// end of Graph::addGraphTrackingThisGraphsScrolling
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::getGraphTrackedForScrolling
+//
+// Returns the chart group/chart/graph numbers for the graph which this graph
+// should track when the former is scrolled.
+//
+// If no graph is to be tracked, returns null.
+//
+
+public GUIDataSet getGraphTrackedForScrolling()
+{
+
+    if (scrollTrackChartGroupNum == -1 || scrollTrackChartNum == -1 
+                                                || scrollTrackGraphNum == -1){        
+        return(null);
+    }
+    
+    GUIDataSet gds = new GUIDataSet();
+    
+    gds.chartGroupNum = scrollTrackChartGroupNum;
+    gds.chartNum = scrollTrackChartNum;
+    gds.graphNum = scrollTrackGraphNum;
+        
+    return(gds);
+    
+}// end of Graph::getGraphTrackedForScrolling
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::paintChildren
 //
 // Paints all the child objects on the canvas.
@@ -337,10 +390,10 @@ void loadConfigSettings()
 {
 
     title = configFile.readString(
-             configFileSection, "title", "Annotation Graph " + (graphNum + 1));
+             configFileSection, "title", "Graph " + (graphNum + 1));
 
     shortTitle = configFile.readString(
-               configFileSection, "short title", "annograph" + (graphNum + 1));
+               configFileSection, "short title", "graph" + (graphNum + 1));
 
     objectType = configFile.readString(
                                     configFileSection, "object type", "graph");
@@ -356,7 +409,13 @@ void loadConfigSettings()
     backgroundColor = configFile.readColor(
               configFileSection, "background color", new Color(238, 238, 238));
 
-    
+    scrollTrackChartGroupNum = configFile.readInt(configFileSection,
+                      "chart group number of graph tracked for scrolling", -1);
+    scrollTrackChartNum = configFile.readInt(configFileSection,
+                            "chart number of graph tracked for scrolling", -1);
+    scrollTrackGraphNum = configFile.readInt(configFileSection,
+                            "graph number of graph tracked for scrolling", -1);
+        
 }// end of Graph::loadConfigSettings
 //-----------------------------------------------------------------------------
 

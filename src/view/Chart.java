@@ -18,6 +18,7 @@ package view;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.*;
 import model.IniFile;
 
@@ -603,19 +604,25 @@ public void updateChild(int pGraphNum, int pChildNum)
 
     graphs[pGraphNum].updateChild(pChildNum);
 
-    //debug mks -- need to load from config file which graph the zoom graph
-    //tracks and scroll it when that graph is scrolled instead of hard coding
-    //to graph 0
+    //scroll any graphs which are set up to track this graph's scrolling
+    //check array for null first to avoid unnecessary processing on empty arrays
     
+    if (graphs[pGraphNum].graphInfo.lastScrollAmount != 0){
     
-    if((pGraphNum == 0) && hasZoomGraph && 
-                            graphs[pGraphNum].graphInfo.lastScrollAmount!= 0){
-        
-        zoomGraph.scrollGraph(graphs[pGraphNum].graphInfo.lastScrollAmount);
-        
-        graphs[pGraphNum].graphInfo.lastScrollAmount = 0;
-        
+        ArrayList<Graph> scrollTrackingGraphs = 
+                      graphs[pGraphNum].getGraphsTrackingThisGraphsScrolling();
+     
+        if (scrollTrackingGraphs != null){
+   
+            for (Iterator<Graph> stg=scrollTrackingGraphs.iterator(); 
+                                                             stg.hasNext();) {
+                stg.next().scrollGraph(graphs[pGraphNum].
+                                                    graphInfo.lastScrollAmount);
+            }
+        }
     }
+
+    graphs[pGraphNum].graphInfo.lastScrollAmount = 0;
 
 }// end of Chart::updateChild
 //-----------------------------------------------------------------------------

@@ -35,6 +35,7 @@
 
 package controller;
 
+import view.GUIDataSet;
 import hardware.MainHandler;
 import hardware.PeakData;
 import java.awt.*;

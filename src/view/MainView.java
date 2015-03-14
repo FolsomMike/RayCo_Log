@@ -25,7 +25,6 @@ package view;
 //-----------------------------------------------------------------------------
 
 import controller.EventHandler;
-import controller.GUIDataSet;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -60,6 +59,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
+import model.DataTransferIntBuffer;
 import model.MainDataClass;
 import model.IniFile;
 import model.SharedSettings;
@@ -278,6 +278,8 @@ private void setupGui()
     mainPanel.add(createControlsPanel());
     
     createChartGroups();
+
+    linkGraphsWhichTrackOtherGraphsScolling();
     
 }// end of MainView::setupGui
 //-----------------------------------------------------------------------------
@@ -897,6 +899,49 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
     }
 
 }// end of MainView::scanForGUIObjectsOfAType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::linkGraphsWhichTrackOtherGraphsScolling
+//
+// Scans through all graphs to find those which are set up to track the
+// scrolling of other graphs and adds a reference to the list in the latter
+// of the former. When the tracked graph is scrolled, it will also invoke
+// the scrolling of the tracking graph.
+//
+
+private void linkGraphsWhichTrackOtherGraphsScolling()
+{
+
+    ArrayList<Object> graphs = new ArrayList<>();
+    
+    //prepare to iterate through all graphs of various types, each successive
+    //call will add more graphs to the list if they match
+    //wip mks -- need to create new scan function which will scan for 
+    //multiple types of objects
+    
+    scanForGUIObjectsOfAType(graphs, "trace graph");
+    scanForGUIObjectsOfAType(graphs, "zoom graph");
+    scanForGUIObjectsOfAType(graphs, "3D map graph");
+    
+    ListIterator iter = graphs.listIterator();
+    
+    while(iter.hasNext()){
+        
+        Graph graph = (Graph)iter.next();
+
+        GUIDataSet gds = graph.getGraphTrackedForScrolling();
+        
+        if(gds == null) { 
+            continue;
+        }else{
+            chartGroups[gds.chartGroupNum].getGraph(gds.chartNum, gds.graphNum).
+                    addGraphTrackingThisGraphsScrolling(graph);
+        }
+        
+    }
+    
+}// end of MainView::linkGraphsWhichTrackOtherGraphsScolling
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
