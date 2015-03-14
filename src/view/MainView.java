@@ -59,7 +59,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
-import model.DataTransferIntBuffer;
 import model.MainDataClass;
 import model.IniFile;
 import model.SharedSettings;
