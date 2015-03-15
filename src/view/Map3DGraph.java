@@ -40,9 +40,9 @@ class Map3DGraph extends Graph{
     
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
-    private static final int ANALYSIS_NORMAL_LEVEL = 25;
-    private static final int ANALYSIS_WARNING_LEVEL = 65;
-    private static final int ANALYSIS_CRITICAL_LEVEL = 100;
+    private static final int NORMAL_LEVEL = 2;
+    private static final int WARNING_LEVEL = 10;
+    private static final int CRITICAL_LEVEL = 20;
         
 //-----------------------------------------------------------------------------
 // Map3DGraph::Map3DGraph (constructor)
@@ -202,8 +202,8 @@ public void paintComponent (Graphics g)
             xPos, yPos, viewAngle, rotation, 
             ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
             true, false, false,
-            90, 50, 10);
-    
+            CRITICAL_LEVEL, WARNING_LEVEL, NORMAL_LEVEL);
+
 }// end of Map3DGraph::paintComponent
 //-----------------------------------------------------------------------------
 

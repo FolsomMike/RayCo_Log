@@ -1018,14 +1018,14 @@ private Color assignColor(Graphics2D pG2, int[] pHeight)
     else
     if (pHeight[0] >= warnValue || pHeight[1] >= warnValue
        || pHeight[2] >= warnValue || pHeight[3] >= warnValue)
-        return(Color.YELLOW);
+        return(Color.GREEN);
     else
     if (pHeight[0] > normalValue || pHeight[1] > normalValue
        || pHeight[2] > normalValue || pHeight[3] > normalValue)
-        return(Color.GREEN);
+        return(Color.BLUE);
     else
     if (pHeight[0] > 0 || pHeight[1] > 0 || pHeight[2] > 0 || pHeight[3] > 0)
-        return(Color.BLUE);
+        return(Color.LIGHT_GRAY);
     else
         return(pG2.getBackground());
 
