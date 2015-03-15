@@ -93,12 +93,12 @@ private void addMaps()
     map3D.fillInputArray(0);
 
     //debug mks -- remove this after added to simulation class
-    for (int i=0; i<118; i++){
-        for (int j=0; j<12; j++){
+    for (int i=0; i<mapWidthInDataPoints; i++){
+        for (int j=0; j<mapHeightInDataPoints; j++){
             map3D.setDataPoint(i, j, 1 + (int)(2 * Math.random()));
             
             if((int)(100 * Math.random()) < 5){
-                map3D.setDataPoint(i, j, 1 + (int)(15 * Math.random()));
+                map3D.setDataPoint(i, j, 1 + (int)(25 * Math.random()));
             }
             
         }

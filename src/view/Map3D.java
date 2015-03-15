@@ -276,7 +276,7 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     rotation = 0;               // rotation of target in world space
     xPos = 0; yPos = 0;         // position of 2D image on screen
 
-    xRes = 10; yRes = 10;        // resolution of X, Y
+    xRes = 10; yRes = 5;        // resolution of X, Y
     ux = 0.0; uy = 0.0; uz = 1; // up points, x, y, z
     zNear = -10; zFar = 100;    // To control view volumn
     cx1 = 0.0; cy1 = 0.0; cz1 = 0.1;
