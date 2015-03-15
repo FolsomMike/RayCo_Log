@@ -99,25 +99,12 @@ public void setupGUI()
     createViewAtPositionPanel();
     
     addVerticalSpacer(this, 5);    
-        
-    rotation = new MFloatSpinnerPanel("Rotation",
-            "Adjusts the rotation of the display. (rotation variable)",
-            actionListener, 200, 0, 359, 1, "##0", 60, 20,
-             "Rotation", "degrees", ACTION_COMMAND, 160, 25);
-    rotation.init();
-    rotation.setAlignmentX(Component.LEFT_ALIGNMENT);    
-    add(rotation);
 
+    createRotationPanel();
+    
     addVerticalSpacer(this, 5);
         
-    viewAngle = new MFloatSpinnerPanel("View Angle",
-            "Adjusts the angle of view -- how much is in the view. "
-            +" Acts as zoom in/out. (viewAngle variable)",
-            actionListener, 7, 1, 179, 1, "##0", 60, 20,
-             "View Angle", "degrees", ACTION_COMMAND, 175, 25);
-    viewAngle.init();
-    viewAngle.setAlignmentX(Component.LEFT_ALIGNMENT);    
-    add(viewAngle);
+    createViewAnglePanel();
     
 }// end of Map3DManipulator::setupGUI
 //-----------------------------------------------------------------------------
@@ -244,6 +231,77 @@ public void createViewAtPositionPanel()
     add(panel);
     
 }// end of Map3DManipulator::createViewAtPositionPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::createRotationPanel
+//
+// Creates a panel with rotation adjustment controls to specify the
+// angle of rotation of the target.
+//
+
+public void createRotationPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setBorder(BorderFactory.createTitledBorder("Rotation Angle"));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    rotation = new MFloatSpinnerPanel("Rotation",
+            "Adjusts the rotation of the target. (rotation variable)",
+            actionListener, 200, 0, 359, 1, "##0", 60, 20,
+             "", "degrees", ACTION_COMMAND, 160, 25);
+    rotation.init();
+    rotation.setAlignmentX(Component.LEFT_ALIGNMENT);    
+    add(rotation);
+
+    panel.add(rotation);
+    
+    setSizes(panel, 190, 47);    
+    
+    add(panel);
+    
+}// end of Map3DManipulator::createRotationPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::createViewnAnglePanel
+//
+// Creates a panel with view angle adjustment controls to specify the
+// angle of rotation of the target.
+//
+// The view angle specifies the amount of the target in the view...effectively
+// acting as a zoom in / zoom out.
+//
+
+public void createViewAnglePanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setBorder(BorderFactory.createTitledBorder(
+                                                  "View Angle (zoom in/out)"));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    viewAngle = new MFloatSpinnerPanel("View Angle",
+            "Adjusts the angle of view -- how much is in the view. "
+            +" Acts as zoom in/out. (viewAngle variable)",
+            actionListener, 7, 1, 179, 1, "##0", 60, 20,
+             "", "degrees", ACTION_COMMAND, 175, 25);
+    viewAngle.init();
+    viewAngle.setAlignmentX(Component.LEFT_ALIGNMENT);    
+    add(viewAngle);
+
+    panel.add(viewAngle);
+    
+    setSizes(panel, 190, 47);    
+    
+    add(panel);
+    
+}// end of Map3DManipulator::createViewAnglePanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
