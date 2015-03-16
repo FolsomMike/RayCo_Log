@@ -584,6 +584,7 @@ private void calculate()
     else{
        // wip mks -- replace this with Java or remove it?
        // MessageDlg("Calc Znorm=0",mtInformation, TMsgDlgButtons()<<mbOK,0);
+        return;
     }
         
     //compute X axis
@@ -601,12 +602,14 @@ private void calculate()
     else{
        // wip mks -- replace this with Java or remove it?        
        //MessageDlg("Calc Xnorm = 0", mtInformation, TMsgDlgButtons()<<mbOK, 0);
+        return;
     }
         
-    //compute Y axis //debug mks -- move vCross and "norm =" before if statement?
+    vCross (p2, p1, p3);
+    norm = Math.sqrt (p3.x * p3.x + p3.y * p3.y + p3.z * p3.z);    
+    
+    //compute Y axis
     if(norm!=0){
-        vCross (p2, p1, p3);
-        norm = Math.sqrt (p3.x * p3.x + p3.y * p3.y + p3.z * p3.z);
         m [1][0] = p3.x / norm;
         m [1][1] = p3.y / norm;
         m [1][2] = p3.z / norm;
@@ -614,6 +617,7 @@ private void calculate()
     else{
        // wip mks -- replace this with Java or remove it?        
        //MessageDlg("Calc Ynorm = 0", mtInformation, TMsgDlgButtons()<<mbOK, 0);
+        return;
     }
         
     // Magic M transformation
@@ -711,9 +715,6 @@ if(birdsEyeViewMode) birdsEyeView(pG2);
 // This function is used to show a bird's eye view of the input data.
 // In other words, the top view of the orthograhic projection.
 //
-// debug mks -- not tested yet in Java...why is 850 hardcoded? needs to be
-// related to canvas size?
-//
 
 private void birdsEyeView(Graphics2D pG2)
 {
@@ -808,8 +809,6 @@ private void hiddenSurfaceDraw(Graphics2D pG2)
             pG2.drawLine(orthoS[i][j].x, orthoS[i][j].y,
                              orthoS[i][j+1].x, orthoS[i][j+1].y); //plot column
             }
-
-    if(pG2 == null) { return; } //debug mks -- remove this
     
     // draw the closing edges of the grid
 
@@ -964,9 +963,7 @@ private void drawPolygons(
             pG2.draw(quadPoly);
 
             //polygon outlines are black - return pen color to black
-            pG2.setColor(Color.BLACK); //debug mks -- actually need to set color used to paint sides
-                                       //C++ painted outlines with pen and panels with brush
-                                       //Java paints both with current color but uses two different commands
+            pG2.setColor(Color.BLACK);
 
         }
 
