@@ -537,8 +537,10 @@ void loadConfigSettings()
     specifiedHeight = height; //save for restoring to normal size
     
     backgroundColor = configFile.readColor(
-              configFileSection, "background color", new Color(238, 238, 238));
+                                configFileSection, "background color", null);
 
+    if(backgroundColor == null) { backgroundColor = getBackground(); }
+    
     scrollTrackChartGroupNum = configFile.readInt(configFileSection,
                       "chart group number of graph tracked for scrolling", -1);
     scrollTrackChartNum = configFile.readInt(configFileSection,
