@@ -29,6 +29,9 @@ import javax.swing.JPanel;
 
 class ControlPanel extends JPanel implements ControlsGroup{
     
+    String panelTitle = "";
+    String getPanelTitle(){ return(panelTitle); }
+    
     //specifies which chart the panel is connected to
     private final int chartGroupNum;
     @Override

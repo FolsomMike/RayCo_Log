@@ -57,7 +57,9 @@ public Map3DManipulator(int pChartGroupNum, int pChartNum,
 {
 
     super(pChartGroupNum, pChartNum, pParentActionListener);
-           
+  
+    panelTitle = "3D Map Manipulator";
+    
 }//end of Map3DManipulator::Map3DManipulator (constructor)
 //-----------------------------------------------------------------------------
 
@@ -74,7 +76,7 @@ public void init()
     super.init();
     
     setupGUI();
-    
+  
 }// end of Map3DManipulator::init
 //-----------------------------------------------------------------------------
 

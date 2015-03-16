@@ -56,6 +56,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
@@ -1112,8 +1113,12 @@ public void open3DMapManipulatorControlPanel(String pActionCommand)
     
     setAllValuesInCurrentControlPanel(getGraphParameters(
                      invokingChartGroupNum, invokingChartNum, mapGraphNumber));
-
-    controlsGroupPanel.invalidate();
+    
+    ((TitledBorder)(controlsPanel.getBorder())).
+                                        setTitle(map3DManip.getPanelTitle());
+    
+    controlsPanel.invalidate();
+    controlsPanel.repaint();
     
     mainFrame.pack();
     
