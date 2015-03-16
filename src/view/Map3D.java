@@ -1136,6 +1136,9 @@ void quickDrawSingleRow(Graphics2D pG2,
 // For clarity, the x drawing direction (along the length of the grid) is
 // reversed as that matches the typical drawing direction of traces.
 //
+// To make the polygons draw properly in this direction, the xPolyDirection also
+// had to be reversed (-1 is used in this method.
+//
 // The row pointer currentInsertionRow is zero based, but it is always
 // shifted up by one before inserting data into the array to skip the buffer
 // points. Thus, when passing it into drawPolygons, it must also be shifted
@@ -1154,15 +1157,10 @@ void quickDrawLastRow(Graphics2D pG2)
     int lengthPos = currentInsertionRow - 1;
     if (lengthPos < 0){ return; }
     
-//    tmap->QuickDrawSingleRow(pG2,
-//                             lengthPos+1, lengthPos+2,  1, -1,
-//                             dataYMax-2, -1, -1,  1,
-//                             true);
-    
     //draw the polygons for the specified row
     drawPolygons(pG2, 
-                lengthPos+1, lengthPos+2,  1,  1,
-                dataYMax,             -1, -1,  1,
+                lengthPos+1, lengthPos+2,  1,  -1,
+                dataYMax,             -1, -1,   1,
                 true);
 
 }//end of Map3D::quickDrawLastRow
