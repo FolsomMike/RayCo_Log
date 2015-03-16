@@ -227,8 +227,6 @@ class Map3D{
     boolean birdsEyeViewMode;
         
     static final int THRESHOLD = 0;
-    static final double PI = Math.PI;
-    static final double zROUND = 0.5;
 
     //2,4,6,8,10,12 bigger number lower resolution    
     static final double RESOLUTION = 5.0; 
@@ -471,8 +469,8 @@ private void worldToScreen(int _Degree, int _StretchX, int _StretchY)
 
     // int maxZ; //Z-axis length
 
-    co = Math.cos( PI * (double)rotation / 180.0 );
-    si = Math.sin( PI * (double)rotation / 180.0 );
+    co = Math.cos(Math.toRadians(rotation));
+    si = Math.sin(Math.toRadians(rotation));
 
     for ( int i = 0; i < xMax; i++){
         
@@ -619,7 +617,7 @@ private void calculate()
     }
         
     // Magic M transformation
-    norm = Math.tan ((viewAngle) * PI / 180);
+    norm = Math.tan (Math.toRadians(viewAngle));
     cx1 = xRes /  norm;
     cx2 = xRes / 2.0;
     cy1 = yRes / norm;
