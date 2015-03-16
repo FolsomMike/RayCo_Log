@@ -277,6 +277,40 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::animate
+//
+// Animates the rotation of the graph from -25 to +25 degrees from its
+// starting point.
+//
+
+@Override
+public void animate()
+{
+    
+    if(animationDirection == 0){
+        
+        animationCount++;
+        
+        //reverse direction when max reached
+        if(animationCount > 24){ animationDirection = 1; }
+       
+    }else{
+        
+        animationCount--;
+        
+        //reverse direction when min reached
+        if(animationCount < -24){ animationDirection = 0; }
+                
+    }
+    
+    currentViewParams.rotation = expandedViewParams.rotation + animationCount;    
+    
+    repaint();
+    
+}// end of Map3DGraph::animate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::loadConfigSettings
 //
 // Loads settings for the object from configFile.

@@ -41,7 +41,7 @@ class Map3DManipulator extends ControlPanel implements ActionListener{
     private MFloatSpinnerPanel xFrom, yFrom, zFrom;
     private MFloatSpinnerPanel xAt, yAt, zAt;
 
-    JButton expandBtn;    
+    JButton expandBtn, animateBtn;
     
     ArrayList<Object> values = new ArrayList<>();
     
@@ -338,8 +338,17 @@ public void createChartControlsPanel()
     panel.add(expandBtn);
     
     addVerticalSpacer(panel, 5);
+
+    animateBtn = new JButton("Animate");
+    animateBtn.setActionCommand("Animate Graph");
+    animateBtn.addActionListener(this);
+    animateBtn.setToolTipText("Start or stop animation of a graph.");
+    panel.add(animateBtn);
     
-    setSizes(panel, 190, 60);
+    addVerticalSpacer(panel, 5);
+    
+    
+    setSizes(panel, 190, 90);
     
     add(panel);
     

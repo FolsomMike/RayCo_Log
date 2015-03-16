@@ -44,6 +44,9 @@ public class Graph extends JPanel{
     ArrayList<Graph> graphsTrackingThisGraphsScrolling;
     ArrayList<Graph> getGraphsTrackingThisGraphsScrolling(){
                                 return (graphsTrackingThisGraphsScrolling); }
+
+    int animationDirection = 0;
+    int animationCount = 0;        
     
     //type of graph subclasses
     
@@ -403,6 +406,20 @@ public void setViewParamsToExpandedLayout()
 {
     
 }// end of Graph::setViewParamsToExpandedLayout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::animate
+//
+// Animates the graph in some manner dependent on the subclass.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void animate()
+{
+    
+}// end of Graph::animate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

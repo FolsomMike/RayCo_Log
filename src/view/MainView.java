@@ -109,6 +109,9 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
 
     private javax.swing.Timer mainTimer;
 
+    boolean animateGraph = false;
+    int animateGraphTimer = 0;
+    
     private final EventHandler eventHandler;
 
     private Font blackSmallFont, redSmallFont;
@@ -1033,10 +1036,38 @@ public void actionPerformedLocal(ActionEvent e)
 
     if ("Set Normal Chart Height".equals(e.getActionCommand())) {
         setNormalChartHeight();
+        animateGraph = false;
         return;
     }
-           
+
+    if ("Animate Graph".equals(e.getActionCommand())) {
+        animateGraph = !animateGraph;
+        return;
+    }
+
+    if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
+    
+
 }//end of MainView::actionPerformedLocal
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::doTimerActions
+//
+// Performs any actions required by the timer for this object before passing
+// the call on to the parent action handler.
+//
+
+public void doTimerActions()
+{
+
+    if (animateGraph){     
+        if (animateGraphTimer++ > 36){
+            animateGraph(); animateGraphTimer = 0;
+        }
+    }
+       
+}//end of MainView::doTimerActions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1085,6 +1116,22 @@ public void setNormalChartHeight()
     mainFrame.pack();
     
 }//end of MainView::setNormalChartHeight
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::animateGraph
+//
+// Animates a graph. What the graph does for animation is dependent on the
+// type of graph.
+//
+
+public void animateGraph()
+{
+    
+    chartGroups[currentControlPanel.getChartGroupNum()].animateGraph(
+                      currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND);
+    
+}//end of MainView::animateGraph
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

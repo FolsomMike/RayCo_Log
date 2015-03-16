@@ -353,6 +353,21 @@ public void setNormalChartHeight(int pChart, int pGraph)
 }//end of ChartGroup::setNormalChartHeight
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ChartGroup::animateGraph
+//
+// Animates graph pGraph of chart pChart. What the graph does for animation is
+// dependent on the type of graph.
+//
+
+public void animateGraph(int pChart, int pGraph)
+{
+    
+    charts[pChart].getGraph(pGraph).animate();
+    
+}//end of ChartGroup::animateGraph
+//-----------------------------------------------------------------------------
+
 
 }//end of class ChartGroup
 //-----------------------------------------------------------------------------
