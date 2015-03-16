@@ -17,6 +17,7 @@
 package view;
 
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
@@ -51,15 +52,26 @@ class Chart extends JPanel{
     private Graph graphs[];
     private ZoomGraph zoomGraph;
     private ChartInfoPanel infoPanel;
+    
+    ActionListener parentActionListener;
 
 //-----------------------------------------------------------------------------
 // Chart::Chart (constructor)
 //
 //
 
-public Chart()
+public Chart(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
+              int pDefaultGraphHeight, ActionListener pParentActionListener,
+                                                           IniFile pConfigFile)
 {
 
+    chartGroupNum = pChartGroupNum; chartNum = pChartNum;
+    configFile = pConfigFile;
+    parentActionListener = pParentActionListener;
+    
+    graphWidth = pDefaultGraphWidth;
+    graphHeight = pDefaultGraphHeight;
+        
 }//end of Chart::Chart (constructor)
 //-----------------------------------------------------------------------------
 
@@ -68,21 +80,9 @@ public Chart()
 //
 // Initializes the object.  Must be called immediately after instantiation.
 //
-// pTitle is the text title for the graph.
-//
-// pIndex is a unique identifier for the object -- usually it's index position
-// in an array of the creating object.
-//
 
-public void init(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
-        int pDefaultGraphHeight, IniFile pConfigFile)
+public void init()
 {
-
-    chartGroupNum = pChartGroupNum; chartNum = pChartNum;
-    configFile = pConfigFile;
-    
-    graphWidth = pDefaultGraphWidth;
-    graphHeight = pDefaultGraphHeight;
 
     loadConfigSettings();
 
@@ -228,8 +228,8 @@ private int parseGraphType(String pValue)
 private void addInfoPanel()
 {
 
-    infoPanel = new ChartInfoPanel(
-                       chartGroupNum, chartNum, 0, graphWidth, 15, configFile);
+    infoPanel = new ChartInfoPanel(chartGroupNum, chartNum, 0, graphWidth, 15,
+                                             parentActionListener, configFile);
     infoPanel.init();
     add(infoPanel);
 

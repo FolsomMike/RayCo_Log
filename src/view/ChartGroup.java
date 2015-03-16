@@ -17,6 +17,7 @@
 package view;
 
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
@@ -38,19 +39,23 @@ class ChartGroup extends JPanel{
 
     private final Dimension usableScreenSize;
     
+    ActionListener parentActionListener;
+    
 //-----------------------------------------------------------------------------
 // ChartGroup::ChartGroup (constructor)
 //
 //
 
 public ChartGroup(int pChartGroupNum, IniFile pConfigFile, 
-                                                Dimension pUsableScreenSize)
+             Dimension pUsableScreenSize, ActionListener pParentActionListener)
 {
 
     chartGroupNum = pChartGroupNum; configFile = pConfigFile;
 
     usableScreenSize = pUsableScreenSize;
     
+    parentActionListener = pParentActionListener;
+            
 }//end of ChartGroup::ChartGroup (constructor)
 //-----------------------------------------------------------------------------
 
@@ -58,11 +63,6 @@ public ChartGroup(int pChartGroupNum, IniFile pConfigFile,
 // Chart::init
 //
 // Initializes the object.  Must be called immediately after instantiation.
-//
-// pTitle is the text title for the graph.
-//
-// pIndex is a unique identifier for the object -- usually it's index position
-// in an array of the creating object.
 //
 
 public void init()
@@ -91,8 +91,9 @@ private void createCharts()
     charts = new Chart[numCharts];
     
     for (int i = 0; i<charts.length; i++){
-        charts[i] = new Chart();
-        charts[i].init(chartGroupNum, i, graphWidth, graphHeight, configFile);
+        charts[i] = new Chart(chartGroupNum, i, graphWidth, graphHeight,
+                                            parentActionListener, configFile);
+        charts[i].init();
         add(charts[i]);
     }
     

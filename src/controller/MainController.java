@@ -161,9 +161,7 @@ public void init()
 
     //create data transfer buffers
     setUpDataTransferBuffers();
-    
-    set3DMapAllValues(); //debug mks -- remove this when settings loaded from config
-    
+
 }// end of MainController::init
 //-----------------------------------------------------------------------------
 

@@ -84,6 +84,8 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
 
     private MainMenu mainMenu;
 
+    JPanel controlsPanel, controlsGroupPanel;
+    
     private ControlsGroup currentControlPanel;
 
     private JTextField dataVersionTField;
@@ -278,8 +280,10 @@ private void setupGui()
 {
 
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
-     
-    mainPanel.add(createControlsPanel());
+  
+    mainPanel.add(controlsPanel = createControlsPanel());
+    
+    currentControlPanel = null;
     
     createChartGroups();
 
@@ -303,14 +307,10 @@ private JPanel createControlsPanel()
     
     addVerticalSpacer(panel, 10);
 
-    //debug mks -- this needs to be done in response to calibrate button click
-    Map3DManipulator map3DManip = new Map3DManipulator(0, 3, this);
-    map3DManip.init();
-    panel.add(map3DManip);
-
-    currentControlPanel = map3DManip;
-    //debug mks
-    
+    panel.add(controlsGroupPanel = new JPanel());
+    controlsGroupPanel.setLayout(
+                        new BoxLayout(controlsGroupPanel, BoxLayout.PAGE_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
     panel.add(Box.createVerticalGlue());
     
@@ -407,7 +407,7 @@ private void createChartGroups()
     chartGroups = new ChartGroup[numChartGroups];
     
     for (int i = 0; i<numChartGroups; i++){
-        chartGroups[i] = new ChartGroup(i, configFile, usableScreenSize);
+        chartGroups[i] = new ChartGroup(i, configFile, usableScreenSize, this);
         chartGroups[i].init();
         mainPanel.add(chartGroups[i]);
     }
@@ -1044,6 +1044,11 @@ public void actionPerformedLocal(ActionEvent e)
         animateGraph = !animateGraph;
         return;
     }
+    
+    if (e.getActionCommand().startsWith("open 3D map manipulator")) {
+        open3DMapManipulatorControlPanel(e.getActionCommand());
+        return;
+    }
 
     if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
     
@@ -1068,6 +1073,51 @@ public void doTimerActions()
     }
        
 }//end of MainView::doTimerActions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::open3DMapManipulatorControlPanel
+//
+// Displays a control panel for manipulating 3D maps.
+//
+// The chart group and chart number which sent the command to open the
+// panel will be appended to pActionCommand from whence it will be extracted
+// to link the panel to the appropriate chart.
+//
+
+public void open3DMapManipulatorControlPanel(String pActionCommand)
+{
+
+    //remove any panels already opened
+    controlsGroupPanel.removeAll();
+    
+    int mapGraphNumber = 0; //graph of 3D map always expected to be first
+    
+    String[] split = pActionCommand.split(",");
+    
+    //extract the chart group and chart number of the invoking chart from
+    //the end of the action command string
+    
+    int invokingChartGroupNum = 0;
+    if(split.length > 0){invokingChartGroupNum = Integer.valueOf(split[1]);}
+    int invokingChartNum = 0;
+    if(split.length > 2){invokingChartNum = Integer.valueOf(split[2]);}
+    
+    Map3DManipulator map3DManip = new Map3DManipulator(
+                                invokingChartGroupNum, invokingChartNum, this);
+    map3DManip.init();
+    controlsGroupPanel.add(map3DManip);
+    map3DManip.setAlignmentX(Component.LEFT_ALIGNMENT);
+    currentControlPanel = map3DManip;    
+    
+    setAllValuesInCurrentControlPanel(getGraphParameters(
+                     invokingChartGroupNum, invokingChartNum, mapGraphNumber));
+
+    controlsGroupPanel.invalidate();
+    
+    mainFrame.pack();
+    
+}//end of MainView::open3DMapManipulatorControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -18,6 +18,7 @@
 package view;
 
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import javax.swing.*;
@@ -38,7 +39,11 @@ class ChartInfoPanel extends JPanel{
     private final int width, height;
     ArrayList<ColorKeyInfo> colorKeys = new ArrayList<>();
 
+    String button1Text, button1Action, button1ToolTipText;
+    
     int numColorKeys;
+
+    ActionListener parentActionListener;
     
 //-----------------------------------------------------------------------------
 // ChartInfoPanel::ChartInfoPanel (constructor)
@@ -46,13 +51,15 @@ class ChartInfoPanel extends JPanel{
 //
 
 public ChartInfoPanel(int pChartGroupNum, int pChartNum, int pInfoPanelNum,
-                                int pWidth, int pHeight, IniFile pConfigFile)
+               int pWidth, int pHeight, ActionListener pParentActionListener,
+                                                           IniFile pConfigFile)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
     infoPanelNum = pInfoPanelNum;
     width = pWidth; height = pHeight; configFile = pConfigFile;
-
+    parentActionListener = pParentActionListener;
+    
 }//end of ChartInfoPanel::ChartInfoPanel (constructor)
 //-----------------------------------------------------------------------------
 
@@ -71,12 +78,19 @@ public void init()
  
     setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
     
-    JButton calBtn;
+    //add the chart group and chart number to the end of the action string
+    //so the chart can be linked to the control panel when opened
+    button1Action += "," + chartGroupNum + "," + chartNum;
     
-    calBtn = new JButton("Calibrate");
-    calBtn.setMargin(new Insets(0, 0, 0, 0));
-    setSizes(calBtn, 65, 15);
-    add(calBtn);
+    JButton button1;
+    
+    button1 = new JButton(button1Text);
+    button1.setActionCommand(button1Action);    
+    button1.setMargin(new Insets(0, 0, 0, 0));
+    button1.addActionListener(parentActionListener);
+    button1.setToolTipText(button1ToolTipText);    
+    setSizes(button1, 65, 15);
+    add(button1);
     
 }// end of ChartInfoPanel::init
 //-----------------------------------------------------------------------------
@@ -182,6 +196,13 @@ private void loadConfigSettings()
     String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
                                              + " Info Panel " + infoPanelNum;
 
+    button1Text = configFile.readString(section, "button 1 text", "Calibrate");
+        
+    button1ToolTipText = configFile.readString(
+                                        section, "button 1 tool tip text", "");
+    button1Action = 
+                 configFile.readString(section, "button 1 action command", "");
+   
     numColorKeys = configFile.readInt(section, "number of color keys", 0);
 
     createColorKeys(section);
