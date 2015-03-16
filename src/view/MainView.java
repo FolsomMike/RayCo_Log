@@ -1135,15 +1135,16 @@ public void open3DMapManipulatorControlPanel(String pActionCommand)
 public void expandChartHeight()
 {
 
-    chartGroups[currentControlPanel.getChartGroupNum()].expandChartHeight(
-                       currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND);
-
+    int chartGroupNum = currentControlPanel.getChartGroupNum();
+    int chartNum = currentControlPanel.getChartNum();
+    
+    chartGroups[chartGroupNum].expandChartHeight(chartNum, GRAPH_NUM_TO_EXPAND);
+        
     //update the GUI controls to reflect the new view parameters
     
     setAllValuesInCurrentControlPanel(getGraphParameters(
-                                    currentControlPanel.getChartGroupNum(),
-                      currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND));
-
+                             chartGroupNum, chartNum, GRAPH_NUM_TO_EXPAND));
+    
     mainFrame.pack();
     
 }//end of MainView::expandChartHeight
@@ -1159,14 +1160,16 @@ public void expandChartHeight()
 public void setNormalChartHeight()
 {
 
-    chartGroups[currentControlPanel.getChartGroupNum()].setNormalChartHeight(
-                       currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND);
-
+    int chartGroupNum = currentControlPanel.getChartGroupNum();
+    int chartNum = currentControlPanel.getChartNum();
+        
+    chartGroups[chartGroupNum].setNormalChartHeight(
+                                                chartNum, GRAPH_NUM_TO_EXPAND);
+        
     //update the GUI controls to reflect the new view parameters
     
     setAllValuesInCurrentControlPanel(getGraphParameters(
-                                    currentControlPanel.getChartGroupNum(),
-                      currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND));
+                                chartGroupNum, chartNum, GRAPH_NUM_TO_EXPAND));
         
     mainFrame.pack();
     

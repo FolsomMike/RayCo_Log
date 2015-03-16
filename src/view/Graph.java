@@ -437,6 +437,43 @@ public void paintChildren(Graphics2D pG2)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::setChildCanvasSizeToMatchPanel
+//
+// Sets the canvas size in the map or other display to match the containing
+// panel. This can be done when the panel size is changed so that content can
+// be centered the display.
+//
+// The width and height are retrieved directly from the panel component using
+// getWidth and getHeight to make sure the actual panel size is used.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setChildCanvasSizeToMatchPanel()
+{
+    
+}// end of Graph::setChildCanvasSizeToMatchPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setChildCanvasSize
+//
+// Sets the canvas size in the map or other display to pWidth, pHeight.
+// This can be done when the panel size is changed so that content can be
+// centered the display.
+//
+// If either value is set to Integer.MAX_VALUE, that value is not changed.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void setChildCanvasSize(int pWidth, int pHeight)
+{
+    
+}// end of Graph::setChildCanvasSize
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::loadConfigSettings
 //
 // Loads settings for the object from configFile.

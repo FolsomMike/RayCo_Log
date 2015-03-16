@@ -21,6 +21,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
+import static view.MainView.GRAPH_NUM_TO_EXPAND;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -291,6 +292,9 @@ public void updateChild(int pChart, int pGraph, int pTrace)
 public void expandChartHeight(int pChart, int pGraph)
 {
 
+    Chart chart = charts[pChart];
+    Graph graph = chart.getGraph(pGraph);
+        
     //set all other charts' graphs' visible flag to false so their graphs
     //will be minimized
     
@@ -299,26 +303,29 @@ public void expandChartHeight(int pChart, int pGraph)
     
     int allMinimizedGraphHeights = 0;
     
-    for(Chart chart : charts){
+    for(Chart sChart : charts){
      
         
-        if(chart.getChartNum() != pChart){
+        if(sChart.getChartNum() != pChart){
         
-            chart.setGraphsVisible(false);
+            sChart.setGraphsVisible(false);
 
-            allMinimizedGraphHeights += chart.getGraphHeights(-1);
+            allMinimizedGraphHeights += sChart.getGraphHeights(-1);
         }
 
     }
     
-    int heightOfGraphToBeExpanded = charts[pChart].getGraphHeights(pGraph);
+    int heightOfGraphToBeExpanded = chart.getGraphHeights(pGraph);
+    
+    int newHeight = heightOfGraphToBeExpanded + allMinimizedGraphHeights;
     
     //add the space made available to the existing height to calculate new
-    charts[pChart].setGraphHeight(pGraph, 
-                        heightOfGraphToBeExpanded + allMinimizedGraphHeights);
+    chart.setGraphHeight(pGraph, newHeight);
 
+    graph.setChildCanvasSize(Integer.MAX_VALUE, newHeight);    
+    
     //adjust the viewing parameters for the new layout
-    charts[pChart].setViewParamsToExpandedLayout(pGraph);
+    chart.setViewParamsToExpandedLayout(pGraph);
     
 }//end of ChartGroup::expandChartHeight
 //-----------------------------------------------------------------------------
@@ -337,17 +344,23 @@ public void expandChartHeight(int pChart, int pGraph)
 public void setNormalChartHeight(int pChart, int pGraph)
 {
 
+    Chart chart = charts[pChart];
+    Graph graph = chart.getGraph(pGraph);
+    
     //set all other charts' graphs' visible flag to their setting as loaded
     //from the config file
             
-    for(Chart chart : charts){            
-        chart.setGraphsVisible(chart.getSpecifiedGraphsVisible());
+    for(Chart sChart : charts){            
+        sChart.setGraphsVisible(sChart.getSpecifiedGraphsVisible());
     }
     
-    //add the space made available to the existing height to calculate new
-    charts[pChart].setGraphHeight(
-                            pGraph, charts[pChart].getGraphHeights(pGraph));
+    int newHeight = charts[pChart].getGraphHeights(pGraph);
+    
+    //set the height back to the normal height specified in the config file
+    chart.setGraphHeight(pGraph, newHeight);
 
+    graph.setChildCanvasSize(Integer.MAX_VALUE, newHeight);
+    
     //adjust the viewing parameters for the new layout
     charts[pChart].setViewParamsToNormalLayout(pGraph);
     

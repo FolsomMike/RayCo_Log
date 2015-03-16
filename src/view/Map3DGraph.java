@@ -277,6 +277,45 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::setChildCanvasSizeToMatchPanel
+//
+// Sets the canvas size in the map or other display to match the containing
+// panel. This can be done when the panel size is changed so that content can
+// be centered the display.
+//
+// The width and height are retrieved directly from the panel component using
+// getWidth and getHeight to make sure the actual panel size is used.
+//
+
+@Override
+public void setChildCanvasSizeToMatchPanel()
+{
+    
+    map3D.setCanvasSize(getWidth(), getHeight());
+    
+}// end of Map3DGraph::setChildCanvasSizeToMatchPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::setChildCanvasSize
+//
+// Sets the canvas size in the map or other display to pWidth, pHeight.
+// This can be done when the panel size is changed so that content can be
+// centered the display.
+//
+// If either value is set to Integer.MAX_VALUE, that value is not changed.
+//
+
+@Override
+public void setChildCanvasSize(int pWidth, int pHeight)
+{
+    
+    map3D.setCanvasSize(pWidth, pHeight);
+    
+}// end of Map3DGraph::setChildCanvasSize
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::animate
 //
 // Animates the rotation of the graph from -25 to +25 degrees from its

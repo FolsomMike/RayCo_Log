@@ -256,10 +256,8 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     dataXMax = pDataXMax; dataYMax = pDataYMax;
     xMax = dataXMax + 2; yMax = dataYMax + 2;
 
-    xCenter = pWidth / 2; yCenter = pHeight / 2;
-    
-    xMaxPix = pWidth - 1; yMaxPix = pHeight - 1;
-    
+    setCanvasSize(pWidth, pHeight);
+        
     points = new int[xMax][yMax];
         
     s = new ScreenPlane[xMax][yMax];
@@ -295,10 +293,6 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     wireFrameViewMode = false;
     birdsEyeViewMode = false;
 
-    criticalValue = 100;
-    warnValue = 65;
-    normalValue = 25;
-
     //default input file name
     inputFileName = "MapInputFile.map";
         
@@ -316,6 +310,30 @@ public void init()
 
     
 }// end of Map3D::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::setCanvasSize
+//
+// Sets the size of the canvas upon which the map is to be drawn. May be
+// called at any time after creation to adjust the size.
+//
+// If either pWidth or pHeight is Integer.MAX_VALUE, that value will be
+// ignored and not modified.
+//
+
+final void setCanvasSize(int pWidth, int pHeight)
+{
+    
+    if (pWidth != Integer.MAX_VALUE){
+        xCenter = pWidth / 2; xMaxPix = pWidth - 1;
+    }
+        
+    if (pHeight != Integer.MAX_VALUE){    
+        yCenter = pHeight / 2; yMaxPix = pHeight - 1;
+    }
+    
+}// end of Map3D::setCanvasSize
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -631,6 +649,10 @@ private void vCross(Vertex p1, Vertex p2, Vertex p)
 // image, which is invisible to viewer, then transfer the image to a bitmap,
 // finally, draw this bitmap on the paintbox, which is visible to the viewer.
 //
+// The background is not cleared...Java seems to be doing that when
+// repainting the container panel. May need to add a clearing function for other
+// programming environments.
+//
 // Note by MKS: as converted to Java, this method now paints directly to 
 // the screen without buffering to prevent flicker. The buffering can be
 // implemented later if necessary.
@@ -663,12 +685,6 @@ normalValue = pNormalValue;
 hiddenSurfaceViewMode = pHiddenSurfaceViewMode; //show hidden line view if true
 wireFrameViewMode = pWireFrameViewMode; //show wire frame view if true
 birdsEyeViewMode = pBirdsEyeViewMode; //show bird's eye view if true
-
-//debug mks -- erase the screen here?
-//Paint a rectangle with the size of paintbox
-//TRect rect = paintbox->ClientRect;
-//image->Canvas->Brush->Color = clWhite;
-//image->Canvas->FillRect(rect);
 
 // calculate the mapping parameters and the magic matrix
 calculate();

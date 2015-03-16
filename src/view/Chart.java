@@ -30,12 +30,12 @@ import model.IniFile;
 
 class Chart extends JPanel{
 
-    private IniFile configFile;
+    private final IniFile configFile;
     
     private String title, shortTitle, objectType;
-    private int chartGroupNum;
+    private final int chartGroupNum;
     public int getChartGroupNum(){ return(chartGroupNum); }    
-    private int chartNum;
+    private final int chartNum;
     public int getChartNum(){ return(chartNum); }    
     private int graphWidth, graphHeight;    
     int numGraphs;
