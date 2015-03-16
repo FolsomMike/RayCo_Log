@@ -228,7 +228,7 @@ class Map3D{
         
     static final int THRESHOLD = 0;
     static final double PI = Math.PI;
-    static final double ROUND = 0.5;
+    static final double zROUND = 0.5;
 
     //2,4,6,8,10,12 bigger number lower resolution    
     static final double RESOLUTION = 5.0; 
@@ -532,13 +532,18 @@ private void vTrans3Dto2D(ScreenPlane pPlane, Vertex pSP)
     ex = vx * m [0][0] + vy * m [0][1] + vz * m [0][2];
     ey = vx * m [1][0] + vy * m [1][1] + vz * m [1][2];
 
-    //    ez = vx * m [2][0] + vy * m [2][1] + vz * m [2][2];
     // Orthographic view volume. In Ortho, ez is a constant    --fqz
-    ez = RESOLUTION;
-
+    // note mks -- currently, the view is only orthographic because for the
+    // relatively small depth used here it looks better, i.e. no perspective is
+    // used (distant objects smaller)...code can be added to switch between the
+    // two styles.
+        
+    //    ez = vx * m [2][0] + vy * m [2][1] + vz * m [2][2]; // for perspective
+    ez = RESOLUTION; //constant for orthographic view
+    
     //  Translate to screen coordinates.
-    pPlane.x = (int)((cx1 * ex / ez + cx2 + ROUND) + xCenter + xPos);
-    pPlane.y = (int)(yRes-(cy1 * ey / ez + cy2 + ROUND)+ yCenter + yPos);
+    pPlane.x = (int)Math.round((cx1 * ex / ez + cx2) + xCenter + xPos);
+    pPlane.y = (int)Math.round(yRes-(cy1 * ey / ez + cy2)+ yCenter + yPos);
     ez = cz1 - cz2 / ez;
 
     // Count Z buffer
