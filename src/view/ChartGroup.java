@@ -21,7 +21,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
-import static view.MainView.GRAPH_NUM_TO_EXPAND;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -267,8 +266,8 @@ public void updateAnnotationGraphs()
 //-----------------------------------------------------------------------------
 // ChartGroup::updateChild
 //
-// Plots all data added to the transfer data buffer and erases any data which
-// has been marked as erased for pTrace of pGraph of pChart.
+// Plots all data new added to the transfer data buffer and erases any data 
+// which has been marked as erased for pTrace of pGraph of pChart.
 //
 
 public void updateChild(int pChart, int pGraph, int pTrace)

@@ -37,6 +37,9 @@ public class Map3DGraph extends Graph{
 
     private Map3D map3D;
 
+    int updateRateTrigger;
+    int currentMapInsertionRow;
+    
     // view parameters used when scanning/inspecting
     // this view must be directly from the side
 
@@ -133,7 +136,7 @@ private void addMaps()
         }
     }
 
-    map3D.setDataPoint(10, 5, 15);
+    map3D.setDataPoint(0, 0, 50);
     //debug mks end
 
 }//end of Map3DGraph::addMaps
@@ -219,6 +222,42 @@ public ArrayList<Object> getParameters()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::updateChild
+//
+// Plots all new data added to the data transfer buffer and erases any data
+// which has been marked as erased for pChildNum.
+//
+// For some Graph subclasses, pChildNum refers to a child plotting object
+// such as a Trace. For this class, pChildNum is superfluous as there is always
+// only one child map for the graph.
+//
+
+@Override
+public void updateChild(int pChildNum)
+{
+  
+    int[] dataRow = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                       13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+    
+   
+    if (updateRateTrigger++ < 9){ return; } else { updateRateTrigger = 0; }
+            
+    map3D.setDataRow(-1, dataRow);
+
+    map3D.quickDrawLastRow((Graphics2D)getGraphics());
+    
+/*            
+    map3D.quickDrawSingleRow(Graphics2D pG2,
+                int _XStart, int _XStop, int _XDirection, int _XPolyDirection,
+                int _YStart, int _YStop, int _YDirection, int _YPolyDirection,
+                boolean _ClearAreaAboveGrid)            
+  
+*/        
+        
+}// end of Map3DGraph::updateChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::paintComponent
 //
 
@@ -293,6 +332,8 @@ public void resetAll()
     super.resetAll();
     
     resetData();
+ 
+    updateRateTrigger = 0; currentMapInsertionRow = 0;
     
 }// end of Map3DGraph::resetAll
 //-----------------------------------------------------------------------------
@@ -306,6 +347,8 @@ public void resetAll()
 
 public void resetData()
 {
+    
+    map3D.resetAll();
     
     if (mapBuffer!=null) { mapBuffer.reset(); }
         

@@ -670,7 +670,7 @@ public void updateAnnotationGraph()
 //-----------------------------------------------------------------------------
 // Chart::updateChild
 //
-// Plots all data added to the data transfer buffer and/or erases any data
+// Plots all new data added to the data transfer buffer and/or erases any data
 // which has been flagged as erased for pChildNum of pGraphNum.
 //
 

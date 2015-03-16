@@ -118,7 +118,7 @@ public void resetAll()
 
     graphInfo.scrollOffset = 0;
     graphInfo.lastScrollAmount = 0;
-    
+
 }// end of Graph::resetAll
 //-----------------------------------------------------------------------------
 
@@ -322,8 +322,8 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 //-----------------------------------------------------------------------------
 // Graph::updateChild
 //
-// Plots all data added to the data transfer buffer and erases any data which
-// has been marked as erased for pChildNum.
+// Plots all new data added to the data transfer buffer and erases any data
+// which has been marked as erased for pChildNum.
 //
 // Generally overridden by subclasses to provide appropriate processing.
 //

@@ -616,6 +616,14 @@ private void displayDataFromDevices()
         mainView.updateChild(dataBuffer.chartGroupNum, dataBuffer.chartNum,
                                      dataBuffer.graphNum, dataBuffer.traceNum);
     }
+
+    for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
+        //pace this with timer to control scan speed
+        mapBuffer.incrementPutPointerAndSetReadyFlag();
+        //update trace with all data changes
+        mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
+                                       mapBuffer.graphNum, mapBuffer.traceNum);
+    }
         
     mainView.updateAnnotationGraphs(0);
 

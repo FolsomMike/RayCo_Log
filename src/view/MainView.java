@@ -560,8 +560,8 @@ public void updateAnnotationGraphs(int pChartGroup)
 //-----------------------------------------------------------------------------
 // MainView::updateChild
 //
-// Plots all data added to transfer data buffer and erases any data which has
-// been marked as erased for pTrace of pGraph of pChart of pChartGroup.
+// Plots all new data added to transfer data buffer and erases any data which
+// has been marked as erased for pTrace of pGraph of pChart of pChartGroup.
 //
 
 public void updateChild(int pChartGroup, int pChart, int pGraph, int pTrace)

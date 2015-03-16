@@ -175,6 +175,8 @@ class Map3D{
     int warnValue;
     int normalValue;
 
+    int currentInsertionRow;
+    
     //grid parameters
 
     int dataXMax;               // the size of data grid in X direction
@@ -335,19 +337,6 @@ final void setCanvasSize(int pWidth, int pHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map3D::addRow
-//
-// Adds a new row of data to the 3D grid.
-//
-
-public void addRow(int[] pDataSet)
-{
-
-    
-}// end of Map3D::addRow
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Map3D::resetAll
 //
 // Resets all values and child values to default.
@@ -355,7 +344,9 @@ public void addRow(int[] pDataSet)
 
 public void resetAll()
 {
-    
+
+    currentInsertionRow = 0;
+    fillInputArray(0);
     
 }// end of Map3D::resetAll
 //-----------------------------------------------------------------------------
@@ -416,18 +407,26 @@ public void fillInputArray(int pValue)
 // _DataRow should point to an array having the same number of elements as is
 // present in one row of the points array.
 //
+// If pLengthPos is -1, then the currentInsertionRow pointer value will be
+// used.
+//
 // Since the data is stored in an array that is actually two elements larger
 // in both the x and y directions, the XPos and YPos are offset by one before
 // storing. The extra elements are used to form a border around the map which
 // is always at level 0.
 //
 
-public void setDataRow(int _XPos, int[] _DataRow)
+public void setDataRow(int pLengthPos, int[] pDataRow)
 {
 
-    assert(_XPos < dataXMax);
+    assert(pLengthPos < dataXMax);
 
-    System.arraycopy(_DataRow, 0, points[_XPos + 1], 1, dataYMax);
+    if(pLengthPos == -1) { 
+        pLengthPos = currentInsertionRow++;
+        if (currentInsertionRow >= dataXMax){currentInsertionRow = dataXMax-1;}
+    }
+    
+    System.arraycopy(pDataRow, 0, points[pLengthPos + 1], 1, dataYMax);
 
 }// end of Map3D::setDataRow
 //---------------------------------------------------------------------------
@@ -908,14 +907,11 @@ private void hiddenSurfaceDraw(Graphics2D pG2)
 //
 // If _ClearAreaAboveGrid is true, the area above the grid will be cleared
 // to erase any left over graphics from a previous rendering.  This is valid
-// only for specific conditions and viewing angles.  It is useful when the
-// function is being called by function QuickDrawSingleRow during real time
-// data display.  Because this mode does not render and clear the entire screen
-// but instead draws one row at a time, old graphics are not cleared above the
-// grid plane.
-//
-// Example 1: erasing option is valid when viewing the map at a rotational
-//          angle of 135 degrees and data progression is from left to right.
+// only for specific conditions and viewing angles (directly from the side). It
+// is useful when this method is being called by method quickDrawSingleRow
+// during real time data display.  Because this mode does not render and clear
+// the entire screen but instead draws one row at a time, old graphics are not
+// cleared above the grid plane.
 //
 
 private void drawPolygons(
@@ -1048,12 +1044,16 @@ private Color assignColor(Graphics2D pG2, int[] pHeight)
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-// Map3D::QuickDrawSingleRow
+// Map3D::quickDrawSingleRow
 //
 // Draws a single row of polygons for the points in the data grid row specified
 // by _DataY.  The current values for viewing angle and other parameters are
 // used, so the map should already have been drawn once using paint method to
 // set these parameters as desired.
+//
+// Since it is assumed that the calculate() method has been called for the
+// current view (by calling paint()) to set up the transformation matrices, it
+// is not called in this method for the sake of efficiency.
 //
 // The polygons are drawn directly on the visible canvas to improve speed. The
 // parameters _XStart, _XStop, _XDirection, _XPolyDirection, _YStart, _YStop,
@@ -1064,6 +1064,14 @@ private Color assignColor(Graphics2D pG2, int[] pHeight)
 // added to the grid as they are obtained.  Redrawing the entire map is time
 // consuming while drawing a single row is more efficient.
 //
+// NOTE: In the old C++ code, the rotation angle 135 was used to obtain a
+// perpendicular side view. This was because the view at/from values were
+// set to oddball values. Setting them properly as in this Java version of the
+// code means that the rotation value is 180 degrees as expected.
+//
+// See quickDrawSingleRow for more details on the proper parameters to pass
+// to this method.
+//
 
 void quickDrawSingleRow(Graphics2D pG2,
                 int _XStart, int _XStop, int _XDirection, int _XPolyDirection,
@@ -1071,20 +1079,93 @@ void quickDrawSingleRow(Graphics2D pG2,
                 boolean _ClearAreaAboveGrid)
 {
 
+    //perform 3D-2D coordinate transformation so any new data points are
+    //processed using the previously set viewing parameters
+
+    worldToScreen(rotation, stretchX, stretchY);
+
+    //draw the polygons for the specified rows
+
+    drawPolygons(pG2, _XStart, _XStop, _XDirection, _XPolyDirection,
+           _YStart, _YStop, _YDirection, _YPolyDirection, _ClearAreaAboveGrid);
+
+}//end of Map3D::quickDrawSingleRow
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// Map3D::quickDrawLastRow
+//
+// Draws a single row of polygons for the last row containing data
+// (currentInsertionRow - 1). If that row is < 0, then nothing is drawn.
+//
+// Default values used which assume the grid is being viewed directly from 
+// the side and data is being added to the right hand end.
+//
+// When the grid is viewed perpendicularly from the side (rotation = 180 deg),
+// new data can be drawn on the end without redrawing the grid as the last
+// row does not overlap any other row in that view angle.
+//
+// Thus, typical view parameters for modes where data is to be continually
+// added to the end of the grid (right hand end in this case):
+//
+// Screen Position XYZ: 0, -37          (adjusts final image to fit in panel)
+// View From Position XYZ: 0, 10, 13    (location of viewer's eye)
+// View At Position XYZ: 0,0,0          (location of target)
+// Rotation Angle: 180 degrees          (rotation of the target)
+// View Angle: 12                       (amount of target in view...zoom in/out)
+//
+// Placing a breakpoint at the beginning of drawPolygons for these settings
+// shows the following values fed to that function by the paint() method:
+//
+// xStart: 118 xStop: -1 xDirection: -1 xPolyDirection: 1
+//
+// yStart:  24 yStop: -1 xDirection: -1 yPolyDirection: 1
+//
+// The grid size is 118,24. Normally, the highest usable values would thus be
+// 117,23 but the array is actually created with size of 120,26 to create a
+// one point buffer around the data so the edges of the grid are always at 0.
+// Thus, the data is all shifted up one in each direction so 118,24 is actually
+// the last data point.
+//
+// For this view x,y of 0,0 is in the bottom left corner. Thus the polygons
+// are drawn from the top to bottom and right to left.
+//
+// Note that *Stop is set 1 less than the actual stopping point due to
+// ideosyncrasies of the drawPolygons() method.
+//
+// For clarity, the x drawing direction (along the length of the grid) is
+// reversed as that matches the typical drawing direction of traces.
+//
+// The row pointer currentInsertionRow is zero based, but it is always
+// shifted up by one before inserting data into the array to skip the buffer
+// points. Thus, when passing it into drawPolygons, it must also be shifted
+// up by one when used as a starting point; the stopping point must also be
+// shifted up by one.
+//
+
+void quickDrawLastRow(Graphics2D pG2)
+{
 
     //perform 3D-2D coordinate transformation so any new data points are
     //processed using the previously set viewing parameters
 
     worldToScreen(rotation, stretchX, stretchY);
 
-    //draw all the polygons to create the 3D image - the polygons are drawn
-    //directly onto the visible canvas so it is not necessary to transfer the
-    //hidden image
+    int lengthPos = currentInsertionRow - 1;
+    if (lengthPos < 0){ return; }
+    
+//    tmap->QuickDrawSingleRow(pG2,
+//                             lengthPos+1, lengthPos+2,  1, -1,
+//                             dataYMax-2, -1, -1,  1,
+//                             true);
+    
+    //draw the polygons for the specified row
+    drawPolygons(pG2, 
+                lengthPos+1, lengthPos+2,  1,  1,
+                dataYMax,             -1, -1,  1,
+                true);
 
-    drawPolygons(pG2, _XStart, _XStop, _XDirection, _XPolyDirection,
-           _YStart, _YStop, _YDirection, _YPolyDirection, _ClearAreaAboveGrid);
-
-}//end of Map3D::quickDrawSingleRow
+}//end of Map3D::quickDrawLastRow
 //---------------------------------------------------------------------------
 
 }//end of class Map3D
