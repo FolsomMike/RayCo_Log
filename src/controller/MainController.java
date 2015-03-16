@@ -50,11 +50,13 @@ import javax.swing.event.ChangeEvent;
 import mksystems.mswing.MFloatSpinner;
 import model.MainDataClass;
 import model.DataTransferIntBuffer;
+import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
 import view.MKSTools;
 import view.MainView;
+import view.Map3DGraph;
 import view.Trace;
 
 //-----------------------------------------------------------------------------
@@ -104,6 +106,8 @@ public class MainController implements EventHandler, Runnable
        
     private int numDataBuffers;
     private DataTransferIntBuffer dataBuffers[];
+    private int numMapBuffers;
+    private DataTransferIntMultiDimBuffer mapBuffers[];
 
     private int mode;
     
@@ -206,6 +210,11 @@ private void setUpDataTransferBuffers()
     //create a buffer for each trace
     createAndAssignDataBuffersToTraces();
     
+    //create a buffer for each map
+    createAndAssignDataBuffersToMaps();
+    
+    mainView.resetAll();
+    
     //link each channel with the appropriate data buffer
     setChannelDataBuffers();
     
@@ -252,9 +261,55 @@ private void createAndAssignDataBuffersToTraces()
         i++;
     }
     
-    mainView.resetAll();    
-    
 }// end of MainController::createAndAssignDataBuffersToTraces
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::createAndAssignDataBuffersToMaps
+//
+// Scans through all maps and creates a DataTransferIntMultiDimBuffer for each
+// one.
+//
+// Unlike graphs containing multiple traces, all the settings for 3D maps are
+// loaded and handled by the containing graph since there is only one map per
+// graph. In the case of 3D maps this is a Map3DGraph object.
+//
+
+private void createAndAssignDataBuffersToMaps()
+{
+
+    ArrayList<Object> maps = new ArrayList<>();
+    
+    //prepare to iterate through all traces
+    mainView.scanForGUIObjectsOfAType(maps, "3D map graph");
+
+    numMapBuffers = maps.size();
+    mapBuffers = new DataTransferIntMultiDimBuffer[numMapBuffers];
+    
+    int i = 0;
+    
+    ListIterator iter = maps.listIterator();
+    
+    while(iter.hasNext()){
+        
+        Map3DGraph map = (Map3DGraph)iter.next();
+        
+        mapBuffers[i] = new DataTransferIntMultiDimBuffer(
+              map.getBufferLengthInDataPoints(), map.getMapWidthInDataPoints(),
+              map.getPeakType());
+        mapBuffers[i].init();
+        mapBuffers[i].reset();
+ 
+        map.setMapBuffer(mapBuffers[i]);
+        
+        mapBuffers[i].chartGroupNum = map.getChartGroupNum();
+        mapBuffers[i].chartNum = map.getChartNum();
+        mapBuffers[i].graphNum = map.getGraphNum();
+        
+        i++;
+    }
+
+}// end of MainController::createAndAssignDataBuffersToMaps
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

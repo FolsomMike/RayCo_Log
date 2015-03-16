@@ -6,6 +6,13 @@
 * Purpose:
 *
 * This class subclasses a JPanel to display a 3D map.
+* 
+* A reference to the transfer data buffer, mapBuffer is stored in the class but
+* it is not used in the same manner as the dataBuffer reference in the Trace
+* class. All the data for the Trace class is stored in the dataBuffer. For the
+* 3D map, a local buffer holds data for display refresh. The data is copied
+* one slice at a time from the mapBuffer as it is needed, but after copying
+* the 3D map uses its internal buffer from there on.
 *
 * Open Source Policy:
 *
@@ -18,6 +25,7 @@ package view;
 
 import java.awt.*;
 import java.util.ArrayList;
+import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -25,7 +33,7 @@ import model.IniFile;
 // class Map3DGraph
 //
 
-class Map3DGraph extends Graph{
+public class Map3DGraph extends Graph{
 
     private Map3D map3D;
 
@@ -42,7 +50,18 @@ class Map3DGraph extends Graph{
     
     Map3DViewParameters currentViewParams = new Map3DViewParameters();
     
-    private int mapWidthInDataPoints, mapHeightInDataPoints;
+    //length is the x axis, width is the y axis (o'clock position)
+    private int mapLengthInDataPoints;
+    public int getMapLengthInDataPoints(){ return(mapLengthInDataPoints); }
+    private int mapWidthInDataPoints;
+    public int getMapWidthInDataPoints(){ return(mapWidthInDataPoints); }    
+    private int bufferLengthInDataPoints;
+    public int getBufferLengthInDataPoints(){return(bufferLengthInDataPoints);}    
+    
+    private DataTransferIntMultiDimBuffer mapBuffer; //see notes at top of file
+    public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer){
+                                                      mapBuffer = pMapBuffer; }    
+
     
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
@@ -92,15 +111,15 @@ private void addMaps()
 {
 
     map3D = new Map3D(chartGroupNum, chartNum, graphNum,
-        width, height,  mapWidthInDataPoints, mapHeightInDataPoints);
+        width, height,  mapLengthInDataPoints, mapWidthInDataPoints);
 
     map3D.init();
     map3D.createArrays();
     map3D.fillInputArray(0);
 
     //debug mks -- remove this after added to simulation class
-    for (int i=0; i<mapWidthInDataPoints; i++){
-        for (int j=0; j<mapHeightInDataPoints; j++){
+    for (int i=0; i<mapLengthInDataPoints; i++){
+        for (int j=0; j<mapWidthInDataPoints; j++){
             map3D.setDataPoint(i, j, 1 + (int)(2 * Math.random()));
             
             if((int)(100 * Math.random()) < 5){
@@ -113,9 +132,9 @@ private void addMaps()
             }
         }
     }
-    
+
     map3D.setDataPoint(10, 5, 15);
-    //debug mks
+    //debug mks end
 
 }//end of Map3DGraph::addMaps
 //-----------------------------------------------------------------------------
@@ -273,7 +292,24 @@ public void resetAll()
     
     super.resetAll();
     
+    resetData();
+    
 }// end of Map3DGraph::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::resetData
+//
+// Resets all data to zero and all flags to default. Resets all buffer pointers
+// to starting positions.
+//
+
+public void resetData()
+{
+    
+    if (mapBuffer!=null) { mapBuffer.reset(); }
+        
+}// end of Map3DGraph::resetData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -370,18 +406,21 @@ void loadConfigSettings()
     pixelWidthOfGridBlockInRuntimeLayout = configFile.readDouble(
             configFileSection, 
             "pixel width of each grid block in runtime layout", 9.5);
-    
+
+    mapLengthInDataPoints = 
+      configFile.readInt(configFileSection, "length of map in data points", 12);
+
+    //if value in config file is -1, set such that the graph is filled
+    if (mapLengthInDataPoints == -1){
+        mapLengthInDataPoints = 
+                           (int)(width / pixelWidthOfGridBlockInRuntimeLayout);
+    }
+        
     mapWidthInDataPoints = 
        configFile.readInt(configFileSection, "width of map in data points", -1);
 
-    //if value in config file is -1, set such that the graph is filled
-    if (mapWidthInDataPoints == -1){
-        mapWidthInDataPoints = 
-                           (int)(width / pixelWidthOfGridBlockInRuntimeLayout);
-    }
-
-    mapHeightInDataPoints = 
-      configFile.readInt(configFileSection, "height of map in data points", 12);
+    bufferLengthInDataPoints = configFile.readInt(configFileSection,
+                "length of data buffer in data points", mapLengthInDataPoints);
     
     //3D map view parameters for runtime layout
 
@@ -399,7 +438,7 @@ void loadConfigSettings()
     
     if (normalViewParams.xPos == Integer.MAX_VALUE){
         normalViewParams.xPos = (int)((width - 
-           (mapWidthInDataPoints * pixelWidthOfGridBlockInRuntimeLayout)) / 2);
+           (mapLengthInDataPoints * pixelWidthOfGridBlockInRuntimeLayout)) / 2);
         normalViewParams.xPos = -(normalViewParams.xPos);
     }
     

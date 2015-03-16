@@ -36,7 +36,12 @@ public class Graph extends JPanel{
     public GraphInfo graphInfo = new GraphInfo();
     
     String title, shortTitle, objectType;
-    int chartGroupNum, chartNum, graphNum;
+    int chartGroupNum;
+    public int getChartGroupNum(){ return(chartGroupNum); }
+    int chartNum;
+    public int getChartNum(){ return(chartNum); }    
+    int graphNum;
+    public int getGraphNum(){ return(graphNum); }
     int width, height, specifiedWidth, specifiedHeight;
     Color backgroundColor;
 
@@ -47,6 +52,12 @@ public class Graph extends JPanel{
 
     int animationDirection = 0;
     int animationCount = 0;        
+
+    //peakType is not used for all Graph types, some child classes such as
+    //Trace load their own peakType setting from config file
+    
+    private int peakType;
+    public int getPeakType(){ return(peakType); }
     
     //type of graph subclasses
     
@@ -54,7 +65,10 @@ public class Graph extends JPanel{
     public static final int TRACE_GRAPH = 1;
     public static final int ZOOM_GRAPH = 2;
     public static final int MAP3D_GRAPH = 3;
-    
+
+    public static final int CATCH_HIGHEST = 0;
+    public static final int CATCH_LOWEST = 1;
+        
 //-----------------------------------------------------------------------------
 // Graph::Graph (constructor)
 //
@@ -474,6 +488,25 @@ public void setChildCanvasSize(int pWidth, int pHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::parsePeakType
+//
+// Converts the descriptive string loaded from the config file for the peak
+// type (catch highest, lowest value, etc.) into the corresponding constant.
+//
+
+void parsePeakType(String pValue)
+{
+
+    switch (pValue) {
+         case "catch highest": peakType = CATCH_HIGHEST; break;
+         case "catch lowest" : peakType = CATCH_LOWEST;  break;
+         default : peakType = CATCH_LOWEST;  break;
+    }
+    
+}// end of Graph::parsePeakType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::loadConfigSettings
 //
 // Loads settings for the object from configFile.
@@ -512,7 +545,11 @@ void loadConfigSettings()
                             "chart number of graph tracked for scrolling", -1);
     scrollTrackGraphNum = configFile.readInt(configFileSection,
                             "graph number of graph tracked for scrolling", -1);
-        
+    
+    String peakTypeText = configFile.readString(
+                              configFileSection, "peak type", "catch highest");
+    parsePeakType(peakTypeText);
+    
 }// end of Graph::loadConfigSettings
 //-----------------------------------------------------------------------------
 
