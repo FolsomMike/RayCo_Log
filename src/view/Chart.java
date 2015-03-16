@@ -228,8 +228,9 @@ private int parseGraphType(String pValue)
 private void addInfoPanel()
 {
 
-    infoPanel = new ChartInfoPanel();
-    infoPanel.init(chartGroupNum, chartNum, graphWidth, 15);
+    infoPanel = new ChartInfoPanel(
+                       chartGroupNum, chartNum, 0, graphWidth, 15, configFile);
+    infoPanel.init();
     add(infoPanel);
 
     //add a color key for each trace

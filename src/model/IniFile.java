@@ -110,6 +110,8 @@ static public MColor fromString(String pString)
 // set assuming the string is in the format rrr,ggg,bbb.  If a color value is
 // greater than 255 or less than 0, it will be forced to 255 or 0 respectively.
 //
+// If the color name is "none", returns null to specify no color.
+//
 // If an error occurs parsing the string, the color will be set to pDefault.
 //
 
@@ -122,6 +124,7 @@ static public MColor fromString(String pString, Color pDefault)
     pString = pString.toUpperCase();
 
     //if the color name matches a standard color, use that color
+    //if color name is "none", return null to specify no color
     switch (pString) {
         case "BLACK":
             match = Color.BLACK;
@@ -175,6 +178,8 @@ static public MColor fromString(String pString, Color pDefault)
             match = Color.YELLOW;
             exit = true;
             break;
+        case "NONE":
+            return(null);
     }
 
     //if color found, exit with that color

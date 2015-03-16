@@ -48,12 +48,19 @@ public ColorKeyInfo(Color pKeyColor, String pKeyDescription,
 //-----------------------------------------------------------------------------
 // ChartInfoPanel::paint
 //
+// Draws a color swatch with a description which usually describes the
+// meaning or purpose of that color on a graph.
+//
 
 public void paint(Graphics2D pG2)
 {
-    //draw a color square
-    pG2.setColor(keyColor);
-    pG2.fillRect(xPos, yPos, 10, 10);
+    //draw a color square if color is not null
+
+    if(keyColor != null){
+        pG2.setColor(keyColor);
+        pG2.fillRect(xPos, yPos, 10, 10);
+    }
+        
     //write the color's notation next to it
     pG2.setColor(Color.BLACK);
     pG2.drawString(keyDescription, xPos+12, yPos+10);
