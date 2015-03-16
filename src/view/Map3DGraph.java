@@ -107,6 +107,10 @@ private void addMaps()
                 map3D.setDataPoint(i, j, 1 + (int)(25 * Math.random()));
             }
             
+            //simulate the weldline
+            if(j == 4){
+                map3D.setDataPoint(i, j, 5 + (int)(3 * Math.random()));
+            }
         }
     }
     
