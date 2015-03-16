@@ -85,7 +85,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private MainMenu mainMenu;
 
     private ControlsGroup currentControlPanel;
-    
+
     private JTextField dataVersionTField;
     private JTextField dataTArea1;
     private JTextField dataTArea2;
@@ -131,6 +131,8 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     public static final int WALL_CHART = 2;
     
     public static final int SAMPLE_TRACE = 0;
+
+    public static final int GRAPH_NUM_TO_EXPAND = 0;
     
 //-----------------------------------------------------------------------------
 // MainView::MainView (constructor)
@@ -298,11 +300,14 @@ private JPanel createControlsPanel()
     
     addVerticalSpacer(panel, 10);
 
-    Map3DManipulator map3DManip = new Map3DManipulator(this);
+    //debug mks -- this needs to be done in response to calibrate button click
+    Map3DManipulator map3DManip = new Map3DManipulator(0, 3, this);
     map3DManip.init();
     panel.add(map3DManip);
 
     currentControlPanel = map3DManip;
+    //debug mks
+    
     
     panel.add(Box.createVerticalGlue());
     
@@ -1003,7 +1008,6 @@ public void actionPerformed(ActionEvent e)
 // Responds to events with handling local to this class
 //
 
-
 public void actionPerformedLocal(ActionEvent e)
 {
 
@@ -1022,7 +1026,65 @@ public void actionPerformedLocal(ActionEvent e)
         return;
     }
 
+    if ("Expand Chart Height".equals(e.getActionCommand())) {
+        expandChartHeight();
+        return;
+    }
+
+    if ("Set Normal Chart Height".equals(e.getActionCommand())) {
+        setNormalChartHeight();
+        return;
+    }
+           
 }//end of MainView::actionPerformedLocal
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::expandChartHeight
+//
+// Expands the height of the chart associated with the current controls panel
+// while minimizing all others.
+//
+
+public void expandChartHeight()
+{
+
+    chartGroups[currentControlPanel.getChartGroupNum()].expandChartHeight(
+                       currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND);
+
+    //update the GUI controls to reflect the new view parameters
+    
+    setAllValuesInCurrentControlPanel(getGraphParameters(
+                                    currentControlPanel.getChartGroupNum(),
+                      currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND));
+
+    mainFrame.pack();
+    
+}//end of MainView::expandChartHeight
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::setNormalChartHeight
+//
+// Sets the height of the chart associated with the current controls panel to
+// the normal viewing height while maximizing all other charts.
+//
+
+public void setNormalChartHeight()
+{
+
+    chartGroups[currentControlPanel.getChartGroupNum()].setNormalChartHeight(
+                       currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND);
+
+    //update the GUI controls to reflect the new view parameters
+    
+    setAllValuesInCurrentControlPanel(getGraphParameters(
+                                    currentControlPanel.getChartGroupNum(),
+                      currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND));
+        
+    mainFrame.pack();
+    
+}//end of MainView::setNormalChartHeight
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

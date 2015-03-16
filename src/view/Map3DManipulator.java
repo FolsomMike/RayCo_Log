@@ -5,7 +5,7 @@
 *
 * Purpose:
 *
-* This class subclasses a JPanel to display controls for manipulating a 3D
+* This class subclasses ControlPanel to display controls for manipulating a 3D
 * map display.
 *
 * Open Source Policy:
@@ -19,11 +19,13 @@ package view;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 //-----------------------------------------------------------------------------
@@ -31,15 +33,15 @@ import javax.swing.JPanel;
 // class Map3DManipulator
 //
 
-class Map3DManipulator extends JPanel implements ControlsGroup{
+class Map3DManipulator extends ControlPanel implements ActionListener{
 
-    ActionListener actionListener;
-    
     private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
     private MFloatSpinnerPanel viewAngle;
     private MFloatSpinnerPanel xFrom, yFrom, zFrom;
     private MFloatSpinnerPanel xAt, yAt, zAt;
+
+    JButton expandBtn;    
     
     ArrayList<Object> values = new ArrayList<>();
     
@@ -50,11 +52,12 @@ class Map3DManipulator extends JPanel implements ControlsGroup{
 //
 //
 
-public Map3DManipulator(ActionListener pActionListener)
+public Map3DManipulator(int pChartGroupNum, int pChartNum, 
+                                          ActionListener pParentActionListener)
 {
 
-    actionListener = pActionListener;
-        
+    super(pChartGroupNum, pChartNum, pParentActionListener);
+           
 }//end of Map3DManipulator::Map3DManipulator (constructor)
 //-----------------------------------------------------------------------------
 
@@ -64,9 +67,12 @@ public Map3DManipulator(ActionListener pActionListener)
 // Initializes the object.  Must be called immediately after instantiation.
 //
 
+@Override
 public void init()
 {
 
+    super.init();
+    
     setupGUI();
     
 }// end of Map3DManipulator::init
@@ -106,6 +112,10 @@ public void setupGUI()
         
     createViewAnglePanel();
     
+    addVerticalSpacer(this, 5);    
+    
+    createChartControlsPanel();
+    
 }// end of Map3DManipulator::setupGUI
 //-----------------------------------------------------------------------------
 
@@ -126,14 +136,14 @@ public void createXYPositionPanel()
 
     xPos = new MFloatSpinnerPanel("X Position",
             "Adjusts the x position of the display. (xPos variable)",
-            actionListener, -19, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, -19, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     xPos.init();
     panel.add(xPos);
 
     yPos = new MFloatSpinnerPanel("Y Position",
             "Adjusts the y position of the display. (yPos variable)",
-            actionListener, 110, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
+            this, 110, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     yPos.init();
     panel.add(yPos);
@@ -163,21 +173,21 @@ public void createViewFromPositionPanel()
 
     xFrom = new MFloatSpinnerPanel("X From Position",
             "Adjusts 'view from' position. (xFrom variable)",
-            actionListener, 15, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 15, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     xFrom.init();
     panel.add(xFrom);
 
     yFrom = new MFloatSpinnerPanel("Y From Position",
             "Adjusts 'view from' position. (yFrom variable)",
-            actionListener, 9, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 9, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     yFrom.init();
     panel.add(yFrom);
 
     zFrom = new MFloatSpinnerPanel("Z From Position",
             "Adjusts 'view from' position. (zFrom variable)",
-            actionListener, 26, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 26, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     zFrom.init();
     panel.add(zFrom);
@@ -207,21 +217,21 @@ public void createViewAtPositionPanel()
 
     xAt = new MFloatSpinnerPanel("X At Position",
             "Adjusts 'view at' position. (xAt variable)",
-            actionListener, 11, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 11, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     xAt.init();
     panel.add(xAt);
 
     yAt = new MFloatSpinnerPanel("Y At Position",
             "Adjusts 'view at' position. (yAt variable)",
-            actionListener, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     yAt.init();
     panel.add(yAt);
 
     zAt = new MFloatSpinnerPanel("Z At Position",
             "Adjusts 'view at' position. (zAt variable)",
-            actionListener, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     zAt.init();
     panel.add(zAt);
@@ -251,7 +261,7 @@ public void createRotationPanel()
 
     rotation = new MFloatSpinnerPanel("Rotation",
             "Adjusts the rotation of the target. (rotation variable)",
-            actionListener, 200, 0, 359, 1, "##0", 60, 20,
+            this, 200, 0, 359, 1, "##0", 60, 20,
              "", "degrees", ACTION_COMMAND, 160, 25);
     rotation.init();
     rotation.setAlignmentX(Component.LEFT_ALIGNMENT);    
@@ -289,7 +299,7 @@ public void createViewAnglePanel()
     viewAngle = new MFloatSpinnerPanel("View Angle",
             "Adjusts the angle of view -- how much is in the view. "
             +" Acts as zoom in/out. (viewAngle variable)",
-            actionListener, 7, 1, 179, 1, "##0", 60, 20,
+            this, 7, 1, 179, 1, "##0", 60, 20,
              "", "degrees", ACTION_COMMAND, 175, 25);
     viewAngle.init();
     viewAngle.setAlignmentX(Component.LEFT_ALIGNMENT);    
@@ -302,6 +312,38 @@ public void createViewAnglePanel()
     add(panel);
     
 }// end of Map3DManipulator::createViewAnglePanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::createChartControlsPanel
+//
+// Creates a panel with controls for adjusting chart parameters.
+//
+
+public void createChartControlsPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setBorder(BorderFactory.createTitledBorder("Chart"));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    addVerticalSpacer(panel, 5);    
+    
+    expandBtn = new JButton("Expanded View");
+    expandBtn.setActionCommand("Expand Chart Height");
+    expandBtn.addActionListener(this);
+    expandBtn.setToolTipText("Expand chart height.");            
+    panel.add(expandBtn);
+    
+    addVerticalSpacer(panel, 5);
+    
+    setSizes(panel, 190, 60);
+    
+    add(panel);
+    
+}// end of Map3DManipulator::createChartControlsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -422,6 +464,71 @@ public void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
     pTarget.add(Box.createRigidArea(new Dimension(pNumPixels,0)));
     
 }// end of Map3DManipulator::addHorizontalSpacer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::actionPerformed
+//
+// Responds to events and passes them on to the parent actionListener object.
+//
+
+@Override
+public void actionPerformed(ActionEvent e)
+{
+
+    actionPerformedLocal(e); //local processing
+    
+    parentActionListener.actionPerformed(e); //parent handler processing
+
+}//end of Map3DManipulator::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::actionPerformedLocal
+//
+// Responds to events which require action by this object.
+//
+
+public void actionPerformedLocal(ActionEvent e)
+{
+
+    if ("Expand Chart Height".equals(e.getActionCommand())
+        || "Set Normal Chart Height".equals(e.getActionCommand())) {
+        handleExpandButtonClick();
+        return;
+    }
+    
+}//end of Map3DManipulator::actionPerformedLocal
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DManipulator::handleExpandButtonClick
+//
+// Responds clicking of the "Expand" button.
+//
+// Flips the text and meaning of the button from "Expanded View" to
+// "Normal View".
+//
+
+public void handleExpandButtonClick()
+{
+    
+    
+    if(expandBtn.getText().equals("Expanded View")){
+
+        expandBtn.setText("Normal View");    
+        expandBtn.setActionCommand("Set Normal Chart Height");
+        expandBtn.setToolTipText("Set chart height to normal view.");            
+          
+    }else{
+    
+        expandBtn.setText("Expanded View");
+        expandBtn.setActionCommand("Expand Chart Height");
+        expandBtn.setToolTipText("Expand chart height.");  
+        
+    }
+
+}//end of Map3DManipulator::handleExpandButtonClick
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

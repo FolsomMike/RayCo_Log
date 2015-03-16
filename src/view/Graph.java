@@ -37,7 +37,7 @@ public class Graph extends JPanel{
     
     String title, shortTitle, objectType;
     int chartGroupNum, chartNum, graphNum;
-    int width, height;
+    int width, height, specifiedWidth, specifiedHeight;
     Color backgroundColor;
 
     int scrollTrackChartGroupNum, scrollTrackChartNum, scrollTrackGraphNum;
@@ -318,6 +318,23 @@ public void updateChild(int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::setHeight
+//
+// Sets the height to pHeight. The calling oject is responsible for repacking
+// the frame if desired.
+//
+
+public void setHeight(int pHeight)
+{
+
+    height = pHeight;
+    setSizes(this, width, height);
+    invalidate();
+    
+}// end of Graph::setHeight
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::addGraphTrackingThisGraphsScrolling
 //
 // Adds graph pGraph to the list of graphs which should be scolled when this
@@ -326,7 +343,6 @@ public void updateChild(int pChildNum)
 
 public void addGraphTrackingThisGraphsScrolling(Graph pGraph)
 {
-
     
     if (graphsTrackingThisGraphsScrolling == null){    
         graphsTrackingThisGraphsScrolling = new ArrayList<>();        
@@ -366,6 +382,30 @@ public GUIDataSet getGraphTrackedForScrolling()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::setViewParamsToNormalLayout
+//
+// Sets the current viewing parameters to the normal layout.
+//
+
+public void setViewParamsToNormalLayout()
+{
+    
+}// end of Graph::setViewParamsToNormalLayout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setViewParamsToExpandedLayout
+//
+// Sets the current viewing parameters to the expanded layout.
+//
+
+public void setViewParamsToExpandedLayout()
+{
+    
+}// end of Graph::setViewParamsToExpandedLayout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::paintChildren
 //
 // Paints all the child objects on the canvas.
@@ -401,9 +441,13 @@ void loadConfigSettings()
 
     if (configWidth > 0) width = configWidth; //override if > 0
     
+    specifiedWidth = width; //save for restoring to normal size
+    
     int configHeight = configFile.readInt(configFileSection, "height", 0);
 
     if (configHeight > 0) height = configHeight; //override if > 0
+    
+    specifiedHeight = height; //save for restoring to normal size
     
     backgroundColor = configFile.readColor(
               configFileSection, "background color", new Color(238, 238, 238));

@@ -29,13 +29,19 @@ class Map3DGraph extends Graph{
 
     private Map3D map3D;
 
-    private int xPos, yPos;
-    private int xFrom, yFrom, zFrom;
-    private int xAt, yAt, zAt;
-    private int xUp, yUp, zUp;
-    private int rotation;
-    private int viewAngle;
+    // view parameters used when scanning/inspecting
+    // this view must be directly from the side
 
+    Map3DViewParameters normalViewParams = new Map3DViewParameters();
+    
+    // view parameters used when graph is expanded for better viewing
+    
+    Map3DViewParameters expandedViewParams = new Map3DViewParameters();
+    
+    // used to hold the parameters currently in use
+    
+    Map3DViewParameters currentViewParams = new Map3DViewParameters();
+    
     private int mapWidthInDataPoints, mapHeightInDataPoints;
     
     private static final int ANALYSIS_STRETCHX = 1;
@@ -114,7 +120,7 @@ private void addMaps()
 // Map3DGraph::update
 //
 // Updates with new 3D view parameters and forces a repaint. The new parameters
-// are stored as objects in pValues.
+// are retrieved as objects from pValues.
 //
 
 @Override
@@ -123,25 +129,27 @@ public void update(ArrayList <Object> pValues)
 
     int i = 1;
     
-    xPos = (Integer)pValues.get(i++);
+    currentViewParams.xPos = (Integer)pValues.get(i++);
     
-    yPos = (Integer)pValues.get(i++); yPos = -yPos;
+    currentViewParams.yPos = (Integer)pValues.get(i++);
+    //flip y so higher values towards top of screen
+    currentViewParams.yPos = -(currentViewParams.yPos);
 
-    xFrom = (Integer)pValues.get(i++);
+    currentViewParams.xFrom = (Integer)pValues.get(i++);
     
-    yFrom = (Integer)pValues.get(i++);
+    currentViewParams.yFrom = (Integer)pValues.get(i++);
     
-    zFrom = (Integer)pValues.get(i++);    
+    currentViewParams.zFrom = (Integer)pValues.get(i++);    
     
-    xAt = (Integer)pValues.get(i++);
+    currentViewParams.xAt = (Integer)pValues.get(i++);
     
-    yAt = (Integer)pValues.get(i++);
+    currentViewParams.yAt = (Integer)pValues.get(i++);
     
-    zAt = (Integer)pValues.get(i++);    
+    currentViewParams.zAt = (Integer)pValues.get(i++);    
         
-    rotation = (Integer)pValues.get(i++);
+    currentViewParams.rotation = (Integer)pValues.get(i++);
     
-    viewAngle = (Integer)pValues.get(i++);
+    currentViewParams.viewAngle = (Integer)pValues.get(i++);
     
     repaint();
 
@@ -162,25 +170,25 @@ public ArrayList<Object> getParameters()
     
     values.add("Map3DManipulator");
     
-    values.add(xPos);
+    values.add(currentViewParams.xPos);
     
-    values.add(yPos);
+    values.add(-(currentViewParams.yPos));
     
-    values.add(xFrom);
+    values.add(currentViewParams.xFrom);
     
-    values.add(yFrom);
+    values.add(currentViewParams.yFrom);
     
-    values.add(zFrom);
+    values.add(currentViewParams.zFrom);
     
-    values.add(xAt);
+    values.add(currentViewParams.xAt);
     
-    values.add(yAt);
+    values.add(currentViewParams.yAt);
     
-    values.add(zAt);
+    values.add(currentViewParams.zAt);
 
-    values.add(rotation);
+    values.add(currentViewParams.rotation);
     
-    values.add(viewAngle);
+    values.add(currentViewParams.viewAngle);
     
     return(values);
 
@@ -198,8 +206,7 @@ public void paintComponent (Graphics g)
     super.paintComponent(g);
            
     map3D.paint((Graphics2D)g,
-            xFrom, yFrom, zFrom, xAt, yAt, zAt,
-            xPos, yPos, viewAngle, rotation, 
+            currentViewParams,
             ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
             true, false, false,
             CRITICAL_LEVEL, WARNING_LEVEL, NORMAL_LEVEL);
@@ -218,6 +225,36 @@ public void addRow(int[] pDataSet)
 
     
 }// end of Map3DGraph::addRow
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::setViewParamsToNormalLayout
+//
+// Sets the current viewing parameters to the normal layout.
+//
+
+@Override
+public void setViewParamsToNormalLayout()
+{
+    
+    currentViewParams.setValues(normalViewParams);
+    
+}// end of Map3DGraph::setViewParamsToNormalLayout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::setViewParamsToExpandedLayout
+//
+// Sets the current viewing parameters to the expanded layout.
+//
+
+@Override
+public void setViewParamsToExpandedLayout()
+{
+    
+    currentViewParams.setValues(expandedViewParams);
+    
+}// end of Map3DGraph::setViewParamsToExpandedLayout
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -271,43 +308,29 @@ void loadConfigSettings()
     
     //3D map view parameters for runtime layout
 
-    xPos = configFile.readInt(
-            configFileSection, "xPos~3D map runtime layout view setting", 0);
-    yPos = configFile.readInt(
-            configFileSection, "yPos~3D map runtime layout view setting", -54);
-    xFrom = configFile.readInt(
-             configFileSection, "xFrom~3D map runtime layout view setting", 0);
-    yFrom = configFile.readInt(
-            configFileSection, "yFrom~3D map runtime layout view setting", 10);
-    zFrom = configFile.readInt(
-             configFileSection, "zFrom~3D map runtime layout view setting", 5);
-    xAt = configFile.readInt(
-               configFileSection, "xAt~3D map runtime layout view setting", 0);
-    yAt = configFile.readInt(
-               configFileSection, "yAt~3D map runtime layout view setting", 0);
-    zAt = configFile.readInt(
-               configFileSection, "zAt~3D map runtime layout view setting", 0);
-    xUp = configFile.readInt(
-               configFileSection, "xUp~3D map runtime layout view setting", 0);
-    yUp = configFile.readInt(
-               configFileSection, "yUp~3D map runtime layout view setting", 0);
-    zUp = configFile.readInt(
-               configFileSection, "zUp~3D map runtime layout view setting", 1);
-    rotation = configFile.readInt(
-        configFileSection, "rotation~3D map runtime layout view setting", 180);
-    viewAngle = configFile.readInt(
-        configFileSection, "viewAngle~3D map runtime layout view setting", 12);
+    normalViewParams.loadConfigSettings(
+                                    configFile, configFileSection, "runtime");
 
+    //3D map view parameters for when graph is expanded for better viewing
+
+    expandedViewParams.loadConfigSettings(
+                                    configFile, configFileSection, "expanded");
+        
     //if xPos is MAX_VALUE, adjust to set left edge of grid to left graph edge
-    if (xPos == Integer.MAX_VALUE){
-        xPos = (int)((width - 
+    //this is only done for the runtime view...adjustments to expanded view
+    //must be set in the config file
+    
+    if (normalViewParams.xPos == Integer.MAX_VALUE){
+        normalViewParams.xPos = (int)((width - 
            (mapWidthInDataPoints * pixelWidthOfGridBlockInRuntimeLayout)) / 2);
-        xPos = -xPos;
+        normalViewParams.xPos = -(normalViewParams.xPos);
     }
     
+    //start out using the runtime view parameters
+    currentViewParams.setValues(normalViewParams);
+        
 }// end of Map3DGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
-
 
 }//end of class Map3DGraph
 //-----------------------------------------------------------------------------

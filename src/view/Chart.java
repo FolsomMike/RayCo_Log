@@ -32,7 +32,10 @@ class Chart extends JPanel{
     private IniFile configFile;
     
     private String title, shortTitle, objectType;
-    private int chartGroupNum, chartNum;
+    private int chartGroupNum;
+    public int getChartGroupNum(){ return(chartGroupNum); }    
+    private int chartNum;
+    public int getChartNum(){ return(chartNum); }    
     private int graphWidth, graphHeight;    
     int numGraphs;
     boolean hasZoomGraph = false;
@@ -40,6 +43,8 @@ class Chart extends JPanel{
     int prevXGraph0Trace0;
 
     boolean graphsVisible;
+    boolean specifiedGraphsVisible;
+    public boolean getSpecifiedGraphsVisible(){return(specifiedGraphsVisible);}
     
     ChartInfo chartInfo = new ChartInfo();
     
@@ -256,12 +261,79 @@ public void setGraphsVisible(boolean pState)
     graphsVisible = pState;
     
     for(Graph graph:graphs){ graph.setVisible(pState); }
-
-    if (hasZoomGraph){ zoomGraph.setVisible(pState); }
     
-}// end of Chart::setFullyVisible
+}// end of Chart::setGraphsVisible
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::getGraphHeights
+//
+// If pGraph != -1, then the height of graph pGraph is returned.
+//
+// If pChart == -1, returns the sum of the heights of all graphs. 
+//
+// The value(s) of specifiedHeight is used which is the height read from the
+// config file rather than whatever height the graph currently happens to be at
+// as it may have been minimized.
+//
+
+public int getGraphHeights(int pGraph)
+{
+    //height of a single graph
+    if(pGraph != -1){ return (graphs[pGraph].specifiedHeight); }
     
+    //sum of all graph heights
+    int h = 0;
+    for(Graph graph:graphs){ h += graph.specifiedHeight; }
+    return(h);
+    
+}// end of Chart::getGraphHeights
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::setGraphHeight
+//
+// Sets the height of graph pGraph to pHeight. The calling oject is responsible
+// for repacking the frame if desired.
+//
+
+public void setGraphHeight(int pGraph, int pHeight)
+{
+
+    graphs[pGraph].setHeight(pHeight);
+
+}//end of Chart::setGraphHeight
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setViewParamsToNormalLayout
+//
+// Sets the current viewing parameters of graph pGraph to the scan/inspect
+// layout.
+//
+
+public void setViewParamsToNormalLayout(int pGraph)
+{
+    
+    graphs[pGraph].setViewParamsToNormalLayout();
+    
+}// end of Graph::setViewParamsToNormalLayout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::setViewParamsToExpandedLayout
+//
+// Sets the current viewing parameters of graph pGraph to the expanded layout.
+//
+
+public void setViewParamsToExpandedLayout(int pGraph)
+{
+    
+    graphs[pGraph].setViewParamsToExpandedLayout();
+    
+}// end of Graph::setViewParamsToExpandedLayout
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // Chart::loadConfigSettings
 //
@@ -295,6 +367,8 @@ private void loadConfigSettings()
     if (configHeight > 0) graphHeight = configHeight; //override if > 0
 
     graphsVisible = configFile.readBoolean(section, "graphs are visible", true);
+  
+    specifiedGraphsVisible = graphsVisible; //save setting from config file
     
 }// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------

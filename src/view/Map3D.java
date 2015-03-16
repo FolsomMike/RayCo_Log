@@ -637,8 +637,7 @@ private void vCross(Vertex p1, Vertex p2, Vertex p)
 //
 
 public void paint(Graphics2D pG2, 
-            int pXFrom, int pYFrom, int pZFrom, int pXAt, int pYAt, int pZAt,
-            int pXPos, int pYPos, int pViewAngle, int pDegree,
+            Map3DViewParameters pViewParams,
             int pStretchX, int pStretchY,
             boolean pHiddenSurfaceViewMode, boolean pWireFrameViewMode,
             boolean pBirdsEyeViewMode, int pCriticalValue,
@@ -650,11 +649,11 @@ if (points == null) return;
 
 //store view parameters
 
-xFrom = pXFrom; yFrom = pYFrom; zFrom = pZFrom;
-xAt = pXAt; yAt = pYAt; zAt = pZAt;
-xPos = pXPos; yPos = pYPos;
-rotation = pDegree;
-viewAngle = pViewAngle;
+xFrom = pViewParams.xFrom; yFrom = pViewParams.yFrom; zFrom = pViewParams.zFrom;
+xAt = pViewParams.xAt; yAt = pViewParams.yAt; zAt = pViewParams.zAt;
+xPos = pViewParams.xPos; yPos = pViewParams.yPos;
+rotation = pViewParams.rotation;
+viewAngle = pViewParams.viewAngle;
 stretchX = pStretchX; stretchY = pStretchY;
 
 criticalValue = pCriticalValue;

@@ -277,6 +277,82 @@ public void updateChild(int pChart, int pGraph, int pTrace)
 }// end of ChartGroup::updateChild
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ChartGroup::expandChartHeight
+//
+// Expands the height of the chart pChart while minimizing the height of all
+// other charts in the group by setting their visibility false.
+//
+// Only the graph pGraph of the chart pChart is expanded. The other graphs in
+// pChart are left the same size.
+//
+
+public void expandChartHeight(int pChart, int pGraph)
+{
+
+    //set all other charts' graphs' visible flag to false so their graphs
+    //will be minimized
+    
+    //add up all minimized graph heights so chart to be expanded can be resized
+    //to fill space available after the graphs are minimized
+    
+    int allMinimizedGraphHeights = 0;
+    
+    for(Chart chart : charts){
+     
+        
+        if(chart.getChartNum() != pChart){
+        
+            chart.setGraphsVisible(false);
+
+            allMinimizedGraphHeights += chart.getGraphHeights(-1);
+        }
+
+    }
+    
+    int heightOfGraphToBeExpanded = charts[pChart].getGraphHeights(pGraph);
+    
+    //add the space made available to the existing height to calculate new
+    charts[pChart].setGraphHeight(pGraph, 
+                        heightOfGraphToBeExpanded + allMinimizedGraphHeights);
+
+    //adjust the viewing parameters for the new layout
+    charts[pChart].setViewParamsToExpandedLayout(pGraph);
+    
+}//end of ChartGroup::expandChartHeight
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::setNormalChartHeight
+//
+// Sets the height of the chart pChart to normal height while maximizing the 
+// height of all other charts in the group by setting their visibility back to
+// the value specified in the config file for each graph.
+//
+// Only the graph pGraph of the chart pChart is changed. The other graphs in
+// pChart are left the same size.
+//
+
+public void setNormalChartHeight(int pChart, int pGraph)
+{
+
+    //set all other charts' graphs' visible flag to their setting as loaded
+    //from the config file
+            
+    for(Chart chart : charts){            
+        chart.setGraphsVisible(chart.getSpecifiedGraphsVisible());
+    }
+    
+    //add the space made available to the existing height to calculate new
+    charts[pChart].setGraphHeight(
+                            pGraph, charts[pChart].getGraphHeights(pGraph));
+
+    //adjust the viewing parameters for the new layout
+    charts[pChart].setViewParamsToNormalLayout(pGraph);
+    
+}//end of ChartGroup::setNormalChartHeight
+//-----------------------------------------------------------------------------
+
 
 }//end of class ChartGroup
 //-----------------------------------------------------------------------------

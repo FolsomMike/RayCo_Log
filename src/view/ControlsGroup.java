@@ -25,11 +25,15 @@ import java.util.ArrayList;
 //
 
 interface ControlsGroup{
-
+    
+    public int getChartGroupNum();
+    
+    public int getChartNum();
+        
     public ArrayList<Object> getAllValues();
 
     public void setAllValues(ArrayList<Object> pValues);
-
+    
 }//end of interface ControlsGroup
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
