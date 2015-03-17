@@ -423,7 +423,7 @@ public void setDataRow(int pLengthPos, int[] pDataRow)
 
     assert(pLengthPos < dataXMax);
     
-    System.arraycopy(pDataRow, 0, points[pLengthPos + 1], 1, dataYMax);
+    System.arraycopy(pDataRow, 0, points[pLengthPos + 1], 1, pDataRow.length);
 
 }// end of Map3D::setDataRow
 //---------------------------------------------------------------------------
@@ -447,16 +447,34 @@ public void setDataRow(int pLengthPos, int[] pDataRow)
 public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow)
 {
     
-    System.arraycopy(pDataRow, 0, points[currentInsertionRow + 1], 1, dataYMax);
+    System.arraycopy(
+             pDataRow, 0, points[currentInsertionRow + 1], 1, pDataRow.length);
 
     quickDrawLastRow(pG2);
     
     currentInsertionRow++;
     if (currentInsertionRow >= dataXMax){
         currentInsertionRow = dataXMax-1;
+        shiftDataDownOneRow();
     }
 
 }// end of Map3D::setAndDrawDataRow
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// TopographicalMapper::shiftDataDownOneRow
+//
+// This method shifts all data in the input array down one row.
+//
+
+public void shiftDataDownOneRow()
+{
+    
+    for(int i=0; i<points.length-2; i++){     
+        System.arraycopy(points[i + 1], 0, points[i] , 0, yMax);
+    }
+
+}// end of Map3D::shiftDataDownOneRow
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
