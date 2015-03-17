@@ -120,25 +120,6 @@ private void addMaps()
     map3D.createArrays();
     map3D.fillInputArray(0);
 
-    //debug mks -- remove this after added to simulation class
-    for (int i=0; i<mapLengthInDataPoints; i++){
-        for (int j=0; j<mapWidthInDataPoints; j++){
-            map3D.setDataPoint(i, j, 1 + (int)(2 * Math.random()));
-            
-            if((int)(100 * Math.random()) < 5){
-                map3D.setDataPoint(i, j, 1 + (int)(25 * Math.random()));
-            }
-            
-            //simulate the weldline
-            if(j == 4){
-                map3D.setDataPoint(i, j, 5 + (int)(3 * Math.random()));
-            }
-        }
-    }
-
-    map3D.setDataPoint(0, 0, 50);
-    //debug mks end
-
 }//end of Map3DGraph::addMaps
 //-----------------------------------------------------------------------------
 
@@ -236,24 +217,30 @@ public ArrayList<Object> getParameters()
 public void updateChild(int pChildNum)
 {
   
+    if (updateRateTrigger++ < 8){ return; } else { updateRateTrigger = 0; }    
+    
     int[] dataRow = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
                        13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
     
-   
-    if (updateRateTrigger++ < 9){ return; } else { updateRateTrigger = 0; }
-            
-    map3D.setDataRow(-1, dataRow);
-
-    map3D.quickDrawLastRow((Graphics2D)getGraphics());
     
-/*            
-    map3D.quickDrawSingleRow(Graphics2D pG2,
-                int _XStart, int _XStop, int _XDirection, int _XPolyDirection,
-                int _YStart, int _YStop, int _YDirection, int _YPolyDirection,
-                boolean _ClearAreaAboveGrid)            
-  
-*/        
+    //debug mks -- remove this after added to simulation class
+    for (int i=0; i<dataRow.length; i++){
+
+        dataRow[i] = 1 + (int)(2 * Math.random());
+
+        if((int)(100 * Math.random()) < 5){
+            dataRow[i] = 1 + (int)(25 * Math.random());
+        }
+
+        //simulate the weldline
+        if(i == 4){
+            dataRow[i] = 5 + (int)(3 * Math.random());
+        }
+    }
+    //debug mks end
         
+    map3D.setAndDrawDataRow((Graphics2D)getGraphics(), dataRow);
+
 }// end of Map3DGraph::updateChild
 //-----------------------------------------------------------------------------
 

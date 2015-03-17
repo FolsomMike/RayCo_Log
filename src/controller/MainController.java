@@ -422,27 +422,6 @@ public void handle3DMapManipulation()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map3DManipulator::set3DMapAllValues
-//
-// Sets all values in the 3D Map control panel.
-//
-// The first object will always be a string describing the control group so
-// that any receiving object can discern the content and ordering in the list.
-//
-// debug mks -- remove this function after values are loaded from config file
-//
-
-public void set3DMapAllValues()
-{
-
-   
-    mainView.setAllValuesInCurrentControlPanel(
-                                mainView.getGraphParameters(0, 3, 0));
-    
-}// end of Map3DManipulator::set3DMapAllValues
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // MainController::stateChanged
 //
     

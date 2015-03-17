@@ -404,11 +404,13 @@ public void fillInputArray(int pValue)
 // TopographicalMapper::setDataRow
 //
 // This function is used to set a single row of data in the points array.
-// _DataRow should point to an array having the same number of elements as is
-// present in one row of the points array.
 //
-// If pLengthPos is -1, then the currentInsertionRow pointer value will be
-// used.
+// NOTE: For adding data to a row and then immediately drawing it, use
+// setAndDrawDataRow() as that handles the row insertion pointer such that
+// the adding and drawing are done before the pointer is incremented.
+//
+// pDataRow should point to an array having the same number of elements as is
+// present in one row of the points array.
 //
 // Since the data is stored in an array that is actually two elements larger
 // in both the x and y directions, the XPos and YPos are offset by one before
@@ -420,15 +422,41 @@ public void setDataRow(int pLengthPos, int[] pDataRow)
 {
 
     assert(pLengthPos < dataXMax);
-
-    if(pLengthPos == -1) { 
-        pLengthPos = currentInsertionRow++;
-        if (currentInsertionRow >= dataXMax){currentInsertionRow = dataXMax-1;}
-    }
     
     System.arraycopy(pDataRow, 0, points[pLengthPos + 1], 1, dataYMax);
 
 }// end of Map3D::setDataRow
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// TopographicalMapper::setAndDrawDataRow
+//
+// This function is used to set a single row of data in the points array. That
+// row is then drawn on the display. The row is determined by the
+// currentInsertionRow variable.
+//
+// pDataRow should point to an array having the same number of elements as is
+// present in one row of the points array.
+//
+// Since the data is stored in an array that is actually two elements larger
+// in both the x and y directions, the XPos and YPos are offset by one before
+// storing. The extra elements are used to form a border around the map which
+// is always at level 0.
+//
+
+public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow)
+{
+    
+    System.arraycopy(pDataRow, 0, points[currentInsertionRow + 1], 1, dataYMax);
+
+    quickDrawLastRow(pG2);
+    
+    currentInsertionRow++;
+    if (currentInsertionRow >= dataXMax){
+        currentInsertionRow = dataXMax-1;
+    }
+
+}// end of Map3D::setAndDrawDataRow
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -1093,10 +1121,10 @@ void quickDrawSingleRow(Graphics2D pG2,
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-// Map3D::quickDrawLastRow
+// Map3D::quickDrawCurrentRow
 //
-// Draws a single row of polygons for the last row containing data
-// (currentInsertionRow - 1). If that row is < 0, then nothing is drawn.
+// Draws a single row of polygons for the row specified by the variable
+// currentInsertionRow. If that row is < 0, then nothing is drawn.
 //
 // Default values used which assume the grid is being viewed directly from 
 // the side and data is being added to the right hand end.
@@ -1137,7 +1165,7 @@ void quickDrawSingleRow(Graphics2D pG2,
 // reversed as that matches the typical drawing direction of traces.
 //
 // To make the polygons draw properly in this direction, the xPolyDirection also
-// had to be reversed (-1 is used in this method.
+// had to be reversed (thus -1 is used in this method).
 //
 // The row pointer currentInsertionRow is zero based, but it is always
 // shifted up by one before inserting data into the array to skip the buffer
@@ -1154,12 +1182,11 @@ void quickDrawLastRow(Graphics2D pG2)
 
     worldToScreen(rotation, stretchX, stretchY);
 
-    int lengthPos = currentInsertionRow - 1;
-    if (lengthPos < 0){ return; }
+    if (currentInsertionRow < 0){ return; }
     
     //draw the polygons for the specified row
     drawPolygons(pG2, 
-                lengthPos+1, lengthPos+2,  1,  -1,
+                currentInsertionRow+1, currentInsertionRow+2,  1,  -1,
                 dataYMax,             -1, -1,   1,
                 true);
 
