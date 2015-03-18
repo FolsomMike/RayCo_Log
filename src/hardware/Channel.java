@@ -30,20 +30,17 @@ public class Channel
 
     IniFile configFile;
 
-    DataTransferIntBuffer dataBuffer;
+    SampleMetaData meta = new SampleMetaData(0);
     
-    public void setDataBuffer(DataTransferIntBuffer pV) { dataBuffer = pV; }    
-    public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
+    public void setDataBuffer(DataTransferIntBuffer pV) {meta.dataBuffer = pV;}
+    public DataTransferIntBuffer getDataBuffer() { return(meta.dataBuffer); }
     
-    private final int deviceNum, channelNum;
     String title, shortTitle;
-
-    int chartGroup, chart, graph, trace;
     
-    public int getChartGroup(){ return(chartGroup); }
-    public int getChart(){ return(chart); }
-    public int getGraph(){ return(graph); }
-    public int getTrace(){ return(trace); }
+    public int getChartGroup(){ return(meta.chartGroup); }
+    public int getChart(){ return(meta.chart); }
+    public int getGraph(){ return(meta.graph); }
+    public int getTrace(){ return(meta.trace); }
 
     private int dataType;
     public int getDataType(){ return (dataType);}
@@ -69,7 +66,8 @@ public class Channel
 public Channel(int pDeviceNum, int pChannelNum, IniFile pConfigFile)
 {
 
-    deviceNum = pDeviceNum; channelNum = pChannelNum; configFile = pConfigFile;
+    meta.deviceNum = pDeviceNum; meta.channelNum = pChannelNum;
+    configFile = pConfigFile;
     
 }//end of Channel::Channel (constructor)
 //-----------------------------------------------------------------------------
@@ -83,6 +81,8 @@ public Channel(int pDeviceNum, int pChannelNum, IniFile pConfigFile)
 public void init()
 {
 
+    meta.channel = this;
+    
     loadConfigSettings();
 
     setUpPeakBuffer();
@@ -133,21 +133,23 @@ public void setUpPeakBuffer()
 private void loadConfigSettings()
 {
 
+    int deviceNum = meta.deviceNum, channelNum = meta.channelNum;
+    
     String section = "Device " + deviceNum + " Channel " + channelNum;
 
     title = configFile.readString(
-           section, "title", "Device " + deviceNum + " Channel " + channelNum);
+       section, "title", "Device " + meta.deviceNum + " Channel " + channelNum);
 
     shortTitle = configFile.readString(
                 section, "short title", "Dev" + deviceNum + "Ch" + channelNum);
 
-    chartGroup = configFile.readInt(section, "chart group", -1);
+    meta.chartGroup = configFile.readInt(section, "chart group", -1);
     
-    chart = configFile.readInt(section, "chart", -1);
+    meta.chart = configFile.readInt(section, "chart", -1);
     
-    graph = configFile.readInt(section, "graph", -1);
+    meta.graph = configFile.readInt(section, "graph", -1);
     
-    trace = configFile.readInt(section, "trace", -1);    
+    meta.trace = configFile.readInt(section, "trace", -1);    
     
     String s;
             
@@ -244,18 +246,10 @@ public void getPeakAndReset(Object pPeakValue)
 public void getPeakData(PeakData pPeakData)
 {
 
-    pPeakData.deviceNum = deviceNum;
-    pPeakData.channelNum = channelNum;
-    
-    pPeakData.channel = this;
-    pPeakData.dataBuffer = dataBuffer;
-    
+    pPeakData.meta = meta; //channel/buffer/trace etc. info
+        
     peakBuffer.getPeakAndReset(data);    
     pPeakData.peak = data.x;
-    pPeakData.chartGroup = chartGroup;
-    pPeakData.chart = chart;
-    pPeakData.graph = graph;
-    pPeakData.trace = trace;
     
 }// end of Channel::getPeakData
 //-----------------------------------------------------------------------------

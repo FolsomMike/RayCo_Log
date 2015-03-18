@@ -21,11 +21,6 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
-
-import model.DataTransferIntBuffer;
-
-
-//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class PeakData
 //
@@ -35,16 +30,7 @@ public class PeakData
 
 public int peakDataNum = 0;
 
-public Channel channel;
-public DataTransferIntBuffer dataBuffer;
-
-
-public int deviceNum = -1;
-public int channelNum = -1;
-public int chartGroup = -1;
-public int chart = -1;
-public int graph = -1;
-public int trace = -1;
+public SampleMetaData meta;
 
 public int peak = 0;
     

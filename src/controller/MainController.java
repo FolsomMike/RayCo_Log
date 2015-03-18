@@ -335,20 +335,20 @@ private void setChannelDataBuffers()
      
         try{        
         
-            peakData.channel.setDataBuffer(mainView.getTrace(
-               peakData.chartGroup, peakData.chart, peakData.graph,
-                                            peakData.trace).getDataBuffer());
+            peakData.meta.channel.setDataBuffer(mainView.getTrace(
+               peakData.meta.chartGroup, peakData.meta.chart,
+                    peakData.meta.graph, peakData.meta.trace).getDataBuffer());
         }catch(NullPointerException e){
         
             Tools.displayErrorMessage(
                 "Error Linking Data Buffer/Trace to Channel...\n"
                 + "Peak Data Object Number : " + peakData.peakDataNum + "\n"
-                + "Device: " + peakData.deviceNum + "\n"
-                + "Channel: " + peakData.channelNum + "\n"
-                + "Chart Group: " + peakData.chartGroup + "\n"
-                + "Chart : " + peakData.chart + "\n"
-                + "Graph : " + peakData.graph + "\n"
-                + "Trace : " + peakData.trace
+                + "Device: " + peakData.meta.deviceNum + "\n"
+                + "Channel: " + peakData.meta.channelNum + "\n"
+                + "Chart Group: " + peakData.meta.chartGroup + "\n"
+                + "Chart : " + peakData.meta.chart + "\n"
+                + "Graph : " + peakData.meta.graph + "\n"
+                + "Trace : " + peakData.meta.trace
                 ,null);
         }
         
@@ -601,7 +601,7 @@ private void displayDataFromDevices()
     while (mainHandler.getNextPeakData(peakData) != -1){
 
         //put data in the transfer buffer
-        peakData.dataBuffer.putData(peakData.peak);
+        peakData.meta.dataBuffer.putData(peakData.peak);
                       
     }
 
