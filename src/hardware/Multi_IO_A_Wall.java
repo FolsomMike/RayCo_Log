@@ -22,7 +22,7 @@ import model.IniFile;
 // class Multi_IO_A_Wall
 //
 
-public class Multi_IO_A_Wall extends Device
+public class Multi_IO_A_Wall extends MultiIODevice
 {
 
     
@@ -35,6 +35,10 @@ public Multi_IO_A_Wall(int pIndex, IniFile pConfigFile, boolean pSimMode)
 
     super(pIndex, pConfigFile, pSimMode);
     
+    PACKET_SIZE = 9;
+    
+    if(simMode){ simulator = new SimulatorWall(0); simulator.init(); }
+   
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Wall (constructor)
 //-----------------------------------------------------------------------------
 
@@ -55,6 +59,52 @@ public void init()
     setUpChannels();    
 
 }// end of Multi_IO_A_Wall::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Wall::collectData
+//
+// Collects data from source(s) -- remote hardware devices, databases,
+// simulations, etc.
+//
+// Should be called periodically to allow collection of data buffered in the
+// source.
+//
+
+@Override
+public void collectData()
+{
+    
+    if (!simMode){ 
+        getRunPacketFromDevice(packet);
+    }else{        
+        simulator.getRunPacket(packet);
+    }
+    
+    //first channel's buffer location specifies start of channel data section
+    int index = channels[0].getBufferLoc();
+    
+    for(Channel channel : channels){
+     
+        data.x = getUnsignedShortFromPacket(packet, index);
+        data.x = Math.abs(data.x -= AD_ZERO_OFFSET);
+        channel.catchPeak(data);
+        index += 2;
+        
+    }
+
+    
+    
+    
+    
+    
+    for(int i=0; i<numClockPositions; i++){
+    
+        
+        
+    }
+    
+}// end of Multi_IO_A_Wall::collectData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

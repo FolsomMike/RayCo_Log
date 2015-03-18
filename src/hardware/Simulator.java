@@ -25,6 +25,7 @@ public class Simulator
     private final int simulatorNum;
 
     int spikeOdds = 20;
+    int lastSpikeValue = 0;
     
     static final int AD_MAX_VALUE = 1023;
     static final int AD_MIN_VALUE = 0;
@@ -32,7 +33,10 @@ public class Simulator
     static final int AD_ZERO_OFFSET = 511;
     static final int SIM_NOISE = 10;
     static final int SPIKE_ODDS_RANGE = 10000;
-        
+    static final int WALL_SIM_NOISE = 3;
+    static final int WALL_SPIKE_ODDS_RANGE = 100000;
+
+    
 //-----------------------------------------------------------------------------
 // Simulator::Simulator (constructor)
 //

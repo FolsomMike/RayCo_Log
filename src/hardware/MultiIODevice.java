@@ -34,7 +34,7 @@ public class MultiIODevice extends Device
     int PACKET_SIZE;
     
     byte[] packet;    
-    
+  
     static final int AD_MAX_VALUE = 1023;
     static final int AD_MIN_VALUE = 0;
     static final int AD_MAX_SWING = 511;
