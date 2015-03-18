@@ -54,6 +54,7 @@ import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
+import toolkit.Tools;
 import view.MKSTools;
 import view.MainView;
 import view.Map3DGraph;
@@ -329,12 +330,28 @@ private void setChannelDataBuffers()
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
     
-    //get peak data for each channel
+    //traverse all the channels
     while (mainHandler.getNextPeakData(peakData) != -1){
+     
+        try{        
         
-        peakData.channel.setDataBuffer(mainView.getTrace(peakData.chartGroup,
-               peakData.chart, peakData.graph, peakData.trace).getDataBuffer());
-                      
+            peakData.channel.setDataBuffer(mainView.getTrace(
+               peakData.chartGroup, peakData.chart, peakData.graph,
+                                            peakData.trace).getDataBuffer());
+        }catch(NullPointerException e){
+        
+            Tools.displayErrorMessage(
+                "Error Linking Data Buffer/Trace to Channel...\n"
+                + "Peak Data Object Number : " + peakData.peakDataNum + "\n"
+                + "Device: " + peakData.deviceNum + "\n"
+                + "Channel: " + peakData.channelNum + "\n"
+                + "Chart Group: " + peakData.chartGroup + "\n"
+                + "Chart : " + peakData.chart + "\n"
+                + "Graph : " + peakData.graph + "\n"
+                + "Trace : " + peakData.trace
+                ,null);
+        }
+        
     }
     
 }// end of MainController::setChannelDataBuffers
@@ -799,7 +816,7 @@ public void threadSleep(int pSleepTime)
 public void control()
 {
 
-    //update the display every 30 seconds
+    //update the display every 30 seconds with data collected by this thread
     if (displayUpdateTimer++ == 14){
         displayUpdateTimer = 0;
         //call function to update stuff here

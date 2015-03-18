@@ -35,7 +35,7 @@ public class Channel
     public void setDataBuffer(DataTransferIntBuffer pV) { dataBuffer = pV; }    
     public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
     
-    private final int deviceIndex, index;
+    private final int deviceNum, channelNum;
     String title, shortTitle;
 
     int chartGroup, chart, graph, trace;
@@ -66,10 +66,10 @@ public class Channel
 // Channel::Channel (constructor)
 //
 
-public Channel(int pDeviceIndex, int pIndex, IniFile pConfigFile)
+public Channel(int pDeviceNum, int pChannelNum, IniFile pConfigFile)
 {
 
-    deviceIndex = pDeviceIndex; index = pIndex; configFile = pConfigFile;
+    deviceNum = pDeviceNum; channelNum = pChannelNum; configFile = pConfigFile;
     
 }//end of Channel::Channel (constructor)
 //-----------------------------------------------------------------------------
@@ -133,13 +133,13 @@ public void setUpPeakBuffer()
 private void loadConfigSettings()
 {
 
-    String section = "Device " + deviceIndex + " Channel " + index;
+    String section = "Device " + deviceNum + " Channel " + channelNum;
 
     title = configFile.readString(
-               section, "title", "Device " + deviceIndex + " Channel " + index);
+           section, "title", "Device " + deviceNum + " Channel " + channelNum);
 
     shortTitle = configFile.readString(
-                   section, "short title", "Dev" + deviceIndex + "Ch" + index);
+                section, "short title", "Dev" + deviceNum + "Ch" + channelNum);
 
     chartGroup = configFile.readInt(section, "chart group", -1);
     
@@ -244,6 +244,9 @@ public void getPeakAndReset(Object pPeakValue)
 public void getPeakData(PeakData pPeakData)
 {
 
+    pPeakData.deviceNum = deviceNum;
+    pPeakData.channelNum = channelNum;
+    
     pPeakData.channel = this;
     pPeakData.dataBuffer = dataBuffer;
     

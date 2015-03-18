@@ -33,11 +33,14 @@ import model.DataTransferIntBuffer;
 public class PeakData
 {
 
-int index = 0;
+public int peakDataNum = 0;
 
 public Channel channel;
 public DataTransferIntBuffer dataBuffer;
 
+
+public int deviceNum = -1;
+public int channelNum = -1;
 public int chartGroup = -1;
 public int chart = -1;
 public int graph = -1;
@@ -49,10 +52,10 @@ public int peak = 0;
 // PeakData::PeakData (constructor)
 //
 
-public PeakData(int pIndex)
+public PeakData(int pPeakDataNum)
 {
 
-    index = pIndex;
+    peakDataNum = pPeakDataNum;
     
 }//end of PeakData::PeakData (constructor)
 //-----------------------------------------------------------------------------
