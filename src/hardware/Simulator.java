@@ -23,6 +23,8 @@ public class Simulator
 {
 
     private final int simulatorNum;
+    
+    int numClockPositions;
 
     int spikeOdds = 20;
     int lastSpikeValue = 0;

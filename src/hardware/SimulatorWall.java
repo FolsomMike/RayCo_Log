@@ -49,6 +49,8 @@ public void init()
 
     super.init();
 
+    numClockPositions = 0;
+    
     spikeOdds = 100;
     
 }// end of SimulatorWall::init
@@ -75,7 +77,15 @@ public void getRunPacket(byte[] pPacket)
     addUnsignedShortToPacket(pPacket, index, simulatePulseWall());
     index += 2;
     addUnsignedShortToPacket(pPacket, index, simulateIntelligentCoil());
+    index += 2;
       
+    //add map data
+    for(int i=0; i<numClockPositions; i++){
+        addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
+        index += 2;
+    }
+    
+    
 }// end of SimulatorWall::getRunPacket
 //-----------------------------------------------------------------------------
 

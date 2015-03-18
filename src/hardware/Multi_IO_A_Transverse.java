@@ -35,7 +35,7 @@ public Multi_IO_A_Transverse(
 
     super(pIndex, pConfigFile, pSimMode);
     
-    PACKET_SIZE = 40;
+    PACKET_SIZE = 88;
 
     if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
     

@@ -47,6 +47,8 @@ public void init()
 
     super.init();
 
+    numClockPositions = 24;    
+    
     spikeOdds = 20;
     
 }// end of SimulatorTransverse::init
@@ -96,7 +98,14 @@ public void getRunPacket(byte[] pPacket)
     index += 2;
     addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+8
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-8
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-8    
+    index += 2;
+    
+    //add map data
+    for(int i=0; i<numClockPositions; i++){
+        addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
+        index += 2;
+    }
     
 }// end of SimulatorTransverse::getRunPacket
 //-----------------------------------------------------------------------------

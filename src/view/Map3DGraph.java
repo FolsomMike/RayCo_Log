@@ -228,7 +228,7 @@ public void updateChild(int pChildNum)
 
         dataRow[i] = 1 + (int)(2 * Math.random());
 
-        if((int)(100 * Math.random()) < 5){
+        if((int)(100 * Math.random()) < 1){
             dataRow[i] = 1 + (int)(25 * Math.random());
         }
 

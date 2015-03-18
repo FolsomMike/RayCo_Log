@@ -16,6 +16,7 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.awt.Color;
 import model.IniFile;
 
 
@@ -32,9 +33,15 @@ public class Device
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
     Channel []channels = null;
-
-    boolean simMode;
+    int numClockPositions;
     
+    boolean simMode;
+
+    int mapChartGroup;
+    int mapChart;
+    int mapGraph;
+    Color mapColor;
+
 //-----------------------------------------------------------------------------
 // Device::Device (constructor)
 //
@@ -122,6 +129,18 @@ void loadConfigSettings()
 
     numChannels = configFile.readInt(section, "number of channels", 0);
 
+    numClockPositions = configFile.readInt(
+                                    section, "number of clock positions", 12);
+
+    mapChartGroup = configFile.readInt(section, "map chart group", -1);
+    
+    mapChart = configFile.readInt(section, "map chart", -1);
+    
+    mapGraph = configFile.readInt(section, "map graph", -1);
+    
+    mapColor = configFile.readColor(
+                                      section, "map color", Color.BLACK);
+                
 }// end of Device::loadConfigSettings
 //-----------------------------------------------------------------------------
 

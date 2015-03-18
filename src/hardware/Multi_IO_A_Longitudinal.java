@@ -35,7 +35,7 @@ public Multi_IO_A_Longitudinal(
 
     super(pIndex, pConfigFile, pSimMode);
 
-    PACKET_SIZE = 9;
+    PACKET_SIZE = 57;
     
     if(simMode){ simulator = new SimulatorLongitudinal(0); simulator.init(); }
     
@@ -93,6 +93,17 @@ public void collectData()
         
     }
 
+    
+    
+    
+    
+    
+    for(int i=0; i<numClockPositions; i++){
+    
+        
+        
+    }
+    
 }// end of Multi_IO_A_Longitudinal::collectData
 //-----------------------------------------------------------------------------
 
