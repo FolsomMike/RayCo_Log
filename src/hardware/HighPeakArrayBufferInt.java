@@ -1,13 +1,13 @@
 /******************************************************************************
-* Title: HighPeakBufferInteger.java
+* Title: HighPeakBufferArrayInt.java
 * Author: Mike Schoonover
-* Date: 01/16/15
+* Date: 03/18/15
 * 
 * Purpose:
 * 
-* This class used to detect and store highest peak values of type Integer.
-* A new value replaces the previously stored peak if the new value is greater
-* than the old peak.
+* This class used to detect and store an array of highest peak values of type
+* integer. A new value replaces the previously stored peak if the new value is
+* greater than the old peak.
 * 
 * The methods to store a peak, retrieve a peak, and set a peak are all
 * synchronized so they are thread safe.
@@ -19,31 +19,27 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
-
-import toolkit.MKSInteger;
-
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// class HighPeakBufferInteger
+// class HighPeakBufferInt
 //
 
-public class HighPeakBufferInteger extends PeakBufferInteger
+public class HighPeakArrayBufferInt extends PeakArrayBufferInt
 {
     
 //-----------------------------------------------------------------------------
-// HighPeakBufferInteger::HighPeakBufferInteger (constructor)
+// HighPeakBufferInt::HighPeakBufferInt (constructor)
 //
 
-public HighPeakBufferInteger(int pIndex)
+public HighPeakArrayBufferInt(int pIndex, int pArraySize)
 {
 
-    super(pIndex);
+    super(pIndex, pArraySize);
     
-}//end of HighPeakBufferInteger::HighPeakBufferInteger (constructor)
+}//end of HighPeakBufferInt::HighPeakBufferInt (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// HighPeakBufferInteger::catchPeak
+// HighPeakBufferInt::catchPeak
 //
 // This method overrides that in the parent class to provide the specific
 // type of comparison for the peak type being captured.
@@ -52,16 +48,18 @@ public HighPeakBufferInteger(int pIndex)
 //
 
 @Override
-public synchronized void catchPeak(Object pO)
-{
-   
-    int v = ((MKSInteger)pO).x;
-    
-    if (v > peak.x) { peak.x = v; }
+public synchronized void catchPeak(int[] pNewData)
+{    
+    for(int i=0; i<arraySize; i++){
+        if(pNewData[i] > peakArray[i]) { 
+            peakArray[i] = pNewData[i];
+            peakUpdated = true;
+        }        
+    }
 
-}// end of HighPeakBufferInteger::catchPeak
+}// end of HighPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------
 
-}//end of class HighPeakBufferInteger
+}//end of class HighPeakBufferInt
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
