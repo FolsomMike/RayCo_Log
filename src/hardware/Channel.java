@@ -242,14 +242,20 @@ public void getPeakAndReset(MKSInteger pPeakValue)
 //
 // Resets the peak to the reset value.
 //
+// Returns true if the peak has been updated since the last call to this method
+// or false otherwise.
+//
 
-public void getPeakDataAndReset(PeakData pPeakData)
+public boolean getPeakDataAndReset(PeakData pPeakData)
 {
 
     pPeakData.meta = meta; //channel/buffer/trace etc. info
         
-    peakBuffer.getPeakAndReset(data);    
+    boolean peakUpdated = peakBuffer.getPeakAndReset(data);    
+    
     pPeakData.peak = data.x;
+    
+    return(peakUpdated);
     
 }// end of Channel::getPeakDataAndReset
 //-----------------------------------------------------------------------------

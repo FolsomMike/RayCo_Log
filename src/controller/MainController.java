@@ -35,6 +35,7 @@
 
 package controller;
 
+import hardware.Channel;
 import hardware.Device;
 import view.GUIDataSet;
 import hardware.MainHandler;
@@ -647,19 +648,45 @@ private void displayDataFromDevices()
 {
 
     if(mode == STOP_MODE) { return; }
+        
+    displayDataFromDeviceChannels();
     
-    //handle trace data
+    displayDataFromDeviceMaps();
+    
+    mainView.updateAnnotationGraphs(0);    
+        
+}// end of MainController::displayDataFromDevices
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayDataFromDeviceChannels
+//
+// Handles data display of peak data from all channels of all devices
+//
+
+private void displayDataFromDeviceChannels()
+{
     
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
     
-    //get peak data for each channel
-    while (mainHandler.getNextPeakData(peakData) != -1){
-        //put data in the transfer buffer
-        peakData.meta.dataBuffer.putData(peakData.peak);
+    //get peak data for each channel and insert it into the transfer buffer
+    
+    for (Device device : mainHandler.getDevices()){
+        for (Channel channel : device.getChannels()){        
+            if (channel.getPeakDataAndReset(peakData) == true){
+                peakData.meta.dataBuffer.putData(peakData.peak);
+            }
+        }
     }
+    
+//    //get peak data for each channel
+//    while (mainHandler.getNextPeakData(peakData) != -1){
+//        //put data in the transfer buffer
+//        peakData.meta.dataBuffer.putData(peakData.peak);
+//    }
 
-    //update display object from transfer buffer
+    //update display objects from transfer buffers
     for(DataTransferIntBuffer dataBuffer: dataBuffers){
         //pace this with timer to control scan speed
         dataBuffer.incPutPtrAndSetReadyAfterDataFill();
@@ -667,16 +694,22 @@ private void displayDataFromDevices()
         mainView.updateChild(dataBuffer.chartGroupNum, dataBuffer.chartNum,
                                      dataBuffer.graphNum, dataBuffer.traceNum);
     }
+    
+}// end of MainController::displayDataFromDeviceChannels
+//-----------------------------------------------------------------------------
 
-    // handle annotation graphs
-    
-    mainView.updateAnnotationGraphs(0);    
-    
-    // handle map data
+//-----------------------------------------------------------------------------
+// MainController::displayDataFromDeviceMaps
+//
+// Handles data display of peak data from all map datasets from all devices.
+//
+
+private void displayDataFromDeviceMaps()
+{
 
     if (mapUpdateRateTrigger++ < 8){ return; } else { mapUpdateRateTrigger = 0; }    //debug mks -- does this belong here?    
     
-    //get peak map data for each device
+    //get peak map data for each device and insert it into the transfer buffer
     
     for (Device device : mainHandler.getDevices()){
         if (device.getPeakDataAndReset(peakMapData) == true){
@@ -685,7 +718,7 @@ private void displayDataFromDevices()
         }
     }
         
-    //update display object from transfer buffer
+    //update display objects from transfer buffers
     for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
         //pace this with timer to control scan speed
         mapBuffer.incPutPtrAndSetReadyAfterDataFill();
@@ -694,7 +727,7 @@ private void displayDataFromDevices()
                                        mapBuffer.graphNum, mapBuffer.traceNum);
     }
         
-}// end of MainController::displayDataFromDevices
+}// end of MainController::displayDataFromDeviceMaps
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

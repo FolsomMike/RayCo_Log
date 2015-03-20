@@ -194,6 +194,12 @@ public void initForPeakScan()
 //
 // When no more datasets are available, returns -1. Returns 0 otherwise.
 //
+// NOTE: This function is used more often to collect a list of channels
+//       rather than for actual peak data collection. It is recommended that
+//       the scanning object itself iterate over all channels of all devices.
+//       The data update flag returned from getDataAndReset can be handled
+//       easier that way and the code is clearer.
+//
 
 public int getNextPeakData(PeakData pPeakData)
 {

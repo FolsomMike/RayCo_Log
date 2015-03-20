@@ -36,7 +36,8 @@ public class Device
     String title = "", shortTitle = "";
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
-    Channel []channels = null;
+    Channel[] channels = null;
+    public Channel[] getChannels(){ return(channels); }
     int numClockPositions;
 
     SampleMetaData mapMeta = new SampleMetaData(0);
