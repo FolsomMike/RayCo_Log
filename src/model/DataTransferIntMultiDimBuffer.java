@@ -16,6 +16,12 @@
 * be tested against the data already in the location and the new data will only
 * replace the existing data if the new data is a greater or lesser value,
 * depending on the type of peak being stored (high or low).
+* 
+* If the put pointer is moved and the ready flag set but no valid data is yet
+* in place for that position, data from the previous position will be copied
+* if that data is valid (ready flag set). If that data is not valid, then the
+* "default" data set will be copied. That ensures that reasonably safe data
+* is always retrieved. The default data value can be changed at any time.
 *
 * NOTE: The class is not Generic as Generic classes do not allow primitives
 * for use as generic types.
@@ -63,6 +69,11 @@ int flags[];
 
 int peakType;
 
+int defaultData = 0;
+synchronized public void setDefaultData(int pValue){ defaultData = pValue; }
+int defaultMeta = 0;
+synchronized public void setDefaultMeta(int pValue){ defaultMeta = pValue; }
+
 //simple getters & setters
 
 //constants    
@@ -105,8 +116,10 @@ public DataTransferIntMultiDimBuffer(int pBufLength, int pBufWidth,
 // Creates the data buffer of size pBufSize and prepares for use.
 //
 
-public void init()
+public void init(int pDefaultDataValue, int pDefaultMetaValue)
 {
+    
+    defaultData = pDefaultDataValue; defaultMeta = pDefaultMetaValue;
 
     if (peakType == CATCH_HIGHEST){
         DATA_RESET_VALUE = Integer.MIN_VALUE;
@@ -274,14 +287,14 @@ synchronized public boolean getData(DataSetIntMultiDim pDataSet)
 
 synchronized public int getDataChange(DataSetIntMultiDim pDataSet)
 {
-
+        
     //if data at current location has been marked erased, return that data and
     //move pointer to previous location
     
     if ((flags[getPointer] & DATA_ERASED) != 0){
         flags[getPointer] &= ~DATA_ERASED; //remove ERASED flag    
-        System.arraycopy(dataBuf[putPointer],0, pDataSet.d,0, pDataSet.length);
-        System.arraycopy(metaBuf[putPointer],0, pDataSet.m,0, pDataSet.length);
+        System.arraycopy(dataBuf[getPointer],0, pDataSet.d,0, pDataSet.length);
+        System.arraycopy(metaBuf[getPointer],0, pDataSet.m,0, pDataSet.length);
         pDataSet.flags = flags[getPointer];        
         getPointer--;
         if(getPointer < 0) getPointer = bufLength-1;
@@ -292,8 +305,8 @@ synchronized public int getDataChange(DataSetIntMultiDim pDataSet)
     //move pointer to next location
     
     if ((flags[getPointer] & DATA_READY) != 0){    
-        System.arraycopy(dataBuf[putPointer],0, pDataSet.d,0, pDataSet.length);
-        System.arraycopy(metaBuf[putPointer],0, pDataSet.m,0, pDataSet.length);
+        System.arraycopy(dataBuf[getPointer],0, pDataSet.d,0, pDataSet.length);
+        System.arraycopy(metaBuf[getPointer],0, pDataSet.m,0, pDataSet.length);
         pDataSet.flags = flags[getPointer];        
         getPointer++;
         if(getPointer >= bufLength) getPointer = 0;
@@ -306,45 +319,55 @@ synchronized public int getDataChange(DataSetIntMultiDim pDataSet)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// DataTransferIntMultiDimBuffer::incrementPutPointer
+// DataTransferIntMultiDimBuffer::incPutPtrAndSetReadyAfterDataFill
 //
 // Increments the putPointer. If the new value is past the end of the buffer,
-// it is restarted at zero.
+// it is restarted at zero. The data ready flag is set to signal that it is 
+// ready fro retrieval.
 //
 // Since the buffer is circular and data slots will be reused, the slot
 // pointed to by putPointer is reset to be ready for new data.
 //
+// If no valid data is yet in place for the current put position, data from the
+// previous position will be copied if that data is valid (ready flag set). If
+// that data is not valid, then the "default" data set will be copied. That
+// ensures that reasonably safe data is always retrieved.
+//
 
-synchronized public void incrementPutPointer()
+synchronized public void incPutPtrAndSetReadyAfterDataFill()
 {
 
-    putPointer++;    
-    if(putPointer >= bufLength) putPointer = 0;
-
-    for (int i=0; i<bufWidth; i++){
-        dataBuf[putPointer][i] = DATA_RESET_VALUE;
-        metaBuf[putPointer][i] = META_RESET_VALUE;        
+    //if valid data present in current slot, mark ready and inc pointer
+    
+    if ((flags[putPointer] & DATA_VALID) != 0){ //flag set if result != 0
+        incrementPutPointerAndSetReadyFlag();
+        return;
     }
     
-    flags[putPointer] = FLAG_RESET_VALUE;    
+    //if previous buffer position has valid data, copy it to current position
     
-}// end of DataTransferIntMultiDimBuffer::incrementPutPointer
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// DataTransferIntMultiDimBuffer::decrementPutPointer
-//
-// Decrements the putPointer. If the new value is less than zero, it is
-// restarted at the end of the buffer.
-//
-
-synchronized public void decrementPutPointer()
-{
-
-    putPointer--;
-    if(putPointer < 0) putPointer = bufLength-1;
+    //get pointer to previous slot
+    int prevSlotPtr = putPointer-1;
+    if(prevSlotPtr < 0) prevSlotPtr = bufLength-1;
     
-}// end of DataTransferIntMultiDimBuffer::decrementPutPointer
+    if ((flags[prevSlotPtr] & DATA_VALID) != 0){ //flag set if result != 0
+        System.arraycopy(dataBuf[prevSlotPtr],0,dataBuf[putPointer],0,bufWidth);
+        System.arraycopy(metaBuf[prevSlotPtr],0,metaBuf[putPointer],0,bufWidth);
+        incrementPutPointerAndSetReadyFlag();
+        return;
+    }
+    
+    //since previous data was also invalid, use the default values instead
+
+    for(int i=0; i<bufWidth; i++){
+        dataBuf[putPointer][i] = defaultData; 
+        metaBuf[putPointer][i] = defaultMeta;
+    }
+    
+    incrementPutPointerAndSetReadyFlag();
+    return;            
+    
+}// end of DataTransferIntMultiDimBuffer::incPutPtrAndSetReadyAfterDataFill
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -359,10 +382,17 @@ synchronized public void decrementPutPointer()
 // Since the buffer is circular and data slots will be reused, the slot
 // pointed to by putPointer is reset to be ready for new data.
 //
+// WARNING: The data in the current position may not yet have been filled with
+// valid data. Normally, the incPutPtrAndSetReadyAfterDataFill() method is
+// called instead. See notes at the top of that method for more info.
+//
+// ALSO NOTE that this method is not synchronized and is private as it is
+// expected to be called from synchronized method in this object.
+//
 
-synchronized public void incrementPutPointerAndSetReadyFlag()
+private void incrementPutPointerAndSetReadyFlag()
 {
-
+    
     flags[putPointer] |= DATA_READY;
     
     putPointer++;    
@@ -376,6 +406,55 @@ synchronized public void incrementPutPointerAndSetReadyFlag()
     flags[putPointer] = FLAG_RESET_VALUE;    
 
 }// end of DataTransferIntMultiDimBuffer::incrementPutPointerAndSetReadyFlag
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DataTransferIntMultiDimBuffer::incrementPutPointer
+//
+// Increments the putPointer. If the new value is past the end of the buffer,
+// it is restarted at zero.
+//
+// Since the buffer is circular and data slots will be reused, the slot
+// pointed to by putPointer is reset to be ready for new data.
+//
+// WARNING: The data in the current position may not yet have been filled with
+// valid data. Normally, the incPutPtrAndSetReadyAfterDataFill() method is
+// called instead. See notes at the top of that method for more info.
+//
+// ALSO NOTE that this method is not synchronized and is private as it is
+// expected to be called from synchronized method in this object.
+//
+
+private void incrementPutPointer()
+{
+    
+    putPointer++;    
+    if(putPointer >= bufLength) putPointer = 0;
+
+    for (int i=0; i<bufWidth; i++){
+        dataBuf[putPointer][i] = DATA_RESET_VALUE;
+        metaBuf[putPointer][i] = META_RESET_VALUE;        
+    }
+    
+    flags[putPointer] = FLAG_RESET_VALUE;    
+    
+}// end of DataTransferIntMultiDimBuffer::incrementPutPointer
+//-----------------------------------------------------------------------------
+    
+//-----------------------------------------------------------------------------
+// DataTransferIntMultiDimBuffer::decrementPutPointer
+//
+// Decrements the putPointer. If the new value is less than zero, it is
+// restarted at the end of the buffer.
+//
+
+synchronized public void decrementPutPointer()
+{
+
+    putPointer--;
+    if(putPointer < 0) putPointer = bufLength-1;
+    
+}// end of DataTransferIntMultiDimBuffer::decrementPutPointer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
