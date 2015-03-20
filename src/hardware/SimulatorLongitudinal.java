@@ -14,7 +14,6 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 // class SimulatorLongitudinal
 //
 
@@ -76,14 +75,58 @@ public void getRunPacket(byte[] pPacket)
     index += 2;
     addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal());
     index += 2;
+        
+    addMapData(pPacket, index);
+    
+}// end of SimulatorLongitudinal::getRunPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimulatorLongitudinal::addMapData
+//
+// Adds simulated map data to pPacket starting at position pIndex.
+//
+// The data range is 0 ~ 1,023 with zero volts at approximately 511.
+//
+
+public void addMapData(byte[] pPacket, int pIndex)
+{
+
+    int count = 0;
     
     //add map data
     for(int i=0; i<numClockPositions; i++){
-        addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
-        index += 2;
+        addUnsignedShortToPacket(pPacket, pIndex, AD_ZERO_OFFSET + count++);
+        pIndex += 2;
     }
+
+
+/*    
     
-}// end of SimulatorLongitudinal::getRunPacket
+    int[] dataRow = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                       13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+    
+    
+    //debug mks -- remove this after added to simulation class
+    for (int i=0; i<dataRow.length; i++){
+
+        dataRow[i] = 1 + (int)(2 * Math.random());
+
+        if((int)(100 * Math.random()) < 1){
+            dataRow[i] = 1 + (int)(25 * Math.random());
+        }
+
+        //simulate the weldline
+        if(i == 4){
+            dataRow[i] = 5 + (int)(3 * Math.random());
+        }
+    }
+    //debug mks end
+  
+*/        
+    
+    
+}// end of SimulatorLongitudinal::addMapData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

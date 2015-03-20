@@ -25,6 +25,7 @@ package view;
 
 import java.awt.*;
 import java.util.ArrayList;
+import model.DataSetIntMultiDim;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 
@@ -37,7 +38,10 @@ public class Map3DGraph extends Graph{
 
     private Map3D map3D;
 
-    int updateRateTrigger;
+    int numSystems;
+    String[] systemNames;
+    Color[] systemColors;
+
     int currentMapInsertionRow;
     
     // view parameters used when scanning/inspecting
@@ -61,10 +65,7 @@ public class Map3DGraph extends Graph{
     private int bufferLengthInDataPoints;
     public int getBufferLengthInDataPoints(){return(bufferLengthInDataPoints);}    
     
-    private DataTransferIntMultiDimBuffer mapBuffer; //see notes at top of file
-    public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer){
-                                                      mapBuffer = pMapBuffer; }    
-
+    DataSetIntMultiDim mapDataSet;
     
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
@@ -99,6 +100,8 @@ public void init()
 
     super.init();
 
+    mapDataSet = new DataSetIntMultiDim(mapWidthInDataPoints);        
+    
     addMaps();
     
 }// end of Map3DGraph::init
@@ -216,30 +219,20 @@ public ArrayList<Object> getParameters()
 @Override
 public void updateChild(int pChildNum)
 {
-  
-    if (updateRateTrigger++ < 8){ return; } else { updateRateTrigger = 0; }    
-    
-    int[] dataRow = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                       13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
-    
-    
-    //debug mks -- remove this after added to simulation class
-    for (int i=0; i<dataRow.length; i++){
 
-        dataRow[i] = 1 + (int)(2 * Math.random());
+    int r;
+    
+    while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
 
-        if((int)(100 * Math.random()) < 1){
-            dataRow[i] = 1 + (int)(25 * Math.random());
+        //debug mks
+        if(mapDataSet.d[0] != 0){
+           return;
         }
-
-        //simulate the weldline
-        if(i == 4){
-            dataRow[i] = 5 + (int)(3 * Math.random());
-        }
+        //debug mks end
+                
+        map3D.setAndDrawDataRow((Graphics2D)getGraphics(), mapDataSet.d); //debug mks -- set system for each data point as well
+                    
     }
-    //debug mks end
-        
-    map3D.setAndDrawDataRow((Graphics2D)getGraphics(), dataRow);
 
 }// end of Map3DGraph::updateChild
 //-----------------------------------------------------------------------------
@@ -320,7 +313,7 @@ public void resetAll()
     
     resetData();
  
-    updateRateTrigger = 0; currentMapInsertionRow = 0;
+    currentMapInsertionRow = 0;
     
 }// end of Map3DGraph::resetAll
 //-----------------------------------------------------------------------------
@@ -474,10 +467,43 @@ void loadConfigSettings()
     
     //start out using the runtime view parameters
     currentViewParams.setValues(normalViewParams);
-        
+    
+    loadSystemsConfigSettings(configFileSection);
+    
 }// end of Map3DGraph::loadConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::loadSystemsConfigSettings
+//
+// Loads settings for the map systems from configFile.
+//
+
+void loadSystemsConfigSettings(String configFileSection)
+{
+    
+    numSystems  = 
+       configFile.readInt(configFileSection, "number of systems on map", 0);
+
+    if (numSystems <= 0) { return; }    
+    
+    systemNames = new String[numSystems];
+    systemColors = new Color[numSystems];
+    
+    for(int i=0; i<numSystems; i++){
+    
+        systemNames[i] = configFile.readString(
+                      configFileSection, "system " + i + " name", "undefined");
+
+        systemColors[i] = configFile.readColor(
+                           configFileSection, "system " + i + " color", null);
+        
+    }
+    
+}// end of Map3DGraph::loadSystemsConfigSettings
 //-----------------------------------------------------------------------------
 
 }//end of class Map3DGraph
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+

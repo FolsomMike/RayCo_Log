@@ -42,6 +42,7 @@ public class MainHandler
     int peakScanCh;
 
     Device devices[];
+    public Device[] getDevices(){ return(devices); }
     ArrayList<Boolean> deviceSimModes;
     ArrayList<String> deviceTypes;
 
@@ -207,7 +208,7 @@ public int getNextPeakData(PeakData pPeakData)
         peakScanCh = 0;
     }
     
-    devices[peakScanDev].getPeakData(peakScanCh, pPeakData);
+    devices[peakScanDev].getPeakDataAndReset(peakScanCh, pPeakData);
     
     peakScanCh++;
     

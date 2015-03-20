@@ -49,7 +49,7 @@ public class Channel
     public int getBufferLoc(){ return (bufferLoc);}
     
     int peakType;
-    PeakBuffer peakBuffer;
+    PeakBufferInt peakBuffer;
     
     MKSInteger data = new MKSInteger(0);
     
@@ -103,18 +103,18 @@ public void setUpPeakBuffer()
     switch (peakType){
         
         case CATCH_HIGHEST: 
-            peakBuffer = new HighPeakBufferInteger(0);
-            peakBuffer.setResetValue(new MKSInteger(Integer.MIN_VALUE));
+            peakBuffer = new HighPeakBufferInt(0);
+            peakBuffer.setResetValue(Integer.MIN_VALUE);
             break;
         
         case CATCH_LOWEST: 
-            peakBuffer = new LowPeakBufferInteger(0);
-            peakBuffer.setResetValue(new MKSInteger(Integer.MAX_VALUE));
+            peakBuffer = new LowPeakBufferInt(0);
+            peakBuffer.setResetValue(Integer.MAX_VALUE);
             break;
         
         default: 
-            peakBuffer = new HighPeakBufferInteger(0);
-            peakBuffer.setResetValue(new MKSInteger(Integer.MIN_VALUE));
+            peakBuffer = new HighPeakBufferInt(0);
+            peakBuffer.setResetValue(Integer.MIN_VALUE);
             break;
             
     }
@@ -209,7 +209,7 @@ private void parseDataType(String pValue)
 // greater/lesser (depending on peak type) than the current peak. 
 //
 
-public void catchPeak(Object pPeakValue)
+public void catchPeak(int pPeakValue)
 {
     
     peakBuffer.catchPeak(pPeakValue);
@@ -226,7 +226,7 @@ public void catchPeak(Object pPeakValue)
 // This method returns an object as the peak may be of various data types.
 //
 
-public void getPeakAndReset(Object pPeakValue)
+public void getPeakAndReset(MKSInteger pPeakValue)
 {
     
     peakBuffer.getPeakAndReset(pPeakValue);
@@ -235,7 +235,7 @@ public void getPeakAndReset(Object pPeakValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::getPeakData
+// Channel::getPeakDataAndReset
 //
 // Retrieves the current value of the peak along with all relevant info for the
 // channel such as the chart & trace to which it is attached.
@@ -243,7 +243,7 @@ public void getPeakAndReset(Object pPeakValue)
 // Resets the peak to the reset value.
 //
 
-public void getPeakData(PeakData pPeakData)
+public void getPeakDataAndReset(PeakData pPeakData)
 {
 
     pPeakData.meta = meta; //channel/buffer/trace etc. info
@@ -251,7 +251,7 @@ public void getPeakData(PeakData pPeakData)
     peakBuffer.getPeakAndReset(data);    
     pPeakData.peak = data.x;
     
-}// end of Channel::getPeakData
+}// end of Channel::getPeakDataAndReset
 //-----------------------------------------------------------------------------
 
 }//end of class Channel

@@ -16,9 +16,13 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
-import java.awt.Color;
+import static hardware.Channel.CATCH_HIGHEST;
+import static hardware.Channel.CATCH_LOWEST;
+import static hardware.Channel.DOUBLE_TYPE;
+import static hardware.Channel.INTEGER_TYPE;
+import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
-
+import toolkit.MKSInteger;
 
 //-----------------------------------------------------------------------------
 // class Device
@@ -34,14 +38,26 @@ public class Device
     public int getNumChannels(){ return(numChannels); }
     Channel []channels = null;
     int numClockPositions;
+
+    SampleMetaData mapMeta = new SampleMetaData(0);
+    public SampleMetaData getMapMeta(){ return(mapMeta); }
+    
+    public void setMapDataBuffer(DataTransferIntMultiDimBuffer pV) {
+                                                   mapMeta.dataMapBuffer = pV;}
+    public DataTransferIntMultiDimBuffer getMapDataBuffer() { 
+                                               return(mapMeta.dataMapBuffer); }
     
     boolean simMode;
 
-    int mapChartGroup;
-    int mapChart;
-    int mapGraph;
-    Color mapColor;
+    int mapDataType;
+    int mapPeakType;
+//    int mapChartGroup;
+//    int mapChart;
+//    int mapGraph;
+//    int mapSystem;
 
+    PeakArrayBufferInt peakMapBuffer;
+    
 //-----------------------------------------------------------------------------
 // Device::Device (constructor)
 //
@@ -50,6 +66,8 @@ public Device(int pDeviceNum, IniFile pConfigFile, boolean pSimMode)
 {
 
     deviceNum = pDeviceNum; configFile = pConfigFile; simMode = pSimMode;
+
+    mapMeta.deviceNum = deviceNum;
     
 }//end of Device::Device (constructor)
 //-----------------------------------------------------------------------------
@@ -59,13 +77,30 @@ public Device(int pDeviceNum, IniFile pConfigFile, boolean pSimMode)
 //
 // Initializes the object.  Must be called immediately after instantiation.
 //
-// Do not call loadConfigSettings here...the subclasses should do it.
-//
 
 public void init()
 {
-    
+
 }// end of Device::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::initAfterLoadingConfig
+//
+// Further initializes the object using data loaded from the config file.
+// Must be called by subclasses after they call loadConfigSettings(), which
+// they must call themselves as they specify the section to be read from.
+//
+
+public void initAfterLoadingConfig()
+{
+    setUpPeakMapBuffer();
+    
+    setUpChannels();    
+    
+    mapMeta.numClockPositions = numClockPositions;
+    
+}// end of Device::initAfterLoadingConfig
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -105,10 +140,46 @@ void setUpChannels()
 
 public void collectData()
 {
-    
-    
-    
+  
 }// end of Device::collectData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::parsePeakType
+//
+// Converts the descriptive string loaded from the config file for the map peak
+// type (catch highest, lowest value, etc.) into the corresponding constant.
+//
+
+private void parsePeakType(String pValue)
+{
+
+    switch (pValue) {
+         case "catch highest": mapPeakType = CATCH_HIGHEST; break;
+         case "catch lowest" : mapPeakType = CATCH_LOWEST;  break;
+         default : mapPeakType = CATCH_LOWEST;  break;
+    }
+    
+}// end of Device::parsePeakType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::parseDataType
+//
+// Converts the descriptive string loaded from the config file for the map data
+// type (integer, double, etc.) into the corresponding constant.
+//
+
+private void parseDataType(String pValue)
+{
+
+    switch (pValue) {
+         case "integer": mapDataType = INTEGER_TYPE; break;
+         case "double" : mapDataType = DOUBLE_TYPE;  break;
+         default : mapDataType = INTEGER_TYPE;  break;
+    }
+    
+}// end of Device::parseDataType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -132,14 +203,21 @@ void loadConfigSettings()
     numClockPositions = configFile.readInt(
                                     section, "number of clock positions", 12);
 
-    mapChartGroup = configFile.readInt(section, "map chart group", -1);
+    String s;
     
-    mapChart = configFile.readInt(section, "map chart", -1);
+    s = configFile.readString(section, "map data type", "integer");
+    parseDataType(s);
+        
+    s = configFile.readString(section, "map peak type", "catch highest");
+    parsePeakType(s);
+            
+    mapMeta.chartGroup = configFile.readInt(section, "map chart group", -1);
     
-    mapGraph = configFile.readInt(section, "map graph", -1);
+    mapMeta.chart = configFile.readInt(section, "map chart", -1);
     
-    mapColor = configFile.readColor(
-                                      section, "map color", Color.BLACK);
+    mapMeta.graph = configFile.readInt(section, "map graph", -1);
+    
+    mapMeta.system = configFile.readInt(section, "map system", -1);
                 
 }// end of Device::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -153,7 +231,7 @@ void loadConfigSettings()
 // This class returns an object as the peak may be of various data types.
 //
 
-public void getPeakForChannelAndReset(int pChannel, Object pPeakValue)
+public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue)
 {
     
     channels[pChannel].getPeakAndReset(pPeakValue);
@@ -162,7 +240,7 @@ public void getPeakForChannelAndReset(int pChannel, Object pPeakValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Device::getPeakData
+// Device::getPeakDataAndReset
 //
 // Retrieves the current value of the peak for channel pChannel along with
 // all relevant info for the channel such as the chart & trace to which it is
@@ -171,12 +249,43 @@ public void getPeakForChannelAndReset(int pChannel, Object pPeakValue)
 // Resets the peak to the reset value.
 //
 
-public void getPeakData(int pChannel, PeakData pPeakData)
+public void getPeakDataAndReset(int pChannel, PeakData pPeakData)
 {
     
-    channels[pChannel].getPeakData(pPeakData);
+    channels[pChannel].getPeakDataAndReset(pPeakData);
     
-}// end of Device::getPeakData
+}// end of Device::getPeakDataAndReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getPeakMapDataAndReset
+//
+// Retrieves the current values of the map data peaks along with all relevant
+// info for the channel such as the chart & graph to which it is attached.
+//
+// All data in the pPeakMapData.metaArray is set to the map system number of
+// this device so the data can be identified as necessary.
+//
+// Resets the peaks to the reset value.
+//
+// Returns true if the peak has been updated since the last call to this method
+// or false otherwise.
+//
+
+public boolean getPeakDataAndReset(PeakMapData pPeakMapData)
+{
+    
+    if(peakMapBuffer == null) { return(false); }
+    
+    pPeakMapData.meta = mapMeta; //channel/buffer/graph etc. info
+        
+    boolean peakUpdated = peakMapBuffer.getPeakAndReset(pPeakMapData.peakArray);
+        
+    pPeakMapData.setMetaArray(mapMeta.system);
+    
+    return(peakUpdated);
+    
+}// end of Device::getPeakMapDataAndReset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -228,6 +337,46 @@ int getUnsignedShortFromPacket(byte[] pPacket, int pIndex)
     
 }//end of Device::getUnsignedShortFromPacket
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::setUpPeakMapBuffer
+//
+// Creates and sets up the appropriate PeakArrayBufferInt subclass to capture
+// the type of peak specified in the config file, i.e. highest value, lowest
+// value, etc.
+//
+// If the number of clock positions is zero, the buffers are not created.
+//
+
+public void setUpPeakMapBuffer()
+{
+    
+    if (numClockPositions == 0) { return; }
+
+    switch (mapPeakType){
+        
+        case CATCH_HIGHEST: 
+            peakMapBuffer = new HighPeakArrayBufferInt(0, numClockPositions);
+            peakMapBuffer.setResetValue(Integer.MIN_VALUE);
+            break;
+        
+        case CATCH_LOWEST: 
+            peakMapBuffer = new HighPeakArrayBufferInt(0, numClockPositions);
+            peakMapBuffer.setResetValue(Integer.MAX_VALUE);
+            break;
+        
+        default: 
+            peakMapBuffer = new HighPeakArrayBufferInt(0, numClockPositions);
+            peakMapBuffer.setResetValue(Integer.MIN_VALUE);
+            break;
+            
+    }
+
+    peakMapBuffer.reset();
+    
+}// end of Device::setUpPeakMapBuffer
+//-----------------------------------------------------------------------------
+
 
 }//end of class Device
 //-----------------------------------------------------------------------------

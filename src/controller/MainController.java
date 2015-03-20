@@ -35,9 +35,12 @@
 
 package controller;
 
+import hardware.Device;
 import view.GUIDataSet;
 import hardware.MainHandler;
 import hardware.PeakData;
+import hardware.PeakMapData;
+import hardware.SampleMetaData;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
@@ -76,6 +79,8 @@ public class MainController implements EventHandler, Runnable
 
     private PeakData peakData;
     
+    private PeakMapData peakMapData;
+    
     private MainDataClass mainDataClass;
 
     private MainView mainView;
@@ -95,6 +100,8 @@ public class MainController implements EventHandler, Runnable
 
     private int displayUpdateTimer = 0;
 
+    int mapUpdateRateTrigger = 0;
+    
     private String XMLPageFromRemote;
 
     private boolean shutDown = false;
@@ -144,6 +151,8 @@ public void init()
     loadConfigSettings();
 
     peakData = new PeakData(0);
+    
+    peakMapData = new PeakMapData(0, 24); //debug mks -- this needs to be loaded????
     
     mainDataClass = new MainDataClass();
     mainDataClass.init();
@@ -219,6 +228,9 @@ private void setUpDataTransferBuffers()
     //link each channel with the appropriate data buffer
     setChannelDataBuffers();
     
+    //link each device with the appropriate map buffer
+    setDeviceMapDataBuffers();
+    
 }// end of MainController::setUpDataTransferBuffers
 //-----------------------------------------------------------------------------
 
@@ -250,7 +262,7 @@ private void createAndAssignDataBuffersToTraces()
         
         dataBuffers[i] = new DataTransferIntBuffer(
                         trace.getNumDataPoints(), trace.getPeakType());
-        dataBuffers[i].init(); dataBuffers[i].reset();
+        dataBuffers[i].init(0); dataBuffers[i].reset();
         
         trace.setDataBuffer(dataBuffers[i]);
         
@@ -279,33 +291,34 @@ private void createAndAssignDataBuffersToTraces()
 private void createAndAssignDataBuffersToMaps()
 {
 
-    ArrayList<Object> maps = new ArrayList<>();
+    ArrayList<Object> mapGraphs = new ArrayList<>();
     
     //prepare to iterate through all traces
-    mainView.scanForGUIObjectsOfAType(maps, "3D map graph");
+    mainView.scanForGUIObjectsOfAType(mapGraphs, "3D map graph");
 
-    numMapBuffers = maps.size();
+    numMapBuffers = mapGraphs.size();
     mapBuffers = new DataTransferIntMultiDimBuffer[numMapBuffers];
     
     int i = 0;
     
-    ListIterator iter = maps.listIterator();
+    ListIterator iter = mapGraphs.listIterator();
     
     while(iter.hasNext()){
         
-        Map3DGraph map = (Map3DGraph)iter.next();
+        Map3DGraph mapGraph = (Map3DGraph)iter.next();
         
         mapBuffers[i] = new DataTransferIntMultiDimBuffer(
-              map.getBufferLengthInDataPoints(), map.getMapWidthInDataPoints(),
-              map.getPeakType());
-        mapBuffers[i].init();
+              mapGraph.getBufferLengthInDataPoints(), 
+              mapGraph.getMapWidthInDataPoints(),
+              mapGraph.getPeakType());
+        mapBuffers[i].init(0, 0);
         mapBuffers[i].reset();
  
-        map.setMapBuffer(mapBuffers[i]);
+        mapGraph.setMapBuffer(mapBuffers[i]);
         
-        mapBuffers[i].chartGroupNum = map.getChartGroupNum();
-        mapBuffers[i].chartNum = map.getChartNum();
-        mapBuffers[i].graphNum = map.getGraphNum();
+        mapBuffers[i].chartGroupNum = mapGraph.getChartGroupNum();
+        mapBuffers[i].chartNum = mapGraph.getChartNum();
+        mapBuffers[i].graphNum = mapGraph.getGraphNum();
         
         i++;
     }
@@ -355,6 +368,47 @@ private void setChannelDataBuffers()
     }
     
 }// end of MainController::setChannelDataBuffers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::setDeviceMapDataBuffers
+//
+// Scans through all devices and links each to the DataTransferIntMultiDimBuffer
+// to which the map associated with that device has been linked. This allows
+// data from a device to be passed to its associated map.
+//
+
+private void setDeviceMapDataBuffers()
+{
+      
+    //traverse all the devices
+    
+    for(Device device : mainHandler.getDevices()){
+     
+        SampleMetaData mapMeta = device.getMapMeta();
+        
+        //skip devices which do not map
+        if(mapMeta.numClockPositions <= 0) { continue; }
+        
+        try{
+            
+            device.setMapDataBuffer(mainView.getGraph(
+               mapMeta.chartGroup, mapMeta.chart,
+                   mapMeta.graph).getMapBuffer());
+        }catch(NullPointerException e){
+        
+            Tools.displayErrorMessage(
+                "Error Linking Map Data Buffer/Map to Device...\n"
+                + "Device: " + mapMeta.deviceNum + "\n"
+                + "Channel: " + mapMeta.channelNum + "\n"
+                + "Chart Group: " + mapMeta.chartGroup + "\n"
+                + "Chart : " + mapMeta.chart + "\n"
+                + "Graph : " + mapMeta.graph + "\n"
+                ,null);
+        }
+    }
+    
+}// end of MainController::setDeviceMapDataBuffers
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -594,35 +648,52 @@ private void displayDataFromDevices()
 
     if(mode == STOP_MODE) { return; }
     
+    //handle trace data
+    
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
     
     //get peak data for each channel
     while (mainHandler.getNextPeakData(peakData) != -1){
-
         //put data in the transfer buffer
         peakData.meta.dataBuffer.putData(peakData.peak);
-                      
     }
 
+    //update display object from transfer buffer
     for(DataTransferIntBuffer dataBuffer: dataBuffers){
         //pace this with timer to control scan speed
-        dataBuffer.incrementPutPointerAndSetReadyFlag();
+        dataBuffer.incPutPtrAndSetReadyAfterDataFill();
         //update trace with all data changes
         mainView.updateChild(dataBuffer.chartGroupNum, dataBuffer.chartNum,
                                      dataBuffer.graphNum, dataBuffer.traceNum);
     }
 
+    // handle annotation graphs
+    
+    mainView.updateAnnotationGraphs(0);    
+    
+    // handle map data
+
+    if (mapUpdateRateTrigger++ < 8){ return; } else { mapUpdateRateTrigger = 0; }    //debug mks -- does this belong here?    
+    
+    //get peak map data for each device
+    
+    for (Device device : mainHandler.getDevices()){
+        if (device.getPeakDataAndReset(peakMapData) == true){
+            peakMapData.meta.dataMapBuffer.putData(
+                            peakMapData.peakArray, peakMapData.peakMetaArray);
+        }
+    }
+        
+    //update display object from transfer buffer
     for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
         //pace this with timer to control scan speed
-        mapBuffer.incrementPutPointerAndSetReadyFlag();
+        mapBuffer.incPutPtrAndSetReadyAfterDataFill();
         //update trace with all data changes
         mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
                                        mapBuffer.graphNum, mapBuffer.traceNum);
     }
         
-    mainView.updateAnnotationGraphs(0);
-
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
 

@@ -20,6 +20,7 @@ package view;
 import java.awt.*;
 import java.util.ArrayList;
 import javax.swing.*;
+import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -44,6 +45,11 @@ public class Graph extends JPanel{
     public int getGraphNum(){ return(graphNum); }
     int width, height, specifiedWidth, specifiedHeight;
     Color backgroundColor;
+
+    DataTransferIntMultiDimBuffer mapBuffer; //see notes at top of file
+    public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer){
+                                                      mapBuffer = pMapBuffer; }    
+    public DataTransferIntMultiDimBuffer getMapBuffer(){ return mapBuffer; }    
 
     int scrollTrackChartGroupNum, scrollTrackChartNum, scrollTrackGraphNum;
     ArrayList<Graph> graphsTrackingThisGraphsScrolling;

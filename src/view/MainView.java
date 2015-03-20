@@ -508,6 +508,22 @@ public int getChartWidth()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::getGraph
+//
+// Returns the reference to graph pGraph of pChart of pChartGroup.
+//
+
+public Graph getGraph(int pChartGroup, int pChart, int pGraph)
+{
+
+    if (pChartGroup < 0 || pChartGroup >= chartGroups.length){ return(null); }
+    
+    return( chartGroups[pChartGroup].getGraph(pChart, pGraph) );
+    
+}// end of MainView::getGraph
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::getTrace
 //
 // Returns the reference to trace pTrace of pGraph of pChart of pChartGroup.

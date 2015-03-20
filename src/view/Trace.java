@@ -34,9 +34,9 @@ public class Trace{
 
     private GraphInfo graphInfo;
     
-    DataTransferIntBuffer dataBuffer;
-    DataSetInt dataSet = new DataSetInt();
+    DataSetInt dataSet = new DataSetInt();    
     
+    DataTransferIntBuffer dataBuffer;
     public void setDataBuffer(DataTransferIntBuffer pV) { dataBuffer = pV; }
     public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
     

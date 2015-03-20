@@ -1,13 +1,13 @@
 /******************************************************************************
-* Title: HighPeakBufferArrayInt.java
+* Title: HighPeakBufferInt.java
 * Author: Mike Schoonover
 * Date: 03/18/15
 * 
 * Purpose:
 * 
-* This class used to detect and store an array of highest peak values of type
-* integer. A new value replaces the previously stored peak if the new value is
-* greater than the old peak.
+* This class is used to detect and store the highest peak value of type int. A
+* new value replaces the previously stored peak if the new value is greater than
+* the old peak.
 * 
 * The methods to store a peak, retrieve a peak, and set a peak are all
 * synchronized so they are thread safe.
@@ -23,17 +23,17 @@ package hardware;
 // class HighPeakBufferInt
 //
 
-public class HighPeakArrayBufferInt extends PeakArrayBufferInt
+public class HighPeakBufferInt extends PeakBufferInt
 {
     
 //-----------------------------------------------------------------------------
 // HighPeakBufferInt::HighPeakBufferInt (constructor)
 //
 
-public HighPeakArrayBufferInt(int pIndex, int pArraySize)
+public HighPeakBufferInt(int pIndex)
 {
 
-    super(pIndex, pArraySize);
+    super(pIndex);
     
 }//end of HighPeakBufferInt::HighPeakBufferInt (constructor)
 //-----------------------------------------------------------------------------
@@ -44,19 +44,15 @@ public HighPeakArrayBufferInt(int pIndex, int pArraySize)
 // This method overrides that in the parent class to provide the specific
 // type of comparison for the peak type being captured.
 //
-// If pValue > old peak, pValue is stored as the new peak.
+// If pNewData > old peak, pNewData is stored as the new peak.
 //
 
 @Override
-public synchronized void catchPeak(int[] pNewData)
+public synchronized void catchPeak(int pNewData)
 {    
-    for(int i=0; i<arraySize; i++){
-        if(pNewData[i] > peakArray[i]) { 
-            peakArray[i] = pNewData[i];
-            peakUpdated = true;
-        }        
-    }
 
+    if(pNewData > peak) { peak = pNewData; peakUpdated = true; }
+        
 }// end of HighPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------
 

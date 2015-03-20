@@ -24,6 +24,7 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.DataTransferIntBuffer;
+import model.DataTransferIntMultiDimBuffer;
 
 
 
@@ -37,15 +38,19 @@ public class SampleMetaData
 
 public int sampleMetaDataNum = 0;
 
+public int numClockPositions;
+
 public int deviceNum = -1;
 public int channelNum = -1;
 public int chartGroup = -1;
 public int chart = -1;
 public int graph = -1;
 public int trace = -1;
+public int system = -1;
 
 public Channel channel;
 public DataTransferIntBuffer dataBuffer;
+public DataTransferIntMultiDimBuffer dataMapBuffer;
 
 //-----------------------------------------------------------------------------
 // SampleMetaData::SampleMetaData (constructor)

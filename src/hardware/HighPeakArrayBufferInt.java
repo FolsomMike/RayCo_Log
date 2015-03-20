@@ -44,12 +44,13 @@ public HighPeakArrayBufferInt(int pIndex, int pArraySize)
 // This method overrides that in the parent class to provide the specific
 // type of comparison for the peak type being captured.
 //
-// If pValue > old peak, pValue is stored as the new peak.
+// If pNewData > old peak, pNewData is stored as the new peak.
 //
 
 @Override
 public synchronized void catchPeak(int[] pNewData)
-{    
+{ 
+
     for(int i=0; i<arraySize; i++){
         if(pNewData[i] > peakArray[i]) { 
             peakArray[i] = pNewData[i];

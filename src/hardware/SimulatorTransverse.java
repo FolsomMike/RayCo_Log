@@ -103,7 +103,7 @@ public void getRunPacket(byte[] pPacket)
     
     //add map data
     for(int i=0; i<numClockPositions; i++){
-        addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
+        addUnsignedShortToPacket(pPacket, index, AD_ZERO_OFFSET);
         index += 2;
     }
     

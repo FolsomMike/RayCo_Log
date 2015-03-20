@@ -56,7 +56,7 @@ public void init()
 
     loadConfigSettings();
     
-    setUpChannels();    
+    initAfterLoadingConfig();
 
 }// end of Multi_IO_A_Longitudinal::init
 //-----------------------------------------------------------------------------
@@ -75,34 +75,7 @@ public void init()
 public void collectData()
 {
     
-    if (!simMode){ 
-        getRunPacketFromDevice(packet);
-    }else{        
-        simulator.getRunPacket(packet);
-    }
-    
-    //first channel's buffer location specifies start of channel data section
-    int index = channels[0].getBufferLoc();
-    
-    for(Channel channel : channels){
-     
-        data.x = getUnsignedShortFromPacket(packet, index);
-        data.x = Math.abs(data.x -= AD_ZERO_OFFSET);
-        channel.catchPeak(data);
-        index += 2;
-        
-    }
-
-    
-    
-    
-    
-    
-    for(int i=0; i<numClockPositions; i++){
-    
-        
-        
-    }
+    super.collectData();
     
 }// end of Multi_IO_A_Longitudinal::collectData
 //-----------------------------------------------------------------------------
