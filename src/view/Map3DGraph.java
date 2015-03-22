@@ -26,7 +26,6 @@ package view;
 import java.awt.*;
 import java.util.ArrayList;
 import model.DataSetIntMultiDim;
-import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -42,6 +41,10 @@ public class Map3DGraph extends Graph{
     String[] systemNames;
     Color[] systemColors;
 
+    int colorMappingStyle;
+    int mapBaselineThreshold;
+    Color mapBaselineColor;
+    
     int currentMapInsertionRow;
     
     // view parameters used when scanning/inspecting
@@ -73,6 +76,9 @@ public class Map3DGraph extends Graph{
     private static final int WARNING_LEVEL = 10;
     private static final int CRITICAL_LEVEL = 20;
         
+    public static final int ASSIGN_COLOR_BY_HEIGHT = 0;
+    public static final int ASSIGN_COLOR_BY_SYSTEM = 1;
+    
 //-----------------------------------------------------------------------------
 // Map3DGraph::Map3DGraph (constructor)
 //
@@ -103,7 +109,7 @@ public void init()
     mapDataSet = new DataSetIntMultiDim(mapWidthInDataPoints);        
     
     addMaps();
-    
+
 }// end of Map3DGraph::init
 //-----------------------------------------------------------------------------
 
@@ -117,12 +123,16 @@ private void addMaps()
 {
 
     map3D = new Map3D(chartGroupNum, chartNum, graphNum,
-        width, height,  mapLengthInDataPoints, mapWidthInDataPoints);
+        width, height,  mapLengthInDataPoints, mapWidthInDataPoints,
+        numSystems, colorMappingStyle,
+        mapBaselineThreshold, mapBaselineColor);
 
     map3D.init();
     map3D.createArrays();
-    map3D.fillInputArray(0);
+    map3D.resetAll();
 
+    map3D.setSystemInfo(systemNames, systemColors);
+    
 }//end of Map3DGraph::addMaps
 //-----------------------------------------------------------------------------
 
@@ -223,14 +233,9 @@ public void updateChild(int pChildNum)
     int r;
     
     while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
-
-        //debug mks
-        if(mapDataSet.d[0] != 0){
-           return;
-        }
-        //debug mks end
                 
-        map3D.setAndDrawDataRow((Graphics2D)getGraphics(), mapDataSet.d); //debug mks -- set system for each data point as well
+        map3D.setAndDrawDataRow(
+                        (Graphics2D)getGraphics(), mapDataSet.d, mapDataSet.m);
                     
     }
 
@@ -409,6 +414,29 @@ public void animate()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::parseColorMappingStyle
+//
+// Converts the descriptive string loaded from the config file for the color
+// mapping style (color by system, color by height, etc.) into the
+// corresponding constant.
+//
+
+private void parseColorMappingStyle(String pValue)
+{
+
+    switch (pValue) {
+         case "assign by height": 
+             colorMappingStyle = ASSIGN_COLOR_BY_HEIGHT; break;
+         case "assign by system" : 
+             colorMappingStyle = ASSIGN_COLOR_BY_SYSTEM; break;
+         default : 
+             colorMappingStyle = ASSIGN_COLOR_BY_SYSTEM; break;
+    }
+    
+}// end of Channel::parseColorMappingStyle
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::loadConfigSettings
 //
 // Loads settings for the object from configFile.
@@ -464,6 +492,18 @@ void loadConfigSettings()
            (mapLengthInDataPoints * pixelWidthOfGridBlockInRuntimeLayout)) / 2);
         normalViewParams.xPos = -(normalViewParams.xPos);
     }
+    
+    
+     String s = configFile.readString(configFileSection,
+                                    "color mapping style", "assign by system");
+
+    parseColorMappingStyle(s);
+        
+    mapBaselineThreshold = configFile.readInt(configFileSection,
+                                                 "map baseline threshold", 4);
+        
+    mapBaselineColor = configFile.readColor(configFileSection,
+                                       "map baseline color", Color.LIGHT_GRAY);      
     
     //start out using the runtime view parameters
     currentViewParams.setValues(normalViewParams);

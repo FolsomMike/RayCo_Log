@@ -61,6 +61,7 @@ import model.SharedSettings;
 import toolkit.Tools;
 import view.MKSTools;
 import view.MainView;
+import view.Map3D;
 import view.Map3DGraph;
 import view.Trace;
 
@@ -312,7 +313,7 @@ private void createAndAssignDataBuffersToMaps()
               mapGraph.getBufferLengthInDataPoints(), 
               mapGraph.getMapWidthInDataPoints(),
               mapGraph.getPeakType());
-        mapBuffers[i].init(0, 0);
+        mapBuffers[i].init(0, Map3D.NO_SYSTEM);
         mapBuffers[i].reset();
  
         mapGraph.setMapBuffer(mapBuffers[i]);

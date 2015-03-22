@@ -6,6 +6,15 @@
 * Purpose:
 *
 * This class displays data as a 3 dimensional "topographical" map.
+* 
+* A two dimensional array dataBuf[][] is used to contain the input data. The
+* x,y location of each point is represented by the two array indices of the
+* location of the point while the value at that location is represents the
+* z location.
+* 
+* A separate array named metaBuf is used to store information about each
+* point in buffer array, such as the system which generated the point, the
+* point's color, or any other information.
 *
 *
 * Notes Regarding 3D to 2D Image Transformation
@@ -156,7 +165,7 @@ import java.awt.*;
 // orthoS[][] is used to store the orthographical screen position of data point
 //
 
-class Map3D{
+public class Map3D{
 
     //user controlled mapping parameters
     int   xPos, yPos;             // x,y position of the 2D view on the screen
@@ -176,6 +185,7 @@ class Map3D{
     int normalValue;
 
     int currentInsertionRow;
+    int colorMappingStyle;
     
     //grid parameters
 
@@ -212,17 +222,26 @@ class Map3D{
     Polygon quadPoly = new Polygon(xPoints, yPoints, 4); 
     
     int[] polyHeight = new int[4];
+    int[] polyMeta = new int[4];
 
+    int numSystems;
+    String[] systemNames;
+    Color[] systemColors;
+    
     //open file controller
     String fileName;        // input file name
     String inputFileName;   // input file name
 
     //Map Arrays
     int[][] points;          // input data array
+    int[][] metaBuf;
     ScreenPlane[][] s;       // screen points array, corresponding to points[][]
     ScreenPlane[][] orthoS;  // screen points array, 
                              // the points value equals to zero ??? meaning?
 
+    int baselineThreshold;
+    Color baselineColor;
+    
     //map drawing controller
     boolean hiddenSurfaceViewMode;
     boolean wireFrameViewMode;
@@ -232,7 +251,12 @@ class Map3D{
 
     //2,4,6,8,10,12 bigger number lower resolution    
     static final double RESOLUTION = 5.0; 
-        
+    
+    public static final int ASSIGN_COLOR_BY_HEIGHT = 0;
+    public static final int ASSIGN_COLOR_BY_SYSTEM = 1;
+
+    public static final int NO_SYSTEM = -1;    
+    
 //-----------------------------------------------------------------------------
 // Map3D::Map3D (constructor)
 //
@@ -250,15 +274,26 @@ class Map3D{
 //
 
 public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
-            int pWidth, int pHeight, int pDataXMax, int pDataYMax)
+            int pWidth, int pHeight, int pDataXMax, int pDataYMax,
+            int pNumSystems, int pColorMappingStyle, int pBaselineThreshold,
+            Color pBaselineColor)
 {
 
     dataXMax = pDataXMax; dataYMax = pDataYMax;
     xMax = dataXMax + 2; yMax = dataYMax + 2;
 
+    colorMappingStyle = pColorMappingStyle;
+    baselineThreshold = pBaselineThreshold;
+    baselineColor = pBaselineColor;
+    
+    numSystems = pNumSystems;
+    systemNames = new String[numSystems];
+    systemColors = new Color[numSystems];
+    
     setCanvasSize(pWidth, pHeight);
         
     points = new int[xMax][yMax];
+    metaBuf = new int[xMax][yMax];
         
     s = new ScreenPlane[xMax][yMax];
     orthoS = new ScreenPlane[xMax][yMax];    
@@ -346,9 +381,28 @@ public void resetAll()
 {
 
     currentInsertionRow = 0;
-    fillInputArray(0);
+    fillDataBuf(0);
+    fillMetaBuf(NO_SYSTEM);
     
 }// end of Map3D::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::setSystemInfo
+//
+// Sets the info for the systems. Each data point can be assigned to a system.
+// Each system has color, a description, etc. which help to determine the
+// manner in which a point or a polygon of which that point is a corner is
+// rendered.
+//
+
+public void setSystemInfo(String[] pSystemNames, Color[] pSystemColors)
+{
+
+    System.arraycopy(pSystemNames, 0, systemNames , 0, pSystemNames.length);
+    System.arraycopy(pSystemColors, 0, systemColors , 0, pSystemColors.length);    
+    
+}// end of Map3D::setSystemInfo
 //-----------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -385,25 +439,43 @@ public void createArrays()
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-// Map3D::fillInputArray
+// Map3D::fillDataBuf
 //
-// This function is used to set input points array values to pValue.
+// This function is used to set all input data points to pValue.
 //
 
-public void fillInputArray(int pValue)
+public void fillDataBuf(int pValue)
 {
 
     for ( int i = 0; i < xMax; i++){
         for ( int j = 0; j < yMax; j++){ points[i][j] = pValue; }
     }
 
-}//end of Map3D::fillInputArray
+}//end of Map3D::fillDataBuf
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// Map3D::fillMetaBuf
+//
+// This function is used to set all input meta data points to pValue.
+//
+
+public void fillMetaBuf(int pValue)
+{
+
+    for ( int i = 0; i < xMax; i++){
+        for ( int j = 0; j < yMax; j++){ metaBuf[i][j] = pValue; }
+    }
+
+}//end of Map3D::fillMetaBuf
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 // TopographicalMapper::setDataRow
 //
-// This function is used to set a single row of data in the points array.
+// This function is used to set a single row of data in the points array. The
+// data points in pDataRow are copied to row pLengthPos in dataBuf. The
+// data points in pMetaRow are copied to row pLengthPos in metaBuf.
 //
 // NOTE: For adding data to a row and then immediately drawing it, use
 // setAndDrawDataRow() as that handles the row insertion pointer such that
@@ -418,12 +490,12 @@ public void fillInputArray(int pValue)
 // is always at level 0.
 //
 
-public void setDataRow(int pLengthPos, int[] pDataRow)
+public void setDataRow(int pLengthPos, int[] pDataRow, int[] pMetaRow)
 {
-
-    assert(pLengthPos < dataXMax);
     
     System.arraycopy(pDataRow, 0, points[pLengthPos + 1], 1, pDataRow.length);
+    
+    System.arraycopy(pMetaRow, 0, metaBuf[pLengthPos + 1], 1, pMetaRow.length);
 
 }// end of Map3D::setDataRow
 //---------------------------------------------------------------------------
@@ -435,6 +507,9 @@ public void setDataRow(int pLengthPos, int[] pDataRow)
 // row is then drawn on the display. The row is determined by the
 // currentInsertionRow variable.
 //
+// The data points in pDataRow are copied to row pLengthPos in dataBuf. The
+// data points in pMetaRow are copied to row pLengthPos in metaBuf.
+//
 // pDataRow should point to an array having the same number of elements as is
 // present in one row of the points array.
 //
@@ -444,12 +519,15 @@ public void setDataRow(int pLengthPos, int[] pDataRow)
 // is always at level 0.
 //
 
-public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow)
+public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
 {
     
     System.arraycopy(
              pDataRow, 0, points[currentInsertionRow + 1], 1, pDataRow.length);
 
+    System.arraycopy(
+            pMetaRow, 0, metaBuf[currentInsertionRow + 1], 1, pMetaRow.length);    
+    
     quickDrawLastRow(pG2);
     
     currentInsertionRow++;
@@ -1030,19 +1108,33 @@ private void drawPolygons(
 
             quadPoly.invalidate(); //force use of new data
             
-            //get the height for each point - these are the values from the
-            //original data input array - the viewing array x,y points are
-            //distorted to show the heights as a 3D image on a 2D screen and
-            //thus do not make sense for this purpose
+            //get the height for each point to determine the highest point of
+            //the polygon which will determine its color
+            //these are the values from the original data input array - the
+            //viewing array x,y points are distorted to show the heights as a
+            //3D image on a 2D screen and thus do not make sense for this
+            //purpose
+            //store the system associated with each point in the corresponding
+            //polyMeta array
             
             polyHeight[0] = points[i][j];
+            polyMeta[0] = metaBuf[i][j];
             polyHeight[1] = points[i + _XPolyDirection][j];
+            polyMeta[1] = metaBuf[i + _XPolyDirection][j];            
             polyHeight[2] = points[i + _XPolyDirection][j + _YPolyDirection];
+            polyMeta[2] = metaBuf[i + _XPolyDirection][j + _YPolyDirection];            
             polyHeight[3] = points[i][j + _YPolyDirection];
+            polyMeta[3] = metaBuf[i][j + _YPolyDirection];            
             
             //assign a color to the quadrilateral based on the height of its
-            //highest point
-            pG2.setColor(assignColor(pG2, polyHeight));
+            //highest corner point
+            if(colorMappingStyle == ASSIGN_COLOR_BY_HEIGHT){            
+                pG2.setColor(assignColorByHeight(pG2, polyHeight));
+            }else
+            if(colorMappingStyle == ASSIGN_COLOR_BY_SYSTEM){            
+                pG2.setColor(assignColorBySystem(pG2, polyHeight, polyMeta));
+            }
+
             //draw the quadrilateral on the hidden image canvas
             pG2.fill(quadPoly);
             
@@ -1050,7 +1142,6 @@ private void drawPolygons(
             pG2.setColor(Color.BLACK);
             pG2.draw(quadPoly);
             
-
         }
 
     }
@@ -1059,34 +1150,76 @@ private void drawPolygons(
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-// Map3D::assignColor
+// Map3D::assignColorByHeight
 //
 // Determines the color for a polygon based on the height of its highest
-// corner point.  The heights of the four corners are passed via the array
-// pHeight.
+// corner point. The heights of the four corners are passed via the array
+// pHeights.
 //
 
-private Color assignColor(Graphics2D pG2, int[] pHeight)
+private Color assignColorByHeight(Graphics2D pG2, int[] pHeights)
 {
 
-    if (pHeight[0] >= criticalValue || pHeight[1] >= criticalValue
-       || pHeight[2] >= criticalValue || pHeight[3] >= criticalValue)
+    if (pHeights[0] >= criticalValue || pHeights[1] >= criticalValue
+       || pHeights[2] >= criticalValue || pHeights[3] >= criticalValue)
         return(Color.RED);
     else
-    if (pHeight[0] >= warnValue || pHeight[1] >= warnValue
-       || pHeight[2] >= warnValue || pHeight[3] >= warnValue)
-        return(Color.GREEN);
-    else
-    if (pHeight[0] > normalValue || pHeight[1] > normalValue
-       || pHeight[2] > normalValue || pHeight[3] > normalValue)
+    if (pHeights[0] >= warnValue || pHeights[1] >= warnValue
+       || pHeights[2] >= warnValue || pHeights[3] >= warnValue)
         return(Color.BLUE);
     else
-    if (pHeight[0] > 0 || pHeight[1] > 0 || pHeight[2] > 0 || pHeight[3] > 0)
+    if (pHeights[0] > normalValue || pHeights[1] > normalValue
+       || pHeights[2] > normalValue || pHeights[3] > normalValue)
+        return(Color.GREEN);
+    else
+    if (pHeights[0]>0 || pHeights[1]>0 || pHeights[2]>0 || pHeights[3]>0)
         return(Color.LIGHT_GRAY);
     else
-        return(pG2.getBackground());
+        return(baselineColor);
 
-}//end of Map3D.assignColor
+}//end of Map3D.assignColorByHeight
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// Map3D::assignColorBySystem
+//
+// Determines the color for a polygon based on the system associated with its
+// highest corner point.
+//
+// The heights of the four corners are passed via the array pHeight.
+// The system for each of the corners is passed via the array pPolyMeta.
+//
+
+private Color assignColorBySystem(
+                               Graphics2D pG2, int[] pHeights, int[] pPolyMeta)
+{
+    
+    //find the peak height of the corners
+    
+    int peak = Integer.MIN_VALUE; int peakIndex = -1;
+    
+    for(int i=0; i<pHeights.length; i++){
+        if (pHeights[i] > peak){
+            peak = pHeights[i];
+            peakIndex = i;
+        }
+    }
+    
+    //if height is below the baseline threshold, return a baseline color
+    
+    if(peakIndex != -1 && peak < baselineThreshold){
+        return(baselineColor);
+    }
+    
+    //return the color associated with the system of the highest peak
+    
+    if(peakIndex != -1 && pPolyMeta[peakIndex] != NO_SYSTEM){
+        return(systemColors[pPolyMeta[peakIndex]]);
+    }else {
+        return(baselineColor);
+    }
+
+}//end of Map3D.assignColorBySystem
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------

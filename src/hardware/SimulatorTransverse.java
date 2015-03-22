@@ -101,13 +101,64 @@ public void getRunPacket(byte[] pPacket)
     addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-8    
     index += 2;
     
-    //add map data
-    for(int i=0; i<numClockPositions; i++){
-        addUnsignedShortToPacket(pPacket, index, AD_ZERO_OFFSET);
-        index += 2;
-    }
+    index = addMapData(pPacket, index);
     
 }// end of SimulatorTransverse::getRunPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimulatorTransverse::addMapData
+//
+// Adds simulated map data to pPacket starting at position pIndex.
+//
+// The data range is 0 ~ 1,023 with zero volts at approximately 511.
+//
+// Returns the updated value of pIndex, pointing to the next empty position in
+// pPacket.
+//
+// Note: Currently, any random data generated must be gated by a random switch
+// so that the data is only generated infrequently...the simulation function
+// gets called so frequently between collection that the highest peak will
+// always be generated in that time frame so the data ends up being a straight
+// line at the max possible random value. After reducing the number of times
+// the data is generated, such as with a timer, to mimic the actual devices,
+// the gating can be removed.
+//
+
+public int addMapData(byte[] pPacket, int pIndex)
+{
+
+/*  
+    //use this code to create a wedge shape on the 3D map
+
+    int count = 0;
+    
+    //add map data
+    for(int i=0; i<numClockPositions; i++){
+        addUnsignedShortToPacket(pPacket, pIndex, AD_ZERO_OFFSET + count++);
+        pIndex += 2;
+    }
+*/
+        
+    for (int i=0; i<numClockPositions; i++){
+
+        int simData = 0;
+        
+        if((int)(100 * Math.random()) < 7){        
+            simData = 1 + (int)(2 * Math.random());
+        }
+        
+        if((int)(5000 * Math.random()) < 1){
+            simData = 1 + (int)(25 * Math.random());
+        }
+        
+        addUnsignedShortToPacket(pPacket, pIndex, AD_ZERO_OFFSET + simData);
+        pIndex += 2;
+    }
+
+    return(pIndex);
+    
+}// end of SimulatorTransverse::addMapData
 //-----------------------------------------------------------------------------
 
 }//end of class SimulatorTransverse
