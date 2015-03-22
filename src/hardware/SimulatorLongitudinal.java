@@ -117,7 +117,7 @@ public int addMapData(byte[] pPacket, int pIndex)
         
     for (int i=0; i<numClockPositions; i++){
 
-        int simData = 0;
+        int simData = 1;
         
         if((int)(100 * Math.random()) < 7){        
             simData = 1 + (int)(2 * Math.random());

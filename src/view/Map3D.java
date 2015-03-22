@@ -155,9 +155,12 @@ import java.awt.*;
 //-----------------------------------------------------------------------------
 // class Map3D
 //
-// points[][] is used to store the input data values - each value represents
+// dataBuf[][] is used to store the input data values - each value represents
 //   the height of the peak at the x,y location corresponding to the position
 //   in the array
+//
+// metaBuf[][] is used to store the meta data for each value in dataBuf, such
+// as system, color, etc.
 //
 // s[][] is used to store the actual screen position of the data points after
 //   transforming to a 3D image
@@ -232,8 +235,8 @@ public class Map3D{
     String fileName;        // input file name
     String inputFileName;   // input file name
 
-    //Map Arrays
-    int[][] points;          // input data array
+    //map arrays
+    int[][] dataBuf;         // input data array
     int[][] metaBuf;
     ScreenPlane[][] s;       // screen points array, corresponding to points[][]
     ScreenPlane[][] orthoS;  // screen points array, 
@@ -292,7 +295,7 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     
     setCanvasSize(pWidth, pHeight);
         
-    points = new int[xMax][yMax];
+    dataBuf = new int[xMax][yMax];
     metaBuf = new int[xMax][yMax];
         
     s = new ScreenPlane[xMax][yMax];
@@ -423,7 +426,7 @@ public void setSystemInfo(String[] pSystemNames, Color[] pSystemColors)
 public void createArrays()
 {
 
-    points = new int[xMax][yMax];
+    dataBuf = new int[xMax][yMax];
         
     s = new ScreenPlane[xMax][yMax];
     orthoS = new ScreenPlane[xMax][yMax];    
@@ -448,7 +451,7 @@ public void fillDataBuf(int pValue)
 {
 
     for ( int i = 0; i < xMax; i++){
-        for ( int j = 0; j < yMax; j++){ points[i][j] = pValue; }
+        for ( int j = 0; j < yMax; j++){ dataBuf[i][j] = pValue; }
     }
 
 }//end of Map3D::fillDataBuf
@@ -493,7 +496,7 @@ public void fillMetaBuf(int pValue)
 public void setDataRow(int pLengthPos, int[] pDataRow, int[] pMetaRow)
 {
     
-    System.arraycopy(pDataRow, 0, points[pLengthPos + 1], 1, pDataRow.length);
+    System.arraycopy(pDataRow, 0, dataBuf[pLengthPos + 1], 1, pDataRow.length);
     
     System.arraycopy(pMetaRow, 0, metaBuf[pLengthPos + 1], 1, pMetaRow.length);
 
@@ -523,7 +526,7 @@ public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
 {
     
     System.arraycopy(
-             pDataRow, 0, points[currentInsertionRow + 1], 1, pDataRow.length);
+             pDataRow, 0, dataBuf[currentInsertionRow + 1], 1, pDataRow.length);
 
     System.arraycopy(
             pMetaRow, 0, metaBuf[currentInsertionRow + 1], 1, pMetaRow.length);    
@@ -548,8 +551,8 @@ public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
 public void shiftDataDownOneRow()
 {
     
-    for(int i=0; i<points.length-2; i++){     
-        System.arraycopy(points[i + 1], 0, points[i] , 0, yMax);
+    for(int i=0; i<dataBuf.length-2; i++){     
+        System.arraycopy(dataBuf[i + 1], 0, dataBuf[i] , 0, yMax);
     }
 
 }// end of Map3D::shiftDataDownOneRow
@@ -571,7 +574,7 @@ public void setDataPoint(int _XPos, int _YPos, int _Value)
 
     assert(_XPos < dataXMax && _YPos < dataYMax);
 
-    points[_XPos + 1][_YPos + 1] = _Value;
+    dataBuf[_XPos + 1][_YPos + 1] = _Value;
 
 }//end of Map3D::setDataPoint
 //---------------------------------------------------------------------------
@@ -602,7 +605,7 @@ private void worldToScreen(int _Degree, int _StretchX, int _StretchY)
             // set value (x,y,z) of every point in the world coordinate
             p.x = (i - xMax / 2.0) * _StretchX;
             p.y = (j - yMax / 2.0) * _StretchY;
-            p.z = points[i][j];
+            p.z = dataBuf[i][j];
 
             // set value of orthograghic point of p
             orthoP.x = (i - xMax / 2.0) * _StretchX;
@@ -797,7 +800,7 @@ public void paint(Graphics2D pG2,
 {
 
 //if data arrays have not yet been created, do nothing
-if (points == null) return;
+if (dataBuf == null) return;
 
 //store view parameters
 
@@ -850,7 +853,7 @@ private void birdsEyeView(Graphics2D pG2)
 
         for ( int j = 0; j < yMax; j++){
             
-            if (points[i][j] > THRESHOLD){
+            if (dataBuf[i][j] > THRESHOLD){
                 pG2.setColor(Color.RED);
                 pG2.drawLine(xMaxPix-i*10, j*10,xMaxPix-i*10, j*10);
             }
@@ -1117,13 +1120,13 @@ private void drawPolygons(
             //store the system associated with each point in the corresponding
             //polyMeta array
             
-            polyHeight[0] = points[i][j];
+            polyHeight[0] = dataBuf[i][j];
             polyMeta[0] = metaBuf[i][j];
-            polyHeight[1] = points[i + _XPolyDirection][j];
+            polyHeight[1] = dataBuf[i + _XPolyDirection][j];
             polyMeta[1] = metaBuf[i + _XPolyDirection][j];            
-            polyHeight[2] = points[i + _XPolyDirection][j + _YPolyDirection];
+            polyHeight[2] = dataBuf[i + _XPolyDirection][j + _YPolyDirection];
             polyMeta[2] = metaBuf[i + _XPolyDirection][j + _YPolyDirection];            
-            polyHeight[3] = points[i][j + _YPolyDirection];
+            polyHeight[3] = dataBuf[i][j + _YPolyDirection];
             polyMeta[3] = metaBuf[i][j + _YPolyDirection];            
             
             //assign a color to the quadrilateral based on the height of its
@@ -1175,7 +1178,7 @@ private Color assignColorByHeight(Graphics2D pG2, int[] pHeights)
     if (pHeights[0]>0 || pHeights[1]>0 || pHeights[2]>0 || pHeights[3]>0)
         return(Color.LIGHT_GRAY);
     else
-        return(baselineColor);
+        return(pG2.getBackground());
 
 }//end of Map3D.assignColorByHeight
 //---------------------------------------------------------------------------
@@ -1204,12 +1207,12 @@ private Color assignColorBySystem(
             peakIndex = i;
         }
     }
-    
-    //if height is below the baseline threshold, return a baseline color
-    
-    if(peakIndex != -1 && peak < baselineThreshold){
-        return(baselineColor);
-    }
+
+    //if height is zero return the background color
+    if(peakIndex != -1 && peak == 0){ return(pG2.getBackground()); }
+        
+    //if height is below the baseline threshold, return the baseline color
+    if(peakIndex != -1 && peak < baselineThreshold){ return(baselineColor); }
     
     //return the color associated with the system of the highest peak
     
