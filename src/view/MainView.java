@@ -63,7 +63,6 @@ import mksystems.mswing.MFloatSpinner;
 import model.MainDataClass;
 import model.IniFile;
 import model.SharedSettings;
-import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 // class MainView
@@ -80,6 +79,8 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     
     private JFrame mainFrame;
     private JPanel mainPanel;
+
+    DeviceLog deviceLog = null;    
     
     private final MainDataClass aDataClass;
 
@@ -360,7 +361,7 @@ private JPanel createModeButtonPanel()
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(panel, 202, 30);
+    GUITools.setSizes(panel, 202, 30);
   
     JButton button;
     
@@ -785,7 +786,7 @@ public void displayAbout()
 public void displayErrorMessage(String pMessage)
 {
 
-    Tools.displayErrorMessage(pMessage, mainFrame);
+    GUITools.displayErrorMessage(pMessage, mainFrame);
 
 }//end of MainView::displayErrorMessage
 //-----------------------------------------------------------------------------
@@ -1209,6 +1210,55 @@ public void animateGraph()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::createDeviceLog
+//
+// Creates the Device Log window without displaying it. Since it is modal,
+// displaying it stops code execution in the calling object, so all text panels
+// need to be added before it is displayed.
+//
+
+public void createDeviceLog()
+{
+
+    if (deviceLog == null){ 
+        deviceLog = new DeviceLog(mainFrame);
+        deviceLog.init();
+    }
+    
+}//end of MainView::createDeviceLog
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::showDeviceLog
+//
+// Display the device info log window. The window will be created if necessary.
+//
+
+public void showDeviceLog()
+{
+    
+    deviceLog.setVisible(true);
+    
+}//end of MainView::showDeviceLog
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::addTextPanelToDeviceLogWindow
+//
+// Adds a text panel to the device log window with title pTitle.
+//
+// Returns a reference to the new LogPanel object.
+//
+
+public LogPanel addTextPanelToDeviceLogWindow(String pTitle)
+{
+
+    return(deviceLog.addPanel(pTitle));
+    
+}//end of MainView::addTextPanelToDeviceLogWindow
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::stateChanged
 //
 
@@ -1310,7 +1360,7 @@ public void init()
     
     //add text field
     freqInput = new JTextField("");
-    Tools.setSizes(freqInput, 100, 24);
+    GUITools.setSizes(freqInput, 100, 24);
     //text fields don't have action commands or action listeners
     freqInput.setToolTipText("Waveform frequency.");
     subPanel.add(freqInput);
@@ -1321,18 +1371,18 @@ public void init()
     String[] units = { "Hz", "kHz", "MHz" };
     unitsInput = new JComboBox<>(units);
     unitsInput.setSelectedIndex(0);
-    Tools.setSizes(unitsInput, 60, 24);        
+    GUITools.setSizes(unitsInput, 60, 24);        
     subPanel.add(unitsInput);
     
     add(subPanel);    
 
     subPanel = new JPanel();
     subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.LINE_AXIS));    
-    Tools.setSizes(subPanel, 163, 24);
+    GUITools.setSizes(subPanel, 163, 24);
     
     //add text field
     amplitudeInput = new JTextField("");
-    Tools.setSizes(amplitudeInput, 100, 24);
+    GUITools.setSizes(amplitudeInput, 100, 24);
     //text fields don't have action commands or action listeners
     amplitudeInput.setToolTipText("Waveform amplitude.");
     subPanel.add(amplitudeInput);

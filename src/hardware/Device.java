@@ -23,6 +23,7 @@ import static hardware.Channel.INTEGER_TYPE;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import toolkit.MKSInteger;
+import view.LogPanel;
 
 //-----------------------------------------------------------------------------
 // class Device
@@ -52,21 +53,21 @@ public class Device
 
     int mapDataType;
     int mapPeakType;
-//    int mapChartGroup;
-//    int mapChart;
-//    int mapGraph;
-//    int mapSystem;
 
     PeakArrayBufferInt peakMapBuffer;
+
+    LogPanel logPanel;
     
 //-----------------------------------------------------------------------------
 // Device::Device (constructor)
 //
 
-public Device(int pDeviceNum, IniFile pConfigFile, boolean pSimMode)
+public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
+                                                              boolean pSimMode)
 {
 
-    deviceNum = pDeviceNum; configFile = pConfigFile; simMode = pSimMode;
+    deviceNum = pDeviceNum; configFile = pConfigFile; logPanel = pLogPanel;
+    simMode = pSimMode;
 
     mapMeta.deviceNum = deviceNum;
     
@@ -95,6 +96,11 @@ public void init()
 
 public void initAfterLoadingConfig()
 {
+ 
+    logPanel.setTitle(shortTitle);
+    logPanel.appendThreadSafe("Hello from " + shortTitle + "!\n");
+    logPanel.appendThreadSafe("Initializing...\n");
+    
     setUpPeakMapBuffer();
     
     setUpChannels();    

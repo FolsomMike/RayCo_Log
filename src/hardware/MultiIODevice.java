@@ -17,6 +17,7 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.IniFile;
+import view.LogPanel;
 
 
 //-----------------------------------------------------------------------------
@@ -46,10 +47,11 @@ public class MultiIODevice extends Device
 // MultiIODevice::MultiIODevice (constructor)
 //
 
-public MultiIODevice(int pDeviceNum, IniFile pConfigFile, boolean pSimMode)
+public MultiIODevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
+                                                             boolean pSimMode)
 {
 
-    super(pDeviceNum, pConfigFile, pSimMode);
+    super(pDeviceNum, pLogPanel, pConfigFile, pSimMode);
 
 }//end of MultiIODevice::MultiIODevice (constructor)
 //-----------------------------------------------------------------------------

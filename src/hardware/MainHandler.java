@@ -19,10 +19,12 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import controller.MainController;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import model.IniFile;
 import model.SharedSettings;
+import view.LogPanel;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -33,6 +35,7 @@ public class MainHandler
 {
 
     private final int handlerNum;
+    private final MainController mainController;
     private final IniFile configFile;    
     private final SharedSettings sharedSettings;
 
@@ -56,12 +59,12 @@ public class MainHandler
 // MainHandler::MainHandler (constructor)
 //
 
-public MainHandler(int pHandlerNum, SharedSettings pSharedSettings,
-                                                        IniFile pConfigFile)
+public MainHandler(int pHandlerNum, MainController pMainController,
+                           SharedSettings pSharedSettings, IniFile pConfigFile)
 {
 
-    handlerNum = pHandlerNum; sharedSettings = pSharedSettings;
-    configFile = pConfigFile;
+    handlerNum = pHandlerNum; mainController = pMainController;
+    sharedSettings = pSharedSettings; configFile = pConfigFile;
     
     deviceTypes = new ArrayList<>();
     deviceSimModes = new ArrayList<>();
@@ -80,10 +83,14 @@ public void init()
 
     loadConfigSettings();
 
+    //set up a logging text panel so each device can display messages
+    ArrayList<LogPanel> logPanels = 
+                               mainController.setupDeviceLogPanels(numDevices);
+    
     //create the handlers for the different remote hardware data acquisition
     //and control boards
 
-    setUpDevices();
+    setUpDevices(logPanels);
     
     ready = true; //devices are ready for access
     
@@ -94,24 +101,32 @@ public void init()
 // MainHandler::setUpDevices
 //
 // Creates and sets up the devices for communicating with the data acquisition
-// and control boards.
+// and control boards. Each device will be connected with a data logging
+// text panel in the pLogPanels list.
 //
 // The type of class to create for each device is determined by the string
 // in the deviceTypes list.
 //
 
-private void setUpDevices()
+private void setUpDevices(ArrayList<LogPanel> pLogPanels)
 {
 
     devices = new Device[numDevices];
     
     int index = 0;    
     
-    ListIterator iter = deviceTypes.listIterator();
+    LogPanel logPanel;
     
-    while(iter.hasNext()){
-        devices[index] = createDevice((String) iter.next(), index, configFile,
-                                           (boolean)deviceSimModes.get(index));
+    ListIterator iDevType = deviceTypes.listIterator();
+    ListIterator iLogPanel = pLogPanels.listIterator();
+    
+    while(iDevType.hasNext()){
+        
+        if(iLogPanel.hasNext()){ logPanel = (LogPanel)iLogPanel.next(); }
+        else { logPanel = null; }
+        
+        devices[index] = createDevice((String) iDevType.next(), index,
+                     logPanel, configFile, (boolean)deviceSimModes.get(index));
         devices[index].init();
         index++;
     }
@@ -127,23 +142,27 @@ private void setUpDevices()
 // an index number of pIndex for its internal use and a reference to a
 // configuration file of pConfigFile.
 //
+// Each device will be given a link to a logging text panel on which it can
+// display messages.
+// 
 // The pSimMode value will be passed on to the device.
 //
 
 private Device createDevice(
-        String pDeviceType, int pIndex, IniFile pConfigFile, boolean pSimMode)
+        String pDeviceType, int pIndex, LogPanel pLogPanel, IniFile pConfigFile,
+                                                               boolean pSimMode)
 {
         
     switch(pDeviceType){
     
-        case "Longitudinal ~ RayCo Log ~ A" : 
-            return (new Multi_IO_A_Longitudinal(pIndex, pConfigFile, pSimMode));
+        case "Longitudinal ~ RayCo Log ~ A" : return (new
+            Multi_IO_A_Longitudinal(pIndex, pLogPanel, pConfigFile, pSimMode));
 
-        case "Transverse ~ RayCo Log ~ A" :
-            return (new Multi_IO_A_Transverse(pIndex, pConfigFile, pSimMode));
+        case "Transverse ~ RayCo Log ~ A" : return (new
+              Multi_IO_A_Transverse(pIndex, pLogPanel, pConfigFile, pSimMode));
             
-        case "Wall ~ RayCo Log ~ A" :
-            return (new Multi_IO_A_Wall(pIndex, pConfigFile, pSimMode));
+        case "Wall ~ RayCo Log ~ A" : return (new
+                    Multi_IO_A_Wall(pIndex, pLogPanel, pConfigFile, pSimMode));
 
         default: return(null);
             

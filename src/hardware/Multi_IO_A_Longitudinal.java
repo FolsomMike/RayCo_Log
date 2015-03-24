@@ -17,6 +17,7 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.IniFile;
+import view.LogPanel;
 
 //-----------------------------------------------------------------------------
 // class Multi_IO_A_Longitudinal
@@ -29,11 +30,11 @@ public class Multi_IO_A_Longitudinal extends MultiIODevice
 // Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //
 
-public Multi_IO_A_Longitudinal(
-                            int pIndex, IniFile pConfigFile, boolean pSimMode)
+public Multi_IO_A_Longitudinal(int pIndex, LogPanel pLogPanel, 
+                                         IniFile pConfigFile, boolean pSimMode)
 {
 
-    super(pIndex, pConfigFile, pSimMode);
+    super(pIndex, pLogPanel, pConfigFile, pSimMode);
 
     PACKET_SIZE = 57;
     

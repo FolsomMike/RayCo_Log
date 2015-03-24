@@ -58,7 +58,8 @@ import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
-import toolkit.Tools;
+import view.GUITools;
+import view.LogPanel;
 import view.MKSTools;
 import view.MainView;
 import view.Map3D;
@@ -172,13 +173,44 @@ public void init()
 
     mainView.setupAndStartMainTimer();
 
-    mainHandler = new MainHandler(0, sharedSettings, configFile);
+    mainHandler = new MainHandler(0, this, sharedSettings, configFile);
     mainHandler.init();
 
     //create data transfer buffers
     setUpDataTransferBuffers();
-
+    
 }// end of MainController::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::setupDeviceLogPanels
+//
+// Creates multiple text logging panels in the Device Log window. Typically,
+// this method is called back by MainHandler after it has loaded the number of
+// devices listed in the config file.
+//
+// The number of panels to create is passed via pNumDevices. Each panel will
+// be given a placeholder name of "Device 0", "Device 1", etc.
+//
+// An  ArrayList of the panels is returned.
+//
+
+public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices)
+{
+
+    ArrayList<LogPanel> logPanels = new ArrayList<>();    
+
+    mainView.createDeviceLog();    
+    
+    for(int i=0; i<pNumDevices; i++){
+        logPanels.add(mainView.addTextPanelToDeviceLogWindow("Device " + i));
+    }
+    
+    mainView.showDeviceLog();
+    
+    return(logPanels);
+    
+}// end of MainController::setupDeviceLogPanels
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -355,7 +387,7 @@ private void setChannelDataBuffers()
                     peakData.meta.graph, peakData.meta.trace).getDataBuffer());
         }catch(NullPointerException e){
         
-            Tools.displayErrorMessage(
+            GUITools.displayErrorMessage(
                 "Error Linking Data Buffer/Trace to Channel...\n"
                 + "Peak Data Object Number : " + peakData.peakDataNum + "\n"
                 + "Device: " + peakData.meta.deviceNum + "\n"
@@ -399,7 +431,7 @@ private void setDeviceMapDataBuffers()
                    mapMeta.graph).getMapBuffer());
         }catch(NullPointerException e){
         
-            Tools.displayErrorMessage(
+            GUITools.displayErrorMessage(
                 "Error Linking Map Data Buffer/Map to Device...\n"
                 + "Device: " + mapMeta.deviceNum + "\n"
                 + "Channel: " + mapMeta.channelNum + "\n"

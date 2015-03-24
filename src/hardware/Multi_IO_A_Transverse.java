@@ -17,6 +17,7 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.IniFile;
+import view.LogPanel;
 
 //-----------------------------------------------------------------------------
 // class Multi_IO_A_Transverse
@@ -29,11 +30,11 @@ public class Multi_IO_A_Transverse extends MultiIODevice
 // Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //
 
-public Multi_IO_A_Transverse(
-                            int pIndex, IniFile pConfigFile, boolean pSimMode)
+public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel, 
+                                         IniFile pConfigFile, boolean pSimMode)
 {
 
-    super(pIndex, pConfigFile, pSimMode);
+    super(pIndex, pLogPanel, pConfigFile, pSimMode);
     
     PACKET_SIZE = 88;
 

@@ -17,6 +17,7 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import model.IniFile;
+import view.LogPanel;
 
 //-----------------------------------------------------------------------------
 // class Multi_IO_A_Wall
@@ -30,10 +31,11 @@ public class Multi_IO_A_Wall extends MultiIODevice
 // Multi_IO_A_Longitudinal::Multi_IO_A_Wall (constructor)
 //
 
-public Multi_IO_A_Wall(int pIndex, IniFile pConfigFile, boolean pSimMode)
+public Multi_IO_A_Wall(int pIndex, LogPanel pLogPanel, 
+                                         IniFile pConfigFile, boolean pSimMode)
 {
 
-    super(pIndex, pConfigFile, pSimMode);
+    super(pIndex, pLogPanel, pConfigFile, pSimMode);
     
     PACKET_SIZE = 9;
     
