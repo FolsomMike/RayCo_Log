@@ -33,6 +33,9 @@ public class DeviceLog extends JDialog{
     JFrame mainFrame;
     
     JPanel mainPanel, panel1, panel2;
+
+    JPanel masterPanel = null;
+    boolean masterPanelAdded = false;
     
     int numTextPanelsInPanel1 = 0, numTextPanelsInPanel2 = 0;
     
@@ -92,17 +95,28 @@ public void init()
 //
 // Adds a text panel to the window with title pTitle.
 //
+// If pSetMasterPanel is true, the panel added is designated as the master
+// panel. Adding a master panel is optional. If a master panel is set, the top
+// row is allowed to contain one more panel -- the master panel. This avoids
+// using another row or shifting a Device Log panel to the next row.
+//
 // Returns a reference to the new LogPanel object.
 //
 
-public LogPanel addPanel(String pTitle)
+public LogPanel addPanel(String pTitle, boolean pSetMasterPanel)
 {
+
+    if ( pSetMasterPanel ) { masterPanelAdded = true; }
+
+    int numTextPanelsPerRow1 = NUM_TEXT_PANELS_PER_ROW;
+    
+    if(masterPanelAdded){ numTextPanelsPerRow1++; }
     
     JPanel targetPanel;
     
     //add new panels to panel 1 until it is full, then panel 2, etc.
     
-    if (numTextPanelsInPanel1 < NUM_TEXT_PANELS_PER_ROW){
+    if (numTextPanelsInPanel1 < numTextPanelsPerRow1){
         targetPanel = panel1; numTextPanelsInPanel1++;
     }else
     if (numTextPanelsInPanel2 < NUM_TEXT_PANELS_PER_ROW){
@@ -120,12 +134,38 @@ public LogPanel addPanel(String pTitle)
     
     logPanels.add(logPanel);
     
+    if ( pSetMasterPanel ) { masterPanel = logPanel; }
+    
     pack();
     
     return(logPanel);
     
 }// end of DeviceLog::addPanel
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DeviceLog::removeMasterPanel
+//
+// If a master panel has been added, it is removed from its container and the
+// masterPanelAdded flags is set false.
+//
+
+public void removeMasterPanel()
+{
+
+    if(!masterPanelAdded){ return; }
+    
+    masterPanelAdded = false;
+    
+    if (masterPanel == null){ return; }
+    
+    panel1.remove(masterPanel);
+
+    masterPanel = null;
+    
+}// end of DeviceLog::removeMasterPanel
+//-----------------------------------------------------------------------------
+
 
 }//end of class DeviceLog
 //-----------------------------------------------------------------------------

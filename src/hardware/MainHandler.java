@@ -20,7 +20,11 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import controller.MainController;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.ListIterator;
 import model.IniFile;
 import model.SharedSettings;
@@ -39,6 +43,8 @@ public class MainHandler
     private final IniFile configFile;    
     private final SharedSettings sharedSettings;
 
+    LogPanel logPanel;    
+    
     private int numDevices;
 
     int peakScanDev;
@@ -83,14 +89,21 @@ public void init()
 
     loadConfigSettings();
 
+    //add one logging master panel for the main handler to use
+    
+    ArrayList<LogPanel> logPanels = mainController.setupDeviceLogPanels(1,true);
+    logPanel = logPanels.get(0); logPanel.setTitle("Device Handler");
+    logPanel.append("Searching for devices...\n\n");
+    
     //set up a logging text panel so each device can display messages
-    ArrayList<LogPanel> logPanels = 
-                               mainController.setupDeviceLogPanels(numDevices);
+    logPanels = mainController.setupDeviceLogPanels(numDevices, false);
     
     //create the handlers for the different remote hardware data acquisition
     //and control boards
 
     setUpDevices(logPanels);
+
+    findDevices();
     
     ready = true; //devices are ready for access
     
@@ -115,18 +128,18 @@ private void setUpDevices(ArrayList<LogPanel> pLogPanels)
     
     int index = 0;    
     
-    LogPanel logPanel;
+    LogPanel logIter;
     
     ListIterator iDevType = deviceTypes.listIterator();
     ListIterator iLogPanel = pLogPanels.listIterator();
     
     while(iDevType.hasNext()){
         
-        if(iLogPanel.hasNext()){ logPanel = (LogPanel)iLogPanel.next(); }
-        else { logPanel = null; }
+        if(iLogPanel.hasNext()){ logIter = (LogPanel)iLogPanel.next(); }
+        else { logIter = null; }
         
         devices[index] = createDevice((String) iDevType.next(), index,
-                     logPanel, configFile, (boolean)deviceSimModes.get(index));
+                     logIter, configFile, (boolean)deviceSimModes.get(index));
         devices[index].init();
         index++;
     }
@@ -169,6 +182,106 @@ private Device createDevice(
     }
     
 }// end of MainHandler::createDevice
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::findDevices
+//
+// Makes initial contact with all devices and determines their IP addresses.
+//
+
+private void findDevices()
+{
+
+    NetworkInterface networkInterface;
+
+    networkInterface = findNetworkInterface();
+
+    findDevicesAndCollectIPAddresses(networkInterface);
+    
+}// end of MainHandler::findDevices
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::findDevicesAndCollectIPAddresses
+//
+// Makes initial contact with all devices and determines their IP addresses.
+//
+
+private void findDevicesAndCollectIPAddresses(
+                                            NetworkInterface pNetworkInterface)
+{
+
+    
+}// end of MainHandler::findDevicesAndCollectIPAddresses
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler:findNetworkInterface
+//
+// Finds the network interface for communication with the remotes. Returns
+// null if no suitable interface found.
+//
+// The first interface which is connected and has an IP address beginning with
+// 169.254.*.* is returned.
+//
+// NOTE: If more than one interface is connected and has a 169.254.*.*
+// IP address, the first one in the list will be returned. Will need to add
+// code to further differentiate the interfaces if such a set up is to be
+// used. Internet connections will typically not have such an IP address, so
+// a second interface connected to the Internet will not cause a problem with
+// the existing code.
+//
+// If a network interface is not specified for the connection, Java will
+// choose the first one it finds. The TCP/IP protocol seems to work even if
+// the wrong interface is chosen. However, the UDP broadcasts for wake up calls
+// will not work unless the socket is bound to the appropriate interface.
+//
+// If multiple interface adapters are present, enabled, and running (such as
+// an Internet connection), it can cause the UDP broadcasts to fail unless
+// they are directed to the proper interface.
+//
+
+public NetworkInterface findNetworkInterface()
+{
+
+    logPanel.append("");
+
+    NetworkInterface iFace = null;
+
+    try{
+        
+        logPanel.append("Full list of Network Interfaces:" + "\n\n");
+        for (Enumeration<NetworkInterface> en =
+              NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+
+            NetworkInterface intf = en.nextElement();
+            logPanel.append("    " + intf.getName() + " " +
+                                                intf.getDisplayName() + "\n");
+
+            for (Enumeration<InetAddress> enumIpAddr =
+                     intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+
+                String ipAddr = enumIpAddr.nextElement().toString();
+
+                logPanel.append("        " + ipAddr + "\n");
+
+                if(ipAddr.startsWith("/169.254")){
+                    iFace = intf;
+                    logPanel.append("^^==>> Binding to above adapter...^^\n");
+                }
+            }
+        }
+    }
+    catch (SocketException e) {
+        logPanel.append(" (error retrieving network interface list)" + "\n");
+    }
+
+    logPanel.append("\n");
+    
+    return(iFace);
+
+}//end of MainHandler::findNetworkInterface
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

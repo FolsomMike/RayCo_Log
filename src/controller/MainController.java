@@ -189,21 +189,28 @@ public void init()
 // this method is called back by MainHandler after it has loaded the number of
 // devices listed in the config file.
 //
+// If the Device Log window itself does not yet exist, it will be created.
+//
 // The number of panels to create is passed via pNumDevices. Each panel will
 // be given a placeholder name of "Device 0", "Device 1", etc.
+//
+// If pSetMasterPanel is true, the first panel added in this group is designated
+// as the master panel. Adding a master panel is optional.
 //
 // An  ArrayList of the panels is returned.
 //
 
-public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices)
+public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices, 
+                                                       boolean pSetMasterPanel)
 {
 
     ArrayList<LogPanel> logPanels = new ArrayList<>();    
 
-    mainView.createDeviceLog();    
+    mainView.createDeviceLog(); //only creates if not already created   
     
     for(int i=0; i<pNumDevices; i++){
-        logPanels.add(mainView.addTextPanelToDeviceLogWindow("Device " + i));
+        logPanels.add(mainView.addTextPanelToDeviceLogWindow("Device " + i,
+                                                             pSetMasterPanel));
     }
     
     mainView.showDeviceLog();
@@ -211,6 +218,21 @@ public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices)
     return(logPanels);
     
 }// end of MainController::setupDeviceLogPanels
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::removeMasterPanel
+//
+// If a master panel has been added, it is removed from its container and the
+// masterPanelAdded flags is set false.
+//
+
+public void removeMasterPanel()
+{
+
+    mainView.removeMasterPanel();
+    
+}// end of MainController::removeMasterPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

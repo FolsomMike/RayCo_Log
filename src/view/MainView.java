@@ -1212,9 +1212,7 @@ public void animateGraph()
 //-----------------------------------------------------------------------------
 // MainView::createDeviceLog
 //
-// Creates the Device Log window without displaying it. Since it is modal,
-// displaying it stops code execution in the calling object, so all text panels
-// need to be added before it is displayed.
+// Creates the Device Log window without displaying it.
 //
 
 public void createDeviceLog()
@@ -1247,15 +1245,34 @@ public void showDeviceLog()
 //
 // Adds a text panel to the device log window with title pTitle.
 //
+// If pSetMasterPanel is true, the first panel added in this group is designated
+// as the master panel. Adding a master panel is optional.
+//
 // Returns a reference to the new LogPanel object.
 //
 
-public LogPanel addTextPanelToDeviceLogWindow(String pTitle)
+public LogPanel addTextPanelToDeviceLogWindow(String pTitle, 
+                                                       boolean pSetMasterPanel)
 {
 
-    return(deviceLog.addPanel(pTitle));
+    return(deviceLog.addPanel(pTitle, pSetMasterPanel));
     
 }//end of MainView::addTextPanelToDeviceLogWindow
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::removeMasterPanel
+//
+// If a master panel has been added, it is removed from its container and the
+// masterPanelAdded flags is set false.
+//
+
+public void removeMasterPanel()
+{
+
+    deviceLog.removeMasterPanel();
+    
+}// end of MainView::removeMasterPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
