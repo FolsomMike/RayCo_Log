@@ -86,21 +86,7 @@ private void createTextPanel(String pTitle, int pWidth, int pHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LogPanel::append
-//
-// Appends string pString to the text area.
-//
-
-public void append(String pString)
-{
-
-    textArea.append(pString);
-
-}// end of LogPanel::append
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// LogPanel::appendThreadSafe
+// LogPanel::appendTS
 //
 // Appends string pString to the text area in a thread safe manner so that
 // a thread other than Java's Event Dispatch Thread (which runs the GUI) can
@@ -111,14 +97,14 @@ public void append(String pString)
 // to the text area object.
 //
 
-public synchronized void appendThreadSafe(String pString)
+public synchronized void appendTS(String pString)
 {
     
     textBuffer.add(pString);
 
     javax.swing.SwingUtilities.invokeLater(this::processTextBuffer);
     
-}// end of LogPanel::appendThreadSave
+}// end of LogPanel::appendTS
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

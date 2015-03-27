@@ -437,8 +437,7 @@ public void run()
 public synchronized void connectToDevice()
 {
 
-    logPanel.appendThreadSafe("Hello from " + shortTitle + "!\n");
-    logPanel.appendThreadSafe("Connecting...\n");
+    logPanel.appendTS("Connecting...\n");
         
     connectionAttemptCompleted = true;
     

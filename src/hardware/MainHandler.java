@@ -128,7 +128,7 @@ public void init()
 public void connectToDevices()
 {
 
-    logPanel.append("Searching for devices...\n\n");
+    logPanel.appendTS("Searching for devices...\n\n");
     
     boolean status;
     
@@ -235,7 +235,7 @@ private boolean findAndConnectToDevices()
 
         findDevices(ipToDeviceTypeMap);
 
-        logPanel.append("\nAll devices found.\n\n");
+        logPanel.appendTS("\nAll devices found.\n\n");
         
         assignFoundDevicesToDeviceObjects(ipToDeviceTypeMap);
 
@@ -244,8 +244,8 @@ private boolean findAndConnectToDevices()
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 227");
-        logPanel.append("Error: " + e.getMessage() + " - Error: 247\n\n");
-        logPanel.append("Error: Some devices were not\n"
+        logPanel.appendTS("Error: " + e.getMessage() + " - Error: 247\n\n");
+        logPanel.appendTS("Error: Some devices were not\n"
                         + "found or set up properly!\n\n");
         return(false);
     }
@@ -304,7 +304,7 @@ private void findDevicesAndCollectIPAddresses(SocketSet pSocketSet,
         HashMap<InetAddress, String> pIPToDeviceTypeMap) throws IOException
 {
 
-    logPanel.append("Broadcasting to all devices...\n");
+    logPanel.appendTS("Broadcasting to all devices...\n");
 
     openMulticastSocket(pSocketSet, pNetworkInterface);
    
@@ -397,7 +397,7 @@ private void collectResponses(SocketSet pSocketSet,
             //display the response string from the remote -- any device might
             //respond several times before the process is complete
 
-            logPanel.append(ipAddrS + "  " + response + "\n");                
+            logPanel.appendTS(ipAddrS + "  " + response + "\n");                
 
             pIPToDeviceTypeMap.put(inPacket.getAddress(), response);
 
@@ -436,16 +436,16 @@ private void collectResponses(SocketSet pSocketSet,
 public NetworkInterface findNetworkInterface() throws SocketException
 {
 
-    logPanel.append("");
+    logPanel.appendTS("");
 
     NetworkInterface iFace = null;
         
-    logPanel.append("Full list of Network Interfaces:" + "\n\n");
+    logPanel.appendTS("Full list of Network Interfaces:" + "\n\n");
     for (Enumeration<NetworkInterface> en =
           NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
 
         NetworkInterface intf = en.nextElement();
-        logPanel.append("    " + intf.getName() + " " +
+        logPanel.appendTS("    " + intf.getName() + " " +
                                             intf.getDisplayName() + "\n");
 
         for (Enumeration<InetAddress> enumIpAddr =
@@ -453,20 +453,20 @@ public NetworkInterface findNetworkInterface() throws SocketException
 
             String ipAddr = enumIpAddr.nextElement().toString();
 
-            logPanel.append("        " + ipAddr + "\n");
+            logPanel.appendTS("        " + ipAddr + "\n");
 
             if(ipAddr.startsWith("/169.254")){
                 iFace = intf;
-                logPanel.append("^^==>> Binding to above adapter...^^\n");
-                logPanel.append("====================================\n");
+                logPanel.appendTS("^^==>> Binding to above adapter...^^\n");
+                logPanel.appendTS("====================================\n");
             }
         }
     }
 
-    logPanel.append("\n");
+    logPanel.appendTS("\n");
     
     if(iFace == null){
-        logPanel.append("WARNING: no viable adapter found, using default.\n"
+        logPanel.appendTS("WARNING: no viable adapter found, using default.\n"
         + "System may not find devices!\n\n");
     }
     
@@ -532,14 +532,14 @@ private void assignFoundDevicesToDeviceObjects(
     if(numFound < numDevices){
         msg = "Only " + numFound + " of " + numDevices 
                                                      + " expected were found.";
-        logSevere(msg + " Error: 448"); logPanel.append(msg + "\n\n");
+        logSevere(msg + " Error: 448"); logPanel.appendTS(msg + "\n\n");
         throw(new IOException(msg));
     }
 
     if(numFound > numDevices){
         msg = "" + numFound + " devices were found when only " 
                                             + numDevices + " were expected.";
-        logSevere(msg + " Error: 448"); logPanel.append(msg + "\n\n");
+        logSevere(msg + " Error: 448"); logPanel.appendTS(msg + "\n\n");
         throw(new IOException(msg));
     }
 
@@ -569,7 +569,7 @@ private void assignFoundDevicesToDeviceObjects(
     
         if(device.getIPAddr() == null){
             msg = "Missing a device of type: " + device.getDeviceType();
-            logSevere(msg + " Error: 485"); logPanel.append(msg + "\n\n");
+            logSevere(msg + " Error: 485"); logPanel.appendTS(msg + "\n\n");
             throw(new IOException(msg));
         }
     }
@@ -607,7 +607,7 @@ public boolean connectToFoundDevices()
         if (!device.waitForConnectCompletion()) { allDevicesConnected = false; }
     }
 
-    logPanel.append("All devices are connected.\n\n");
+    logPanel.appendTS("All devices are connected.\n\n");
     
     return(allDevicesConnected);
     
