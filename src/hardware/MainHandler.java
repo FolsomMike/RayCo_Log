@@ -103,7 +103,6 @@ public void init()
     
     ArrayList<LogPanel> logPanels = mainController.setupDeviceLogPanels(1,true);
     logPanel = logPanels.get(0); logPanel.setTitle("Device Handler");
-    logPanel.append("Searching for devices...\n\n");
     
     //set up a logging text panel so each device can display messages
     logPanels = mainController.setupDeviceLogPanels(numDevices, false);
@@ -112,7 +111,25 @@ public void init()
     //and control boards
 
     setUpDevices(logPanels);
+    
+}// end of MainHandler::init
+//-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// MainHandler::connectToDevices
+//
+// Establishes communication link between Device objects and the hardware
+// devices.
+//
+// Should be done in a thread other than the Java Event Handler Thread so the
+// process can display status messages during execution.
+//
+
+public void connectToDevices()
+{
+
+    logPanel.append("Searching for devices...\n\n");
+    
     boolean status;
     
     status = findAndConnectToDevices();
@@ -121,7 +138,7 @@ public void init()
     
     ready = status; //if set true, devices are ready for use
     
-}// end of MainHandler::init
+}// end of MainHandler::connectToDevices
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -222,7 +239,7 @@ private boolean findAndConnectToDevices()
         
         assignFoundDevicesToDeviceObjects(ipToDeviceTypeMap);
 
-        connectToDevices();
+        connectToFoundDevices();
         
     }
     catch(IOException e){
@@ -561,7 +578,7 @@ private void assignFoundDevicesToDeviceObjects(
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler:connectToDevices
+// MainHandler:connectToFoundDevices
 //
 // Connects all Device objects to the hardware devices via ethernet.
 //
@@ -569,7 +586,7 @@ private void assignFoundDevicesToDeviceObjects(
 // debug mks -- need to add code to return false on failure?
 //
 
-public boolean connectToDevices()
+public boolean connectToFoundDevices()
 {
 
     for(Device device : devices){
@@ -594,7 +611,7 @@ public boolean connectToDevices()
     
     return(allDevicesConnected);
     
-}//end of MainHandler::connectToDevices
+}//end of MainHandler::connectToFoundDevices
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

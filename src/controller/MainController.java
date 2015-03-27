@@ -101,6 +101,8 @@ public class MainController implements EventHandler, Runnable
     private Font tSafeFont;
     private String tSafeText;
 
+    private boolean devicesConnected = false;
+    
     private int displayUpdateTimer = 0;
 
     int mapUpdateRateTrigger = 0;
@@ -168,17 +170,16 @@ public void init()
     //create and load the program options
     options = new Options();    
     
-    //start the control thread
-    new Thread(this).start();
-
-    mainView.setupAndStartMainTimer();
-
     mainHandler = new MainHandler(0, this, sharedSettings, configFile);
     mainHandler.init();
 
     //create data transfer buffers
     setUpDataTransferBuffers();
     
+    //start the timer and control thread after everything else created
+    mainView.setupAndStartMainTimer();
+    new Thread(this).start();
+        
 }// end of MainController::init
 //-----------------------------------------------------------------------------
 
@@ -941,6 +942,10 @@ public void run()
     //call the control method repeatedly
     while(true){
 
+        if(!devicesConnected){
+            mainHandler.connectToDevices(); devicesConnected = true;
+        }
+        
         control();
 
         //sleep for a bit
@@ -1009,6 +1014,20 @@ public void displayErrorMessage(String pMessage)
     mainView.displayErrorMessage(pMessage);
 
 }//end of MainController::displayErrorMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::waitSleep
+//
+// Sleeps for pTime milliseconds.
+//
+
+void waitSleep(int pTime)
+{
+
+    try{ Thread.sleep(pTime); } catch(InterruptedException e){}
+
+}//end of MainController::waitSleep
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
