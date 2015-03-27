@@ -1276,6 +1276,21 @@ public void removeMasterPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::packDeviceLogWindow
+//
+// Calls the pack() method on the Device Log window so it will be layed out
+// properly. Use this after a panel(s) has been added or removed.
+//
+
+public void packDeviceLogWindow()
+{
+
+    deviceLog.pack();
+    
+}// end of MainView::packDeviceLogWindow
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::stateChanged
 //
 

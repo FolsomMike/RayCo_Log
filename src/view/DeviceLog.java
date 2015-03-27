@@ -102,6 +102,9 @@ public void init()
 //
 // Returns a reference to the new LogPanel object.
 //
+// NOTE: the pack() method should be called on this object after all panels
+// have been added.
+//
 
 public LogPanel addPanel(String pTitle, boolean pSetMasterPanel)
 {
@@ -135,8 +138,6 @@ public LogPanel addPanel(String pTitle, boolean pSetMasterPanel)
     logPanels.add(logPanel);
     
     if ( pSetMasterPanel ) { masterPanel = logPanel; }
-    
-    pack();
     
     return(logPanel);
     

@@ -172,7 +172,7 @@ public void init()
     
     mainHandler = new MainHandler(0, this, sharedSettings, configFile);
     mainHandler.init();
-
+    
     //create data transfer buffers
     setUpDataTransferBuffers();
     
@@ -215,6 +215,8 @@ public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices,
     }
     
     mainView.showDeviceLog();
+    
+    mainView.packDeviceLogWindow(); //layout out window after all panels added
     
     return(logPanels);
     
