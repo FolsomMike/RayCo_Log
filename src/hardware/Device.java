@@ -20,6 +20,7 @@ import static hardware.Channel.CATCH_HIGHEST;
 import static hardware.Channel.CATCH_LOWEST;
 import static hardware.Channel.DOUBLE_TYPE;
 import static hardware.Channel.INTEGER_TYPE;
+import java.net.InetAddress;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import toolkit.MKSInteger;
@@ -29,18 +30,28 @@ import view.LogPanel;
 // class Device
 //
 
-public class Device
+public class Device implements Runnable
 {
 
     final IniFile configFile;
-    final int deviceNum;
+    private final int deviceNum;
+    public int getDeviceNum(){ return(deviceNum); }
     String title = "", shortTitle = "";
+    String deviceType = "";
+    public String getDeviceType(){ return(deviceType); }
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
     public Channel[] getChannels(){ return(channels); }
     int numClockPositions;
 
+    private InetAddress ipAddr = null;
+    public InetAddress getIPAddr(){ return(ipAddr); }
+    private String ipAddrS;
+
+    private boolean connectionAttemptCompleted = false;
+    private boolean connectionSuccessful = false;
+    
     SampleMetaData mapMeta = new SampleMetaData(0);
     public SampleMetaData getMapMeta(){ return(mapMeta); }
     
@@ -98,8 +109,6 @@ public void initAfterLoadingConfig()
 {
  
     logPanel.setTitle(shortTitle);
-    logPanel.appendThreadSafe("Hello from " + shortTitle + "!\n");
-    logPanel.appendThreadSafe("Initializing...\n");
     
     setUpPeakMapBuffer();
     
@@ -204,6 +213,8 @@ void loadConfigSettings()
     
     shortTitle = configFile.readString(section, "short title", 
                                                         "Device " + deviceNum);
+
+    deviceType = configFile.readString(section, "device type", "unknown");
 
     numChannels = configFile.readInt(section, "number of channels", 0);
 
@@ -384,6 +395,88 @@ public void setUpPeakMapBuffer()
 }// end of Device::setUpPeakMapBuffer
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Device::setIPAddr
+//
+// Sets the IP address for this board. Also sets the IP address string
+// variable.
+//
+
+public void setIPAddr(InetAddress pIPAddr)
+{
+
+    ipAddr = pIPAddr;
+
+    ipAddrS = pIPAddr.toString();
+
+}//end of Device::setIPAddr
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::run
+//
+// This method executed when this object is used as a thread object.
+//
+
+@Override
+public void run()
+{
+
+    connectToDevice();
+    
+}//end of Device::run
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::connectToDevice
+//
+// Opens a TCP/IP connection with the device with which this object is linked
+// via the IP address.
+//
+
+public synchronized void connectToDevice()
+{
+
+    logPanel.appendThreadSafe("Hello from " + shortTitle + "!\n");
+    logPanel.appendThreadSafe("Connecting...\n");
+        
+    connectionAttemptCompleted = true;
+    
+    connectionSuccessful = true;
+    
+    notifyAll(); //wake up all threads that are waiting for this to complete    
+    
+}//end of Device::connectToDevice
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// Board::waitForConnectCompletion
+//
+// Waits until the connectionComplete flag is true. The trhead sleeps until
+// notified to wake up and check the flag again. This object's connectToDevice
+// method executes a notifyAll when it is finished which will awaken any thread
+// waiting in this method.
+//
+// As this method is typically called just after starting the thread (and thus
+// entering the run method), the caller may be blocked from even entering this
+// method if the thread has already entered the connectToDevice method as both
+// are synchronized. Being blocked in that manner is fine as it serves also
+// to pause the calling thread until the connection has been completed.
+//
+// Returns true if the connection attempt was successful, false otherwise.
+//
+
+public synchronized boolean waitForConnectCompletion()
+{
+
+    while(!connectionAttemptCompleted){
+        try {wait(); } catch (InterruptedException e) { }
+    }
+
+    return(connectionSuccessful);
+    
+}//end of Board::waitForConnectCompletion
+//-----------------------------------------------------------------------------
 
 }//end of class Device
 //-----------------------------------------------------------------------------

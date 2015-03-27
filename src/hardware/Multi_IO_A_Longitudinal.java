@@ -93,7 +93,7 @@ void loadConfigSettings()
     
     super.loadConfigSettings();
     
-    String section = "Device " + deviceNum + " Settings";
+    String section = "Device " + getDeviceNum() + " Settings";
 
 }// end of Multi_IO_A_Longitudinal::loadConfigSettings
 //-----------------------------------------------------------------------------
