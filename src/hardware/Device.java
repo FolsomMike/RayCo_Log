@@ -43,7 +43,10 @@ public class Device implements Runnable
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
     public Channel[] getChannels(){ return(channels); }
+    
     int numClockPositions;
+    int[] clockTranslations;
+    int numGridsHeightPerSourceClock, numGridsLengthPerSourceClock;
 
     private InetAddress ipAddr = null;
     public InetAddress getIPAddr(){ return(ipAddr); }
@@ -199,6 +202,68 @@ private void parseDataType(String pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::loadClockMappingTranslation
+//
+// Loads the translation tables for translating clock positions in the data map
+// received from the device into clock positions on a 3D map.
+//
+
+void loadClockMappingTranslation(String pSection)
+{
+    
+    clockTranslations = new int[numClockPositions];
+    
+    //translations default to 0>0,1>1,2>2 etc.
+    for(int i=0; i<clockTranslations.length; i++){
+        clockTranslations[i] = i;
+    }
+    
+    numGridsHeightPerSourceClock = configFile.readInt(pSection, 
+                                "number of grids height per source clock", 1);
+
+    numGridsLengthPerSourceClock = configFile.readInt(pSection, 
+                                "number of grids length per source clock", 1);
+    
+    int numMapTransLines = configFile.readInt(pSection, 
+                 "source clock to grid clock translation number of lines", 0);
+
+    
+    String key = "source clock to grid clock translation line ";
+    
+    for(int i=0; i<numMapTransLines; i++){
+    
+        String transLine = configFile.readString(pSection, key + (i+1), "");
+        
+        if (transLine.isEmpty()){ continue; }
+        
+        //split line (0>1, 1>1, etc.) to x>y pairs
+        String[] transSplits = transLine.split(",");
+        
+        for(String trans : transSplits){
+         
+            //split line (x>y) into x and y lines
+            String []transSplit = trans.split(">");
+            
+            if(transSplit.length < 2 || 
+              transSplit[0].isEmpty() || transSplit[1].isEmpty()) { continue; }
+            
+            try{
+                //convert x and y into "from clock" and "to clock" values
+                int fromClk = Integer.parseInt(transSplit[0]);
+                int toClk = Integer.parseInt(transSplit[1]);
+                if(fromClk < 0 || fromClk >= clockTranslations.length)
+                    { continue; }
+                //store "to clock" in array at "fromClk" position
+                clockTranslations[fromClk] = toClk;  
+            }   
+            catch(NumberFormatException e){ continue; }
+        }
+    }
+    
+}// end of Device::loadClockMappingTranslation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::loadConfigSettings
 //
 // Loads settings for the object from configFile.
@@ -221,6 +286,8 @@ void loadConfigSettings()
     numClockPositions = configFile.readInt(
                                     section, "number of clock positions", 12);
 
+    if(numClockPositions > 0) loadClockMappingTranslation(section);
+    
     String s;
     
     s = configFile.readString(section, "map data type", "integer");
