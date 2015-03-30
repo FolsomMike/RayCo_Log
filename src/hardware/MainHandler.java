@@ -569,7 +569,6 @@ private void assignFoundDevicesToDeviceObjects(
     
         if(device.getIPAddr() == null){
             msg = "Missing a device of type: " + device.getDeviceType();
-            logSevere(msg + " Error: 485"); logPanel.appendTS(msg + "\n\n");
             throw(new IOException(msg));
         }
     }
