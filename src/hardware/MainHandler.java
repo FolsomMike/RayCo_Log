@@ -606,7 +606,11 @@ public boolean connectToFoundDevices()
         if (!device.waitForConnectCompletion()) { allDevicesConnected = false; }
     }
 
-    logPanel.appendTS("All devices are connected.\n\n");
+    if(allDevicesConnected){
+        logPanel.appendTS("All devices are connected.\n\n");
+    }else{
+        logPanel.appendTS("Error: Some devices did not connect!\n\n");
+    }
     
     return(allDevicesConnected);
     

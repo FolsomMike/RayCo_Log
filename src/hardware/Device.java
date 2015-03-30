@@ -20,7 +20,16 @@ import static hardware.Channel.CATCH_HIGHEST;
 import static hardware.Channel.CATCH_LOWEST;
 import static hardware.Channel.DOUBLE_TYPE;
 import static hardware.Channel.INTEGER_TYPE;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import toolkit.MKSInteger;
@@ -48,6 +57,14 @@ public class Device implements Runnable
     int[] clockTranslations;
     int numGridsHeightPerSourceClock, numGridsLengthPerSourceClock;
 
+    Socket socket = null;
+    PrintWriter out = null;
+    BufferedReader in = null;
+    byte[] inBuffer;
+    byte[] outBuffer;
+    DataOutputStream byteOut = null;
+    DataInputStream byteIn = null;
+    
     private InetAddress ipAddr = null;
     public InetAddress getIPAddr(){ return(ipAddr); }
     private String ipAddrS;
@@ -484,14 +501,56 @@ public void setIPAddr(InetAddress pIPAddr)
 //
 // This method executed when this object is used as a thread object.
 //
+// Since the sockets and associated streams were created by this
+// thread, it cannot be closed without disrupting the connections. If
+// other threads try to read from the socket after the thread which
+// created the socket finishes, an exception will be thrown.  This
+// thread just waits() after performing the connect function.  The
+// alternative is to close the socket and allow another thread to
+// reopen it, but this results in a lot of overhead.
+//
+
 
 @Override
 public void run()
 {
-
+    
     connectToDevice();
+
+    notifyThreadsWaitingOnConnection();
+    
+    waitForever();
     
 }//end of Device::run
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::notifyThreadsWaitingOnConnection
+//
+// Wakes up all threads which are waiting for the connection to the device to
+// be completed.
+//
+
+public synchronized void notifyThreadsWaitingOnConnection()
+{
+
+    notifyAll();
+
+}//end of Device::notifyThreadsWaitingOnConnection
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::waitForever
+//
+// Puts the thread in wait mode forever.
+//
+
+public synchronized void waitForever()
+{
+
+    while (true){ try{wait();} catch (InterruptedException e) { } }
+
+}//end of Device::waitForever
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -505,13 +564,66 @@ public synchronized void connectToDevice()
 {
 
     logPanel.appendTS("Connecting...\n");
+    
+    try {
+
+        logPanel.appendTS("IP Address: " + ipAddr.toString() + "\n");
+
+        boolean simulate = false; //debug mks -- make this a class member and set this from config file!
+        
+        if (!simulate) {
+            socket = new Socket(ipAddr, 23);
+        }
+        else {
+            /* //debug mks
+            ControlSimulator controlSimulator = new ControlSimulator(
+                        ipAddr, 23, fileFormat, simulationDataSourceFilePath);
+            controlSimulator.init();
+            
+            socket = controlSimulator;
+            
+            //when simulating, the socket is a ControlSimulator class object
+            //which is also a MessageLink implementor, so cast it for use as
+            //such so that messages can be sent to the object
+            mechSimulator = (MessageLink)socket;
+                    */
+        }
+
+        //set amount of time in milliseconds that a read from the socket will
+        //wait for data - this prevents program lock up when no data is ready
+        socket.setSoTimeout(250);
+
+        out = new PrintWriter(socket.getOutputStream(), true);
+
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        byteOut = new DataOutputStream(socket.getOutputStream());
+        byteIn =  new DataInputStream(socket.getInputStream());
+
+    }//try
+    catch (IOException e) {
+        logSevere(e.getMessage() + " - Error: 591");
+        logPanel.appendTS("\nError: couldn't get I/O for " + ipAddrS + "\n");
+        connectionAttemptCompleted = true;
+        return;
+    }
+
+    try {
+        //display the greeting message sent by the remote
+        logPanel.appendTS(ipAddrS + " says " + in.readLine() + "\n");
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 601");
+        connectionAttemptCompleted = true;
+        return;
+    }
         
     connectionAttemptCompleted = true;
     
     connectionSuccessful = true;
     
-    notifyAll(); //wake up all threads that are waiting for this to complete    
-    
+    logPanel.appendTS("\nConnection successful.");
+
 }//end of Device::connectToDevice
 //-----------------------------------------------------------------------------    
 
@@ -542,6 +654,20 @@ public synchronized boolean waitForConnectCompletion()
     return(connectionSuccessful);
     
 }//end of Board::waitForConnectCompletion
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of MainHandler::logSevere
 //-----------------------------------------------------------------------------
 
 }//end of class Device
