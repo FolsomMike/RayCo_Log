@@ -553,7 +553,7 @@ private void assignFoundDevicesToDeviceObjects(
         for(Device device : devices){
             
             if(device.getIPAddr() == null 
-                    && device.getDeviceType().equals(entry.getValue())){
+                    && entry.getValue().startsWith(device.getDeviceType())){
             
                 device.setIPAddr(entry.getKey());
                 break;
