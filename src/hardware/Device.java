@@ -69,6 +69,10 @@ public class Device implements Runnable
     public InetAddress getIPAddr(){ return(ipAddr); }
     private String ipAddrS;
 
+    int pktID;
+    boolean reSynced;
+    int reSyncCount = 0, reSyncPktID;    
+    
     private boolean connectionAttemptCompleted = false;
     private boolean connectionSuccessful = false;
     
@@ -89,6 +93,28 @@ public class Device implements Runnable
 
     LogPanel logPanel;
     
+    final static int OUT_BUFFER_SIZE = 255;
+    final static int IN_BUFFER_SIZE = 255;
+
+    //Commands for all Devices
+    //These should match the values in the code for the hardware.
+    
+    //NOTE: Each subclass can have its own command codes. They should be in the
+    //range 40~100 so that they don't overlap the codes in this parent class.
+
+    static byte NO_ACTION = 0;
+    static byte GET_ALL_STATUS_CMD = 1;
+    static byte LOAD_FIRMWARE_CMD = 2;
+    static byte DATA_CMD = 3;
+    static byte SEND_DATA_CMD = 4;
+
+    
+    static byte ERROR = 125;
+    static byte DEBUG_CMD = 126;
+    static byte EXIT_CMD = 127;
+    
+    
+    
 //-----------------------------------------------------------------------------
 // Device::Device (constructor)
 //
@@ -101,6 +127,9 @@ public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
     simMode = pSimMode;
 
     mapMeta.deviceNum = deviceNum;
+    
+    outBuffer = new byte[OUT_BUFFER_SIZE];
+    inBuffer = new byte[IN_BUFFER_SIZE];
     
 }//end of Device::Device (constructor)
 //-----------------------------------------------------------------------------
@@ -140,6 +169,92 @@ public void initAfterLoadingConfig()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::sendPacket
+//
+// Sends a packet with command code pCommand followed by a variable number of
+// bytes (one or more) to the remote device,
+// 
+// A header is prepended and a checksum byte appended. The checksum includes
+// the command byte and all bytes in pBytes, but not the header bytes.
+//
+
+void sendPacket(byte pCommand, byte... pBytes)
+{
+
+    int i = 0, checksum;
+
+    outBuffer[i++] = (byte)0xaa; outBuffer[i++] = (byte)0x55;
+    outBuffer[i++] = (byte)0xbb; outBuffer[i++] = (byte)0x66;
+        
+    outBuffer[i++] = pCommand;        //command byte included in checksum
+    checksum = pCommand;
+    
+    for(int j=0; j<pBytes.length; j++){
+        outBuffer[i++] = pBytes[j];
+        checksum += pBytes[j];
+    }
+
+    //calculate checksum and put at end of buffer
+    outBuffer[i++] = (byte)(0x100 - (byte)(checksum & 0xff));
+
+    //send packet to remote
+    if (byteOut != null) {
+        try{
+              byteOut.write(outBuffer, 0 /*offset*/, i); byteOut.flush();
+        }
+        catch (IOException e) {
+            logSevere(e.getMessage() + " - Error: 188");
+        }
+    }
+
+}//end of Device::sendBytes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::requestAllStatusPacket
+//
+// Sends a request to the device for a packet will all status information.
+// The returned packed will be handled by handleAllStatusPacket(). See that
+// method for more details.
+//
+
+void requestAllStatusPacket()
+{
+
+    sendPacket(GET_ALL_STATUS_CMD, (byte)0);
+    
+}//end of Device::requestAllStatusPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::handleAllStatusPacket
+//
+// Extracts from packet and displays in the log panel all status and error
+// information from the Host computer, the Rabbit, Master PIC, and all
+// Slave PICs.
+//
+// The voltage present at the A/D converter input of each Slave PIC is also
+// displayed.
+//
+// Returns the number of bytes this method extracted from the socket.
+//
+
+int handleAllStatusPacket()
+{
+
+    logPanel.appendTS("\n---------------------------\n");
+    logPanel.appendTS("All Status Information\n");
+    
+    
+    
+    
+    
+    return(0);
+    
+}//end of Device::handleAllStatusPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::setUpChannels
 //
 // Creates and sets up the channels.
@@ -176,7 +291,9 @@ void setUpChannels()
 
 public void collectData()
 {
-  
+
+    processAllAvailableDataPackets();
+    
 }// end of Device::collectData
 //-----------------------------------------------------------------------------
 
@@ -517,6 +634,10 @@ public void run()
     
     connectToDevice();
 
+    //debug mks
+    requestAllStatusPacket();
+    //debug mks end
+    
     notifyThreadsWaitingOnConnection();
     
     waitForever();
@@ -628,7 +749,7 @@ public synchronized void connectToDevice()
 //-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
-// Board::waitForConnectCompletion
+// Device::waitForConnectCompletion
 //
 // Waits until the connectionComplete flag is true. The trhead sleeps until
 // notified to wake up and check the flag again. This object's connectToDevice
@@ -653,11 +774,182 @@ public synchronized boolean waitForConnectCompletion()
 
     return(connectionSuccessful);
     
-}//end of Board::waitForConnectCompletion
+}//end of Device::waitForConnectCompletion
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler::logSevere
+// Device::processAllAvailableDataPackets
+//
+// Processes all packets waiting in the socket. A packet will be processed
+// when at least 5 bytes are in the socket, which means that the packet header
+// and the packet identifier have been received.
+//
+
+public void processAllAvailableDataPackets()
+{
+
+    if (byteIn == null) { return; }  //do nothing if the port is closed
+
+    try{
+        while (byteIn.available() >= 5) { processOneDataPacket(false, 0); }
+    }catch(IOException e){}
+    
+}//end of Device::processAllAvailableDataPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::processOneDataPacket
+//
+// This function processes a single data packet if it is available.  If
+// pWaitForPkt is true, the function will wait until data is available.
+//
+// The amount of time the function is to wait for a packet is specified by
+// pTimeOut.  Each count of pTimeOut equals 10 ms.
+//
+// This function should be called often to allow processing of data packets
+// received from the remotes and stored in the socket buffer.
+//
+// All packets received from the remote devices should begin with
+// 0xaa, 0x55, 0xbb, 0x66, followed by the packet identifier, the DSP chip
+// identifier, and the DSP core identifier.
+//
+// Returns number of bytes retrieved from the socket, not including the
+// 4 header bytes, the packet ID, the DSP chip ID, and the DSP core ID.
+// Thus, if a non-zero value is returned, a packet was processed.  If zero
+// is returned, some bytes may have been read but a packet was not successfully
+// processed due to missing bytes or header corruption.
+// A return value of -1 means that the buffer does not contain a packet.
+//
+
+public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
+{
+
+    if (byteIn == null) {return -1;}  //do nothing if the port is closed
+
+    try{
+        
+        //wait a while for a packet if parameter is true
+        if (pWaitForPkt){
+            int timeOutWFP = 0;
+            while(byteIn.available() < 5 && timeOutWFP++ < pTimeOut){
+                waitSleep(10);
+            }
+        }
+
+        //wait until 5 bytes are available - this should be the 4 header bytes,
+        //and the packet identifier
+        if (byteIn.available() < 5) {return -1;}
+
+        //read the bytes in one at a time so that if an invalid byte is
+        //encountered it won't corrupt the next valid sequence in the case
+        //where it occurs within 3 bytes of the invalid byte
+
+        //check each byte to see if the first four create a valid header
+        //if not, jump to resync which deletes bytes until a valid first header
+        //byte is reached
+
+        //if the reSynced flag is true, the buffer has been resynced and an 0xaa
+        //byte has already been read from the buffer so it shouldn't be read
+        //again
+
+        //after a resync, the function exits without processing any packets
+
+        if (!reSynced){
+            //look for the 0xaa byte unless buffer just resynced
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
+        }
+        else {reSynced = false;}
+
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
+
+        //read in the packet identifier
+        byteIn.read(inBuffer, 0, 1);
+
+        //store the ID of the packet (the packet type)
+        pktID = inBuffer[0];
+
+        if (pktID == GET_ALL_STATUS_CMD) { return handleAllStatusPacket(); }
+//        else
+//        if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){return readBytes(2);}
+
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 865");
+    }
+
+    return 0;
+
+}//end of Device::processOneDataPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::reSync
+//
+// Clears bytes from the socket buffer until 0xaa byte reached which signals
+// the *possible* start of a new valid packet header or until the buffer is
+// empty.
+//
+// If an 0xaa byte is found, the flag reSynced is set true to that other
+// functions will know that an 0xaa byte has already been removed from the
+// stream, signalling the possible start of a new packet header.
+//
+// There is a special case where a 0xaa is found just before the valid 0xaa
+// which starts a new packet - the first 0xaa is the last byte of the previous
+// packet (usually the checksum).  In this case, the next packet will be lost
+// as well.  This should happen rarely.
+//
+
+public void reSync()
+{
+
+    reSynced = false;
+
+    //track the number of times this function is called, even if a resync is not
+    //successful - this will track the number of sync errors
+    reSyncCount++;
+
+    //store info pertaining to what preceded the reSync - these values will be
+    //overwritten by the next reSync, so they only reflect the last error
+    //NOTE: when a reSync occurs, these values are left over from the PREVIOUS
+    // good packet, so they indicate what PRECEDED the sync error.
+
+    reSyncPktID = pktID;
+
+    try{
+        while (byteIn.available() > 0) {
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+        }
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 847");
+    }
+
+}//end of Device::reSync
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::waitSleep
+//
+// Sleeps for pTime milliseconds.
+//
+
+public void waitSleep(int pTime)
+{
+
+    try {Thread.sleep(pTime);} catch (InterruptedException e) { }
+
+}//end of Device::waitSleep
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::logSevere
 //
 // Logs pMessage with level SEVERE using the Java logger.
 //

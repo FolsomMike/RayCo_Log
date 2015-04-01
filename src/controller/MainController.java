@@ -989,8 +989,13 @@ public void control()
     }
 
     //periodically collect all data from input sources
-    if((mode==SCAN_MODE || mode==INSPECT_MODE)
-                                 && mainHandler != null && mainHandler.ready){
+    
+   //debug mks -- move this catch to Device -- always collect data but only
+    //request inspection packets if in scan or inspect mode...this allows
+    //data sent by devices to always be handled
+    //if((mode==SCAN_MODE || mode==INSPECT_MODE)
+    
+    if(mainHandler != null && mainHandler.ready){
         mainHandler.collectData();
     }
     
