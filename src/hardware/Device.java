@@ -72,6 +72,7 @@ public class Device implements Runnable
     int pktID;
     boolean reSynced;
     int reSyncCount = 0, reSyncPktID;    
+    int packetErrorCnt = 0;
     
     private boolean connectionAttemptCompleted = false;
     private boolean connectionSuccessful = false;
@@ -207,8 +208,64 @@ void sendPacket(byte pCommand, byte... pBytes)
         }
     }
 
-}//end of Device::sendBytes
+}//end of Device::sendPacket
 //-----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+// Device::readBytesAndVerify
+//
+// Attempts to read pNumBytes number of bytes from ethernet into pBuffer and
+// verifies the data using the last byte as a checksum.
+//
+// Note: pNumBytes should include the data bytes ONLY and NOT the checksum byte.
+// This method will automatically read the checksum byte.
+//
+// The packet ID should be provided via pPktID -- it is only used to verify the
+// checksum as it is included in that calculation by the sender.
+//
+// Returns the number of bytes read, including the checksum byte.
+// On checksum error, returns -1.
+// If pNumBytes and checksum are not available after waiting, returns -2.
+//
+
+int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
+{
+
+    byte checksum = 0;
+    
+    try{
+
+        int totalNumBytes = pNumBytes + 1; //account for checksum
+        int timeOutProcess = 0;
+        
+        while(timeOutProcess++ < 2){            
+            if (byteIn.available() >= totalNumBytes) {break;}
+            waitSleep(10);            
+        }
+
+        if (byteIn.available() >= totalNumBytes) {
+            byteIn.read(pBuffer, 0, pNumBytes);
+            checksum = (byte)byteIn.read();
+        }else{
+            return(-2);
+        }
+
+    }// try
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 245");
+    }
+    
+    byte sum = (byte)pPktID; //packet ID is included in the checksum
+
+    //validate checksum by summing the packet id and all data
+    
+    for(int i = 0; i < pNumBytes; i++){ sum += pBuffer[i]; }
+
+    if ( ((sum + checksum) & 0xff) == 0) { return(pNumBytes); }
+    else{ return(-1); }
+
+}//end of Device::readBytesAndVerify
+//----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Device::requestAllStatusPacket
@@ -241,15 +298,39 @@ void requestAllStatusPacket()
 
 int handleAllStatusPacket()
 {
+    
+    int numBytesInPkt = 12;
+    
+    byte[] buffer = new byte[numBytesInPkt];
+    
+    int status = readBytesAndVerify(buffer, numBytesInPkt, pktID);
+    
+    int i = 0;
+    
+    logPanel.appendTS("\n----------------------------------------------\n");
+    logPanel.appendTS("-- All Status Information --\n\n");
+    
+    logPanel.appendTS(" - Transmission Errors -\n");
+    logPanel.appendTS("Rabbit to Host: " + packetErrorCnt + "\n");
+    logPanel.appendTS("Host to Rabbit: " + buffer[i++] + "\n");
+    logPanel.appendTS("Master PIC to Rabbit: " + buffer[i++] + "\n");
+    logPanel.appendTS("Rabbit to Master PIC: " + buffer[i++] + "\n");
+    logPanel.appendTS("Slave PICs to Master PIC: " + buffer[i++] + "\n");
 
-    logPanel.appendTS("\n---------------------------\n");
-    logPanel.appendTS("All Status Information\n");
+    int numSlaves = 8;
     
+    for(int j=0; j<numSlaves; j++){
+        logPanel.appendTS(
+                     "Master PIC to Slave " + j + ": " + buffer[i++] + "\n");
+    }
     
+    int sum = packetErrorCnt; //number of errors recorded by host
+    //add with errors reported by device
+    for(int k=0; k<buffer.length; k++){ sum+= buffer[k]; }
+
+    logPanel.appendTS("Total error count: " + sum + "\n");
     
-    
-    
-    return(0);
+    return(status);    
     
 }//end of Device::handleAllStatusPacket
 //-----------------------------------------------------------------------------
@@ -912,7 +993,7 @@ public void reSync()
 
     //track the number of times this function is called, even if a resync is not
     //successful - this will track the number of sync errors
-    reSyncCount++;
+    reSyncCount++; packetErrorCnt++;
 
     //store info pertaining to what preceded the reSync - these values will be
     //overwritten by the next reSync, so they only reflect the last error
