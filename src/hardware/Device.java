@@ -323,9 +323,7 @@ void requestAllStatusPacket()
 int handleAllStatusPacket()
 {
     
-    //debug mks int numBytesInPkt = 116; //does not include checksum byte
-    
-    int numBytesInPkt = 32; //debug mks
+    int numBytesInPkt = 118; //does not include checksum byte
     
     byte[] buffer = new byte[numBytesInPkt];
     
@@ -335,45 +333,75 @@ int handleAllStatusPacket()
     //debug mks
     for (int i=0; i<numBytesInPkt; i++){
         System.out.println(
-        String.format("0x%2s", buffer[i]).replace(' ', '0')
+        String.format("0x%2x", buffer[i]).replace(' ', '0')
         );
     }
     //debug mks end
     
-    int i = 0, error, errorSum = 0;
+    int i = 0, v;
+    int errorSum = packetErrorCnt; //number of errors recorded by host
     
     logPanel.appendTS("\n----------------------------------------------\n");
     logPanel.appendTS("-- All Status Information --\n\n");
     
-    logPanel.appendTS(" - Status, Com Errors -\n");
-    logPanel.appendTS("Host <- Rabbit: 0," + packetErrorCnt + "\n");
-    logPanel.appendTS("Rabbit <- Host: "
-                     + buffer[i++] + "," + (error = buffer[i++]) + "\n");
-    errorSum += error;
-    logPanel.appendTS("Rabbit <- Master PIC: "
-                  + buffer[i++] + "," + (error = buffer[i++]) + "\n");
-    errorSum += error;    
-    logPanel.appendTS("Master PIC <- Rabbit: "
-                           + buffer[i++] + "," + (error = buffer[i++]) + "\n");
-    errorSum += error;    
-    logPanel.appendTS("Master PIC <- Slaves: "
-                           + buffer[i++] + "," + (error = buffer[i++]) + "\n");
-    errorSum += error;
-    logPanel.appendTS("Slaves <- Master:\n");
-    logPanel.appendTS("(status,errors,A/D Value)\n");
+    logPanel.appendTS("Host com errors: " + packetErrorCnt + "\n\n");
+    
+    logPanel.appendTS(" - Rabbit Status Data -\n\n");
+    
+    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]); //software version
+    logPanel.appendTS("," + String.format("0x%4x", 
+     getUnsignedShortFromPacket(buffer, i)).replace(' ', '0')); //control flags
+    i=i+2; //adjust for integer extracted above
+    logPanel.appendTS("," + String.format(
+                      "0x%2x", buffer[i++]).replace(' ', '0')); //system status
+    v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
+    logPanel.appendTS("," + v); //host com error count
+    v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
+    logPanel.appendTS("," + v); //PIC com error count
+    //unused values
+    logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
+    logPanel.appendTS("\n\n");
+
+    logPanel.appendTS(" - Master PIC Status Data -\n\n");
+    
+    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]); //software version
+    logPanel.appendTS("," + String.format(
+                            "0x%2x", buffer[i++]).replace(' ', '0')); //flags
+    logPanel.appendTS("," + String.format(
+                      "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
+    v = buffer[i++]; errorSum += v;
+    logPanel.appendTS("," + v); //Rabbit com error count
+    v = buffer[i++]; errorSum += v;
+    logPanel.appendTS("," + v); //PIC com error count
+    //unused values
+    logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
+    logPanel.appendTS("\n\n");
+    
+    logPanel.appendTS(" - Slave PIC 0~7 Status Data -\n\n");
     
     int numSlaves = 8;
     
     for(int j=0; j<numSlaves; j++){
-        logPanel.appendTS("Slave " + j + ": " + buffer[i++] + ","
-                                     + buffer[i++] + "," + buffer[i++] + "\n");
-    }
-    
-    int sum = packetErrorCnt; //number of errors recorded by host
-    //add with errors reported by device
-    for(int k=0; k<buffer.length; k++){ sum+= buffer[k]; }
 
-    logPanel.appendTS("Total error count: THIS IS NOT CORRECT " + sum + "\n\n");
+        logPanel.appendTS(buffer[i++] + "-"); //I2C bus address
+        logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]); //software ver
+        logPanel.appendTS("," + String.format(
+                               "0x%2x", buffer[i++]).replace(' ', '0')); //flags
+        logPanel.appendTS("," + String.format(
+                        "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
+        v = buffer[i++]; errorSum += v;        
+        logPanel.appendTS("," + v); //Master PIC com error count
+        logPanel.appendTS("," + buffer[i++]); //max num bytes in A/D sample buffer
+        logPanel.appendTS("," + buffer[i++]); //last read A/D value    
+        //unused values
+        logPanel.appendTS(","+buffer[i++]+","+buffer[i++]+ "," + buffer[i++]);
+        logPanel.appendTS("," + String.format(
+          "0x%2x", buffer[i++]).replace(' ', '0')); //Slave PIC packet checksum
+        logPanel.appendTS("\n");
+    
+    }
+        
+    logPanel.appendTS("Total com error count: " + errorSum + "\n\n");
     
     return(status);    
     

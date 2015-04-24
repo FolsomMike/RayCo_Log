@@ -303,6 +303,50 @@ public void handlePacket(byte pCommand)
 //
 // Handles GET_ALL_STATUS_CMD packets.
 //
+// Packet Format from remote device:
+//
+// Rabbit Status Data
+//
+// 0xaa,0x55,0xbb,0x66,Packet ID        (these already removed from buffer)
+// Rabbit Software Version MSB
+// Rabbit Software Version LSB
+// Rabbit Control Flags (MSB)
+// Rabbit Control Flags (LSB)
+// Rabbit System Status
+// Rabbit Host Com Error Count MSB
+// Rabbit Host Com Error Count LSB
+// Rabbit Master PIC Com Error Count MSB
+// Rabbit Master PIC Com Error Count LSB
+// 0x55,0xaa,0x5a                       (unused)
+//
+// Master PIC Status Data
+//
+// Master PIC Software Version MSB
+// Master PIC Software Version LSB
+// Master PIC Flags
+// Master PIC Status Flags
+// Master PIC Rabbit Com Error Count
+// Master PIC Slave PIC Com Error Count
+// 0x55,0xaa,0x5a                       (unused)
+//
+// Slave PIC 0 Status Data
+//
+// Slave PIC I2C Bus Address (0-7) 
+// Slave PIC Software Version MSB
+// Slave PIC Software Version LSB
+// Slave PIC Flags
+// Slave PIC Status Flags
+// Slave PIC Master PIC Com Error Count
+// Slave PIC Max number bytes in A/D Sample Buffer
+// Slave PIC Last read A/D value
+// 0x55,0xaa,0x5a                       (unused)
+// Slave PIC packet checksum
+//
+// ...packets for remaing Slave PIC packets...
+//
+// (Master PIC packet checksum not transmitted)
+// (overall packet checksum from Rabbit already removed)
+//
 
 public void handleGetAllStatus()
 {
@@ -315,14 +359,31 @@ public void handleGetAllStatus()
         x = byteIn.available(); //debug mks
     
     }catch(IOException e){}
-
-    sendPacket(Device.GET_ALL_STATUS_CMD,
-    (byte)1, (byte)2, (byte)3, (byte)4, (byte)5, (byte)6, (byte)7, (byte)8,
-    (byte)9, (byte)10, (byte)11, (byte)12, (byte)13, (byte)14, (byte)15,
-    (byte)16, (byte)17, (byte)18, (byte)19, (byte)20, (byte)21, (byte)22,
-    (byte)23, (byte)24, (byte)25, (byte)26, (byte)27, (byte)28, (byte)29,
-    (byte)30, (byte)31, (byte)32);    
     
+    //send test data packet
+    
+    sendPacket(Device.GET_ALL_STATUS_CMD, (byte)0x01,(byte)0x02,
+    (byte)0x12,(byte)0x34,(byte)0x56,(byte)0x01,(byte)0x01,(byte)0x01,
+    (byte)0x02,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x01,(byte)0x02,
+    (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x01,(byte)0x02,
+    (byte)0x03,(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x8f,(byte)0x01,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x8e,(byte)0x02,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x8d,(byte)0x03,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x8c,(byte)0x04,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x8b,(byte)0x05,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x8a,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x89,(byte)0x07,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
+    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
+    (byte)0x88,(byte)0xa4);
+
 }//end of Simulator::handleGetAllStatus
 //-----------------------------------------------------------------------------
 
