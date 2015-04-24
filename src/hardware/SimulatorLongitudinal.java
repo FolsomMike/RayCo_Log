@@ -13,6 +13,9 @@
 
 package hardware;
 
+import java.net.InetAddress;
+import java.net.SocketException;
+
 //-----------------------------------------------------------------------------
 // class SimulatorLongitudinal
 //
@@ -20,14 +23,23 @@ package hardware;
 public class SimulatorLongitudinal extends Simulator
 {
     
+//IMPORTANT -- this constructor must be present in the Simulator parent class
+// and all sub-classes. It prevents the Socket constructor from being called
+// which will cause the Socket to generate "unconnected" errors when used
+// later.
+    
+public SimulatorLongitudinal() throws SocketException{};    
+    
+
 //-----------------------------------------------------------------------------
 // SimulatorLongitudinal::SimulatorLongitudinal (constructor)
 //
     
-public SimulatorLongitudinal(int pSimulatorNum)
+public SimulatorLongitudinal(InetAddress pIPAddress, int pPort,
+     String pTitle, String pSimulationDataSourceFilePath) throws SocketException
 {
 
-    super(pSimulatorNum);
+    super(pIPAddress, pPort, pTitle, pSimulationDataSourceFilePath);
     
 }//end of SimulatorLongitudinal::SimulatorLongitudinal (constructor)
 //-----------------------------------------------------------------------------
@@ -39,16 +51,32 @@ public SimulatorLongitudinal(int pSimulatorNum)
 //
 
 @Override
-public void init()
+public void init(int pBoardNumber)
 {
 
-    super.init();
+    super.init(pBoardNumber);
 
     numClockPositions = 24;
     
     spikeOdds = 100;
     
 }// end of SimulatorLongitudinal::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimulatorLongitudinal::handlePacket
+//
+// Performs the processing and returns data appropriate for the packet
+// identifier/command byte passed in via pCommand.
+//
+
+@Override
+public void handlePacket(byte pCommand)
+{
+
+    super.handlePacket(pCommand);
+    
+}//end of SimulatorLongitudinal::handlePacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

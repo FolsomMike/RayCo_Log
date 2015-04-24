@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.DataTransferIntMultiDimBuffer;
@@ -41,7 +42,7 @@ import view.LogPanel;
 
 public class Device implements Runnable
 {
-
+    
     final IniFile configFile;
     private final int deviceNum;
     public int getDeviceNum(){ return(deviceNum); }
@@ -75,7 +76,10 @@ public class Device implements Runnable
     int packetErrorCnt = 0;
     
     private boolean connectionAttemptCompleted = false;
+    public boolean getConnectionAttemptCompleted(){
+                                         return (connectionAttemptCompleted); }
     private boolean connectionSuccessful = false;
+    public boolean getConnectionSuccessful(){ return (connectionSuccessful); }    
     
     SampleMetaData mapMeta = new SampleMetaData(0);
     public SampleMetaData getMapMeta(){ return(mapMeta); }
@@ -103,12 +107,12 @@ public class Device implements Runnable
     //NOTE: Each subclass can have its own command codes. They should be in the
     //range 40~100 so that they don't overlap the codes in this parent class.
 
-    static byte NO_ACTION = 0;
+    static byte NO_ACTION_CMD = 0;
     static byte GET_ALL_STATUS_CMD = 1;
-    static byte LOAD_FIRMWARE_CMD = 2;
-    static byte DATA_CMD = 3;
-    static byte SEND_DATA_CMD = 4;
-
+    static byte SET_INSPECTION_MODE_CMD = 2;
+    static byte SET_GAIN_CMD = 3;
+    static byte SET_OFFSET_CMD = 4;
+    static byte GET_PEAK_DATA_CMD = 5;
     
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
@@ -145,6 +149,25 @@ public void init()
 {
 
 }// end of Device::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::driveSimulation
+//
+// Drive any simulation functions if they are active.  This function is usually
+// called from a thread.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+public void driveSimulation()
+{
+
+    if (simMode && socket != null) {
+        ((Simulator)socket).processDataPackets(false);
+    }
+
+}//end of Device::driveSimulation
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -219,6 +242,7 @@ void sendPacket(byte pCommand, byte... pBytes)
 //
 // Note: pNumBytes should include the data bytes ONLY and NOT the checksum byte.
 // This method will automatically read the checksum byte.
+// The checksum is NOT added to the buffer.
 //
 // The packet ID should be provided via pPktID -- it is only used to verify the
 // checksum as it is included in that calculation by the sender.
@@ -299,36 +323,57 @@ void requestAllStatusPacket()
 int handleAllStatusPacket()
 {
     
-    int numBytesInPkt = 12;
+    //debug mks int numBytesInPkt = 116; //does not include checksum byte
+    
+    int numBytesInPkt = 32; //debug mks
     
     byte[] buffer = new byte[numBytesInPkt];
     
-    int status = readBytesAndVerify(buffer, numBytesInPkt, pktID);
+    int status = 0;
+    status = readBytesAndVerify(buffer, numBytesInPkt, pktID);
     
-    int i = 0;
+    //debug mks
+    for (int i=0; i<numBytesInPkt; i++){
+        System.out.println(
+        String.format("0x%2s", buffer[i]).replace(' ', '0')
+        );
+    }
+    //debug mks end
+    
+    int i = 0, error, errorSum = 0;
     
     logPanel.appendTS("\n----------------------------------------------\n");
     logPanel.appendTS("-- All Status Information --\n\n");
     
-    logPanel.appendTS(" - Transmission Errors -\n");
-    logPanel.appendTS("Rabbit to Host: " + packetErrorCnt + "\n");
-    logPanel.appendTS("Host to Rabbit: " + buffer[i++] + "\n");
-    logPanel.appendTS("Master PIC to Rabbit: " + buffer[i++] + "\n");
-    logPanel.appendTS("Rabbit to Master PIC: " + buffer[i++] + "\n");
-    logPanel.appendTS("Slave PICs to Master PIC: " + buffer[i++] + "\n");
-
+    logPanel.appendTS(" - Status, Com Errors -\n");
+    logPanel.appendTS("Host <- Rabbit: 0," + packetErrorCnt + "\n");
+    logPanel.appendTS("Rabbit <- Host: "
+                     + buffer[i++] + "," + (error = buffer[i++]) + "\n");
+    errorSum += error;
+    logPanel.appendTS("Rabbit <- Master PIC: "
+                  + buffer[i++] + "," + (error = buffer[i++]) + "\n");
+    errorSum += error;    
+    logPanel.appendTS("Master PIC <- Rabbit: "
+                           + buffer[i++] + "," + (error = buffer[i++]) + "\n");
+    errorSum += error;    
+    logPanel.appendTS("Master PIC <- Slaves: "
+                           + buffer[i++] + "," + (error = buffer[i++]) + "\n");
+    errorSum += error;
+    logPanel.appendTS("Slaves <- Master:\n");
+    logPanel.appendTS("(status,errors,A/D Value)\n");
+    
     int numSlaves = 8;
     
     for(int j=0; j<numSlaves; j++){
-        logPanel.appendTS(
-                     "Master PIC to Slave " + j + ": " + buffer[i++] + "\n");
+        logPanel.appendTS("Slave " + j + ": " + buffer[i++] + ","
+                                     + buffer[i++] + "," + buffer[i++] + "\n");
     }
     
     int sum = packetErrorCnt; //number of errors recorded by host
     //add with errors reported by device
     for(int k=0; k<buffer.length; k++){ sum+= buffer[k]; }
 
-    logPanel.appendTS("Total error count: " + sum + "\n");
+    logPanel.appendTS("Total error count: THIS IS NOT CORRECT " + sum + "\n\n");
     
     return(status);    
     
@@ -756,7 +801,7 @@ public synchronized void waitForever()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlBoard::connectToDevice
+// Device::connectToDevice
 //
 // Opens a TCP/IP connection with the device with which this object is linked
 // via the IP address.
@@ -770,25 +815,12 @@ public synchronized void connectToDevice()
     try {
 
         logPanel.appendTS("IP Address: " + ipAddr.toString() + "\n");
-
-        boolean simulate = false; //debug mks -- make this a class member and set this from config file!
         
-        if (!simulate) {
+        if (!simMode) {
             socket = new Socket(ipAddr, 23);
         }
         else {
-            /* //debug mks
-            ControlSimulator controlSimulator = new ControlSimulator(
-                        ipAddr, 23, fileFormat, simulationDataSourceFilePath);
-            controlSimulator.init();
-            
-            socket = controlSimulator;
-            
-            //when simulating, the socket is a ControlSimulator class object
-            //which is also a MessageLink implementor, so cast it for use as
-            //such so that messages can be sent to the object
-            mechSimulator = (MessageLink)socket;
-                    */
+            createSimulatedSocket();
         }
 
         //set amount of time in milliseconds that a read from the socket will
@@ -796,7 +828,6 @@ public synchronized void connectToDevice()
         socket.setSoTimeout(250);
 
         out = new PrintWriter(socket.getOutputStream(), true);
-
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
         byteOut = new DataOutputStream(socket.getOutputStream());
@@ -804,15 +835,18 @@ public synchronized void connectToDevice()
 
     }//try
     catch (IOException e) {
-        logSevere(e.getMessage() + " - Error: 591");
-        logPanel.appendTS("\nError: couldn't get I/O for " + ipAddrS + "\n");
+        logSevere(e.getMessage() + " - Error: 817");
+        logPanel.appendTS("\nError 817: "+e.getMessage()+" " + ipAddrS + "\n");
         connectionAttemptCompleted = true;
         return;
     }
 
     try {
+        //note that readLine hangs if a line is not received -- could change
+        //to use ready() and read() for each byte and concatenate to form string
+        String s = in.readLine();
         //display the greeting message sent by the remote
-        logPanel.appendTS(ipAddrS + " says " + in.readLine() + "\n");
+        logPanel.appendTS(ipAddrS + " says " + s + "\n");
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 601");
@@ -827,6 +861,21 @@ public synchronized void connectToDevice()
     logPanel.appendTS("\nConnection successful.");
 
 }//end of Device::connectToDevice
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// Device::createSimulatedSocket
+//
+// Creates an instance of the Simulated class or subclass to simulate an
+// actual device connected to Socket.
+//
+// Must be overridden by child classes to provide custom handling.
+//
+
+void createSimulatedSocket() throws SocketException
+{
+
+}//end of Device::createSimulatedSocket
 //-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------

@@ -16,6 +16,7 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.net.SocketException;
 import model.IniFile;
 import view.LogPanel;
 
@@ -39,7 +40,7 @@ public Multi_IO_A_Wall(int pIndex, LogPanel pLogPanel,
     
     PACKET_SIZE = 9;
     
-    if(simMode){ simulator = new SimulatorWall(0); simulator.init(); }
+//debug remove this -- superseded by Socket Simulator  if(simMode){ simulator = new SimulatorWall(0); simulator.init(); }
    
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Wall (constructor)
 //-----------------------------------------------------------------------------
@@ -62,6 +63,47 @@ public void init()
 
 }// end of Multi_IO_A_Wall::init
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Wall::driveSimulation
+//
+// Drive any simulation functions if they are active.  This function is usually
+// called from a thread.
+//
+
+@Override
+public void driveSimulation()
+{
+
+    super.driveSimulation();
+    
+}//end of Multi_IO_A_Wall::driveSimulation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Wall::createSimulatedSocket
+//
+// Creates an instance of the Simulated class or subclass to simulate an
+// actual device connected to Socket.
+//
+// This is usually called by the parent class to allow each subclass to create
+// the appropriate object type.
+//
+
+@Override
+void createSimulatedSocket() throws SocketException
+{
+
+    super.createSimulatedSocket();
+    
+    SimulatorWall wallSimulator = new SimulatorWall(getIPAddr(), 23, title, "");
+
+    wallSimulator.init(0);
+
+    socket = wallSimulator;
+    
+}//end of Multi_IO_A_Wall::createSimulatedSocket
+//-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Wall::collectData

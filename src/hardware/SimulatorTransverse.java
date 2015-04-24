@@ -1,11 +1,17 @@
 /******************************************************************************
 * Title: SimulatorTransverse.java
 * Author: Mike Schoonover
-* Date: 02/20/15
+* Date: 04/22/15
 *
 * Purpose:
 *
 * This class provides simulation data for the EMI Transverse system.
+* 
+* This class simulates a TCP/IP connection between the host and the remote
+* device.
+*
+* This is a subclass of Simulator which subclasses Socket and can be substituted
+* for an instance of the Socket class when simulated data is needed.
 *
 */
 
@@ -15,6 +21,10 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.net.InetAddress;
+import java.net.SocketException;
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class SimulatorTransverse
@@ -22,15 +32,23 @@ package hardware;
 
 public class SimulatorTransverse extends Simulator
 {
+
+//IMPORTANT -- this constructor must be present in the Simulator parent class
+// and all sub-classes. It prevents the Socket constructor from being called
+// which will cause the Socket to generate "unconnected" errors when used
+// later.
+    
+public SimulatorTransverse() throws SocketException{};
     
 //-----------------------------------------------------------------------------
 // SimulatorTransverse::SimulatorTransverse (constructor)
 //
     
-public SimulatorTransverse(int pSimulatorNum)
+public SimulatorTransverse(InetAddress pIPAddress, int pPort,
+     String pTitle, String pSimulationDataSourceFilePath) throws SocketException
 {
 
-    super(pSimulatorNum);
+    super(pIPAddress, pPort, pTitle, pSimulationDataSourceFilePath);
     
 }//end of SimulatorTransverse::SimulatorTransverse (constructor)
 //-----------------------------------------------------------------------------
@@ -40,18 +58,37 @@ public SimulatorTransverse(int pSimulatorNum)
 //
 // Initializes the object.  Must be called immediately after instantiation.
 //
+// Parameter pBoardNumber is used to find info for the simulated board in a
+// config file.
+//
 
 @Override
-public void init()
+public void init(int pBoardNumber)
 {
 
-    super.init();
+    super.init(pBoardNumber);
 
     numClockPositions = 24;    
     
     spikeOdds = 20;
-    
+        
 }// end of SimulatorTransverse::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimulatorTransverse::handlePacket
+//
+// Performs the processing and returns data appropriate for the packet
+// identifier/command byte passed in via pCommand.
+//
+
+@Override
+public void handlePacket(byte pCommand)
+{
+
+    super.handlePacket(pCommand);
+    
+}//end of SimulatorTransverse::handlePacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

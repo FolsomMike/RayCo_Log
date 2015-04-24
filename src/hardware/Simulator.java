@@ -1,11 +1,15 @@
 /******************************************************************************
-* Title: Simulator.java
+* Title: Simulator.java (Universal_Chart)
 * Author: Mike Schoonover
 * Date: 01/16/15
 *
 * Purpose:
 *
-* This class is the parent class for subclasses which provide simulated data.
+* This is the super class for various simulator classes which simulate a TCP/IP
+* connection between the host and various types of hardware.
+*
+* This is a subclass of Socket and can be substituted for an instance
+* of that class when simulated data is needed.
 *
 */
 
@@ -15,15 +19,72 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
 //-----------------------------------------------------------------------------
 // class Simulator
 //
 
-public class Simulator
+public class Simulator extends Socket
 {
 
-    private final int simulatorNum;
+//IMPORTANT -- this constructor must be present in the Simulator parent class
+// and all sub-classes. It prevents the Socket constructor from being called
+// which will cause the Socket to generate "unconnected" errors when used
+// later.
     
+public Simulator() throws SocketException{};
+    
+    private int simulatorNum;
+
+    String title;
+    
+    public InetAddress ipAddr;
+    int port;    
+    String simulationDataSourceFilePath;    
+    boolean reSynced;
+    int reSyncCount = 0;
+    public static int instanceCounter = 0;
+
+    //simulates the default size of a socket created for ethernet access
+    // NOTE: If the pipe size is too small, the outside object can fill the
+    // buffer and have to wait until the thread on this side catches up.  If
+    // the outside object has a timeout, then data will be lost because it will
+    // continue on without writing if the timeout occurs.
+    // In the future, it would be best if UTBoard object used some flow control
+    // to limit overflow in case the default socket size ends up being too
+    // small.
+
+    static int PIPE_SIZE = 8192;
+        
+    PipedOutputStream outStream;
+    PipedInputStream  localInStream;
+
+    PipedInputStream  inStream;
+    PipedOutputStream localOutStream;
+
+    DataOutputStream byteOut = null;
+    DataInputStream byteIn = null;
+
+    int IN_BUFFER_SIZE = 512;
+    byte[] inBuffer;
+
+    int OUT_BUFFER_SIZE = 512;
+    byte[] outBuffer;
+        
     int numClockPositions;
 
     int spikeOdds = 20;
@@ -37,31 +98,373 @@ public class Simulator
     static final int SPIKE_ODDS_RANGE = 10000;
     static final int WALL_SIM_NOISE = 3;
     static final int WALL_SPIKE_ODDS_RANGE = 100000;
-
-    
+   
 //-----------------------------------------------------------------------------
 // Simulator::Simulator (constructor)
 //
 
-public Simulator(int pSimulatorNum)
+public Simulator(InetAddress pIPAddress, int pPort, String pTitle,
+                String pSimulationDataSourceFilePath) throws SocketException
 {
 
-    simulatorNum = pSimulatorNum;
-    
+    port = pPort; ipAddr = pIPAddress; title = pTitle;
+
+    simulationDataSourceFilePath = pSimulationDataSourceFilePath;
+        
+    //give each instance of the class a unique number
+    //this can be used to provide a unique simulated IP address
+    simulatorNum = instanceCounter++;
+
+    //create an input and output stream to simulate those attached to a real
+    //Socket connected to a hardware board
+
+    // four steams are used - two connected pairs
+    // an ouptut and an input stream are created to hand to the outside object
+    // (outStream & inStream) - the outside object writes to outStream and reads
+    // from inStream
+    // an input stream is then created using the outStream as it's connection -
+    // this object reads from that input stream to receive bytes sent by the
+    // external object via the attached outStream
+    // an output stream is then created using the inStream as it's connection -
+    // this object writes to that output stream to send bytes to be read by the
+    // external object via the attached inStream
+
+    //this end goes to the external object
+    outStream = new PipedOutputStream();
+    //create an input stream (localInStream) attached to outStream to read the
+    //data sent by the external object
+    try{localInStream = new PipedInputStream(outStream, PIPE_SIZE);}
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 112");
+    }
+
+    //this end goes to the external object
+    inStream = new PipedInputStream(PIPE_SIZE);
+    //create an output stream (localOutStream) attached to inStream to read the
+    //data sent by the external object
+    try{localOutStream = new PipedOutputStream(inStream);}
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 121");
+    }
+
+    inBuffer = new byte[IN_BUFFER_SIZE]; //used by various functions
+    outBuffer = new byte[OUT_BUFFER_SIZE]; //used by various functions
+
+    //create an output and input byte stream
+    //out for this class is in for the outside classes and vice versa
+
+    byteOut = new DataOutputStream(localOutStream);
+    byteIn = new DataInputStream(localInStream);
+
 }//end of Simulator::Simulator (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Simulator::init
 //
-// Initializes the object.  Must be called immediately after instantiation.
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+// Parameter pBoardNumber is used to find info for the simulated board in a
+// config file.
 //
 
-public void init()
+public void init(int pBoardNumber)
 {
 
+    //send greeting to host which will wait for this line
+    PrintWriter out = new PrintWriter(localOutStream, true);
+    out.println("Hello from " + title);
+        
+    //load general configuration data from file
+//    try{
+//        configureMain(pBoardNumber);
+//    }
+//    catch(IOException e){
+//       return;
+//  }
 
-}// end of Simulator::init
+    //load general configuration data
+//    configureSimulationDataSet();
+    
+}//end of Simulator::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::processDataPackets
+//
+// See processDataPacketsHelper notes for more info.
+//
+
+public int processDataPackets(boolean pWaitForPkt)
+{
+
+    int x = 0;
+
+    //process packets until there is no more data available
+
+    // if pWaitForPkt is true, only call once or an infinite loop will occur
+    // because the subsequent call will still have the flag set but no data
+    // will ever be coming because this same thread which is now blocked is
+    // sometimes the one requesting data
+
+    if (pWaitForPkt) {
+        return processDataPacketsHelper(pWaitForPkt);
+    }
+    else {
+        while ((x = processDataPacketsHelper(pWaitForPkt)) != -1){}
+    }
+
+    return x;
+
+}//end of Simulator::processDataPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::processDataPacketsHelper
+//
+// Process incoming data.  This function is usually called from a
+// thread.
+//
+
+public int processDataPacketsHelper(boolean pWaitForPkt)
+{
+
+    if (byteIn == null) {return(0);}  //do nothing if the port is closed
+
+    try{
+
+        int x;
+
+        //wait until 5 bytes are available - this should be the 4 header bytes,
+        //and the packet identifier/command
+        if ((x = byteIn.available()) < 5) {return(-1);}
+
+        //read the bytes in one at a time so that if an invalid byte is
+        //encountered it won't corrupt the next valid sequence in the case
+        //where it occurs within 3 bytes of the invalid byte
+
+        //check each byte to see if the first four create a valid header
+        //if not, jump to resync which deletes bytes until a valid first header
+        //byte is reached
+
+        //if the reSynced flag is true, the buffer has been resynced and an 0xaa
+        //byte has already been read from buffer so it shouldn't be read again
+
+        //after a resync, the function exits without processing any packets
+
+        if (!reSynced){
+            //look for the 0xaa byte unless buffer just resynced
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
+        }
+        else {
+            reSynced = false;
+        }
+
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
+
+        //read the packet ID
+        byteIn.read(inBuffer, 0, 1);
+
+        handlePacket(inBuffer[0]);
+         
+        return 0;
+
+    }//try
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 519");
+    }
+
+    return 0;
+
+}//end of Simulator::processDataPacketsHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handlePacket
+//
+// Performs the processing and returns data appropriate for the packet
+// identifier/command byte passed in via pCommand.
+//
+// Should be overridden by child classes to provide custom handling.
+// The child class should call this method from within the overriding method.
+//
+
+public void handlePacket(byte pCommand)
+{
+
+    if (pCommand == Device.GET_ALL_STATUS_CMD) { handleGetAllStatus(); }
+    else
+    if (pCommand == Device.SET_INSPECTION_MODE_CMD) {}
+
+}//end of Simulator::handlePacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleGetAllStatus
+//
+// Handles GET_ALL_STATUS_CMD packets.
+//
+
+public void handleGetAllStatus()
+{
+   
+    int x; //debug mks
+    
+    try{
+        byteIn.read(inBuffer, 0, 2); //read in the checksum byte
+
+        x = byteIn.available(); //debug mks
+    
+    }catch(IOException e){}
+
+    sendPacket(Device.GET_ALL_STATUS_CMD,
+    (byte)1, (byte)2, (byte)3, (byte)4, (byte)5, (byte)6, (byte)7, (byte)8,
+    (byte)9, (byte)10, (byte)11, (byte)12, (byte)13, (byte)14, (byte)15,
+    (byte)16, (byte)17, (byte)18, (byte)19, (byte)20, (byte)21, (byte)22,
+    (byte)23, (byte)24, (byte)25, (byte)26, (byte)27, (byte)28, (byte)29,
+    (byte)30, (byte)31, (byte)32);    
+    
+}//end of Simulator::handleGetAllStatus
+//-----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+// Simulator::sendPacketHeader
+//
+// Sends via the socket: 0xaa, 0x55, 0xaa, 0x55, and the packet command.
+//
+// The socket is not flushed in anticipation of more bytes being sent to
+// complete the packet.
+//
+
+void sendPacketHeader(int pCommand) throws IOException
+{
+
+   byteOut.write(0xaa); byteOut.write(0x55);
+   byteOut.write(0xbb); byteOut.write(0x66);
+    
+   byteOut.write(pCommand);
+
+}//end of Simulator::sendPacketHeader
+//----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::sendPacketViaSocket
+//
+// Sends a packet via pSocket with command code pCommand followed by a variable
+//  number of bytes (one or more).
+//
+// A header is prepended and a checksum byte appended. The checksum includes
+// the command byte and all bytes in the argument list, but not the header
+// bytes.
+//
+
+void sendPacket(byte pCommand, byte... pBytes)
+
+{
+
+    int sum = pCommand;//command byte included in checksum
+    
+    //send packet to remote
+    if (byteOut != null) {
+        try{
+            
+              sendPacketHeader(pCommand);
+            
+              byteOut.write(pBytes, 0 /*offset*/, pBytes.length);
+
+              for (int i=0; i<pBytes.length; i++){
+                  sum += pBytes[i];
+              }
+    
+            //calculate checksum and send it
+            int checksum = (byte)(0x100 - (byte)(sum & 0xff));
+            byteOut.write(checksum);
+            
+            byteOut.flush();
+        }
+        catch (IOException e) {
+            logSevere(e.getMessage() + " - Error: 220");
+        }
+    }
+    
+}//end of Simulator::sendPacketViaSocket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::getInputStream()
+//
+// Returns an input stream for the calling object - it is an input to that
+// object.
+//
+
+@Override
+public InputStream getInputStream()
+{
+
+    return (inStream);
+
+}//end of Simulator::getInputStream
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::getOutputStream()
+//
+// Returns an output stream for the calling object - it is an output from that
+// object.
+//
+
+@Override
+public OutputStream getOutputStream()
+{
+
+    return (outStream);
+
+}//end of Simulator::getOutputStream
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::reSync
+//
+// Clears bytes from the socket buffer until 0xaa byte reached which signals
+// the *possible* start of a new valid packet header or until the buffer is
+// empty.
+//
+// If an 0xaa byte is found, the flag reSynced is set true to that other
+// functions will know that an 0xaa byte has already been removed from the
+// stream, signalling the possible start of a new packet header.
+//
+// There is a special case where a 0xaa is found just before the valid 0xaa
+// which starts a new packet - the first 0xaa is the last byte of the previous
+// packet (usually the checksum).  In this case, the next packet will be lost
+// as well.  This should happen rarely.
+//
+
+public void reSync()
+{
+
+    reSynced = false;
+
+    //track the number of time this function is called, even if a resync is not
+    //successful - this will track the number of sync errors
+    reSyncCount++;
+
+    try{
+        while (byteIn.available() > 0) {
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+            }
+        }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 169");
+    }
+
+}//end of Simulator::reSync
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -162,6 +565,19 @@ int simulateNegativeSignal()
 }//end of Simulator::simulateNegativeSignal
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Simulator::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+final void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of Simulator::logSevere
+//-----------------------------------------------------------------------------
 
 }//end of class Simulator
 //-----------------------------------------------------------------------------

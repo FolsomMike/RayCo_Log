@@ -16,6 +16,7 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.net.SocketException;
 import model.IniFile;
 import view.LogPanel;
 
@@ -38,7 +39,7 @@ public Multi_IO_A_Longitudinal(int pIndex, LogPanel pLogPanel,
 
     PACKET_SIZE = 57;
     
-    if(simMode){ simulator = new SimulatorLongitudinal(0); simulator.init(); }
+//debug remove this -- superseded by Socket Simulator  if(simMode){ simulator = new SimulatorLongitudinal(0); simulator.init(); }
     
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //-----------------------------------------------------------------------------
@@ -61,6 +62,59 @@ public void init()
 
 }// end of Multi_IO_A_Longitudinal::init
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Longitudinal::driveSimulation
+//
+// Drive any simulation functions if they are active.  This function is usually
+// called from a thread.
+//
+
+@Override
+public void driveSimulation()
+{
+
+    super.driveSimulation();
+    
+}//end of Multi_IO_A_Longitudinal::driveSimulation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Longitudinal::createSimulatedSocket
+//
+// Creates an instance of the Simulated class or subclass to simulate an
+// actual device connected to Socket.
+//
+// This is usually called by the parent class to allow each subclass to create
+// the appropriate object type.
+//
+
+@Override
+void createSimulatedSocket() throws SocketException
+{
+
+    
+    /* debug mks -- remove this
+    super.createSimulatedSocket();
+    
+    SimCh2 simCh2 = new SimCh2(getIPAddr(), 23, "", "");
+
+    simCh2.init(0);
+
+    socket = simCh2;
+    */
+
+    super.createSimulatedSocket();
+    
+    SimulatorLongitudinal longSimulator = new SimulatorLongitudinal(
+                                                   getIPAddr(), 23, title, "");
+
+    longSimulator.init(0);
+
+    socket = longSimulator;
+     
+}//end of Multi_IO_A_Longitudinal::createSimulatedSocket
+//-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Longitudinal::collectData

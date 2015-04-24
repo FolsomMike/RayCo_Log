@@ -600,10 +600,16 @@ public boolean connectToFoundDevices()
     
     boolean allDevicesConnected = true;
     
-    //wait for each object to complete its connection
-    
-    for (Device device : devices) { 
-        if (!device.waitForConnectCompletion()) { allDevicesConnected = false; }
+    //wait a while for each object to complete its connection
+    for(int i=0; i<5; i++){
+        allDevicesConnected = true;
+        for (Device device : devices) { 
+            if (!device.getConnectionSuccessful()) { 
+                allDevicesConnected = false; 
+            }                    
+        }
+        if(allDevicesConnected) { break; }        
+        waitSleep(500);
     }
 
     if(allDevicesConnected){
@@ -611,7 +617,7 @@ public boolean connectToFoundDevices()
     }else{
         logPanel.appendTS("Error: Some devices did not connect!\n\n");
     }
-    
+
     return(allDevicesConnected);
     
 }//end of MainHandler::connectToFoundDevices
@@ -647,11 +653,15 @@ private void setupSocketAndDatagram(SocketSet pSocketSet)
 // Should be called periodically to allow collection of data buffered in the
 // source.
 //
+// Also drives the simulation functions for any devices in simulation mode.
+//
 
 public void collectData()
 {
     
     for(Device device : devices){ device.collectData(); }
+
+    for(Device device : devices){ device.driveSimulation(); }
     
 }// end of MainHandler::collectData
 //-----------------------------------------------------------------------------
@@ -816,7 +826,8 @@ private void loadConfigSettings()
         
         boolean sim = configFile.readBoolean(
                            section, "device " + i + " simulation mode", false);
-        deviceSimModes.add(sim);
+        
+        deviceSimModes.add(sim || allDevicesSimulatedOverride);
         
         //if device is simulated, add its type to a list of such
         if(sim || allDevicesSimulatedOverride){ deviceTypesSimulated.add(t); }

@@ -16,6 +16,7 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.net.SocketException;
 import model.IniFile;
 import view.LogPanel;
 
@@ -38,7 +39,7 @@ public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel,
     
     PACKET_SIZE = 88;
 
-    if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
+//debug remove this -- superseded by Socket Simulator      if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
     
 }//end of Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //-----------------------------------------------------------------------------
@@ -61,6 +62,48 @@ public void init()
 
 }// end of Multi_IO_A_Transverse::init
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Transverse::driveSimulation
+//
+// Drive any simulation functions if they are active.  This function is usually
+// called from a thread.
+//
+
+@Override
+public void driveSimulation()
+{
+
+    super.driveSimulation();
+
+}//end of Multi_IO_A_Transverse::driveSimulation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Transverse::createSimulatedSocket
+//
+// Creates an instance of the Simulated class or subclass to simulate an
+// actual device connected to Socket.
+//
+// This is usually called by the parent class to allow each subclass to create
+// the appropriate object type.
+//
+
+@Override
+void createSimulatedSocket() throws SocketException
+{
+
+    super.createSimulatedSocket();
+    
+    SimulatorTransverse transSimulator = new SimulatorTransverse(
+                                                    getIPAddr(), 23, title, "");
+
+    transSimulator.init(0);
+
+    socket = transSimulator;
+    
+}//end of Multi_IO_A_Transverse::createSimulatedSocket
+//-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Transverse::collectData

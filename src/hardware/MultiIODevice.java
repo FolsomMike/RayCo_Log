@@ -31,8 +31,6 @@ public class MultiIODevice extends Device
     
     int[] mapData;
     
-    Simulator simulator = null;
-    
     int PACKET_SIZE;
     
     byte[] packet;    
@@ -110,11 +108,7 @@ public void collectData()
 
     super.collectData();
     
-    if (!simMode){ 
-        getRunPacketFromDevice(packet);
-    }else{        
-        simulator.getRunPacket(packet);
-    }
+    getRunPacketFromDevice(packet);
     
     //first channel's buffer location specifies start of channel data section
     int index = channels[0].getBufferLoc();

@@ -14,6 +14,10 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
+
+import java.net.InetAddress;
+import java.net.SocketException;
+
 //-----------------------------------------------------------------------------
 // class SimulatorWall
 //
@@ -21,6 +25,13 @@ package hardware;
 public class SimulatorWall extends Simulator
 {
 
+//IMPORTANT -- this constructor must be present in the Simulator parent class
+// and all sub-classes. It prevents the Socket constructor from being called
+// which will cause the Socket to generate "unconnected" errors when used
+// later.
+    
+public SimulatorWall() throws SocketException{};    
+        
     int avgWallSpikeLength = 0;
     int pulseWallSpikeLength = 0;
     int intCoilSpikeLength = 0;
@@ -29,10 +40,11 @@ public class SimulatorWall extends Simulator
 // SimulatorWall::SimulatorWall (constructor)
 //
     
-public SimulatorWall(int pSimulatorNum)
+public SimulatorWall(InetAddress pIPAddress, int pPort,
+     String pTitle, String pSimulationDataSourceFilePath) throws SocketException
 {
 
-    super(pSimulatorNum);
+    super(pIPAddress, pPort, pTitle, pSimulationDataSourceFilePath);
     
 }//end of SimulatorWall::SimulatorWall (constructor)
 //-----------------------------------------------------------------------------
@@ -44,16 +56,32 @@ public SimulatorWall(int pSimulatorNum)
 //
 
 @Override
-public void init()
+public void init(int pBoardNumber)
 {
 
-    super.init();
+    super.init(pBoardNumber);
 
     numClockPositions = 0;
     
     spikeOdds = 100;
     
 }// end of SimulatorWall::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimulatorWall::handlePacket
+//
+// Performs the processing and returns data appropriate for the packet
+// identifier/command byte passed in via pCommand.
+//
+
+@Override
+public void handlePacket(byte pCommand)
+{
+
+    super.handlePacket(pCommand);
+    
+}//end of SimulatorWall::handlePacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

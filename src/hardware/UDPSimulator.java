@@ -113,11 +113,11 @@ public void receive(DatagramPacket p) throws SocketTimeoutException
     //each simulated device sends a response packet which will have its IP
     //address - for each instance of this class created, use the next sequential
     //IP address
-
+    
     String ip = "169.254.1." + responseCount;
 
-    responseCount++;
-    
+    responseCount++;    
+        
     try{p.setAddress(InetAddress.getByName(ip));}
     catch(UnknownHostException e){
         logSevere(e.getMessage() + " - Error: 120");
