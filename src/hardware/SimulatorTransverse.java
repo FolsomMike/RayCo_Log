@@ -33,12 +33,6 @@ import java.net.SocketException;
 public class SimulatorTransverse extends Simulator
 {
 
-//IMPORTANT -- this constructor must be present in the Simulator parent class
-// and all sub-classes. It prevents the Socket constructor from being called
-// which will cause the Socket to generate "unconnected" errors when used
-// later.
-    
-public SimulatorTransverse() throws SocketException{};
     
 //-----------------------------------------------------------------------------
 // SimulatorTransverse::SimulatorTransverse (constructor)

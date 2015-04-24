@@ -40,13 +40,6 @@ import java.util.logging.Logger;
 
 public class Simulator extends Socket
 {
-
-//IMPORTANT -- this constructor must be present in the Simulator parent class
-// and all sub-classes. It prevents the Socket constructor from being called
-// which will cause the Socket to generate "unconnected" errors when used
-// later.
-    
-public Simulator() throws SocketException{};
     
     private int simulatorNum;
 
