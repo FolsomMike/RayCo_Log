@@ -64,6 +64,22 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Multi_IO_A_Longitudinal::initAfterConnect
+//
+// Performs initialization of the remote device after it has been connected.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+@Override
+void initAfterConnect(){
+
+    super.initAfterConnect();
+     
+}//end of Multi_IO_A_Longitudinal::initAfterConnect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Multi_IO_A_Longitudinal::driveSimulation
 //
 // Drive any simulation functions if they are active.  This function is usually

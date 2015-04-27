@@ -51,6 +51,8 @@ public class Simulator extends Socket
     boolean reSynced;
     int reSyncCount = 0;
     public static int instanceCounter = 0;
+    
+    int packetErrorCnt = 0;
 
     //simulates the default size of a socket created for ethernet access
     // NOTE: If the pipe size is too small, the outside object can fill the
@@ -293,15 +295,79 @@ public void handlePacket(byte pCommand)
 
     if (pCommand == Device.GET_ALL_STATUS_CMD) { handleGetAllStatus(); }
     else
-    if (pCommand == Device.SET_INSPECTION_MODE_CMD) {}
+    if (pCommand == Device.SET_GAIN_CMD) { handleSetGain(); }
 
 }//end of Simulator::handlePacket
 //-----------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------
+// Simulator::readBytesAndVerify
+//
+// Attempts to read pNumBytes number of bytes from ethernet into pBuffer and
+// verifies the data using the last byte as a checksum.
+//
+// Note: pNumBytes should include the data bytes AND the checksum byte.
+//
+// The packet ID should be provided via pPktID -- it is only used to verify the
+// checksum as it is included in that calculation by the sender.
+//
+// Returns the number of bytes read, including the checksum byte.
+// On checksum error, returns -1.
+// If pNumBytes and checksum are not available after waiting, returns -2.
+// On IOException, returns -3.
+//
+// NOTE: The use of waitSleep in this function to wait for more bytes will not
+//  be useful if the same thread running the simulation (and calling this
+//  method) is the same thread putting the bytes into the socket. In such case,
+//  both operations would be suspended at the same time. The call is left in
+//  place regardless to maintain consistency.
+//
+
+int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
+{
+    
+    try{
+
+        int timeOutProcess = 0;
+        
+        while(timeOutProcess++ < 2){            
+            if (byteIn.available() >= pNumBytes) {break;}
+            waitSleep(10);          
+        }
+
+        if (byteIn.available() >= pNumBytes) {
+            byteIn.read(pBuffer, 0, pNumBytes);
+        }else{
+            packetErrorCnt++; return(-2);
+        }
+
+    }// try
+    catch(IOException e){
+        packetErrorCnt++;
+        logSevere(e.getMessage() + " - Error: 281");
+        return(-3);
+    }
+    
+    byte sum = (byte)pPktID; //packet ID is included in the checksum
+
+    //validate checksum by summing the packet id, all data, plus checksum byte
+    
+    for(int i = 0; i < pNumBytes; i++){ sum += pBuffer[i]; }
+
+    if ( (sum & 0xff) == 0) { return(pNumBytes); }
+    else{ packetErrorCnt++; return(-1); }
+
+}//end of Simulator::readBytesAndVerify
+//----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // Simulator::handleGetAllStatus
 //
-// Handles GET_ALL_STATUS_CMD packets.
+// Handles GET_ALL_STATUS_CMD packet requests. Sends appropriate packet via
+// the socket.
+//
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
 //
 // Packet Format from remote device:
 //
@@ -348,17 +414,14 @@ public void handlePacket(byte pCommand)
 // (overall packet checksum from Rabbit already removed)
 //
 
-public void handleGetAllStatus()
+public int handleGetAllStatus()
 {
-   
-    int x; //debug mks
+ 
+    int numBytesInPkt = 2;  //includes the checksum byte
     
-    try{
-        byteIn.read(inBuffer, 0, 2); //read in the checksum byte
-
-        x = byteIn.available(); //debug mks
-    
-    }catch(IOException e){}
+    int result = readBytesAndVerify(
+                       inBuffer, numBytesInPkt, Device.GET_ALL_STATUS_CMD);
+    if (result != numBytesInPkt){ return(result); }
     
     //send test data packet
     
@@ -383,8 +446,89 @@ public void handleGetAllStatus()
     (byte)0x89,(byte)0x07,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
     (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
     (byte)0x88,(byte)0xa4);
-
+    
+    return(result);
+    
 }//end of Simulator::handleGetAllStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleSetGain
+//
+// Handles SET_GAIN_CMD packet requests. Sets the specified gain pot to the
+// specified value and transmits an ACK packet.
+//
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
+//
+
+
+public int handleSetGain()
+{
+    
+    int numBytesInPkt = 4; //includes the checksum byte
+    
+    int result = readBytesAndVerify(
+                                 inBuffer, numBytesInPkt, Device.SET_GAIN_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    //set gain here -- add code to do this later -- needs to affect the sim sig
+    // inBuffer[0] is the I2C address of the PIC enabling the digital pot chip
+    // inBuffer[1] is the pot number in the chip
+    // inBuffer[2] is the gain value
+    
+    sendACK();
+
+    return(result);
+    
+}//end of Simulator::handleSetGain
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleSetOffset
+//
+// Handles SET_OFFSET_CMD packet requests. Sets the specified offset pot to the
+// specified value and transmits an ACK packet.
+//
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
+//
+
+
+public int handleSetOffset()
+{
+    
+    int numBytesInPkt = 4; //includes the checksum byte
+    
+    int result = readBytesAndVerify(
+                               inBuffer, numBytesInPkt, Device.SET_OFFSET_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    //set offset here -- add code to do this later -- needs to affect the sim sig
+    // inBuffer[0] is the I2C address of the PIC enabling the digital pot chip
+    // inBuffer[1] is the pot number in the chip
+    // inBuffer[2] is the offset value
+    
+    sendACK();
+
+    return(result);
+    
+}//end of Simulator::handleSetOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::sendACK
+//
+// Transmits an ACK packet via the socket. Contains the ACK command and a
+// single unused data byte.
+//
+
+public void sendACK()
+{
+ 
+    sendPacket(Device.ACK_CMD, (byte)0);    
+        
+}//end of Simulator::sendACK
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
@@ -617,6 +761,20 @@ int simulateNegativeSignal()
     return(value);
 
 }//end of Simulator::simulateNegativeSignal
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::waitSleep
+//
+// Sleeps for pTime milliseconds.
+//
+
+public void waitSleep(int pTime)
+{
+
+    try {Thread.sleep(pTime);} catch (InterruptedException e) { }
+
+}//end of Simulator::waitSleep
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -65,6 +65,22 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Multi_IO_A_Wall::initAfterConnect
+//
+// Performs initialization of the remote device after it has been connected.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+@Override
+void initAfterConnect(){
+
+    super.initAfterConnect();
+     
+}//end of Multi_IO_A_Wall::initAfterConnect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Multi_IO_A_Wall::driveSimulation
 //
 // Drive any simulation functions if they are active.  This function is usually

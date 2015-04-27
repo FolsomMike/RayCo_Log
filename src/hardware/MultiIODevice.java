@@ -74,6 +74,124 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MultiIODevice::initAfterConnect
+//
+// Performs initialization of the remote device after it has been connected.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+@Override
+void initAfterConnect(){
+
+    super.initAfterConnect();
+    
+    //debug mks
+    
+    requestAllStatusPacket();
+    
+    setChannelGain(0, 127);
+    
+    //debug mks end
+         
+}//end of MultiIODevice::initAfterConnect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::setChannelGain
+//
+// Sets digital pot gain for pChannel to pGain.
+//
+// Each digital pot chip contains four pots. Two pots are used for the gain
+// and offset of a channel while the other two pots are used for a second
+// channel. Thus, each chip is shared by a channel pair.
+//
+// Each pot chip is enabled by an I/O pin on a PIC: 
+// CH1/CH2 pot by PIC1 (I2C address 0)
+// CH3/CH4 pot by PIC3 (I2C address 2)
+// ...and so on...
+//
+// To set a pot value, the chip containing that pot must first be enabled by
+// sending a command to the appropriate PIC. Afterwards, it should be disabled
+// using a second command.
+//
+// pChannel: 0-7
+// pGain: 0-255
+//
+// Note: on the schematic/board PIC and Channel numbering is 1 based, i.e.
+//      Channel 0~7 -> channel 1~8  PIC 0~7 -> PIC 1~8
+//
+
+void setChannelGain(int pChannel, int pGain)
+{
+
+    int slavePICAddr, potNum;
+    
+    //even number channels enabled by PIC with address same as channel num
+    //  Gain = Pot 1 inside chip
+    
+    //odd number channels enabled by PIC with address one less than channel num
+    //  Gain = Pot 2 inside chip
+    
+    if((pChannel % 2) == 0){
+        slavePICAddr = pChannel; potNum = 1;
+    }else{    
+        slavePICAddr = pChannel - 1; potNum = 2;                
+    }
+ 
+    sendPacket(SET_GAIN_CMD, (byte)slavePICAddr, (byte)potNum, (byte)pGain);
+    
+}//end of MultiIODevice::setChannelGain
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::setChannelOffset
+//
+// Sets digital pot offset for pChannel to pOffset.
+//
+// Each digital pot chip contains four pots. Two pots are used for the gain
+// and offset of a channel while the other two pots are used for a second
+// channel. Thus, each chip is shared by a channel pair.
+//
+// Each pot chip is enabled by an I/O pin on a PIC: 
+// CH1/CH2 pot by PIC1 (I2C address 0)
+// CH3/CH4 pot by PIC3 (I2C address 2)
+// ...and so on...
+//
+// To set a pot value, the chip containing that pot must first be enabled by
+// sending a command to the appropriate PIC. Afterwards, it should be disabled
+// using a second command.
+//
+// pChannel: 0-7
+// pOffset: 0-255
+//
+// Note: on the schematic/board PIC and Channel numbering is 1 based, i.e.
+//      Channel 0~7 -> channel 1~8  PIC 0~7 -> PIC 1~8
+//
+
+void setChannelOffset(int pChannel, int pOffset)
+{
+
+    int slavePICAddr, potNum;
+    
+    //even number channels enabled by PIC with address same as channel num
+    //  Gain = Pot 0 inside chip
+    
+    //odd number channels enabled by PIC with address one less than channel num
+    //  Gain = Pot 3 inside chip
+    
+    if((pChannel % 2) == 0){
+        slavePICAddr = pChannel; potNum = 0;
+    }else{    
+        slavePICAddr = pChannel - 1; potNum = 3;                
+    }
+ 
+    sendPacket(SET_OFFSET_CMD, (byte)slavePICAddr, (byte)potNum, (byte)pOffset);
+    
+}//end of MultiIODevice::setChannelOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MultiIODevice::initAfterLoadingConfig
 //
 // Further initializes the object using data loaded from the config file.

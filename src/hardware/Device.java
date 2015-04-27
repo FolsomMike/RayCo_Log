@@ -75,6 +75,8 @@ public class Device implements Runnable
     int reSyncCount = 0, reSyncPktID;    
     int packetErrorCnt = 0;
     
+    int numACKsReceived = 0;
+    
     private boolean connectionAttemptCompleted = false;
     public boolean getConnectionAttemptCompleted(){
                                          return (connectionAttemptCompleted); }
@@ -108,17 +110,19 @@ public class Device implements Runnable
     //range 40~100 so that they don't overlap the codes in this parent class.
 
     static byte NO_ACTION_CMD = 0;
-    static byte GET_ALL_STATUS_CMD = 1;
-    static byte SET_INSPECTION_MODE_CMD = 2;
-    static byte SET_GAIN_CMD = 3;
-    static byte SET_OFFSET_CMD = 4;
-    static byte GET_PEAK_DATA_CMD = 5;
+    static byte ACK_CMD = 1;
+    static byte GET_ALL_STATUS_CMD = 2;
+    static byte SET_INSPECTION_MODE_CMD = 3;
+    static byte SET_GAIN_CMD = 4;
+    static byte SET_OFFSET_CMD = 5;
+    static byte GET_PEAK_DATA_CMD = 6;
+    static byte SEND_DATA_CMD = 7;
+    static byte DATA_CMD = 8;
+    static byte LOAD_FIRMWARE_CMD = 9;
     
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
     static byte EXIT_CMD = 127;
-    
-    
     
 //-----------------------------------------------------------------------------
 // Device::Device (constructor)
@@ -250,12 +254,13 @@ void sendPacket(byte pCommand, byte... pBytes)
 // Returns the number of bytes read, including the checksum byte.
 // On checksum error, returns -1.
 // If pNumBytes and checksum are not available after waiting, returns -2.
+// On IOException, returns -3.
 //
 
 int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 {
 
-    byte checksum = 0;
+    byte checksum;
     
     try{
 
@@ -271,12 +276,14 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
             byteIn.read(pBuffer, 0, pNumBytes);
             checksum = (byte)byteIn.read();
         }else{
-            return(-2);
+            packetErrorCnt++; return(-2);
         }
 
     }// try
     catch(IOException e){
-        logSevere(e.getMessage() + " - Error: 245");
+        packetErrorCnt++;
+        logSevere(e.getMessage() + " - Error: 281");
+        return(-3);
     }
     
     byte sum = (byte)pPktID; //packet ID is included in the checksum
@@ -286,7 +293,7 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
     for(int i = 0; i < pNumBytes; i++){ sum += pBuffer[i]; }
 
     if ( ((sum + checksum) & 0xff) == 0) { return(pNumBytes); }
-    else{ return(-1); }
+    else{ packetErrorCnt++; return(-1); }
 
 }//end of Device::readBytesAndVerify
 //----------------------------------------------------------------------------
@@ -317,7 +324,8 @@ void requestAllStatusPacket()
 // The voltage present at the A/D converter input of each Slave PIC is also
 // displayed.
 //
-// Returns the number of bytes this method extracted from the socket.
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
 //
 
 int handleAllStatusPacket()
@@ -327,16 +335,9 @@ int handleAllStatusPacket()
     
     byte[] buffer = new byte[numBytesInPkt];
     
-    int status = 0;
-    status = readBytesAndVerify(buffer, numBytesInPkt, pktID);
-    
-    //debug mks
-    for (int i=0; i<numBytesInPkt; i++){
-        System.out.println(
-        String.format("0x%2x", buffer[i]).replace(' ', '0')
-        );
-    }
-    //debug mks end
+    int result;
+    result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }
     
     int i = 0, v;
     int errorSum = packetErrorCnt; //number of errors recorded by host
@@ -403,9 +404,35 @@ int handleAllStatusPacket()
         
     logPanel.appendTS("Total com error count: " + errorSum + "\n\n");
     
-    return(status);    
+    return(result);    
     
 }//end of Device::handleAllStatusPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleACKPackets
+//
+// Handles ACK_CMD packets. Increments the numACKsReceive counter.
+//
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
+//
+
+
+public int handleACKPackets()
+{
+ 
+    int numBytesInPkt = 1; //does not include checksum byte    
+    
+    int result = readBytesAndVerify(
+                       inBuffer, numBytesInPkt, Device.ACK_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    numACKsReceived++;
+    
+    return(result);
+    
+}//end of Simulator::handleACKPackets
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -787,16 +814,28 @@ public void run()
 {
     
     connectToDevice();
-
-    //debug mks
-    requestAllStatusPacket();
-    //debug mks end
+    
+    initAfterConnect();
     
     notifyThreadsWaitingOnConnection();
     
     waitForever();
     
 }//end of Device::run
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::initAfterConnect
+//
+// Performs initialization of the remote device after it has been connected.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+void initAfterConnect(){
+
+        
+}//end of Device::initAfterConnect
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1033,8 +1072,8 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         pktID = inBuffer[0];
 
         if (pktID == GET_ALL_STATUS_CMD) { return handleAllStatusPacket(); }
-//        else
-//        if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){return readBytes(2);}
+        else
+        if (pktID == ACK_CMD){ return handleACKPackets(); }
 
     }
     catch(IOException e){
