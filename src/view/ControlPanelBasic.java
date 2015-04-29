@@ -256,6 +256,8 @@ public void addGainOffsetPanel(JPanel pPanel)
             chInfo.onOffBox = new JCheckBox();
             chInfo.onOffBox.setName("On-Off Checkbox," + groupName + "," + 
                   infoIndex + "," + chInfo.deviceNum + ","+ chInfo.channelNum);
+            chInfo.onOffBox.addActionListener(this);
+            chInfo.onOffBox.setActionCommand("On-Off Checkbox");
             chInfo.onOffBox.addMouseListener(this);
             panel.add(chInfo.onOffBox);
             
@@ -775,7 +777,17 @@ private boolean actionPerformedLocal(ActionEvent e)
         setStateOfAllCheckboxesInAGroup(e.getActionCommand(), false);
         return(true);
     }
+
+    if (e.getActionCommand().startsWith("On-Off Checkbox")){
         
+        if (!(e.getSource() instanceof JCheckBox)) { return(false); }
+        JCheckBox box = (JCheckBox)e.getSource();
+        
+        parentActionListener.actionPerformed(new ActionEvent(this, 1, 
+                "Update Channel," + box.getName() + "," + box.isSelected()));
+        return(true);
+    }
+ 
     return(false);
     
 }//end of ControlPanelBasic::actionPerformedLocal
@@ -917,16 +929,12 @@ private void handleSpinnerChange(MFloatSpinner pSpinner)
 
 private void handleOnOffCheckBoxRightClick(String pName)
 {
-
-    //chInfo.onOffBox.setName("On-Off Checkbox," + groupName + "," + 
-    //                chNum + "," + chInfo.deviceNum + ","+ chInfo.channelNum);
     
     String[] split = pName.split(",");
     
     String groupName = split[1];
     int index = Integer.parseInt(split[2]);
-    
-    
+        
     setStateOfAllCheckboxesInAGroup("All Off" + "," + groupName, false);
 
     channelList.get(index).onOffBox.setSelected(true);

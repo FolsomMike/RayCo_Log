@@ -8,6 +8,11 @@
 * This class is the parent class for subclasses which handle communication with
 * various remote devices which perform data acquisition, outputs, etc.
 *
+* All values which are adjustable via GUI controls which are then transmitted
+* via Ethernet are "flagged" variables which can be written to by the GUI
+* thread and then read later by the thread which handles the Ethernet
+* connection.
+* 
 */
 
 //-----------------------------------------------------------------------------
@@ -54,6 +59,10 @@ public class Device implements Runnable
     Channel[] channels = null;
     public Channel[] getChannels(){ return(channels); }
     
+    private boolean hdwParamsDirty = false;
+    public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
+    public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
+
     int numClockPositions;
     int[] clockTranslations;
     int numGridsHeightPerSourceClock, numGridsLengthPerSourceClock;
@@ -1140,6 +1149,101 @@ public void reSync()
     }
 
 }//end of Device::reSync
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::updateChannelParameters
+//
+// Updates channel parameters. pParamType specifies the type of value, such as
+// "Gain Spinner", "Offset Spinner", etc. pChannelNum specifies which
+// Channel object in the channels array is to be modified while pValue is the
+// new value as a String.
+//
+// If pForceUpdate is false, the value will only be updated and its dirty flag
+// set true if the new value differs from the old value.
+//
+// If pForceUpdate is true, the value will always be updated and the dirty flag
+// set true.
+//
+// NOTE: This method and processChannelParameterChanges() should only be called
+// by synchronized methods so that values cannot be updated by one thread while
+// another is processing all the changes. The device object's dirty flag is
+// cleared after all changes handled, so no changes can be allowed during that
+// process.
+//
+// Returns true if the value was updated, false otherwise.
+//
+
+public boolean updateChannelParameters(String pParamType, String pChannelNum,
+                                           String pValue, boolean pForceUpdate)
+{
+
+    int chNum = Integer.parseInt(pChannelNum);
+    
+    boolean result = false;
+    
+        switch (pParamType) {
+            case "Gain Spinner":
+                result = channels[chNum].setGain(pValue, pForceUpdate);
+                break;
+            case "Offset Spinner":
+                result = channels[chNum].setOffset(pValue, pForceUpdate);
+                break;
+            case "On-Off Checkbox":
+                result = channels[chNum].setOnOff(pValue, pForceUpdate);
+                break;                                
+        }
+        
+    if(result) { setHdwParamsDirty(true); }    
+    
+    return(result);
+
+}//end of Device::updateChannelParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::processChannelParameterChanges
+//
+// Processes any channel parameters which have been modified since the last
+// time this method ran.
+//
+// All dirty flags are cleared as the changes are processes.
+//
+// NOTE: This method and processChannelParameterChanges() should only be called
+// by synchronized methods so that values cannot be updated by one thread while
+// another is processing all the changes. The device object's dirty flag is
+// cleared after all changes handled, so no changes can be allowed during that
+// process.
+//
+
+synchronized public void processChannelParameterChanges()
+{
+
+    if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
+
+    // invoke all devices with changed values to process those changes
+    
+    for(Channel channel : channels){
+        if (channel.getHdwParamsDirty()){ 
+            if(channel.gain.isDirty()){
+                int debugMKS1 = channel.gain.getValue();
+            }
+            if(channel.offset.isDirty()){
+                int debugMKS1 = channel.offset.getValue();
+            }
+            if(channel.onOff.isDirty()){
+                boolean debugMKS1 = channel.onOff.getValue();
+            }                                   
+        }                
+    }
+    
+    //updates have been applied, so clear dirty flag...since this method and
+    //the method which handels the updates are synchronized, no updates will
+    //have occurred while all this method has processed all the updates
+    
+    setHdwParamsDirty(false);
+    
+}//end of MainHandler::processChannelParameterChanges
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

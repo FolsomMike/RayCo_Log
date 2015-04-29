@@ -39,6 +39,8 @@ public class Channel
         
     private String calPanelGroup;
     private String calPanelName;
+
+    int boardChannel;
     
     public String getCalPanelGroup(){ return calPanelGroup; }
     public String getCalPanelName(){ return calPanelName; }
@@ -53,6 +55,14 @@ public class Channel
     
     private int bufferLoc;    
     public int getBufferLoc(){ return (bufferLoc);}
+
+    private boolean hdwParamsDirty = false;
+    public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
+    public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
+    
+    FlaggedInt gain = new FlaggedInt(0);
+    FlaggedInt offset = new FlaggedInt(0);
+    FlaggedBoolean onOff = new FlaggedBoolean(false);
     
     int peakType;
     PeakBufferInt peakBuffer;
@@ -148,6 +158,8 @@ private void loadConfigSettings()
 
     shortTitle = configFile.readString(
                 section, "short title", "Dev" + deviceNum + "Ch" + channelNum);
+
+    boardChannel = configFile.readInt(section, "board channel", -1);
     
     calPanelGroup = configFile.readString(
                         section, "calibration panel group", "Dev" + deviceNum);
@@ -270,6 +282,75 @@ public boolean getPeakDataAndReset(PeakData pPeakData)
     return(peakUpdated);
     
 }// end of Channel::getPeakDataAndReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setGain
+//
+// Sets the gain value from a String input.
+//
+// If pForceUpdate is true, the value will always be updated and the dirty flag
+// set true.
+//
+// Returns true if the value was updated, false otherwise.
+//
+
+public boolean setGain(String pValue, boolean pForceUpdate)
+{
+    
+    boolean result = gain.setValue(pValue, pForceUpdate);
+
+    if(result){ setHdwParamsDirty(true); }
+    
+    return(result);
+    
+}// end of Channel::setGain
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setOffset
+//
+// Sets the offset value from a String input.
+//
+// If pForceUpdate is true, the value will always be updated and the dirty flag
+// set true.
+//
+// Returns true if the value was updated, false otherwise.
+//
+
+public boolean setOffset(String pValue, boolean pForceUpdate)
+{
+    
+    boolean result = offset.setValue(pValue, pForceUpdate);
+
+    if(result){ setHdwParamsDirty(true); }
+    
+    return(result);
+    
+}// end of Channel::setOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setOnOff
+//
+// Sets the OnOff value from a String input.
+//
+// If pForceUpdate is true, the value will always be updated and the dirty flag
+// set true.
+//
+// Returns true if the value was updated, false otherwise.
+//
+
+public boolean setOnOff(String pValue, boolean pForceUpdate)
+{
+    
+    boolean result = onOff.setValue(pValue, pForceUpdate);
+
+    if(result){ setHdwParamsDirty(true); }
+    
+    return(result);
+    
+}// end of Channel::setOnOff
 //-----------------------------------------------------------------------------
 
 }//end of class Channel

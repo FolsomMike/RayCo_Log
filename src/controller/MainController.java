@@ -658,7 +658,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     if (e.getActionCommand().startsWith("Update Channel")) {
-        mainHandler.updateChannelParameters(e.getActionCommand());
+        mainHandler.updateChannelParameters(e.getActionCommand(), true);
         return;
     }
         

@@ -56,6 +56,10 @@ public class MainHandler
     
     private int numDevices;
 
+    private boolean hdwParamsDirty = false;
+    public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
+    public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
+        
     int peakScanDev;
     int peakScanCh;
 
@@ -653,11 +657,18 @@ private void setupSocketAndDatagram(SocketSet pSocketSet)
 // Should be called periodically to allow collection of data buffered in the
 // source.
 //
+// Also processes any changes made to values such as channel parameters which
+// need to be sent to the hardware devices.
+//
 // Also drives the simulation functions for any devices in simulation mode.
 //
 
 public void collectData()
 {
+
+    processChannelParameterChanges(); //process updated values
+
+    if(ready){ return; } //debug mks -- remove this
     
     for(Device device : devices){ device.collectData(); }
 
@@ -806,14 +817,68 @@ public void processData()
 // identify which device, channel, and parameter are to be updated along with
 // the new value.
 //
+// If pForceUpdate is false, the value will only be updated and its dirty flag
+// set true if the new value differs from the old value.
+//
+// If pForceUpdate is true, the value will always be updated and the dirty flag
+// set true.
+//
+// This method is synchronized along with the method which checks the values
+// for changes and processes those changes to that separate threads can update
+// and respond to the same variables.
+//
+// Returns true if the value was updated, false otherwise.
+//
 
-public void updateChannelParameters(String pInfo)
+synchronized public boolean updateChannelParameters(
+                                            String pInfo, boolean pForceUpdate)
 {
 
+    String[] split = pInfo.split(",");
+    
+    boolean result = devices[0].updateChannelParameters(
+                                split[1], split[5], split[6], pForceUpdate);
 
-    return;
+    if(result) { setHdwParamsDirty(true); }
+    
+    return(false);
 
 }//end of MainHandler::updateChannelParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::processChannelParameterChanges
+//
+// Processes any channel parameters which have been modified since the last
+// time this method ran.
+//
+// All dirty flags are cleared as the changes are processes.
+//
+// This method is synchronized along with the method which checks the values
+// for changes and processes those changes to that separate threads can update
+// and respond to the same variables.
+//
+
+synchronized private void processChannelParameterChanges()
+{
+
+    if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
+
+    // invoke all devices with changed values to process those changes
+    
+    for(Device device : devices){
+        if (device.getHdwParamsDirty()){ 
+            device.processChannelParameterChanges();
+        }                
+    }
+    
+    //updates have been applied, so clear dirty flag...since this method and
+    //the method which handels the updates are synchronized, no updates will
+    //have occurred while all this method has processed all the updates
+    
+    setHdwParamsDirty(false);
+    
+}//end of MainHandler::processChannelParameterChanges
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
