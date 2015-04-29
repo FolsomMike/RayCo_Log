@@ -36,6 +36,12 @@ public class Channel
     public DataTransferIntBuffer getDataBuffer() { return(meta.dataBuffer); }
     
     String title, shortTitle;
+        
+    private String calPanelGroup;
+    private String calPanelName;
+    
+    public String getCalPanelGroup(){ return calPanelGroup; }
+    public String getCalPanelName(){ return calPanelName; }
     
     public int getChartGroup(){ return(meta.chartGroup); }
     public int getChart(){ return(meta.chart); }
@@ -125,7 +131,7 @@ public void setUpPeakBuffer()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::loadConfigSettings
+// Channel::loadConfigSettings
 //
 // Loads settings for the object from configFile.
 //
@@ -142,7 +148,13 @@ private void loadConfigSettings()
 
     shortTitle = configFile.readString(
                 section, "short title", "Dev" + deviceNum + "Ch" + channelNum);
+    
+    calPanelGroup = configFile.readString(
+                        section, "calibration panel group", "Dev" + deviceNum);
 
+    calPanelName = configFile.readString(
+     section, "calibration panel name", "Dev" + deviceNum + "Ch" + channelNum);
+    
     meta.chartGroup = configFile.readInt(section, "chart group", -1);
     
     meta.chart = configFile.readInt(section, "chart", -1);
@@ -161,7 +173,7 @@ private void loadConfigSettings()
 
     bufferLoc = configFile.readInt(section, "buffer location", -1);
     
-}// end of Trace::loadConfigSettings
+}// end of Channel::loadConfigSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

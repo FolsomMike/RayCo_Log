@@ -42,6 +42,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.ListIterator;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -1067,7 +1068,7 @@ public void actionPerformedLocal(ActionEvent e)
         open3DMapManipulatorControlPanel(e.getActionCommand());
         return;
     }
-
+        
     if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
     
 
@@ -1140,6 +1141,94 @@ public void open3DMapManipulatorControlPanel(String pActionCommand)
     mainFrame.pack();
     
 }//end of MainView::open3DMapManipulatorControlPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::displayCalibrationPanel
+//
+// Displays a calibration panel appropriate for pChartNum of pChartGroupNum with
+// name of pPanelName with all channels in pChannelList displayed on the panel.
+//
+// The ChannelInfo objects in list pChannelList provide the necessary information
+// to link the GUI controls to the channels and traces.
+// 
+
+public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
+                        String pPanelTitle, ArrayList<ChannelInfo> pChannelList)
+{
+    
+    //remove any panels already opened
+    controlsGroupPanel.removeAll();
+    
+    int mapGraphNumber = 0; //graph of 3D map always expected to be first
+    
+    LinkedHashSet<String> groupTitles = getListOfGroups(pChannelList);
+        
+    ControlPanelBasic transCalPanel = new ControlPanelBasic(pChartGroupNum,
+                pChartNum, pPanelTitle, groupTitles, pChannelList, this);
+    transCalPanel.init();
+    controlsGroupPanel.add(transCalPanel);
+    transCalPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    currentControlPanel = transCalPanel;
+    
+    setAllValuesInCurrentControlPanel(getGraphParameters(
+                                   pChartGroupNum, pChartNum, mapGraphNumber));
+    
+    ((TitledBorder)(controlsPanel.getBorder())).
+                                      setTitle(transCalPanel.getPanelTitle());
+    
+    controlsPanel.invalidate();
+    controlsPanel.repaint();
+    
+    mainFrame.pack();
+        
+}//end of MainView::displayCalibrationPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::getListOfGroups
+//
+// Returns a list of the different unique groups to which the different
+// channels in pChannelList have been assigned.
+//
+
+private LinkedHashSet<String> getListOfGroups(
+                                        ArrayList<ChannelInfo> pChannelList)
+{
+    
+    //use a Set as that automatically rejects duplicates
+    LinkedHashSet<String> groups = new LinkedHashSet<>();
+
+    ListIterator iter = pChannelList.listIterator();
+    
+    while(iter.hasNext()){        
+        ChannelInfo info = (ChannelInfo)iter.next();
+        groups.add(info.calPanelGroup);        
+    }
+
+    return(groups);
+    
+}//end of MainView::getListOfGroups
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::openTransverseControlPanel
+//
+// Displays a control panel for calibrating the Transverse system.
+//
+// The panel will be linked to the pChartNum of pChartGroupNum.
+//
+
+public void openTransverseControlPanel(int pChartGroupNum, int pChartNum,
+                        String pPanelName, ArrayList<ChannelInfo> pChCalList)
+{
+
+    //debug mks -- delete this????
+    // makes more sense to make functions which add specific option to panels?
+    // such as reject thresholds, etc.??
+    
+    
+}//end of MainView::openTransverseControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

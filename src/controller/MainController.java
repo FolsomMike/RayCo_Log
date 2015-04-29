@@ -58,6 +58,7 @@ import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
+import view.ChannelInfo;
 import view.GUITools;
 import view.LogPanel;
 import view.MKSTools;
@@ -226,8 +227,8 @@ public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices,
 //-----------------------------------------------------------------------------
 // MainController::removeMasterPanel
 //
-// If a master panel has been added, it is removed from its container and the
-// masterPanelAdded flags is set false.
+// If a master log panel has been added, it is removed from its container and
+// the masterPanelAdded flags is set false.
 //
 
 public void removeMasterPanel()
@@ -392,7 +393,7 @@ private void createAndAssignDataBuffersToMaps()
 // which the trace associated with that channel has been linked. This allows
 // data from a channel to be passed to its associated trace.
 //
-// The getNextPeakData methods are used to scan through the channels as the
+// The getNextPeakData method is used to scan through the channels. The
 // PeakData object returned contains a pointer to the channel.
 //
 
@@ -405,8 +406,7 @@ private void setChannelDataBuffers()
     //traverse all the channels
     while (mainHandler.getNextPeakData(peakData) != -1){
      
-        try{        
-        
+        try{                
             peakData.meta.channel.setDataBuffer(mainView.getTrace(
                peakData.meta.chartGroup, peakData.meta.chart,
                     peakData.meta.graph, peakData.meta.trace).getDataBuffer());
@@ -428,6 +428,128 @@ private void setChannelDataBuffers()
     
 }// end of MainController::setChannelDataBuffers
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayCalibrationPanel
+//
+// Invokes MainView to display a calibration panel, providing it with the
+// appropriate group and chart number and the channels and their groups and
+// names.
+//
+// The channel info is passed to MainView via an ArrayList of ChannelInfo
+// objects.
+//
+// This method is usually called after a message is received from the MainView
+// in the format:
+//
+//   display calibration panel,<chart name>,<chart group num>,<chart num>
+//
+// where the items in <> are replaced with the appropriate values. The message
+// is passed in via pCalPanelInfo
+//
+
+private void displayCalibrationPanel(String pCalPanelInfo)
+{
+
+    String[] infoSplits = pCalPanelInfo.split(",");
+    
+    String panelTitle = infoSplits[1];
+    
+    int chartGroupNum = Integer.parseInt(infoSplits[2]);
+    
+    int chartNum = Integer.parseInt(infoSplits[3]);
+    
+    //get list of all channels relevant to the specified chart
+    ArrayList<ChannelInfo> chCalList = 
+                            getChannelCalPanelInfo(chartGroupNum, chartNum);    
+    
+    //invoke MainView to display the panel
+    mainView.displayCalibrationPanel(
+                                chartGroupNum, chartNum, panelTitle, chCalList);
+        
+}// end of MainController::displayCalibrationPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::getChannelCalPanelInfo
+//
+// Returns an ArrayList of all channels (via ChannelInfo objects) with their
+// name and group as they should appear in a calibration panel which is
+// displaying all channels linked with pChartGroupNum/pChartNum.
+//
+// The list contains channelCalInfo objects which also provide the hardware
+// device number and channel number so changes to the GUI controls can be
+// sent to the appropriate object.
+//
+// If a channel's "calibration panel name" in the config file is "paired", that
+// channel won't be added to the list. This is done when multiple software
+// channels are tied to the same hardware channel, such as for positive and
+// negative pairs. Only one control is necessary for such pairs as there is
+// only one hardware channel shared by both.
+//
+// The getNextPeakData method is used to scan through the channels. The
+// PeakData object returned contains a pointer to the channel.
+//
+
+private ArrayList<ChannelInfo> getChannelCalPanelInfo(
+                                             int pChartGroupNum, int pChartNum)
+{
+
+    ArrayList<PeakData> chList = getChannelList();
+    ArrayList<ChannelInfo> chCalList = new ArrayList<>();
+    
+    ListIterator iter = chList.listIterator();
+    
+    while(iter.hasNext()){
+        
+        PeakData ch = (PeakData)iter.next();
+        
+        if(ch.meta.chartGroup == pChartGroupNum && ch.meta.chart == pChartNum){
+        
+            if(!ch.meta.channel.getCalPanelName().equals("paired")){                                
+                chCalList.add(new ChannelInfo(
+                ch.meta.deviceNum, ch.meta.channelNum,
+                ch.meta.channel.getCalPanelGroup(),
+                ch.meta.channel.getCalPanelName()                
+                ));
+            }            
+        }        
+    }
+    
+    return(chCalList);
+    
+}// end of MainController::getChannelCalPanelInfo
+//-----------------------------------------------------------------------------
+        
+//-----------------------------------------------------------------------------
+// MainController::getChannelList
+//
+// Returns an ArrayList of PeakData objects...one for each channel in the
+// system.
+//
+// The getNextPeakData method is used to scan through the channels. The
+// PeakData object returned contains a pointer to the channel.
+//
+
+private ArrayList<PeakData> getChannelList()
+{
+
+    ArrayList<PeakData> chList = new ArrayList<>();
+    
+    //prepares to scan through all channels
+    mainHandler.initForPeakScan();
+
+    PeakData pd;
+    
+    //traverse all the channels
+    while (mainHandler.getNextPeakData(pd = new PeakData(0)) != -1){
+        chList.add(pd);        
+    }
+    
+    return(chList);
+
+}// end of MainController::getChannelList
+//-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
 // MainController::setDeviceMapDataBuffers
@@ -529,8 +651,17 @@ public void actionPerformed(ActionEvent e)
         handle3DMapManipulation();
         return;
     }
-    
-    
+
+    if (e.getActionCommand().startsWith("display calibration panel")) {
+        displayCalibrationPanel(e.getActionCommand());
+        return;
+    }
+
+    if (e.getActionCommand().startsWith("Update Channel")) {
+        mainHandler.updateChannelParameters(e.getActionCommand());
+        return;
+    }
+        
 }//end of MainController::actionPerformed
 //-----------------------------------------------------------------------------
 

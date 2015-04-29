@@ -800,6 +800,23 @@ public void processData()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainHandler::updateChannelParameters
+//
+// Updates channel parameters contained in parameter pInfo. pInfo should
+// identify which device, channel, and parameter are to be updated along with
+// the new value.
+//
+
+public void updateChannelParameters(String pInfo)
+{
+
+
+    return;
+
+}//end of MainHandler::updateChannelParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainHandler::loadConfigSettings
 //
 // Loads settings for the object from configFile.

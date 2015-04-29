@@ -696,6 +696,17 @@ public boolean getPeakDataAndReset(PeakMapData pPeakMapData)
 
 void getRunPacketFromDevice(byte[] pPacket)
 {
+
+    
+    
+    
+    //debug mks
+    
+    
+    
+    
+    
+    
     
 }// end of Device::getRunPacketFromDevice
 //-----------------------------------------------------------------------------
