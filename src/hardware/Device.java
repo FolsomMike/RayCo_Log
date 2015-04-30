@@ -707,17 +707,10 @@ public boolean getPeakDataAndReset(PeakMapData pPeakMapData)
 
 void getRunPacketFromDevice(byte[] pPacket)
 {
+    
+    //debug mks -- this method gets removed -- packet retrieved through ethernet
 
-    
-    
-    
-    //debug mks
-    
-    
-    
-    
-    
-    
+    if(simMode){ ((Simulator)socket).getRunPacket(pPacket); }
     
 }// end of Device::getRunPacketFromDevice
 //-----------------------------------------------------------------------------

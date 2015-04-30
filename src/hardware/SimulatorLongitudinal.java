@@ -84,19 +84,41 @@ public void handlePacket(byte pCommand)
 public void getRunPacket(byte[] pPacket)
 {
 
-    //getRunPacket2(pPacket); //debug mks remove this
-    
     int index = 0;
     
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+1
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal());
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-1
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal());
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+2
     index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal());
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-2
     index += 2;
-        
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+3
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-3
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+4
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-4
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+5
+    index += 2;    
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-5
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+6
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-6
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+7
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-7
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+8
+    index += 2;
+    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-8    
+    index += 2;
+    
     index = addMapData(pPacket, index);
     
 }// end of SimulatorLongitudinal::getRunPacket

@@ -37,7 +37,7 @@ public Multi_IO_A_Longitudinal(int pIndex, LogPanel pLogPanel,
 
     super(pIndex, pLogPanel, pConfigFile, pSimMode);
 
-    PACKET_SIZE = 57;
+    PACKET_SIZE = 88;
     
 //debug remove this -- superseded by Socket Simulator  if(simMode){ simulator = new SimulatorLongitudinal(0); simulator.init(); }
     

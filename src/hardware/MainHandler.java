@@ -667,8 +667,6 @@ public void collectData()
 {
 
     processChannelParameterChanges(); //process updated values
-
-    if(ready){ return; } //debug mks -- remove this
     
     for(Device device : devices){ device.collectData(); }
 
