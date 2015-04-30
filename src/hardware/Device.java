@@ -84,6 +84,7 @@ public class Device implements Runnable
     int reSyncCount = 0, reSyncPktID;    
     int packetErrorCnt = 0;
     
+    int numACKsExpected = 0;
     int numACKsReceived = 0;
     
     private boolean connectionAttemptCompleted = false;
@@ -124,10 +125,11 @@ public class Device implements Runnable
     static byte SET_INSPECTION_MODE_CMD = 3;
     static byte SET_GAIN_CMD = 4;
     static byte SET_OFFSET_CMD = 5;
-    static byte GET_PEAK_DATA_CMD = 6;
-    static byte SEND_DATA_CMD = 7;
-    static byte DATA_CMD = 8;
-    static byte LOAD_FIRMWARE_CMD = 9;
+    static byte SET_ONOFF_CMD = 6;
+    static byte GET_PEAK_DATA_CMD = 7;
+    static byte SEND_DATA_CMD = 8;
+    static byte DATA_CMD = 9;
+    static byte LOAD_FIRMWARE_CMD = 10;
     
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
@@ -1215,33 +1217,11 @@ public boolean updateChannelParameters(String pParamType, String pChannelNum,
 // cleared after all changes handled, so no changes can be allowed during that
 // process.
 //
+// Should be overridden by child classes to provide custom handling.
+//
 
 synchronized public void processChannelParameterChanges()
 {
-
-    if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
-
-    // invoke all devices with changed values to process those changes
-    
-    for(Channel channel : channels){
-        if (channel.getHdwParamsDirty()){ 
-            if(channel.gain.isDirty()){
-                int debugMKS1 = channel.gain.getValue();
-            }
-            if(channel.offset.isDirty()){
-                int debugMKS1 = channel.offset.getValue();
-            }
-            if(channel.onOff.isDirty()){
-                boolean debugMKS1 = channel.onOff.getValue();
-            }                                   
-        }                
-    }
-    
-    //updates have been applied, so clear dirty flag...since this method and
-    //the method which handels the updates are synchronized, no updates will
-    //have occurred while all this method has processed all the updates
-    
-    setHdwParamsDirty(false);
     
 }//end of MainHandler::processChannelParameterChanges
 //-----------------------------------------------------------------------------

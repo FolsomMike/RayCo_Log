@@ -90,17 +90,15 @@ void initAfterConnect(){
     
     requestAllStatusPacket();
     
-    setChannelGain(0, 127);
-    
     //debug mks end
          
 }//end of MultiIODevice::initAfterConnect
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MultiIODevice::setChannelGain
+// MultiIODevice::sendSetGainPacket
 //
-// Sets digital pot gain for pChannel to pGain.
+// Sets digital pot gain for hardware channel pHdwChannel to pGain.
 //
 // Each digital pot chip contains four pots. Two pots are used for the gain
 // and offset of a channel while the other two pots are used for a second
@@ -122,7 +120,7 @@ void initAfterConnect(){
 //      Channel 0~7 -> channel 1~8  PIC 0~7 -> PIC 1~8
 //
 
-void setChannelGain(int pChannel, int pGain)
+void sendSetGainPacket(int pHdwChannel, int pGain)
 {
 
     int slavePICAddr, potNum;
@@ -133,21 +131,23 @@ void setChannelGain(int pChannel, int pGain)
     //odd number channels enabled by PIC with address one less than channel num
     //  Gain = Pot 2 inside chip
     
-    if((pChannel % 2) == 0){
-        slavePICAddr = pChannel; potNum = 1;
+    if((pHdwChannel % 2) == 0){
+        slavePICAddr = pHdwChannel; potNum = 1;
     }else{    
-        slavePICAddr = pChannel - 1; potNum = 2;                
+        slavePICAddr = pHdwChannel - 1; potNum = 2;                
     }
  
     sendPacket(SET_GAIN_CMD, (byte)slavePICAddr, (byte)potNum, (byte)pGain);
     
-}//end of MultiIODevice::setChannelGain
+    numACKsExpected++;
+    
+}//end of MultiIODevice::sendSetGainPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MultiIODevice::setChannelOffset
+// MultiIODevice::sendSetOffsetPacket
 //
-// Sets digital pot offset for pChannel to pOffset.
+// Sets digital pot offset for hardware channel pHdwChannel to pOffset.
 //
 // Each digital pot chip contains four pots. Two pots are used for the gain
 // and offset of a channel while the other two pots are used for a second
@@ -169,7 +169,7 @@ void setChannelGain(int pChannel, int pGain)
 //      Channel 0~7 -> channel 1~8  PIC 0~7 -> PIC 1~8
 //
 
-void setChannelOffset(int pChannel, int pOffset)
+void sendSetOffsetPacket(int pHdwChannel, int pOffset)
 {
 
     int slavePICAddr, potNum;
@@ -180,15 +180,89 @@ void setChannelOffset(int pChannel, int pOffset)
     //odd number channels enabled by PIC with address one less than channel num
     //  Gain = Pot 3 inside chip
     
-    if((pChannel % 2) == 0){
-        slavePICAddr = pChannel; potNum = 0;
+    if((pHdwChannel % 2) == 0){
+        slavePICAddr = pHdwChannel; potNum = 0;
     }else{    
-        slavePICAddr = pChannel - 1; potNum = 3;                
+        slavePICAddr = pHdwChannel - 1; potNum = 3;                
     }
  
     sendPacket(SET_OFFSET_CMD, (byte)slavePICAddr, (byte)potNum, (byte)pOffset);
     
-}//end of MultiIODevice::setChannelOffset
+    numACKsExpected++;
+    
+}//end of MultiIODevice::sendSetOffsetPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::sendSetOnOffPacket
+//
+// Sends a command to the remote device to set the On/Off state for pHdwChannel
+// to pValue.
+//
+// Sends value of 1 if state is on; value of 0 if off.
+//
+// The remote should return an ACK packet.
+//
+
+void sendSetOnOffPacket(int pHdwChannel, boolean pValue)
+{
+
+    sendPacket(SET_ONOFF_CMD, (byte)pHdwChannel, (byte)(pValue ? 1 : 0));
+    
+    numACKsExpected++;
+    
+}//end of MultiIODevice::sendSetOnOffPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::processChannelParameterChanges
+//
+// Processes any channel parameters which have been modified since the last
+// time this method ran.
+//
+// All dirty flags are cleared as the changes are processes.
+//
+// NOTE: This method and processChannelParameterChanges() should only be called
+// by synchronized methods so that values cannot be updated by one thread while
+// another is processing all the changes. The device object's dirty flag is
+// cleared after all changes handled, so no changes can be allowed during that
+// process.
+//
+
+@Override
+synchronized public void processChannelParameterChanges()
+{
+
+    super.processChannelParameterChanges();
+    
+    if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
+
+    // invoke all devices with changed values to process those changes
+    
+    for(Channel channel : channels){
+        if (channel.getHdwParamsDirty()){ 
+            if(channel.gain.isDirty()){
+                sendSetGainPacket(
+                           channel.getBoardChannel(), channel.gain.getValue());
+            }
+            if(channel.offset.isDirty()){
+                sendSetOffsetPacket(
+                         channel.getBoardChannel(), channel.offset.getValue());
+            }
+            if(channel.onOff.isDirty()){
+                sendSetOnOffPacket(
+                          channel.getBoardChannel(), channel.onOff.getValue());
+            }                                   
+        }                
+    }
+    
+    //updates have been applied, so clear dirty flag...since this method and
+    //the method which handels the updates are synchronized, no updates will
+    //have occurred while all this method has processed all the updates
+    
+    setHdwParamsDirty(false);
+    
+}//end of MultiIODevice::processChannelParameterChanges
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

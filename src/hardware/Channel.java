@@ -40,7 +40,8 @@ public class Channel
     private String calPanelGroup;
     private String calPanelName;
 
-    int boardChannel;
+    private int boardChannel;
+    public int getBoardChannel(){ return(boardChannel); }
     
     public String getCalPanelGroup(){ return calPanelGroup; }
     public String getCalPanelName(){ return calPanelName; }
