@@ -72,6 +72,28 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// TraceGraph::updateDimensions
+//
+// Adjusts all width and height variables for the panel along with all such
+// values in relevant child objects.
+//
+// Should be called any time the panel is resized.
+//
+
+@Override
+public void updateDimensions()
+{
+
+    super.updateDimensions();
+
+    for (Trace trace : traces) {
+        trace.updateDimensions(getHeight(), getWidth());
+    }
+        
+}// end of TraceGraph::updateDimensions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // TraceGraph::loadConfigSettings
 //
 // Loads settings for the object from configFile.
@@ -339,6 +361,7 @@ public void setChildOffset(int pChildNum, int pOffset)
 // the pBaseline value to be shifted to zero when the trace is drawn.
 //
 
+@Override
 public void setChildBaseLine(int pChildNum, int pBaseLine)
 {
     

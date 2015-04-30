@@ -114,6 +114,24 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::updateDimensions
+//
+// Adjusts all width and height variables for the panel along with all such
+// values in relevant child objects.
+//
+// Should be called any time the panel is resized.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+public void updateDimensions()
+{
+
+        
+}// end of Chart::updateDimensions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::resetAll
 //
 // Resets all values and child values to default.

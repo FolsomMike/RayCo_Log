@@ -1149,8 +1149,8 @@ public void open3DMapManipulatorControlPanel(String pActionCommand)
 // Displays a calibration panel appropriate for pChartNum of pChartGroupNum with
 // name of pPanelName with all channels in pChannelList displayed on the panel.
 //
-// The ChannelInfo objects in list pChannelList provide the necessary information
-// to link the GUI controls to the channels and traces.
+// The ChannelInfo objects in list pChannelList provide the necessary
+// information to link the GUI controls to the channels and traces.
 // 
 
 public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
@@ -1181,8 +1181,25 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
     controlsPanel.repaint();
     
     mainFrame.pack();
-        
+    
 }//end of MainView::displayCalibrationPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::updateDimensions
+//
+// Adjusts all width and height variables for the panels along with all such
+// values in relevant child objects.
+//
+// Should be called any time the panel is resized.
+//
+
+public void updateDimensions()
+{
+
+    for (ChartGroup chartGroup : chartGroups){ chartGroup.updateDimensions(); }
+    
+}// end of MainView::updateDimensions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

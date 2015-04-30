@@ -132,6 +132,25 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Trace::updateDimensions
+//
+// Adjusts all width and height variables for the panel along with all such
+// values in relevant child objects.
+//
+// Should be called any time the panel is resized.
+//
+
+public void updateDimensions(int pNewWidth, int pNewHeight)
+{
+
+    width = pNewWidth; height = pNewHeight;
+    
+    xMax = width - 1; yMax = height - 1;
+            
+}// end of Trace::updateDimensions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Trace::loadConfigSettings
 //
 // Loads settings for the object from configFile.

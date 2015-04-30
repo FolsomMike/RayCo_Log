@@ -18,6 +18,8 @@ package view;
 
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
@@ -84,6 +86,9 @@ public Chart(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
 public void init()
 {
 
+    //add a listener to respond when the panel size is changed
+    addComponentListener(new ChartComponentAdapter(this));
+    
     loadConfigSettings();
 
     setBorder(BorderFactory.createTitledBorder(title));
@@ -96,6 +101,22 @@ public void init()
     setGraphsVisible(graphsVisible);
     
 }// end of Chart::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::updateDimensions
+//
+// Adjusts all width and height variables for the panel along with all such
+// values in relevant child objects.
+//
+// Should be called any time the panel is resized.
+
+public void updateDimensions()
+{
+
+    for (Graph graph : graphs){ graph.updateDimensions(); }
+    
+}// end of Chart::updateDimensions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -733,5 +754,36 @@ private int[] simulateZoomGraph()
 
 
 }//end of class Chart
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// class ChartComponentAdapter
+//
+// Responds to component actions on the Chart.
+//
+// NOTE: this functionality is not currently used and was not fully tested.
+// It might make more sense for this to be moved to ChartGroup class so that
+// class can also respond to size changes.
+//
+// See notes at the top of ChartGroup class titled "Display Sizing" for
+// important info about setting the size of the charts.
+//
+
+class ChartComponentAdapter extends ComponentAdapter{
+
+Chart owner;
+    
+public ChartComponentAdapter(Chart pOwner){ owner = pOwner; }
+    
+@Override
+public void componentResized(ComponentEvent e){ 
+    
+//    owner.updateDimensions();
+    
+}
+
+}//end of class ChartComponentAdapter
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

@@ -7,11 +7,34 @@
 *
 * This class subclasses a JPanel to contain several Charts.
 *
+* Display Sizing
+* 
+* The graph width should never be so large that the main window is larger than
+* the display size. When that happens, the graph will be the specified size
+* but will be truncated for some reason by the window...Java makes the window
+* too small. This will cause the scrolling to fail.
+* 
+* This also happens if the user manually reduces the size of the window and
+* if the calibration panels are displayed and they increase the window size
+* to larger than the display size.
+* 
+* Currently, these problems are solved by setting the graphs small enough that
+* the main window leaves space on the display at the right edge...enough that
+* when the largest calibration panel is displayed, the entire window still
+* fits on the screen.
+* 
+* In the future, it would be better to catch the window resizing (untested code
+* already added to Chart class) and shrink or grow the size of the graphs to
+* accommodate the changing size of the calibration panel. The methods
+* updateDimensions have already be added to various classes (not fully tested)
+* which are meant to be called after changing the size of the graphs.
+* 
 * Open Source Policy:
 *
 * This source code is Public Domain and free to any interested party.  Any
 * person, company, or organization may do with it as they please.
-*
+* 
+* 
 */
 
 package view;
@@ -80,6 +103,23 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::updateDimensions
+//
+// Adjusts all width and height variables for the panel along with all such
+// values in relevant child objects.
+//
+// Should be called any time the panel is resized.
+//
+
+public void updateDimensions()
+{
+
+    for (Chart chart : charts){ chart.updateDimensions(); }
+    
+}// end of ChartGroup::updateDimensions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::createCharts
 //
 // Creates and configures the charts.
@@ -124,8 +164,11 @@ private void loadConfigSettings()
     graphWidth = 
               configFile.readInt(section, "default width for all graphs", 500);
 
+    //See notes at the top of ChartGroup class titled "Display Sizing" for
+    //important info about setting the size of the charts.    
+    
     //if -1, set graphWidth to fill the screen
-    if(graphWidth == -1){ graphWidth = usableScreenSize.width - 245; }
+    if(graphWidth == -1){ graphWidth = usableScreenSize.width - 350; }
     
     graphHeight = configFile.readInt(
                                   section, "default height for all graphs", 0);
