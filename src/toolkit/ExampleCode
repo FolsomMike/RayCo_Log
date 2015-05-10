@@ -1,3 +1,40 @@
+
+
+ Need to change code so getting trace peak data ignores peak if update flag
+ not set -- like is done for the array version of peak buffer.
+
+
+
+    //debug mks
+    for (int i=0; i<numBytesInPkt; i++){
+        System.out.println(
+        String.format("0x%2x", buffer[i]).replace(' ', '0')
+        );
+    }
+    //debug mks end
+
+
+
+
+
+
+
+
+
+===============================================================================================
+Get the screen size -- with and without accounting for the taskbar
+
+//size of the screen
+Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+//height of the task bar
+Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
+int taskBarSize = scnMax.bottom;
+
+//available size of the screen 
+setLocation(screenSize.width - getWidth(), screenSize.height - taskBarSize - getHeight());
+
+===============================================================================================
     panel.add(createTimeScaleControlPanel());
     
     panel.add(createUpSamplingControlPanel());
