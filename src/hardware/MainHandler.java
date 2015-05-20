@@ -821,6 +821,15 @@ public void processData()
 // If pForceUpdate is true, the value will always be updated and the dirty flag
 // set true.
 //
+// pInfo Format:
+//
+//      "Update Channel,Gain Spinner,Transverse,0,2,0,128"
+//
+//  where 0,2,0,128 are:
+//      GUI control ID, device number, channel number, value
+//  and:
+//      "Gain Spinner" and "Transverse" phrases vary according to context
+//
 // This method is synchronized along with the method which checks the values
 // for changes and processes those changes to that separate threads can update
 // and respond to the same variables.
@@ -834,7 +843,9 @@ synchronized public boolean updateChannelParameters(
 
     String[] split = pInfo.split(",");
     
-    boolean result = devices[0].updateChannelParameters(
+    int deviceNum = Integer.parseInt(split[4]);
+    
+    boolean result = devices[deviceNum].updateChannelParameters(
                                 split[1], split[5], split[6], pForceUpdate);
 
     if(result) { setHdwParamsDirty(true); }

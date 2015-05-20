@@ -295,7 +295,7 @@ public void handlePacket(byte pCommand)
 
     if (pCommand == Device.GET_ALL_STATUS_CMD) { handleGetAllStatus(); }
     else
-    if (pCommand == Device.SET_GAIN_CMD) { handleSetGain(); }
+    if (pCommand == Device.SET_POT_CMD) { handleSetPot(); }
 
 }//end of Simulator::handlePacket
 //-----------------------------------------------------------------------------
@@ -453,9 +453,9 @@ public int handleGetAllStatus()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::handleSetGain
+// Simulator::handleSetPot
 //
-// Handles SET_GAIN_CMD packet requests. Sets the specified gain pot to the
+// Handles SET_POT_CMD packet requests. Sets the specified digital pot to the
 // specified value and transmits an ACK packet.
 //
 // Returns the number of bytes this method extracted from the socket or the
@@ -463,57 +463,24 @@ public int handleGetAllStatus()
 //
 
 
-public int handleSetGain()
+public int handleSetPot()
 {
     
     int numBytesInPkt = 4; //includes the checksum byte
     
-    int result = readBytesAndVerify(
-                                 inBuffer, numBytesInPkt, Device.SET_GAIN_CMD);
+    int result = readBytesAndVerify(inBuffer,numBytesInPkt,Device.SET_POT_CMD);
     if (result != numBytesInPkt){ return(result); }
     
-    //set gain here -- add code to do this later -- needs to affect the sim sig
+    //set pot here -- add code to do this later -- needs to affect the sim sig
     // inBuffer[0] is the I2C address of the PIC enabling the digital pot chip
     // inBuffer[1] is the pot number in the chip
-    // inBuffer[2] is the gain value
+    // inBuffer[2] is the pot value
     
     sendACK();
 
     return(result);
     
-}//end of Simulator::handleSetGain
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Simulator::handleSetOffset
-//
-// Handles SET_OFFSET_CMD packet requests. Sets the specified offset pot to the
-// specified value and transmits an ACK packet.
-//
-// Returns the number of bytes this method extracted from the socket or the
-// error code returned by readBytesAndVerify().
-//
-
-
-public int handleSetOffset()
-{
-    
-    int numBytesInPkt = 4; //includes the checksum byte
-    
-    int result = readBytesAndVerify(
-                               inBuffer, numBytesInPkt, Device.SET_OFFSET_CMD);
-    if (result != numBytesInPkt){ return(result); }
-    
-    //set offset here -- add code to do this later -- needs to affect the sim sig
-    // inBuffer[0] is the I2C address of the PIC enabling the digital pot chip
-    // inBuffer[1] is the pot number in the chip
-    // inBuffer[2] is the offset value
-    
-    sendACK();
-
-    return(result);
-    
-}//end of Simulator::handleSetOffset
+}//end of Simulator::handleSetPot
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

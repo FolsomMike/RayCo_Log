@@ -113,27 +113,30 @@ public class Device implements Runnable
     final static int OUT_BUFFER_SIZE = 255;
     final static int IN_BUFFER_SIZE = 255;
 
+    static final int OFFSET_POT = 0;
+    static final int GAIN_POT = 1;
+
     //Commands for all Devices
     //These should match the values in the code for the hardware.
     
     //NOTE: Each subclass can have its own command codes. They should be in the
     //range 40~100 so that they don't overlap the codes in this parent class.
 
-    static byte NO_ACTION_CMD = 0;
-    static byte ACK_CMD = 1;
-    static byte GET_ALL_STATUS_CMD = 2;
-    static byte SET_INSPECTION_MODE_CMD = 3;
-    static byte SET_GAIN_CMD = 4;
-    static byte SET_OFFSET_CMD = 5;
-    static byte SET_ONOFF_CMD = 6;
-    static byte GET_PEAK_DATA_CMD = 7;
-    static byte SEND_DATA_CMD = 8;
-    static byte DATA_CMD = 9;
-    static byte LOAD_FIRMWARE_CMD = 10;
+    static final byte NO_ACTION_CMD = 0;
+    static final byte ACK_CMD = 1;
+    static final byte GET_ALL_STATUS_CMD = 2;
+    static final byte SET_INSPECTION_MODE_CMD = 3;
+    static final byte SET_POT_CMD = 4;
+    static final byte UNUSED1_CMD = 5;
+    static final byte SET_ONOFF_CMD = 6;
+    static final byte GET_PEAK_DATA_CMD = 7;
+    static final byte SEND_DATA_CMD = 8;
+    static final byte DATA_CMD = 9;
+    static final byte LOAD_FIRMWARE_CMD = 10;
     
-    static byte ERROR = 125;
-    static byte DEBUG_CMD = 126;
-    static byte EXIT_CMD = 127;
+    static final byte ERROR = 125;
+    static final byte DEBUG_CMD = 126;
+    static final byte EXIT_CMD = 127;
     
 //-----------------------------------------------------------------------------
 // Device::Device (constructor)
@@ -582,7 +585,7 @@ void loadClockMappingTranslation(String pSection)
                 //store "to clock" in array at "fromClk" position
                 clockTranslations[fromClk] = toClk;  
             }   
-            catch(NumberFormatException e){ continue; }
+            catch(NumberFormatException e){ }
         }
     }
     
