@@ -1225,7 +1225,9 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         else
         if (pktID == ACK_CMD){ return handleACKPackets(); }
         else
-        if (pktID == GET_ALL_LAST_AD_VALUES_CMD){handleAllLastADValuesPacket();}
+        if (pktID == GET_ALL_LAST_AD_VALUES_CMD){
+            return handleAllLastADValuesPacket();
+        }
 
     }
     catch(IOException e){
