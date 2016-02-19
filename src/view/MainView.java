@@ -239,9 +239,6 @@ public void setupMainFrame()
 
     mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    //    setLocation((int)screenSize.getWidth() - getWidth(), 0);
-
     getScreenSize();
     
 }// end of MainView::setupMainFrame
@@ -258,9 +255,6 @@ public void getScreenSize()
 {
     
     totalScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-
-    GraphicsConfiguration gc = mainFrame.getGraphicsConfiguration();
 
     //height of the task bar
     Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(
