@@ -258,37 +258,31 @@ void sendPacket(byte pCommand, byte... pBytes)
 // Attempts to read pNumBytes number of bytes from ethernet into pBuffer and
 // verifies the data using the last byte as a checksum.
 //
-// Note: pNumBytes should include the data bytes ONLY and NOT the checksum byte.
-// This method will automatically read the checksum byte.
-// The checksum is NOT added to the buffer.
+// Note: pNumBytes count should include the data bytes plus the checksum byte.
 //
 // The packet ID should be provided via pPktID -- it is only used to verify the
 // checksum as it is included in that calculation by the sender.
 //
 // Returns the number of bytes read, including the checksum byte.
 // On checksum error, returns -1.
-// If pNumBytes and checksum are not available after waiting, returns -2.
+// If pNumBytes are not available after waiting, returns -2.
 // On IOException, returns -3.
 //
 
 int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 {
 
-    byte checksum;
-    
     try{
 
-        int totalNumBytes = pNumBytes + 1; //account for checksum
         int timeOutProcess = 0;
         
         while(timeOutProcess++ < 2){            
-            if (byteIn.available() >= totalNumBytes) {break;}
+            if (byteIn.available() >= pNumBytes) {break;}
             waitSleep(10);            
         }
 
-        if (byteIn.available() >= totalNumBytes) {
+        if (byteIn.available() >= pNumBytes) {
             byteIn.read(pBuffer, 0, pNumBytes);
-            checksum = (byte)byteIn.read();
         }else{
             packetErrorCnt++; return(-2);
         }
@@ -306,7 +300,7 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
     
     for(int i = 0; i < pNumBytes; i++){ sum += pBuffer[i]; }
 
-    if ( ((sum + checksum) & 0xff) == 0) { return(pNumBytes); }
+    if ( (sum & 0xff) == 0) { return(pNumBytes); }
     else{ packetErrorCnt++; return(-1); }
 
 }//end of Device::readBytesAndVerify
@@ -341,11 +335,56 @@ void requestAllStatusPacket()
 // Returns the number of bytes this method extracted from the socket or the
 // error code returned by readBytesAndVerify().
 //
+// Packet Format from remote device:
+//
+// Rabbit Status Data
+//
+// 0xaa,0x55,0xbb,0x66,Packet ID        (these already removed from buffer)
+// Rabbit Software Version MSB
+// Rabbit Software Version LSB
+// Rabbit Control Flags (MSB)
+// Rabbit Control Flags (LSB)
+// Rabbit System Status
+// Rabbit Host Com Error Count MSB
+// Rabbit Host Com Error Count LSB
+// Rabbit Master PIC Com Error Count MSB
+// Rabbit Master PIC Com Error Count LSB
+// 0x55,0xaa,0x5a                       (unused)
+//
+// Master PIC Status Data
+//
+// Master PIC Software Version MSB
+// Master PIC Software Version LSB
+// Master PIC Flags
+// Master PIC Status Flags
+// Master PIC Rabbit Com Error Count
+// Master PIC Slave PIC Com Error Count
+// 0x55,0xaa,0x5a                       (unused)
+//
+// Slave PIC 0 Status Data
+//
+// Slave PIC I2C Bus Address (0-7) 
+// Slave PIC Software Version MSB
+// Slave PIC Software Version LSB
+// Slave PIC Flags
+// Slave PIC Status Flags
+// Slave PIC Master PIC Com Error Count
+// Slave PIC Max number bytes in A/D Sample Buffer
+// Slave PIC Last read A/D value
+// 0x55,0xaa,0x5a                       (unused)
+// Slave PIC packet checksum
+//
+// ...packets for remaing Slave PIC packets...
+//
+// Master PIC packet checksum
+//
+// Rabbit's overall packet checksum appended by sendPacket function
+//
 
 int handleAllStatusPacket()
 {
     
-    int numBytesInPkt = 118; //does not include checksum byte
+    int numBytesInPkt = 119; //includes Rabbit checksum byte
     
     byte[] buffer = new byte[numBytesInPkt];
     
@@ -415,7 +454,15 @@ int handleAllStatusPacket()
         logPanel.appendTS("\n");
     
     }
-        
+
+    logPanel.appendTS("Master PIC checksum: " + String.format("0x%2x",
+                buffer[i++]).replace(' ', '0')); //Master PIC packet checksum
+    logPanel.appendTS("\n");
+    
+    logPanel.appendTS("Rabbit checksum: " + String.format("0x%2x",
+                buffer[i++]).replace(' ', '0')); //Rabbit packet checksum
+    logPanel.appendTS("\n");
+
     logPanel.appendTS("Total com error count: " + errorSum + "\n\n");
     
     return(result);    

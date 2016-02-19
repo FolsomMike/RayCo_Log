@@ -301,19 +301,19 @@ public void handlePacket(byte pCommand)
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-// Simulator::readBytesAndVerify
+// Device::readBytesAndVerify
 //
 // Attempts to read pNumBytes number of bytes from ethernet into pBuffer and
 // verifies the data using the last byte as a checksum.
 //
-// Note: pNumBytes should include the data bytes AND the checksum byte.
+// Note: pNumBytes count should include the data bytes plus the checksum byte.
 //
 // The packet ID should be provided via pPktID -- it is only used to verify the
 // checksum as it is included in that calculation by the sender.
 //
 // Returns the number of bytes read, including the checksum byte.
 // On checksum error, returns -1.
-// If pNumBytes and checksum are not available after waiting, returns -2.
+// If pNumBytes are not available after waiting, returns -2.
 // On IOException, returns -3.
 //
 // NOTE: The use of waitSleep in this function to wait for more bytes will not
@@ -325,14 +325,14 @@ public void handlePacket(byte pCommand)
 
 int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 {
-    
+
     try{
 
         int timeOutProcess = 0;
         
         while(timeOutProcess++ < 2){            
             if (byteIn.available() >= pNumBytes) {break;}
-            waitSleep(10);          
+            waitSleep(10);            
         }
 
         if (byteIn.available() >= pNumBytes) {
@@ -350,15 +350,15 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
     
     byte sum = (byte)pPktID; //packet ID is included in the checksum
 
-    //validate checksum by summing the packet id, all data, plus checksum byte
+    //validate checksum by summing the packet id and all data
     
     for(int i = 0; i < pNumBytes; i++){ sum += pBuffer[i]; }
 
     if ( (sum & 0xff) == 0) { return(pNumBytes); }
     else{ packetErrorCnt++; return(-1); }
 
-}//end of Simulator::readBytesAndVerify
-//----------------------------------------------------------------------------
+}//end of Device::readBytesAndVerify
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Simulator::handleGetAllStatus
@@ -369,49 +369,8 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 // Returns the number of bytes this method extracted from the socket or the
 // error code returned by readBytesAndVerify().
 //
-// Packet Format from remote device:
-//
-// Rabbit Status Data
-//
-// 0xaa,0x55,0xbb,0x66,Packet ID        (these already removed from buffer)
-// Rabbit Software Version MSB
-// Rabbit Software Version LSB
-// Rabbit Control Flags (MSB)
-// Rabbit Control Flags (LSB)
-// Rabbit System Status
-// Rabbit Host Com Error Count MSB
-// Rabbit Host Com Error Count LSB
-// Rabbit Master PIC Com Error Count MSB
-// Rabbit Master PIC Com Error Count LSB
-// 0x55,0xaa,0x5a                       (unused)
-//
-// Master PIC Status Data
-//
-// Master PIC Software Version MSB
-// Master PIC Software Version LSB
-// Master PIC Flags
-// Master PIC Status Flags
-// Master PIC Rabbit Com Error Count
-// Master PIC Slave PIC Com Error Count
-// 0x55,0xaa,0x5a                       (unused)
-//
-// Slave PIC 0 Status Data
-//
-// Slave PIC I2C Bus Address (0-7) 
-// Slave PIC Software Version MSB
-// Slave PIC Software Version LSB
-// Slave PIC Flags
-// Slave PIC Status Flags
-// Slave PIC Master PIC Com Error Count
-// Slave PIC Max number bytes in A/D Sample Buffer
-// Slave PIC Last read A/D value
-// 0x55,0xaa,0x5a                       (unused)
-// Slave PIC packet checksum
-//
-// ...packets for remaing Slave PIC packets...
-//
-// (Master PIC packet checksum not transmitted)
-// (overall packet checksum from Rabbit already removed)
+// See Device.handleAllStatusPacket method for details on the packet
+// structure.
 //
 
 public int handleGetAllStatus()
