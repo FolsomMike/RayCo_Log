@@ -90,6 +90,7 @@ void initAfterConnect(){
     
     requestAllStatusPacket();
     
+    waitSleep(300);
     
     requestAllLastADValues();
     
