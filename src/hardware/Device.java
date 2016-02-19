@@ -133,6 +133,7 @@ public class Device implements Runnable
     static final byte SEND_DATA_CMD = 8;
     static final byte DATA_CMD = 9;
     static final byte LOAD_FIRMWARE_CMD = 10;
+    static final byte GET_ALL_LAST_AD_VALUES_CMD = 11;
     
     static final byte ERROR = 125;
     static final byte DEBUG_CMD = 126;
@@ -309,7 +310,7 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 //-----------------------------------------------------------------------------
 // Device::requestAllStatusPacket
 //
-// Sends a request to the device for a packet will all status information.
+// Sends a request to the device for a packet with all status information.
 // The returned packed will be handled by handleAllStatusPacket(). See that
 // method for more details.
 //
@@ -374,7 +375,7 @@ void requestAllStatusPacket()
 // 0x55,0xaa,0x5a                       (unused)
 // Slave PIC packet checksum
 //
-// ...packets for remaing Slave PIC packets...
+// ...packets for remaining Slave PIC packets...
 //
 // Master PIC packet checksum
 //
@@ -468,6 +469,90 @@ int handleAllStatusPacket()
     return(result);    
     
 }//end of Device::handleAllStatusPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::requestAllLastADValues
+//
+// Sends a request to the device for a packet of all of the latest AD values
+// converted and stored by each slave PIC.
+//
+// The returned packed will be handled by handleAllLastADValuesPacket(). See
+// that method for more details.
+//
+
+void requestAllLastADValues()
+{
+
+    sendPacket(GET_ALL_LAST_AD_VALUES_CMD, (byte)0);
+    
+}//end of Device::requestAllLastADValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::handleAllLastADValuesPacket
+//
+// Extracts from packet and displays in the log panel all of the latest AD
+// values converted and stored by each slave PIC.
+//
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
+//
+// Packet Format from remote device:
+//
+// first slave PIC Latest AD Value (MSB)
+// first slave PIC Latest AD Value (LSB)
+// first slave PIC packet checksum
+//
+// ...packets for remaining Slave PIC packets...
+//
+// Master PIC packet checksum
+//
+// Rabbit's overall packet checksum appended by sendPacket function
+//
+
+int handleAllLastADValuesPacket()
+{
+    
+    int numBytesInPkt = 26; //includes Rabbit checksum byte
+    
+    byte[] buffer = new byte[numBytesInPkt];
+    
+    int result;
+    result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }
+    
+    int i = 0, v;
+    int errorSum = packetErrorCnt; //number of errors recorded by host
+    
+    logPanel.appendTS("\n----------------------------------------------\n");
+    logPanel.appendTS("-- All Latest AD Values --\n\n");
+    
+    int numSlaves = 8;
+    
+    for(int j=0; j<numSlaves; j++){
+
+        logPanel.appendTS("" + String.format("0x%4x", 
+         getUnsignedShortFromPacket(buffer, i)).replace(' ', '0'));
+        i=i+2; //adjust for integer extracted above
+        
+        logPanel.appendTS("," + String.format(
+          "0x%2x", buffer[i++]).replace(' ', '0')); //Slave PIC packet checksum
+        logPanel.appendTS("\n");
+        
+    }
+
+    logPanel.appendTS("Master PIC checksum: " + String.format("0x%2x",
+                buffer[i++]).replace(' ', '0')); //Master PIC packet checksum
+    logPanel.appendTS("\n");
+    
+    logPanel.appendTS("Rabbit checksum: " + String.format("0x%2x",
+                buffer[i++]).replace(' ', '0')); //Rabbit packet checksum
+    logPanel.appendTS("\n");
+    
+    return(result);    
+    
+}//end of Device::handleAllLastADValuesPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1139,6 +1224,8 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         if (pktID == GET_ALL_STATUS_CMD) { return handleAllStatusPacket(); }
         else
         if (pktID == ACK_CMD){ return handleACKPackets(); }
+        else
+        if (pktID == GET_ALL_LAST_AD_VALUES_CMD){handleAllLastADValuesPacket();}
 
     }
     catch(IOException e){

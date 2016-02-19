@@ -296,12 +296,15 @@ public void handlePacket(byte pCommand)
     if (pCommand == Device.GET_ALL_STATUS_CMD) { handleGetAllStatus(); }
     else
     if (pCommand == Device.SET_POT_CMD) { handleSetPot(); }
-
+    else
+    if (pCommand == Device.GET_ALL_LAST_AD_VALUES_CMD) { 
+                                            handleGetAllLastADValuesPacket(); }
+    
 }//end of Simulator::handlePacket
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-// Device::readBytesAndVerify
+// Simulator::readBytesAndVerify
 //
 // Attempts to read pNumBytes number of bytes from ethernet into pBuffer and
 // verifies the data using the last byte as a checksum.
@@ -357,7 +360,7 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
     if ( (sum & 0xff) == 0) { return(pNumBytes); }
     else{ packetErrorCnt++; return(-1); }
 
-}//end of Device::readBytesAndVerify
+}//end of Simulator::readBytesAndVerify
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -382,7 +385,7 @@ public int handleGetAllStatus()
                        inBuffer, numBytesInPkt, Device.GET_ALL_STATUS_CMD);
     if (result != numBytesInPkt){ return(result); }
     
-    //send test data packet
+    //send test data packet -- sendPacket appends Rabbit's checksum
     
     sendPacket(Device.GET_ALL_STATUS_CMD, (byte)0x01,(byte)0x02,
     (byte)0x12,(byte)0x34,(byte)0x56,(byte)0x01,(byte)0x01,(byte)0x01,
@@ -409,6 +412,47 @@ public int handleGetAllStatus()
     return(result);
     
 }//end of Simulator::handleGetAllStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleGetAllLastADValuesPacket
+//
+// Handles GET_ALL_LAST_AD_VALUES_CMD packet requests. Sends appropriate packet
+// via the socket.
+//
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
+//
+// See Device.handleAllLastADValuesPacket method for details on the packet
+// structure.
+//
+
+public int handleGetAllLastADValuesPacket()
+{
+ 
+    int numBytesInPkt = 2;  //includes the checksum byte
+    
+    int result = readBytesAndVerify(
+                   inBuffer, numBytesInPkt, Device.GET_ALL_LAST_AD_VALUES_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    //send test data packet -- sendPacket appends Rabbit's checksum
+    
+    sendPacket(Device.GET_ALL_LAST_AD_VALUES_CMD,
+    (byte)0x12,(byte)0x34,(byte)0xba,
+    (byte)0x56,(byte)0x78,(byte)0x32,
+    (byte)0x12,(byte)0x34,(byte)0xba,
+    (byte)0x56,(byte)0x78,(byte)0x32,
+    (byte)0x12,(byte)0x34,(byte)0xba,
+    (byte)0x56,(byte)0x78,(byte)0x32,
+    (byte)0x12,(byte)0x34,(byte)0xba,
+    (byte)0x56,(byte)0x78,(byte)0x32,
+    (byte)0x00
+    );
+    
+    return(result);
+    
+}//end of Simulator::handleGetAllLastADValuesPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -452,6 +496,8 @@ public int handleSetPot()
 public void sendACK()
 {
  
+    //sendPacket appends Rabbit's checksum
+    
     sendPacket(Device.ACK_CMD, (byte)0);    
         
 }//end of Simulator::sendACK

@@ -90,6 +90,9 @@ void initAfterConnect(){
     
     requestAllStatusPacket();
     
+    
+    requestAllLastADValues();
+    
     //waitSleep(5000); //without the sleep, calling twice locks up the PICs -- why?
     //requestAllStatusPacket();
 
