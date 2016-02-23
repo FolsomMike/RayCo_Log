@@ -30,15 +30,13 @@ public class MultiIODevice extends Device
     int data;
     
     int[] mapData;
-    
-    int PACKET_SIZE;
-    
+        
     byte[] packet;    
   
-    static final int AD_MAX_VALUE = 1023;
+    static final int AD_MAX_VALUE = 255;
     static final int AD_MIN_VALUE = 0;
-    static final int AD_MAX_SWING = 511;
-    static final int AD_ZERO_OFFSET = 511;
+    static final int AD_MAX_SWING = 127;
+    static final int AD_ZERO_OFFSET = 127;
     
     
 //-----------------------------------------------------------------------------
@@ -68,7 +66,7 @@ public void init()
 
     super.init();
 
-    packet = new byte[PACKET_SIZE];
+    packet = new byte[RUN_DATA_BUFFER_SIZE];
     
 }// end of MultiIODevice::init
 //-----------------------------------------------------------------------------
@@ -299,25 +297,32 @@ public void initAfterLoadingConfig()
 @Override
 public void collectData()
 {
-
+    
     super.collectData();
-    
-    getRunPacketFromDevice(packet);
-    
-    //first channel's buffer location specifies start of channel data section
-    int index = channels[0].getBufferLoc();
-    
-    for(Channel channel : channels){
-     
-        data = getUnsignedShortFromPacket(packet, index);
-        data = Math.abs(data -= AD_ZERO_OFFSET);
-        channel.catchPeak(data);
-        index += 2;
         
+    boolean processPacket = getRunPacketFromDevice(packet);
+    
+    if (processPacket){
+        
+        //first channel's buffer location specifies start of channel data section
+        int index = channels[0].getBufferLoc();
+
+        for(Channel channel : channels){
+
+            data = getUnsignedShortFromPacket(packet, index);
+            data = Math.abs(data -= AD_ZERO_OFFSET);
+            channel.catchPeak(data);
+            index += 2;
+
+        }
+
+        if(numClockPositions > 0){ extractMapDataAndCatchPeak(packet, index); }
+
     }
     
-    if(numClockPositions > 0){ extractMapDataAndCatchPeak(packet, index); }
-
+    //send a request to the device for the next packet
+    requestRunDataPacket();
+        
 }// end of MultiIODevice::collectData
 //-----------------------------------------------------------------------------
 
@@ -335,9 +340,9 @@ public int extractMapDataAndCatchPeak(byte[] pPacket, int pIndex)
 {
     
     for(int i=0; i<numClockPositions; i++){
-        mapData[i] = getUnsignedShortFromPacket(pPacket, pIndex);
+        mapData[i] = getUnsignedByteFromPacket(pPacket, pIndex);
         mapData[i] = Math.abs(mapData[i] -= AD_ZERO_OFFSET);
-        pIndex += 2;                
+        pIndex++;                
     }
     
     peakMapBuffer.catchPeak(mapData);    

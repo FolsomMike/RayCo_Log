@@ -49,7 +49,7 @@ public void init(int pBoardNumber)
 
     super.init(pBoardNumber);
 
-    numClockPositions = 24;
+    numClockPositions = 48;
     
     spikeOdds = 100;
     
@@ -73,63 +73,121 @@ public void handlePacket(byte pCommand)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimulatorLongitudinal::getRunPacket
+// SimulatorLongitudinal::handleGetRunData
 //
-// Returns a run-time packet of simulated data.
+// Handles GET_RUN_DATA_CMD packet requests. Sends appropriate packet via
+// the socket.
 //
-// The data range is 0 ~ 1,023 with zero volts at approximately 511.
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
+//
+// The data range is 0 ~ 1,023 for the data peaks.
+// The data range is 0 ~ 255 for the map.
 //
 
 @Override
-public void getRunPacket(byte[] pPacket)
+public int handleGetRunData()
 {
+ 
+    int numBytesInPkt = 2;  //includes the checksum byte
+    
+    int result = readBytesAndVerify(
+                       inBuffer, numBytesInPkt, Device.GET_RUN_DATA_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    int posSignals[] = new int[8];
+    int negSignals[] = new int[8];
+    
+    for(int i=0; i<posSignals.length; i++){
+        posSignals[i] = simulatePositiveSignal();
+        negSignals[i] = simulateNegativeSignal();        
+    }
+    
+    simulateMapData(dataBuffer, 0);    
+        
+    int p = 0, n = 0, m = 0;
+    
+    //send run packet -- sendPacket appends Rabbit's checksum
+    
+    sendPacket(Device.GET_RUN_DATA_CMD,
+            
+        (byte)((posSignals[p] >> 8) & 0xff), //+1
+        (byte)(posSignals[p++] & 0xff),
+    
+        (byte)((negSignals[n] >> 8) & 0xff), //-1
+        (byte)(negSignals[n++] & 0xff),
+        
+        (byte)((posSignals[p] >> 8) & 0xff), //+2
+        (byte)(posSignals[p++] & 0xff),
+    
+        (byte)((negSignals[n] >> 8) & 0xff), //-2
+        (byte)(negSignals[n++] & 0xff),
 
-    int index = 0;
+        (byte)((posSignals[p] >> 8) & 0xff), //+3
+        (byte)(posSignals[p++] & 0xff),
     
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+1
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-1
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+2
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-2
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+3
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-3
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+4
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-4
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+5
-    index += 2;    
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-5
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+6
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-6
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+7
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-7
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulatePositiveSignal()); //+8
-    index += 2;
-    addUnsignedShortToPacket(pPacket, index, simulateNegativeSignal()); //-8    
-    index += 2;
+        (byte)((negSignals[n] >> 8) & 0xff), //-3
+        (byte)(negSignals[n++] & 0xff),
+        
+        (byte)((posSignals[p] >> 8) & 0xff), //+4
+        (byte)(posSignals[p++] & 0xff),
     
-    index = addMapData(pPacket, index);
+        (byte)((negSignals[n] >> 8) & 0xff), //-4
+        (byte)(negSignals[n++] & 0xff),
+        
+        (byte)((posSignals[p] >> 8) & 0xff), //+5
+        (byte)(posSignals[p++] & 0xff),
     
-}// end of SimulatorLongitudinal::getRunPacket
+        (byte)((negSignals[n] >> 8) & 0xff), //-5
+        (byte)(negSignals[n++] & 0xff),
+        
+        (byte)((posSignals[p] >> 8) & 0xff), //+6
+        (byte)(posSignals[p++] & 0xff),
+    
+        (byte)((negSignals[n] >> 8) & 0xff), //-6
+        (byte)(negSignals[n++] & 0xff),
+
+        (byte)((posSignals[p] >> 8) & 0xff), //+7
+        (byte)(posSignals[p++] & 0xff),
+    
+        (byte)((negSignals[n] >> 8) & 0xff), //-7
+        (byte)(negSignals[n++] & 0xff),
+        
+        (byte)((posSignals[p] >> 8) & 0xff), //+8
+        (byte)(posSignals[p++] & 0xff),
+    
+        (byte)((negSignals[n] >> 8) & 0xff), //-8
+        (byte)(negSignals[n++] & 0xff),
+        
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++]        
+        );
+    
+    return(result);
+    
+}//end of SimulatorLongitudinal::handleGetRunData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimulatorLongitudinal::addMapData
+// SimulatorLongitudinal::simulateMapData
 //
 // Adds simulated map data to pPacket starting at position pIndex.
 //
-// The data range is 0 ~ 1,023 with zero volts at approximately 511.
+// The data range is 0 ~ 255 with zero volts at approximately 127.
 //
 // Returns the updated value of pIndex, pointing to the next empty position in
 // pPacket.
@@ -143,7 +201,7 @@ public void getRunPacket(byte[] pPacket)
 // the gating can be removed.
 //
 
-public int addMapData(byte[] pPacket, int pIndex)
+public int simulateMapData(byte[] pPacket, int pIndex)
 {
 
 /*  
@@ -177,13 +235,13 @@ public int addMapData(byte[] pPacket, int pIndex)
             }
         }
         
-        addUnsignedShortToPacket(pPacket, pIndex, AD_ZERO_OFFSET + simData);
-        pIndex += 2;
+        addByteToPacket(pPacket, pIndex, AD_ZERO_OFFSET + simData);
+        pIndex++;
     }
 
     return(pIndex);
     
-}// end of SimulatorLongitudinal::addMapData
+}// end of SimulatorLongitudinal::simulateMapData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -37,9 +37,7 @@ public Multi_IO_A_Wall(int pIndex, LogPanel pLogPanel,
 {
 
     super(pIndex, pLogPanel, pConfigFile, pSimMode);
-    
-    PACKET_SIZE = 9;
-    
+
 //debug remove this -- superseded by Socket Simulator  if(simMode){ simulator = new SimulatorWall(0); simulator.init(); }
    
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Wall (constructor)

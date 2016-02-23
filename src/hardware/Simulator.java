@@ -51,6 +51,8 @@ public class Simulator extends Socket
     boolean reSynced;
     int reSyncCount = 0;
     public static int instanceCounter = 0;
+
+    byte dataBuffer[] = new byte[Device.RUN_DATA_BUFFER_SIZE];
     
     int packetErrorCnt = 0;
 
@@ -85,10 +87,10 @@ public class Simulator extends Socket
     int spikeOdds = 20;
     int lastSpikeValue = 0;
     
-    static final int AD_MAX_VALUE = 1023;
+    static final int AD_MAX_VALUE = 255;
     static final int AD_MIN_VALUE = 0;
-    static final int AD_MAX_SWING = 511;
-    static final int AD_ZERO_OFFSET = 511;
+    static final int AD_MAX_SWING = 127;
+    static final int AD_ZERO_OFFSET = 127;
     static final int SIM_NOISE = 10;
     static final int SPIKE_ODDS_RANGE = 10000;
     static final int WALL_SIM_NOISE = 3;
@@ -299,7 +301,9 @@ public void handlePacket(byte pCommand)
     else
     if (pCommand == Device.GET_ALL_LAST_AD_VALUES_CMD) { 
                                             handleGetAllLastADValuesPacket(); }
-    
+    else
+    if (pCommand == Device.GET_RUN_DATA_CMD) { handleGetRunData(); }
+
 }//end of Simulator::handlePacket
 //-----------------------------------------------------------------------------
 
@@ -453,6 +457,24 @@ public int handleGetAllLastADValuesPacket()
     return(result);
     
 }//end of Simulator::handleGetAllLastADValuesPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleGetRunData
+//
+// Handles GET_RUN_DATA_CMD packet requests. Sends appropriate packet via
+// the socket.
+//
+// This method should be overridden by child classes to provide appropriate
+// processing.
+//
+
+public int handleGetRunData()
+{
+ 
+    return(0);
+    
+}//end of Simulator::handleGetRunData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -647,6 +669,20 @@ public void getRunPacket(byte[] pPacket)
 {
 
 }// end of Simulator::getRunPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::addByteToPacket
+//
+// Inserts low byte of integer pByte in pPacket, at location pIndex.
+//
+
+void addByteToPacket(byte[] pPacket, int pIndex, int pByte)
+{
+
+    pPacket[pIndex++] = (byte)(pByte & 0xff);
+
+}//end of Simulator::addByteToPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

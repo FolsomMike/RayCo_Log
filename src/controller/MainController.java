@@ -158,7 +158,7 @@ public void init()
 
     peakData = new PeakData(0);
     
-    peakMapData = new PeakMapData(0, 24); //debug mks -- this needs to be loaded????
+    peakMapData = new PeakMapData(0, 48); //debug mks -- this needs to be loaded from config file!!!
     
     mainDataClass = new MainDataClass();
     mainDataClass.init();

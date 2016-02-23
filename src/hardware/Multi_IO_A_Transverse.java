@@ -36,8 +36,6 @@ public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel,
 {
 
     super(pIndex, pLogPanel, pConfigFile, pSimMode);
-    
-    PACKET_SIZE = 88;
 
 //debug remove this -- superseded by Socket Simulator      if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
     

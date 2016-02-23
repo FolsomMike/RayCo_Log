@@ -67,6 +67,10 @@ public class Device implements Runnable
     int[] clockTranslations;
     int numGridsHeightPerSourceClock, numGridsLengthPerSourceClock;
 
+    private boolean newRunData = false;
+    
+    byte runDataBuffer[] = new byte[RUN_DATA_BUFFER_SIZE];
+    
     Socket socket = null;
     PrintWriter out = null;
     BufferedReader in = null;
@@ -110,6 +114,8 @@ public class Device implements Runnable
 
     LogPanel logPanel;
     
+    final static int RUN_DATA_BUFFER_SIZE = 1024;
+    
     final static int OUT_BUFFER_SIZE = 255;
     final static int IN_BUFFER_SIZE = 255;
 
@@ -129,7 +135,7 @@ public class Device implements Runnable
     static final byte SET_POT_CMD = 4;
     static final byte UNUSED1_CMD = 5;
     static final byte SET_ONOFF_CMD = 6;
-    static final byte GET_PEAK_DATA_CMD = 7;
+    static final byte GET_RUN_DATA_CMD = 7;
     static final byte SEND_DATA_CMD = 8;
     static final byte DATA_CMD = 9;
     static final byte LOAD_FIRMWARE_CMD = 10;
@@ -835,19 +841,106 @@ public boolean getPeakDataAndReset(PeakMapData pPeakMapData)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Device::getRunPacketFromDevice
+// Device::requestRunDataPacket
 //
-// Retrieves a run-time data packet from the remote device.
+// Sends a request to the device for a packet with runtime data such as signal
+// peaks, signal maps, photo-eye states, and encoder values.
+//
+// The returned packed will be handled by handleRunDataPacket. See that
+// method for more details.
 //
 
-void getRunPacketFromDevice(byte[] pPacket)
+void requestRunDataPacket()
+{
+
+    sendPacket(GET_RUN_DATA_CMD, (byte)0);
+    
+}//end of Device::requestRunDataPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::handleRunDataPacket
+//
+// Copies the remainder of the packet from the ethernet buffer to the
+// runDataBuffer for later retrieval.
+//
+// Sets newRunData flag true.
+//
+
+int handleRunDataPacket()
 {
     
-    //debug mks -- this method gets removed -- packet retrieved through ethernet
+    int numBytesInPkt = 81; //includes Rabbit checksum byte
+    
+    int result;
+    result = readBytesAndVerify(runDataBuffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }            
+    
+    newRunData = true;    
+    
+    return(result);
 
-    if(simMode){ ((Simulator)socket).getRunPacket(pPacket); }
+}// end of Device::handleRunDataPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getRunPacketFromDevice
+//
+// Returns the last run time packet received from the device.
+//
+// If a new packet has been received since the last call, returns true and the
+// packet is copied to pPacket.
+//
+// If no packet has been recevied since the last call, returns false and the
+// data in pPacket is invalid.
+//
+
+boolean getRunPacketFromDevice(byte[] pPacket)
+{
+    
+    if(!newRunData){ return(false); }
+        
+    System.arraycopy(runDataBuffer, 0, pPacket, 0, pPacket.length);
+    
+    newRunData = false;
+    
+    return(true);
     
 }// end of Device::getRunPacketFromDevice
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getByteFromPacket
+//
+// Extracts a byte from pPacket and returns the value as a signed byte.
+//
+
+int getByteFromPacket(byte[] pPacket, int pIndex)
+{
+
+    return(pPacket[pIndex]);
+    
+}//end of Device::getByteFromPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getUnsignedByteFromPacket
+//
+// Extracts a byte from pPacket and returns the value as an int. This results
+// in the byte being treated as an unsigned value.
+//
+// In the cast from byte to int, the integer will sign extend to reflect the
+// sign of the byte. Since the byte is intended to be unsigned, zeroing the top
+// bytes of the integer will leave the original byte value in the least
+// significant byte and the integer will be positive.
+//
+
+int getUnsignedByteFromPacket(byte[] pPacket, int pIndex)
+{
+
+    return((int)(pPacket[pIndex] & 0xff));
+
+}//end of Device::getUnsignedByteFromPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1228,7 +1321,11 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         if (pktID == GET_ALL_LAST_AD_VALUES_CMD){
             return handleAllLastADValuesPacket();
         }
-
+        else
+        if (pktID == GET_RUN_DATA_CMD){
+            return handleRunDataPacket();
+        }
+        
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 865");
