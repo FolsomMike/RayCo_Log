@@ -71,6 +71,11 @@ public class Device implements Runnable
     
     byte runDataBuffer[] = new byte[RUN_DATA_BUFFER_SIZE];
     
+    private int prevRbtRunDataPktCnt = -1;
+    private int rbtRunDataPktCntError = 0;
+    private int prevPICRunDataPktCnt = -1;
+    private int picRunDataPktCntError = 0;
+    
     Socket socket = null;
     PrintWriter out = null;
     BufferedReader in = null;
@@ -870,7 +875,19 @@ void requestRunDataPacket()
 int handleRunDataPacket()
 {
     
-    int numBytesInPkt = 81; //includes Rabbit checksum byte
+    int numBytesInPkt = 83; //includes Rabbit checksum byte
+    
+    //check the run data packet counts for errors
+    if (runDataBuffer[0] != ((prevRbtRunDataPktCnt+1)&0xff)) {
+        ++rbtRunDataPktCntError;
+    }
+    if (runDataBuffer[1] != ((prevPICRunDataPktCnt+1)&0xff)) {
+        ++picRunDataPktCntError;
+    }
+    
+    //store the run data packet counts
+    prevRbtRunDataPktCnt = runDataBuffer[0];
+    prevPICRunDataPktCnt = runDataBuffer[1];
     
     int result;
     result = readBytesAndVerify(runDataBuffer, numBytesInPkt, pktID);

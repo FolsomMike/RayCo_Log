@@ -93,6 +93,12 @@ public void getRunPacket(byte[] pPacket)
     
     int index = 0;
     
+    //rabbit rundata pkt count
+    pPacket[index++] = (byte)(rbtRunDataPktCount++ &0xff);
+    
+    //pic rundata pkt count
+    pPacket[index++] = (byte)(picRunDataPktCount++ &0xff);
+    
     addUnsignedShortToPacket(pPacket, index, simulateAverageWall());
     index += 2;
     addUnsignedShortToPacket(pPacket, index, simulatePulseWall());

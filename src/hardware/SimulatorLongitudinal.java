@@ -111,6 +111,9 @@ public int handleGetRunData()
     
     sendPacket(Device.GET_RUN_DATA_CMD,
             
+        (byte)(rbtRunDataPktCount++ &0xff), //rabbit rundata pkt count
+        (byte)(picRunDataPktCount++ &0xff), //pic rundata pkt count
+            
         (byte)((posSignals[p] >> 8) & 0xff), //+1
         (byte)(posSignals[p++] & 0xff),
     

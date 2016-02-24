@@ -55,6 +55,9 @@ public class Simulator extends Socket
     byte dataBuffer[] = new byte[Device.RUN_DATA_BUFFER_SIZE];
     
     int packetErrorCnt = 0;
+    
+    int rbtRunDataPktCount = 0;
+    int picRunDataPktCount = 0;
 
     //simulates the default size of a socket created for ethernet access
     // NOTE: If the pipe size is too small, the outside object can fill the
