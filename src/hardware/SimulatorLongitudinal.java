@@ -190,7 +190,7 @@ public int handleGetRunData()
 //
 // Adds simulated map data to pPacket starting at position pIndex.
 //
-// The data range is 0 ~ 255 with zero volts at approximately 127.
+// The data range is 0 ~ 127 with zero volts at value of 0.
 //
 // Returns the updated value of pIndex, pointing to the next empty position in
 // pPacket.
@@ -238,7 +238,7 @@ public int simulateMapData(byte[] pPacket, int pIndex)
             }
         }
         
-        addByteToPacket(pPacket, pIndex, AD_ZERO_OFFSET + simData);
+        addByteToPacket(pPacket, pIndex, simData);
         pIndex++;
     }
 
