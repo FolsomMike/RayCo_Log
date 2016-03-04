@@ -1082,7 +1082,7 @@ public void run()
         control();
 
         //sleep for a bit
-        threadSleep(10);
+        threadSleep(100);
 
     }
 
