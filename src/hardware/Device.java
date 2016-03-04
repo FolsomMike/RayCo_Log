@@ -873,7 +873,11 @@ void requestRunDataPacket()
 int handleRunDataPacket()
 {
     
-    int numBytesInPkt = 84; //includes Rabbit checksum byte
+    int numBytesInPkt = 83; //includes Rabbit checksum byte   
+    
+    int result;
+    result = readBytesAndVerify(runDataBuffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }    
     
     //check the run data packet counts for errors
     if (runDataBuffer[0] != ((prevRbtRunDataPktCnt+1)&0xff)) {
@@ -886,10 +890,6 @@ int handleRunDataPacket()
     //store the run data packet counts
     prevRbtRunDataPktCnt = runDataBuffer[0];
     prevPICRunDataPktCnt = runDataBuffer[1];
-    
-    int result;
-    result = readBytesAndVerify(runDataBuffer, numBytesInPkt, pktID);
-    if (result != numBytesInPkt){ return(result); }            
     
     newRunData = true;    
     
