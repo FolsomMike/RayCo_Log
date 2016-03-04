@@ -243,13 +243,6 @@ public int simulateMapData(byte[] pPacket, int pIndex)
         if((int)(5000 * Math.random()) < 1){
             simData = 1 + (int)(25 * Math.random());
         }
-
-        //simulate the weldline
-        if(i == 4){ 
-            if((int)(100 * Math.random()) < 10){
-                simData = 3 + (int)(3 * Math.random());
-            }
-        }
         
         addByteToPacket(pPacket, pIndex, simData);
         pIndex++;
