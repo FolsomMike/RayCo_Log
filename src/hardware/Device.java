@@ -413,31 +413,50 @@ int handleAllStatusPacket()
     
     logPanel.appendTS(" - Rabbit Status Data -\n\n");
     
-    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]); //software version
+    //software version
+    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
+    
+    //control flags
     logPanel.appendTS("," + String.format("0x%4x", 
-     getUnsignedShortFromPacket(buffer, i)).replace(' ', '0')); //control flags
+                            getUnsignedShortFromPacket(buffer, i))
+                                                .replace(' ', '0')); 
     i=i+2; //adjust for integer extracted above
-    logPanel.appendTS("," + String.format(
-                      "0x%2x", buffer[i++]).replace(' ', '0')); //system status
+    
+    //system status
+    logPanel.appendTS("," + String.format("0x%2x", buffer[i++])
+                                                            .replace(' ', '0')); 
+    
+    //host com error count
     v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
-    logPanel.appendTS("," + v); //host com error count
+    logPanel.appendTS("," + v);
+    
+    //serial com error count
     v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
-    logPanel.appendTS("," + v); //PIC com error count
+    logPanel.appendTS("," + v);
+    
     //unused values
     logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
     logPanel.appendTS("\n\n");
 
     logPanel.appendTS(" - Master PIC Status Data -\n\n");
     
-    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]); //software version
+    //software version
+    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
+    
+    //flags
     logPanel.appendTS("," + String.format(
-                            "0x%2x", buffer[i++]).replace(' ', '0')); //flags
+                            "0x%2x", buffer[i++]).replace(' ', '0'));
+    
+    //status flags
     logPanel.appendTS("," + String.format(
-                      "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
-    v = buffer[i++]; errorSum += v;
-    logPanel.appendTS("," + v); //Rabbit com error count
-    v = buffer[i++]; errorSum += v;
-    logPanel.appendTS("," + v); //PIC com error count
+                            "0x%2x", buffer[i++]).replace(' ', '0'));
+    
+    //serial com error count
+    v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
+    
+    //I2C com error count
+    v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
+    
     //unused values
     logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
     logPanel.appendTS("\n\n");
@@ -455,7 +474,7 @@ int handleAllStatusPacket()
         logPanel.appendTS("," + String.format(
                         "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
         v = buffer[i++]; errorSum += v;        
-        logPanel.appendTS("," + v); //Master PIC com error count
+        logPanel.appendTS("," + v); //I2C com error count
         logPanel.appendTS("," + buffer[i++]); //last read A/D value    
         //unused values
         logPanel.appendTS(","+buffer[i++]+","+buffer[i++]+ "," + buffer[i++]);
