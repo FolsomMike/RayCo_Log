@@ -394,27 +394,116 @@ public int handleGetAllStatus()
     
     //send test data packet -- sendPacket appends Rabbit's checksum
     
-    sendPacket(Device.GET_ALL_STATUS_CMD, (byte)0x01,(byte)0x02,
-    (byte)0x12,(byte)0x34,(byte)0x56,(byte)0x01,(byte)0x01,(byte)0x01,
-    (byte)0x02,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x01,(byte)0x02,
-    (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x01,(byte)0x02,
-    (byte)0x03,(byte)0x00,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x8f,(byte)0x01,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x8e,(byte)0x02,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x8d,(byte)0x03,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x8c,(byte)0x04,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x8b,(byte)0x05,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x8a,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x89,(byte)0x07,(byte)0x01,(byte)0x02,(byte)0x00,(byte)0x44,
-    (byte)0x45,(byte)0x46,(byte)0x47,(byte)0x01,(byte)0x02,(byte)0x03,
-    (byte)0x88,(byte)0xa4);
+    sendPacket(Device.GET_ALL_STATUS_CMD, 
+            //Rabbit Status (12 bytes)
+            (byte)0x01,(byte)0x02,              // software version
+            (byte)0x12,(byte)0x34,              // confrolFlags
+            (byte)0x56,                         // system status
+            (byte)0x00,(byte)0x00,              // host communication errors
+            (byte)0x00,(byte)0x00,              // serial port com errors
+            (byte)0x01,(byte)0x02,(byte)0x03,   // unused bytes
+            //Rabbit Status end
+            
+            //Master Status (09 bytes)
+            (byte)0x01,(byte)0x01,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //serial port error count
+            (byte)0x00,                         //slave I2C error count
+            (byte)0x01,(byte)0x02,(byte)0x03,   // unused bytes
+            //Master Status end
+            
+            //Slave 0 Status (11 bytes)
+            (byte)0x00,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //I2C communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b,                         //checksum
+            //end Slave 0 Status
+            
+            //Slave 1 Status (11 bytes)
+            (byte)0x01,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b, 
+            //end Slave 1 Status
+            
+            //Slave 2 Status (11 bytes)
+            (byte)0x02,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b, 
+            //end Slave 2 Status
+            
+            //Slave 3 Status (11 bytes)
+            (byte)0x03,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b, 
+            //end Slave 3 Status
+            
+            //Slave 4 Status (11 bytes)
+            (byte)0x04,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b, 
+            //end Slave 4 Status
+            
+            //Slave 5 Status (11 bytes)
+            (byte)0x05,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b, 
+            //end Slave 5 Status
+            
+            //Slave 6 Status (11 bytes)
+            (byte)0x06,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b, 
+            //end Slave 6 Status
+            
+            //Slave 7 Status (11 bytes)
+            (byte)0x07,                         //I2C address
+            (byte)0x01,(byte)0x02,              //software version
+            (byte)0x00,                         //flags
+            (byte)0x00,                         //status flags
+            (byte)0x00,                         //communication error count
+            (byte)0x7c,                         //last A/D sample
+            (byte)0x01,(byte)0x02,(byte)0x03,   //unused
+            (byte)0x7b,
+            //end Slave 7 Status
+            
+            (byte)0x0f                          //Master PIC checksum
+    
+    );
     
     return(result);
     
