@@ -873,7 +873,7 @@ void requestRunDataPacket()
 int handleRunDataPacket()
 {
     
-    int numBytesInPkt = 83; //includes Rabbit checksum byte
+    int numBytesInPkt = 84; //includes Rabbit checksum byte
     
     //check the run data packet counts for errors
     if (runDataBuffer[0] != ((prevRbtRunDataPktCnt+1)&0xff)) {
