@@ -92,6 +92,10 @@ void initAfterConnect(){
     
     requestAllLastADValues();
     
+    waitSleep(300);
+    
+    //DEBUG HSS// requestRunDataPacket(); //DEBUG HSS// -- remove line later
+    
     //waitSleep(5000); //without the sleep, calling twice locks up the PICs -- why?
     //requestAllStatusPacket();
 
@@ -341,7 +345,6 @@ public int extractMapDataAndCatchPeak(byte[] pPacket, int pIndex)
     
     for(int i=0; i<numClockPositions; i++){
         mapData[i] = getUnsignedByteFromPacket(pPacket, pIndex);
-        mapData[i] = Math.abs(mapData[i] -= AD_ZERO_OFFSET);
         pIndex++;                
     }
     
