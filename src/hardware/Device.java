@@ -381,7 +381,6 @@ void requestAllStatusPacket()
 // Slave PIC Flags
 // Slave PIC Status Flags
 // Slave PIC Master PIC Com Error Count
-// Slave PIC Max number bytes in A/D Sample Buffer
 // Slave PIC Last read A/D value
 // 0x55,0xaa,0x5a                       (unused)
 // Slave PIC packet checksum
@@ -396,7 +395,7 @@ void requestAllStatusPacket()
 int handleAllStatusPacket()
 {
     
-    int numBytesInPkt = 119; //includes Rabbit checksum byte
+    int numBytesInPkt = 111; //includes Rabbit checksum byte
     
     byte[] buffer = new byte[numBytesInPkt];
     
@@ -457,7 +456,6 @@ int handleAllStatusPacket()
                         "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
         v = buffer[i++]; errorSum += v;        
         logPanel.appendTS("," + v); //Master PIC com error count
-        logPanel.appendTS("," + buffer[i++]); //max num bytes in A/D sample buffer
         logPanel.appendTS("," + buffer[i++]); //last read A/D value    
         //unused values
         logPanel.appendTS(","+buffer[i++]+","+buffer[i++]+ "," + buffer[i++]);
