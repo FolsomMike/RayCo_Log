@@ -162,6 +162,7 @@ public int handleGetRunData()
         (byte)((negSignals[n] >> 8) & 0xff), //-8
         (byte)(negSignals[n++] & 0xff),
         
+        //Clock map
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
@@ -177,7 +178,31 @@ public int handleGetRunData()
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++]        
+        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
+            
+        //Snapshot buffer -- //WIP HSS// -- use better values
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00
         );
     
     return(result);
