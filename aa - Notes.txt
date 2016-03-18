@@ -1,0 +1,7 @@
+
+
+On the first Multi-IO board tested as Transverse 1:
+
+In the Universal Chart program:
+
+Channel 1: gain = 0; offset = 122 for magnet stroke testing
