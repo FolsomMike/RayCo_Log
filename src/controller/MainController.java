@@ -677,7 +677,7 @@ public void handle3DMapManipulation()
 
     ArrayList <Object> values = mainView.getAllValuesFromCurrentControlPanel();
  
-    mainView.updateGraph(0, 3, 0, values);
+    mainView.updateGraph(0, 1, 0, values); //debug mks -- the 3 here hardcodes the map at graph 3 -- ??? need to load from config???
          
 }//end of MainController::handle3DMapManipulation
 //-----------------------------------------------------------------------------
