@@ -406,10 +406,12 @@ private void setChannelDataBuffers()
     //traverse all the channels
     while (mainHandler.getNextPeakData(peakData) != -1){
      
-        try{                
-            peakData.meta.channel.setDataBuffer(mainView.getTrace(
-               peakData.meta.chartGroup, peakData.meta.chart,
+        try{            
+            if(channelGraphingEnabled()){                        
+                peakData.meta.channel.setDataBuffer(mainView.getTrace(
+                    peakData.meta.chartGroup, peakData.meta.chart,
                     peakData.meta.graph, peakData.meta.trace).getDataBuffer());
+            }
         }catch(NullPointerException e){
         
             GUITools.displayErrorMessage(
@@ -427,6 +429,39 @@ private void setChannelDataBuffers()
     }
     
 }// end of MainController::setChannelDataBuffers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::channelGraphingEnabled
+//
+// Channel graphing is enabled if the chart group, chart, graph, and trace are
+// all set to values other than -1.
+//
+// If any one of those is -1, the channel is not linked to a graphing element
+// and its data will be ignored for graphing purposes. The data may be still be
+// used for other purposes in the program.
+//
+// Typically, the user will specify a channel to be ignored for graphing by
+// setting all of it's group/chart/graph/trace values to -1 in the config file.
+// Alternatively, simply ommitting a channel section will cause all these
+// values to default to -1.
+//
+
+private boolean channelGraphingEnabled()
+{
+
+    if (peakData.meta.chartGroup != -1 
+         && peakData.meta.chart != -1
+            && peakData.meta.graph != -1
+             && peakData.meta.trace != -1){
+
+        return(true);
+    }
+    else{
+        return(false);
+    }
+        
+}// end of MainController::channelGraphingEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -558,6 +593,9 @@ private ArrayList<PeakData> getChannelList()
 // to which the map associated with that device has been linked. This allows
 // data from a device to be passed to its associated map.
 //
+// wip mks -- check if the target link object is actually a map object of some
+// type and generate the error in that case as well
+//
 
 private void setDeviceMapDataBuffers()
 {
@@ -572,7 +610,6 @@ private void setDeviceMapDataBuffers()
         if(mapMeta.numClockPositions <= 0) { continue; }
         
         try{
-            
             device.setMapDataBuffer(mainView.getGraph(
                mapMeta.chartGroup, mapMeta.chart,
                    mapMeta.graph).getMapBuffer());
@@ -863,8 +900,9 @@ private void displayDataFromDeviceChannels()
     
     for (Device device : mainHandler.getDevices()){
         for (Channel channel : device.getChannels()){        
-            if (channel.getPeakDataAndReset(peakData) == true){
-                peakData.meta.dataBuffer.putData(peakData.peak);
+            if (channel.getPeakDataAndReset(peakData) == true
+                 && peakData.meta.dataBuffer != null){
+                            peakData.meta.dataBuffer.putData(peakData.peak);
             }
         }
     }
