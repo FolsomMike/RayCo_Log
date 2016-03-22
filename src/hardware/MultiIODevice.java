@@ -92,8 +92,6 @@ void initAfterConnect(){
     
     requestAllLastADValues();
     
-    waitSleep(300);
-    
     //DEBUG HSS// requestRunDataPacket(); //DEBUG HSS// -- remove line later
     
     //waitSleep(5000); //without the sleep, calling twice locks up the PICs -- why?
