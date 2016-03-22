@@ -87,6 +87,8 @@ public class Device implements Runnable
     private InetAddress ipAddr = null;
     public InetAddress getIPAddr(){ return(ipAddr); }
     private String ipAddrS;
+    
+    private boolean waitingForRemoteResponse = false;
 
     int pktID;
     boolean reSynced;
@@ -874,7 +876,11 @@ public boolean getPeakDataAndReset(PeakMapData pPeakMapData)
 
 void requestRunDataPacket()
 {
+    
+    if (waitingForRemoteResponse) { return; }
 
+    waitingForRemoteResponse = true;
+    
     sendPacket(GET_RUN_DATA_CMD, (byte)0);
     
 }//end of Device::requestRunDataPacket
@@ -891,6 +897,8 @@ void requestRunDataPacket()
 
 int handleRunDataPacket()
 {
+    
+    waitingForRemoteResponse = false;
     
     int numBytesInPkt = 211; //includes Rabbit checksum byte   
     
