@@ -342,7 +342,7 @@ public int extractMapDataAndCatchPeak(byte[] pPacket, int pIndex)
 {
     
     for(int i=0; i<numClockPositions; i++){
-        mapData[i] = getUnsignedByteFromPacket(pPacket, pIndex);
+        mapData[i] = getUnsignedByteFromPacket(pPacket, pIndex)/3; //WIP HSS// -- divisor should be read from config file
         pIndex++;                
     }
     
