@@ -969,6 +969,23 @@ void sendSetLocationPacket(int pHdwChannel, int pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::setLinearLocationsOfChannels
+//
+// Sets the linear locations of each channel to their proper values.
+//
+
+void setLinearLocationsOfChannels()
+{
+    
+    for(Channel channel : channels){
+        sendSetLocationPacket(channel.getBoardChannel(), 
+                                        channel.getLinearLocation());
+    }
+    
+}//end of Device::setLinearLocationsOfChannels
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::sendSetClockPacket
 //
 // Sends a packet to the remote device to set the clock position of pHdwChannel 
@@ -1169,6 +1186,8 @@ public void run()
 void initAfterConnect(){
 
     setClockPositionsOfChannels();
+    
+    setLinearLocationsOfChannels();
         
 }//end of Device::initAfterConnect
 //-----------------------------------------------------------------------------
