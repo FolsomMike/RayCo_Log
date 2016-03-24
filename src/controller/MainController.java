@@ -1120,7 +1120,7 @@ public void run()
         control();
 
         //sleep for a bit
-        threadSleep(100);
+        threadSleep(10);
 
     }
 
