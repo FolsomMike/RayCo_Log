@@ -148,6 +148,7 @@ public class Device implements Runnable
     static final byte LOAD_FIRMWARE_CMD = 10;
     static final byte GET_ALL_LAST_AD_VALUES_CMD = 11;
     static final byte SET_LOCATION_CMD = 12;
+    static final byte SET_CLOCK_CMD = 13;
     
     static final byte ERROR = 125;
     static final byte DEBUG_CMD = 126;
@@ -965,6 +966,21 @@ void sendSetLocationPacket(int pHdwChannel, int pValue)
     sendPacket(SET_LOCATION_CMD, (byte)pHdwChannel, (byte)pValue);
     
 }//end of Device::sendSetLocationPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::sendSetClockPacket
+//
+// Sends a packet to the remote device to set the clock position of pHdwChannel 
+// to pValue.
+//
+
+void sendSetClockPacket(int pHdwChannel, int pValue)
+{
+    
+    sendPacket(SET_CLOCK_CMD, (byte)pHdwChannel, (byte)pValue);
+    
+}//end of Device::sendSetClockPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
