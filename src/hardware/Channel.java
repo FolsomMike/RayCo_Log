@@ -43,6 +43,9 @@ public class Channel
     private int boardChannel;
     public int getBoardChannel(){ return(boardChannel); }
     
+    private int clockPosition;
+    public int getClockPosition(){ return(clockPosition); }
+    
     public String getCalPanelGroup(){ return calPanelGroup; }
     public String getCalPanelName(){ return calPanelName; }
     
@@ -161,6 +164,8 @@ private void loadConfigSettings()
                 section, "short title", "Dev" + deviceNum + "Ch" + channelNum);
 
     boardChannel = configFile.readInt(section, "board channel", -1);
+    
+    clockPosition = configFile.readInt(section, "clock position", -1);
     
     calPanelGroup = configFile.readString(
                         section, "calibration panel group", "Dev" + deviceNum);
