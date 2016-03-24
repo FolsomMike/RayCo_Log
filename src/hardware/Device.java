@@ -984,6 +984,23 @@ void sendSetClockPacket(int pHdwChannel, int pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::setClockPositionsOfChannels
+//
+// Sets the clock position of each channel to what it's proper value.
+//
+
+void setClockPositionsOfChannels()
+{
+    
+    for(Channel channel : channels){
+        sendSetClockPacket(channel.getBoardChannel(), 
+                                        channel.getClockPosition());
+    }
+    
+}//end of Device::setClockPositionsOfChannels
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::getByteFromPacket
 //
 // Extracts a byte from pPacket and returns the value as a signed byte.
@@ -1151,6 +1168,7 @@ public void run()
 
 void initAfterConnect(){
 
+    setClockPositionsOfChannels();
         
 }//end of Device::initAfterConnect
 //-----------------------------------------------------------------------------
