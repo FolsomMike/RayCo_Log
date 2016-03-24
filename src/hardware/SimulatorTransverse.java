@@ -193,6 +193,9 @@ public int handleGetRunData()
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
         (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
             
+        //Address of last A/D value stored in Snapshot buffer
+        (byte)0x00,
+        
         //Snapshot buffer -- //WIP HSS// -- use better values
         (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
         (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
