@@ -902,7 +902,7 @@ int handleRunDataPacket()
     
     waitingForRemoteResponse = false;
     
-    int numBytesInPkt = 211; //includes Rabbit checksum byte   
+    int numBytesInPkt = 212; //includes Rabbit checksum byte   
     
     int result;
     result = readBytesAndVerify(runDataBuffer, numBytesInPkt, pktID);
