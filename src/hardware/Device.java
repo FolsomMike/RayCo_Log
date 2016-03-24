@@ -147,6 +147,7 @@ public class Device implements Runnable
     static final byte DATA_CMD = 9;
     static final byte LOAD_FIRMWARE_CMD = 10;
     static final byte GET_ALL_LAST_AD_VALUES_CMD = 11;
+    static final byte SET_LOCATION_CMD = 12;
     
     static final byte ERROR = 125;
     static final byte DEBUG_CMD = 126;
@@ -949,6 +950,21 @@ boolean getRunPacketFromDevice(byte[] pPacket)
     return(true);
     
 }// end of Device::getRunPacketFromDevice
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::sendSetLocationPacket
+//
+// Sends a packet to the remote device to set the location of pHdwChannel to 
+// pValue.
+//
+
+void sendSetLocationPacket(int pHdwChannel, int pValue)
+{
+    
+    sendPacket(SET_LOCATION_CMD, (byte)pHdwChannel, (byte)pValue);
+    
+}//end of Device::sendSetLocationPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
