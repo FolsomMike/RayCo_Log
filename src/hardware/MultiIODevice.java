@@ -88,6 +88,9 @@ void initAfterConnect(){
     
     requestAllStatusPacket();
     
+    setClockPositionsOfChannels();
+    setLinearLocationsOfChannels();
+    
     waitSleep(300);
     
     requestAllLastADValues();

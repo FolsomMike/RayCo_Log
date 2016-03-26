@@ -965,6 +965,8 @@ void sendSetLocationPacket(int pHdwChannel, int pValue)
     
     sendPacket(SET_LOCATION_CMD, (byte)pHdwChannel, (byte)pValue);
     
+    numACKsExpected++;
+    
 }//end of Device::sendSetLocationPacket
 //-----------------------------------------------------------------------------
 
@@ -978,6 +980,9 @@ void setLinearLocationsOfChannels()
 {
     
     for(Channel channel : channels){
+        
+        if (channel.getBoardChannel() == -1) { continue; }
+        
         sendSetLocationPacket(channel.getBoardChannel(), 
                                         channel.getLinearLocation());
     }
@@ -997,6 +1002,8 @@ void sendSetClockPacket(int pHdwChannel, int pValue)
     
     sendPacket(SET_CLOCK_CMD, (byte)pHdwChannel, (byte)pValue);
     
+    numACKsExpected++;
+    
 }//end of Device::sendSetClockPacket
 //-----------------------------------------------------------------------------
 
@@ -1010,8 +1017,12 @@ void setClockPositionsOfChannels()
 {
     
     for(Channel channel : channels){
+        
+        if (channel.getBoardChannel() == -1) { continue; }
+        
         sendSetClockPacket(channel.getBoardChannel(), 
                                         channel.getClockPosition());
+
     }
     
 }//end of Device::setClockPositionsOfChannels
@@ -1184,10 +1195,6 @@ public void run()
 //
 
 void initAfterConnect(){
-
-    setClockPositionsOfChannels();
-    
-    setLinearLocationsOfChannels();
         
 }//end of Device::initAfterConnect
 //-----------------------------------------------------------------------------
