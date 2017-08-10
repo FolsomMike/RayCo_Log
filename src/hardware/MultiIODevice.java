@@ -26,19 +26,19 @@ import view.LogPanel;
 
 public class MultiIODevice extends Device
 {
-    
+
     int data;
-    
+
     int[] mapData;
-        
-    byte[] packet;    
-  
+
+    byte[] packet;
+
     static final int AD_MAX_VALUE = 255;
     static final int AD_MIN_VALUE = 0;
     static final int AD_MAX_SWING = 127;
     static final int AD_ZERO_OFFSET = 127;
-    
-    
+
+
 //-----------------------------------------------------------------------------
 // MultiIODevice::MultiIODevice (constructor)
 //
@@ -67,7 +67,7 @@ public void init()
     super.init();
 
     packet = new byte[RUN_DATA_BUFFER_SIZE];
-    
+
 }// end of MultiIODevice::init
 //-----------------------------------------------------------------------------
 
@@ -83,25 +83,25 @@ public void init()
 void initAfterConnect(){
 
     super.initAfterConnect();
-    
+
     //debug mks
-    
+
     requestAllStatusPacket();
-    
+
     setClockPositionsOfChannels();
     setLinearLocationsOfChannels();
-    
+
     waitSleep(300);
-    
+
     requestAllLastADValues();
-    
+
     //DEBUG HSS// requestRunDataPacket(); //DEBUG HSS// -- remove line later
-    
+
     //waitSleep(5000); //without the sleep, calling twice locks up the PICs -- why?
     //requestAllStatusPacket();
 
     //debug mks end
-         
+
 }//end of MultiIODevice::initAfterConnect
 //-----------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ void initAfterConnect(){
 // and offset of a channel while the other two pots are used for a second
 // channel. Thus, each chip is shared by a channel pair.
 //
-// Each pot chip is enabled by an I/O pin on a PIC: 
+// Each pot chip is enabled by an I/O pin on a PIC:
 // CH1/CH2 pot by PIC1 (I2C address 0)
 // CH3/CH4 pot by PIC3 (I2C address 2)
 // ...and so on...
@@ -136,27 +136,27 @@ void sendSetPotPacket(int pHdwChannel, int pGainOrOffset, int pValue)
 {
 
     int slavePICAddr, potNum;
-    
+
     //even number channels enabled by PIC with address same as channel num
     //  Offset = Pot 0 inside chip
     //  Gain   = Pot 1 inside chip
-    
+
     //odd number channels enabled by PIC with address one less than channel num
     //  Offset = Pot 3 inside chip
     //  Gain   = Pot 2 inside chip
-    
+
     if((pHdwChannel % 2) == 0){
         slavePICAddr = pHdwChannel;
         potNum = (pGainOrOffset == OFFSET_POT) ? 0 : 1;
-    }else{    
+    }else{
         slavePICAddr = pHdwChannel - 1;
         potNum = (pGainOrOffset == OFFSET_POT) ? 3 : 2;
     }
- 
+
     sendPacket(SET_POT_CMD, (byte)slavePICAddr, (byte)potNum, (byte)pValue);
-    
+
     numACKsExpected++;
-    
+
 }//end of MultiIODevice::sendSetPotPacket
 //-----------------------------------------------------------------------------
 
@@ -175,7 +175,7 @@ void sendSetGainPacket(int pHdwChannel, int pValue)
 {
 
     sendSetPotPacket(pHdwChannel, GAIN_POT, pValue);
-        
+
 }//end of MultiIODevice::sendSetGainPacket
 //-----------------------------------------------------------------------------
 
@@ -194,7 +194,7 @@ void sendSetOffsetPacket(int pHdwChannel, int pValue)
 {
 
     sendSetPotPacket(pHdwChannel, OFFSET_POT, pValue);
-        
+
 }//end of MultiIODevice::sendSetOffsetPacket
 //-----------------------------------------------------------------------------
 
@@ -213,9 +213,9 @@ void sendSetOnOffPacket(int pHdwChannel, boolean pValue)
 {
 
     sendPacket(SET_ONOFF_CMD, (byte)pHdwChannel, (byte)(pValue ? 1 : 0));
-    
+
     numACKsExpected++;
-    
+
 }//end of MultiIODevice::sendSetOnOffPacket
 //-----------------------------------------------------------------------------
 
@@ -239,13 +239,13 @@ synchronized public void processChannelParameterChanges()
 {
 
     super.processChannelParameterChanges();
-    
+
     if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
 
     // invoke all devices with changed values to process those changes
-    
+
     for(Channel channel : channels){
-        if (channel.getHdwParamsDirty()){ 
+        if (channel.getHdwParamsDirty()){
             if(channel.gain.isDirty()){
                 sendSetGainPacket(
                            channel.getBoardChannel(), channel.gain.getValue());
@@ -257,16 +257,16 @@ synchronized public void processChannelParameterChanges()
             if(channel.onOff.isDirty()){
                 sendSetOnOffPacket(
                           channel.getBoardChannel(), channel.onOff.getValue());
-            }                                   
-        }                
+            }
+        }
     }
-    
+
     //updates have been applied, so clear dirty flag...since this method and
     //the method which handels the updates are synchronized, no updates will
     //have occurred while all this method has processed all the updates
-    
+
     setHdwParamsDirty(false);
-    
+
 }//end of MultiIODevice::processChannelParameterChanges
 //-----------------------------------------------------------------------------
 
@@ -283,9 +283,9 @@ public void initAfterLoadingConfig()
 {
 
     super.initAfterLoadingConfig();
-    
+
     if(numClockPositions != 0){ mapData = new int[numClockPositions]; }
-    
+
 }// end of MultiIODevice::initAfterLoadingConfig
 //-----------------------------------------------------------------------------
 
@@ -302,13 +302,13 @@ public void initAfterLoadingConfig()
 @Override
 public void collectData()
 {
-    
+
     super.collectData();
-        
+
     boolean processPacket = getRunPacketFromDevice(packet);
-    
+
     if (processPacket){
-        
+
         //first channel's buffer location specifies start of channel data section
         int index = channels[0].getBufferLoc();
 
@@ -324,10 +324,10 @@ public void collectData()
         if(numClockPositions > 0){ extractMapDataAndCatchPeak(packet, index); }
 
     }
-    
+
     //send a request to the device for the next packet
     requestRunDataPacket();
-        
+
 }// end of MultiIODevice::collectData
 //-----------------------------------------------------------------------------
 
@@ -343,16 +343,16 @@ public void collectData()
 
 public int extractMapDataAndCatchPeak(byte[] pPacket, int pIndex)
 {
-    
+
     for(int i=0; i<numClockPositions; i++){
         mapData[i] = getUnsignedByteFromPacket(pPacket, pIndex)/3; //WIP HSS// -- divisor should be read from config file
-        pIndex++;                
+        pIndex++;
     }
-    
-    peakMapBuffer.catchPeak(mapData);    
+
+    peakMapBuffer.catchPeak(mapData);
 
     return(pIndex);
-    
+
 }// end of MultiIODevice::extractMapDataAndCatchPeak
 //-----------------------------------------------------------------------------
 
@@ -367,7 +367,7 @@ void loadConfigSettings()
 {
 
     super.loadConfigSettings();
-    
+
 }// end of MultiIODevice::loadConfigSettings
 //-----------------------------------------------------------------------------
 

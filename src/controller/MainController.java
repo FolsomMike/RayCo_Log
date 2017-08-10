@@ -11,7 +11,7 @@
 * It handles user input from the View (button pushes, etc.)*
 * It tells the Model what to do with its data based on these inputs and tells
 *   the View when to update or change the way it is displaying the data.
-* 
+*
 * There may be many classes in the controller package which handle different
 * aspects of the control functions.
 *
@@ -76,15 +76,15 @@ public class MainController implements EventHandler, Runnable
 {
 
     private IniFile configFile;
-    
+
     private SharedSettings sharedSettings;
 
     private MainHandler mainHandler;
 
     private PeakData peakData;
-    
+
     private PeakMapData peakMapData;
-    
+
     private MainDataClass mainDataClass;
 
     private MainView mainView;
@@ -103,11 +103,11 @@ public class MainController implements EventHandler, Runnable
     private String tSafeText;
 
     private boolean devicesConnected = false;
-    
+
     private int displayUpdateTimer = 0;
 
     int mapUpdateRateTrigger = 0;
-    
+
     private String XMLPageFromRemote;
 
     private boolean shutDown = false;
@@ -117,18 +117,18 @@ public class MainController implements EventHandler, Runnable
     private final String newline = "\n";
 
     private final GUIDataSet guiDataSet = new GUIDataSet();
-       
+
     private int numDataBuffers;
     private DataTransferIntBuffer dataBuffers[];
     private int numMapBuffers;
     private DataTransferIntMultiDimBuffer mapBuffers[];
 
     private int mode;
-    
+
     public static final int STOP_MODE = 0;
     public static final int SCAN_MODE = 1;
     public static final int INSPECT_MODE = 2;
-    
+
 //-----------------------------------------------------------------------------
 // MainController::MainController (constructor)
 //
@@ -149,7 +149,7 @@ public void init()
 {
 
     mode = STOP_MODE;
-    
+
     sharedSettings = new SharedSettings();
     //main frame is not yet created, so pass null
     sharedSettings.init(null);
@@ -157,30 +157,30 @@ public void init()
     loadConfigSettings();
 
     peakData = new PeakData(0);
-    
+
     peakMapData = new PeakMapData(0, 48); //debug mks -- this needs to be loaded from config file!!!
-    
+
     mainDataClass = new MainDataClass();
     mainDataClass.init();
 
     mainView = new MainView(this, mainDataClass, sharedSettings, configFile);
     mainView.init();
-    
-    loadUserSettingsFromFile();    
-    
+
+    loadUserSettingsFromFile();
+
     //create and load the program options
-    options = new Options();    
-    
+    options = new Options();
+
     mainHandler = new MainHandler(0, this, sharedSettings, configFile);
     mainHandler.init();
-    
+
     //create data transfer buffers
     setUpDataTransferBuffers();
-    
+
     //start the timer and control thread after everything else created
     mainView.setupAndStartMainTimer();
     new Thread(this).start();
-        
+
 }// end of MainController::init
 //-----------------------------------------------------------------------------
 
@@ -202,25 +202,25 @@ public void init()
 // An  ArrayList of the panels is returned.
 //
 
-public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices, 
+public ArrayList<LogPanel> setupDeviceLogPanels(int pNumDevices,
                                                        boolean pSetMasterPanel)
 {
 
-    ArrayList<LogPanel> logPanels = new ArrayList<>();    
+    ArrayList<LogPanel> logPanels = new ArrayList<>();
 
-    mainView.createDeviceLog(); //only creates if not already created   
-    
+    mainView.createDeviceLog(); //only creates if not already created
+
     for(int i=0; i<pNumDevices; i++){
         logPanels.add(mainView.addTextPanelToDeviceLogWindow("Device " + i,
                                                              pSetMasterPanel));
     }
-    
+
     mainView.showDeviceLog();
-    
+
     mainView.packDeviceLogWindow(); //layout out window after all panels added
-    
+
     return(logPanels);
-    
+
 }// end of MainController::setupDeviceLogPanels
 //-----------------------------------------------------------------------------
 
@@ -235,7 +235,7 @@ public void removeMasterPanel()
 {
 
     mainView.removeMasterPanel();
-    
+
 }// end of MainController::removeMasterPanel
 //-----------------------------------------------------------------------------
 
@@ -253,7 +253,7 @@ public void loadConfigSettings()
 
     String filename = sharedSettings.jobPathPrimary + "00 - " +
                 sharedSettings.currentJobName + " Main Configuration.ini";
-    
+
     try {
         configFile = new IniFile(filename, sharedSettings.mainFileFormat);
         configFile.init();
@@ -263,7 +263,7 @@ public void loadConfigSettings()
                       getClass().getName(), e.getMessage() + " - Error: 1103");
         return;
     }
-        
+
 }// end of MainController::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -276,21 +276,21 @@ public void loadConfigSettings()
 
 private void setUpDataTransferBuffers()
 {
-    
+
     //create a buffer for each trace
     createAndAssignDataBuffersToTraces();
-    
+
     //create a buffer for each map
     createAndAssignDataBuffersToMaps();
-    
+
     mainView.resetAll();
-    
+
     //link each channel with the appropriate data buffer
     setChannelDataBuffers();
-    
+
     //link each device with the appropriate map buffer
     setDeviceMapDataBuffers();
-    
+
 }// end of MainController::setUpDataTransferBuffers
 //-----------------------------------------------------------------------------
 
@@ -305,35 +305,35 @@ private void createAndAssignDataBuffersToTraces()
 {
 
     ArrayList<Object> traces = new ArrayList<>();
-    
+
     //prepare to iterate through all traces
     mainView.scanForGUIObjectsOfAType(traces, "trace");
 
     numDataBuffers = traces.size();
     dataBuffers = new DataTransferIntBuffer[numDataBuffers];
-    
+
     int i = 0;
-    
+
     ListIterator iter = traces.listIterator();
-    
+
     while(iter.hasNext()){
-        
+
         Trace trace = (Trace)iter.next();
-        
+
         dataBuffers[i] = new DataTransferIntBuffer(
                         trace.getNumDataPoints(), trace.getPeakType());
         dataBuffers[i].init(0); dataBuffers[i].reset();
-        
+
         trace.setDataBuffer(dataBuffers[i]);
-        
+
         dataBuffers[i].chartGroupNum = trace.chartGroupNum;
         dataBuffers[i].chartNum = trace.chartNum;
         dataBuffers[i].graphNum = trace.graphNum;
         dataBuffers[i].traceNum = trace.traceNum;
-        
+
         i++;
     }
-    
+
 }// end of MainController::createAndAssignDataBuffersToTraces
 //-----------------------------------------------------------------------------
 
@@ -352,34 +352,34 @@ private void createAndAssignDataBuffersToMaps()
 {
 
     ArrayList<Object> mapGraphs = new ArrayList<>();
-    
+
     //prepare to iterate through all traces
     mainView.scanForGUIObjectsOfAType(mapGraphs, "3D map graph");
 
     numMapBuffers = mapGraphs.size();
     mapBuffers = new DataTransferIntMultiDimBuffer[numMapBuffers];
-    
+
     int i = 0;
-    
+
     ListIterator iter = mapGraphs.listIterator();
-    
+
     while(iter.hasNext()){
-        
+
         Map3DGraph mapGraph = (Map3DGraph)iter.next();
-        
+
         mapBuffers[i] = new DataTransferIntMultiDimBuffer(
-              mapGraph.getBufferLengthInDataPoints(), 
+              mapGraph.getBufferLengthInDataPoints(),
               mapGraph.getMapWidthInDataPoints(),
               mapGraph.getPeakType());
         mapBuffers[i].init(0, Map3D.NO_SYSTEM);
         mapBuffers[i].reset();
- 
+
         mapGraph.setMapBuffer(mapBuffers[i]);
-        
+
         mapBuffers[i].chartGroupNum = mapGraph.getChartGroupNum();
         mapBuffers[i].chartNum = mapGraph.getChartNum();
         mapBuffers[i].graphNum = mapGraph.getGraphNum();
-        
+
         i++;
     }
 
@@ -399,21 +399,21 @@ private void createAndAssignDataBuffersToMaps()
 
 private void setChannelDataBuffers()
 {
-  
+
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
-    
+
     //traverse all the channels
     while (mainHandler.getNextPeakData(peakData) != -1){
-     
-        try{            
-            if(channelGraphingEnabled()){                        
+
+        try{
+            if(channelGraphingEnabled()){
                 peakData.meta.channel.setDataBuffer(mainView.getTrace(
                     peakData.meta.chartGroup, peakData.meta.chart,
                     peakData.meta.graph, peakData.meta.trace).getDataBuffer());
             }
         }catch(NullPointerException e){
-        
+
             GUITools.displayErrorMessage(
                 "Error Linking Data Buffer/Trace to Channel...\n"
                 + "Peak Data Object Number : " + peakData.peakDataNum + "\n"
@@ -425,9 +425,9 @@ private void setChannelDataBuffers()
                 + "Trace : " + peakData.meta.trace
                 ,null);
         }
-        
+
     }
-    
+
 }// end of MainController::setChannelDataBuffers
 //-----------------------------------------------------------------------------
 
@@ -450,7 +450,7 @@ private void setChannelDataBuffers()
 private boolean channelGraphingEnabled()
 {
 
-    if (peakData.meta.chartGroup != -1 
+    if (peakData.meta.chartGroup != -1
          && peakData.meta.chart != -1
             && peakData.meta.graph != -1
              && peakData.meta.trace != -1){
@@ -460,7 +460,7 @@ private boolean channelGraphingEnabled()
     else{
         return(false);
     }
-        
+
 }// end of MainController::channelGraphingEnabled
 //-----------------------------------------------------------------------------
 
@@ -487,21 +487,21 @@ private void displayCalibrationPanel(String pCalPanelInfo)
 {
 
     String[] infoSplits = pCalPanelInfo.split(",");
-    
+
     String panelTitle = infoSplits[1];
-    
+
     int chartGroupNum = Integer.parseInt(infoSplits[2]);
-    
+
     int chartNum = Integer.parseInt(infoSplits[3]);
-    
+
     //get list of all channels relevant to the specified chart
-    ArrayList<ChannelInfo> chCalList = 
-                            getChannelCalPanelInfo(chartGroupNum, chartNum);    
-    
+    ArrayList<ChannelInfo> chCalList =
+                            getChannelCalPanelInfo(chartGroupNum, chartNum);
+
     //invoke MainView to display the panel
     mainView.displayCalibrationPanel(
                                 chartGroupNum, chartNum, panelTitle, chCalList);
-        
+
 }// end of MainController::displayCalibrationPanel
 //-----------------------------------------------------------------------------
 
@@ -532,30 +532,30 @@ private ArrayList<ChannelInfo> getChannelCalPanelInfo(
 
     ArrayList<PeakData> chList = getChannelList();
     ArrayList<ChannelInfo> chCalList = new ArrayList<>();
-    
+
     ListIterator iter = chList.listIterator();
-    
+
     while(iter.hasNext()){
-        
+
         PeakData ch = (PeakData)iter.next();
-        
+
         if(ch.meta.chartGroup == pChartGroupNum && ch.meta.chart == pChartNum){
-        
-            if(!ch.meta.channel.getCalPanelName().equals("paired")){                                
+
+            if(!ch.meta.channel.getCalPanelName().equals("paired")){
                 chCalList.add(new ChannelInfo(
                 ch.meta.deviceNum, ch.meta.channelNum,
                 ch.meta.channel.getCalPanelGroup(),
-                ch.meta.channel.getCalPanelName()                
+                ch.meta.channel.getCalPanelName()
                 ));
-            }            
-        }        
+            }
+        }
     }
-    
+
     return(chCalList);
-    
+
 }// end of MainController::getChannelCalPanelInfo
 //-----------------------------------------------------------------------------
-        
+
 //-----------------------------------------------------------------------------
 // MainController::getChannelList
 //
@@ -570,21 +570,21 @@ private ArrayList<PeakData> getChannelList()
 {
 
     ArrayList<PeakData> chList = new ArrayList<>();
-    
+
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
 
     PeakData pd;
-    
+
     //traverse all the channels
     while (mainHandler.getNextPeakData(pd = new PeakData(0)) != -1){
-        chList.add(pd);        
+        chList.add(pd);
     }
-    
+
     return(chList);
 
 }// end of MainController::getChannelList
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // MainController::setDeviceMapDataBuffers
@@ -599,22 +599,22 @@ private ArrayList<PeakData> getChannelList()
 
 private void setDeviceMapDataBuffers()
 {
-      
+
     //traverse all the devices
-    
+
     for(Device device : mainHandler.getDevices()){
-     
+
         SampleMetaData mapMeta = device.getMapMeta();
-        
+
         //skip devices which do not map
         if(mapMeta.numClockPositions <= 0) { continue; }
-        
+
         try{
             device.setMapDataBuffer(mainView.getGraph(
                mapMeta.chartGroup, mapMeta.chart,
                    mapMeta.graph).getMapBuffer());
         }catch(NullPointerException e){
-        
+
             GUITools.displayErrorMessage(
                 "Error Linking Map Data Buffer/Map to Device...\n"
                 + "Device: " + mapMeta.deviceNum + "\n"
@@ -625,7 +625,7 @@ private void setDeviceMapDataBuffers()
                 ,null);
         }
     }
-    
+
 }// end of MainController::setDeviceMapDataBuffers
 //-----------------------------------------------------------------------------
 
@@ -668,17 +668,17 @@ public void actionPerformed(ActionEvent e)
         saveUserSettingsToFile();
         return;
     }
-    
+
     if ("Start Stop Mode".equals(e.getActionCommand())) {
         mode = STOP_MODE;
         return;
     }
-    
+
     if ("Start Scan Mode".equals(e.getActionCommand())) {
         mode = SCAN_MODE;
         return;
     }
-    
+
     if ("Start Inspect Mode".equals(e.getActionCommand())) {
         mode = INSPECT_MODE;
         return;
@@ -698,7 +698,7 @@ public void actionPerformed(ActionEvent e)
         mainHandler.updateChannelParameters(e.getActionCommand(), true);
         return;
     }
-        
+
 }//end of MainController::actionPerformed
 //-----------------------------------------------------------------------------
 
@@ -707,48 +707,48 @@ public void actionPerformed(ActionEvent e)
 //
 // Applies values from the 3D map controls panel to the map.
 //
-    
+
 public void handle3DMapManipulation()
 
 {
 
     ArrayList <Object> values = mainView.getAllValuesFromCurrentControlPanel();
- 
+
     mainView.updateGraph(0, 1, 0, values); //debug mks -- the 3 here hardcodes the map at graph 3 -- ??? need to load from config???
-         
+
 }//end of MainController::handle3DMapManipulation
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // MainController::stateChanged
 //
-    
+
 @Override
 public void stateChanged(ChangeEvent ce)
 {
-    
+
     //if for some reason the object which changed state is not a subclass of
     //of Component, do nothing as this code only handles Components
-    
+
     if (!(ce.getSource() instanceof Component)) {
         return;
-    }    
-    
+    }
+
     //cast the object to a Component so it's methods can be accessed
     Component c = (Component)ce.getSource();
-    
+
     String name = c.getName();
-        
+
     if (name.startsWith("Double Spinner 1")){
-    
+
         //Since we know that the Component with the name starting with
         //"Double Spinner 1" is an MFloatSpinner (because we created it and
         // used that name for it), it can safely be cast to an MFloatSpinner.
         //Since the values in that spinner are meant to be doubles, the
         //getDoubleValue method is used to retrieve the value.
-        
+
         double value = ((MFloatSpinner)c).getDoubleValue();
-    
+
         mainView.setTextForDataTArea1("" + value);
 
         //using getDoubleValue as above will often return a value with a long
@@ -756,28 +756,28 @@ public void stateChanged(ChangeEvent ce)
         //imprecision -- using getText returns the value as a string formatted
         //exactly as that shown in the spinner's text box and will be rounded
         //off and truncated in the same manner
-        
+
         String textValue = ((MFloatSpinner)c).getText();
-        
+
         mainView.setTextForDataTArea2(textValue);
-        
+
     }
-    
+
     if (name.startsWith("Integer Spinner 1")){
-    
+
         //Since we know that the Component with the name starting with
         //"Integer Spinner 1" is an MFloatSpinner (because we created it and
         // used that name for it), it can safely be cast to an MFloatSpinner.
         //Since the values in that spinner are meant to be integers, the
         //getIntValue method is used to retrieve the value.
-        
+
         int value = ((MFloatSpinner)c).getIntValue();
-    
+
         mainView.setTextForDataTArea2("" + value);
-        
+
     }
 
-        
+
 }//end of MainController::stateChanged
 //-----------------------------------------------------------------------------
 
@@ -804,7 +804,7 @@ public void paintComponent (Graphics g)
 
 public void loadUserSettingsFromFile()
 {
-    
+
     mainView.setAllUserInputData(mainDataClass.loadUserSettingsFromFile());
 
 }//end of MainController::loadUserSettingsFromFile
@@ -818,11 +818,11 @@ public void loadUserSettingsFromFile()
 
 public void saveUserSettingsToFile()
 {
-    
-    ArrayList<String> list = new ArrayList<>(); 
-    
+
+    ArrayList<String> list = new ArrayList<>();
+
     mainView.getAllUserInputData(list);
-    
+
     mainDataClass.saveUserSettingsToFile(list);
 
 }//end of MainController::saveUserSettingsToFile
@@ -858,7 +858,7 @@ private void updateGUIPeriodically()
 {
     //periodically collect all data from input sources
     if(mainHandler != null && mainHandler.ready){ displayDataFromDevices(); }
-      
+
 }// end of MainController::updateGUIPeriodically
 //-----------------------------------------------------------------------------
 
@@ -874,13 +874,13 @@ private void displayDataFromDevices()
 {
 
     if(mode == STOP_MODE) { return; }
-        
+
     displayDataFromDeviceChannels();
-    
+
     displayDataFromDeviceMaps();
-    
-    mainView.updateAnnotationGraphs(0);    
-        
+
+    mainView.updateAnnotationGraphs(0);
+
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
 
@@ -892,21 +892,21 @@ private void displayDataFromDevices()
 
 private void displayDataFromDeviceChannels()
 {
-    
+
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
-    
+
     //get peak data for each channel and insert it into the transfer buffer
-    
+
     for (Device device : mainHandler.getDevices()){
-        for (Channel channel : device.getChannels()){        
+        for (Channel channel : device.getChannels()){
             if (channel.getPeakDataAndReset(peakData) == true
                  && peakData.meta.dataBuffer != null){
                             peakData.meta.dataBuffer.putData(peakData.peak);
             }
         }
     }
-    
+
 //    //get peak data for each channel
 //    while (mainHandler.getNextPeakData(peakData) != -1){
 //        //put data in the transfer buffer
@@ -921,7 +921,7 @@ private void displayDataFromDeviceChannels()
         mainView.updateChild(dataBuffer.chartGroupNum, dataBuffer.chartNum,
                                      dataBuffer.graphNum, dataBuffer.traceNum);
     }
-    
+
 }// end of MainController::displayDataFromDeviceChannels
 //-----------------------------------------------------------------------------
 
@@ -934,17 +934,17 @@ private void displayDataFromDeviceChannels()
 private void displayDataFromDeviceMaps()
 {
 
-    if (mapUpdateRateTrigger++ < 8){ return; } else { mapUpdateRateTrigger = 0; }    //debug mks -- does this belong here?    
-    
+    if (mapUpdateRateTrigger++ < 8){ return; } else { mapUpdateRateTrigger = 0; }    //debug mks -- does this belong here?
+
     //get peak map data for each device and insert it into the transfer buffer
-    
+
     for (Device device : mainHandler.getDevices()){
         if (device.getPeakDataAndReset(peakMapData) == true){
             peakMapData.meta.dataMapBuffer.putData(
                             peakMapData.peakArray, peakMapData.peakMetaArray);
         }
     }
-        
+
     //update display objects from transfer buffers
     for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
         //pace this with timer to control scan speed
@@ -953,7 +953,7 @@ private void displayDataFromDeviceMaps()
         mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
                                        mapBuffer.graphNum, mapBuffer.traceNum);
     }
-        
+
 }// end of MainController::displayDataFromDeviceMaps
 //-----------------------------------------------------------------------------
 
@@ -1116,7 +1116,7 @@ public void run()
         if(!devicesConnected){
             mainHandler.connectToDevices(); devicesConnected = true;
         }
-        
+
         control();
 
         //sleep for a bit
@@ -1158,16 +1158,16 @@ public void control()
     }
 
     //periodically collect all data from input sources
-    
+
    //debug mks -- move this catch to Device -- always collect data but only
     //request inspection packets if in scan or inspect mode...this allows
     //data sent by devices to always be handled
     //if((mode==SCAN_MODE || mode==INSPECT_MODE)
-    
+
     if(mainHandler != null && mainHandler.ready){
         mainHandler.collectData();
     }
-    
+
     //If a shut down is initiated, clean up and exit the program.
 
     if(shutDown){
@@ -1220,7 +1220,7 @@ public void shutDown()
 {
 
     saveUserSettingsToFile();
-    
+
     shutDown = true;
 
 }//end of MainController::shutDown
@@ -1268,8 +1268,8 @@ public void windowDeiconified(WindowEvent e){}
 
 //end of MainController::(various window listener functions)
 //-----------------------------------------------------------------------------
-    
-    
+
+
 }//end of class MainController
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

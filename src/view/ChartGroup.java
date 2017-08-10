@@ -8,33 +8,33 @@
 * This class subclasses a JPanel to contain several Charts.
 *
 * Display Sizing
-* 
+*
 * The graph width should never be so large that the main window is larger than
 * the display size. When that happens, the graph will be the specified size
 * but will be truncated for some reason by the window...Java makes the window
 * too small. This will cause the scrolling to fail.
-* 
+*
 * This also happens if the user manually reduces the size of the window and
 * if the calibration panels are displayed and they increase the window size
 * to larger than the display size.
-* 
+*
 * Currently, these problems are solved by setting the graphs small enough that
 * the main window leaves space on the display at the right edge...enough that
 * when the largest calibration panel is displayed, the entire window still
 * fits on the screen.
-* 
+*
 * In the future, it would be better to catch the window resizing (untested code
 * already added to Chart class) and shrink or grow the size of the graphs to
 * accommodate the changing size of the calibration panel. The methods
 * updateDimensions have already be added to various classes (not fully tested)
 * which are meant to be called after changing the size of the graphs.
-* 
+*
 * Open Source Policy:
 *
 * This source code is Public Domain and free to any interested party.  Any
 * person, company, or organization may do with it as they please.
-* 
-* 
+*
+*
 */
 
 package view;
@@ -53,32 +53,32 @@ import model.IniFile;
 class ChartGroup extends JPanel{
 
     private final IniFile configFile;
-    
+
     private String title, shortTitle, objectType;
     private final int chartGroupNum;
-    private int graphWidth, graphHeight;        
+    private int graphWidth, graphHeight;
     private int numCharts;
     private Chart charts[];
 
     private final Dimension usableScreenSize;
-    
+
     ActionListener parentActionListener;
-    
+
 //-----------------------------------------------------------------------------
 // ChartGroup::ChartGroup (constructor)
 //
 //
 
-public ChartGroup(int pChartGroupNum, IniFile pConfigFile, 
+public ChartGroup(int pChartGroupNum, IniFile pConfigFile,
              Dimension pUsableScreenSize, ActionListener pParentActionListener)
 {
 
     chartGroupNum = pChartGroupNum; configFile = pConfigFile;
 
     usableScreenSize = pUsableScreenSize;
-    
+
     parentActionListener = pParentActionListener;
-            
+
 }//end of ChartGroup::ChartGroup (constructor)
 //-----------------------------------------------------------------------------
 
@@ -90,11 +90,11 @@ public ChartGroup(int pChartGroupNum, IniFile pConfigFile,
 
 public void init()
 {
-    
+
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-    
+
     loadConfigSettings();
-        
+
     createCharts();
 
     add(Box.createVerticalGlue()); //force charts towards top of display
@@ -115,7 +115,7 @@ public void updateDimensions()
 {
 
     for (Chart chart : charts){ chart.updateDimensions(); }
-    
+
 }// end of ChartGroup::updateDimensions
 //-----------------------------------------------------------------------------
 
@@ -129,14 +129,14 @@ private void createCharts()
 {
 
     charts = new Chart[numCharts];
-    
+
     for (int i = 0; i<charts.length; i++){
         charts[i] = new Chart(chartGroupNum, i, graphWidth, graphHeight,
                                             parentActionListener, configFile);
         charts[i].init();
         add(charts[i]);
     }
-    
+
 }// end of ChartGroup::createCharts
 //-----------------------------------------------------------------------------
 
@@ -150,32 +150,32 @@ private void loadConfigSettings()
 {
 
     String section = "Chart Group " + chartGroupNum;
-    
+
     title = configFile.readString(
                        section, "title", "Chart Group " + (chartGroupNum + 1));
 
     shortTitle = configFile.readString(
                         section, "short title", "chgrp" + (chartGroupNum + 1));
-        
-    objectType = configFile.readString(section, "object type", "chart group");    
-    
+
+    objectType = configFile.readString(section, "object type", "chart group");
+
     numCharts = configFile.readInt(section, "number of charts", 0);
-    
-    graphWidth = 
+
+    graphWidth =
               configFile.readInt(section, "default width for all graphs", 500);
 
     //See notes at the top of ChartGroup class titled "Display Sizing" for
-    //important info about setting the size of the charts.    
-    
+    //important info about setting the size of the charts.
+
     //if -1, set graphWidth to fill the screen
     if(graphWidth == -1){ graphWidth = usableScreenSize.width - 350; }
-    
+
     graphHeight = configFile.readInt(
                                   section, "default height for all graphs", 0);
 
     //if -1, set graphHeight to fill the screen
     if(graphHeight == -1){ graphHeight = usableScreenSize.height - 50; }
-        
+
 }// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -189,7 +189,7 @@ public void repaintGroup()
 {
 
     invalidate();
-    
+
 }// end of Chart::repaintGroup
 //-----------------------------------------------------------------------------
 
@@ -216,7 +216,7 @@ public void resetAll()
 
 public void setAllChartAllTraceXScale(double pScale)
 {
-    
+
     for (Chart chart : charts) { chart.setAllTraceXScale(pScale);}
 
 }// end of ChartGroup::setAllChartAllTraceXScale
@@ -246,13 +246,13 @@ public Chart getChart(int pChart)
 // add itself to the ArrayList pObjectList and query its own children.
 //
 
-public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
                                                            String pObjectType)
 {
-    
+
     if (objectType.equals(pObjectType)){ pObjectList.add(this); }
-    
-    for (Chart chart : charts) { 
+
+    for (Chart chart : charts) {
         chart.scanForGUIObjectsOfAType(pObjectList, pObjectType);
     }
 
@@ -268,10 +268,10 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 public Graph getGraph(int pChart, int pGraph)
 {
 
-    if (pChart < 0 || pChart >= charts.length){ return(null); }    
-    
+    if (pChart < 0 || pChart >= charts.length){ return(null); }
+
     return( charts[pChart].getGraph(pGraph) );
-    
+
 }// end of ChartGroup::getGraph
 //-----------------------------------------------------------------------------
 
@@ -284,10 +284,10 @@ public Graph getGraph(int pChart, int pGraph)
 public Trace getTrace(int pChart, int pGraph, int pTrace)
 {
 
-    if (pChart < 0 || pChart >= charts.length){ return(null); }    
-    
+    if (pChart < 0 || pChart >= charts.length){ return(null); }
+
     return( charts[pChart].getTrace(pGraph, pTrace) );
-    
+
 }// end of ChartGroup::getTrace
 //-----------------------------------------------------------------------------
 
@@ -309,7 +309,7 @@ public void updateAnnotationGraphs()
 //-----------------------------------------------------------------------------
 // ChartGroup::updateChild
 //
-// Plots all data new added to the transfer data buffer and erases any data 
+// Plots all data new added to the transfer data buffer and erases any data
 // which has been marked as erased for pTrace of pGraph of pChart.
 //
 
@@ -336,46 +336,46 @@ public void expandChartHeight(int pChart, int pGraph)
 
     Chart chart = charts[pChart];
     Graph graph = chart.getGraph(pGraph);
-        
+
     //set all other charts' graphs' visible flag to false so their graphs
     //will be minimized
-    
+
     //add up all minimized graph heights so chart to be expanded can be resized
     //to fill space available after the graphs are minimized
-    
+
     int allMinimizedGraphHeights = 0;
-    
+
     for(Chart sChart : charts){
-     
-        
+
+
         if(sChart.getChartNum() != pChart){
-        
+
             sChart.setGraphsVisible(false);
 
             allMinimizedGraphHeights += sChart.getGraphHeights(-1);
         }
 
     }
-    
+
     int heightOfGraphToBeExpanded = chart.getGraphHeights(pGraph);
-    
+
     int newHeight = heightOfGraphToBeExpanded + allMinimizedGraphHeights;
-    
+
     //add the space made available to the existing height to calculate new
     chart.setGraphHeight(pGraph, newHeight);
 
-    graph.setChildCanvasSize(Integer.MAX_VALUE, newHeight);    
-    
+    graph.setChildCanvasSize(Integer.MAX_VALUE, newHeight);
+
     //adjust the viewing parameters for the new layout
     chart.setViewParamsToExpandedLayout(pGraph);
-    
+
 }//end of ChartGroup::expandChartHeight
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // ChartGroup::setNormalChartHeight
 //
-// Sets the height of the chart pChart to normal height while maximizing the 
+// Sets the height of the chart pChart to normal height while maximizing the
 // height of all other charts in the group by setting their visibility back to
 // the value specified in the config file for each graph.
 //
@@ -388,24 +388,24 @@ public void setNormalChartHeight(int pChart, int pGraph)
 
     Chart chart = charts[pChart];
     Graph graph = chart.getGraph(pGraph);
-    
+
     //set all other charts' graphs' visible flag to their setting as loaded
     //from the config file
-            
-    for(Chart sChart : charts){            
+
+    for(Chart sChart : charts){
         sChart.setGraphsVisible(sChart.getSpecifiedGraphsVisible());
     }
-    
+
     int newHeight = charts[pChart].getGraphHeights(pGraph);
-    
+
     //set the height back to the normal height specified in the config file
     chart.setGraphHeight(pGraph, newHeight);
 
     graph.setChildCanvasSize(Integer.MAX_VALUE, newHeight);
-    
+
     //adjust the viewing parameters for the new layout
     charts[pChart].setViewParamsToNormalLayout(pGraph);
-    
+
 }//end of ChartGroup::setNormalChartHeight
 //-----------------------------------------------------------------------------
 
@@ -418,9 +418,9 @@ public void setNormalChartHeight(int pChart, int pGraph)
 
 public void animateGraph(int pChart, int pGraph)
 {
-    
+
     charts[pChart].getGraph(pGraph).animate();
-    
+
 }//end of ChartGroup::animateGraph
 //-----------------------------------------------------------------------------
 
