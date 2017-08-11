@@ -6,7 +6,7 @@
 * Purpose:
 *
 * This class provides simulation data for the EMI Transverse system.
-* 
+*
 * This class simulates a TCP/IP connection between the host and the remote
 * device.
 *
@@ -33,17 +33,20 @@ import java.net.SocketException;
 public class SimulatorTransverse extends Simulator
 {
 
-    
+    int count=0;
+
+    protected int posTest = 128; protected int negTest = 127; //DEBUG HSS// remove later
+
 //-----------------------------------------------------------------------------
 // SimulatorTransverse::SimulatorTransverse (constructor)
 //
-    
+
 public SimulatorTransverse(InetAddress pIPAddress, int pPort,
      String pTitle, String pSimulationDataSourceFilePath) throws SocketException
 {
 
     super(pIPAddress, pPort, pTitle, pSimulationDataSourceFilePath);
-    
+
 }//end of SimulatorTransverse::SimulatorTransverse (constructor)
 //-----------------------------------------------------------------------------
 
@@ -62,10 +65,10 @@ public void init(int pBoardNumber)
 
     super.init(pBoardNumber);
 
-    numClockPositions = 48;    
-    
+    numClockPositions = 48;
+
     spikeOdds = 20;
-        
+
 }// end of SimulatorTransverse::init
 //-----------------------------------------------------------------------------
 
@@ -81,7 +84,7 @@ public void handlePacket(byte pCommand)
 {
 
     super.handlePacket(pCommand);
-    
+
 }//end of SimulatorTransverse::handlePacket
 //-----------------------------------------------------------------------------
 
@@ -101,101 +104,124 @@ public void handlePacket(byte pCommand)
 @Override
 public int handleGetRunData()
 {
- 
+
     int numBytesInPkt = 2;  //includes the checksum byte
-    
+
     int result = readBytesAndVerify(
                        inBuffer, numBytesInPkt, Device.GET_RUN_DATA_CMD);
     if (result != numBytesInPkt){ return(result); }
-    
-    int posSignals[] = new int[8];
-    int negSignals[] = new int[8];
-    
-    for(int i=0; i<posSignals.length; i++){
+
+    //transverse devices have a max of 8 pos channels & 8 neg channels
+    //set each channel to the default values. they will be changed to
+    //simulated values if their channels are active
+    int posSignals[] = new int[]{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    int negSignals[] = new int[]{0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f};
+
+    int clockMap[] = new int[] {0,0,0,0,0,0,0,0,0,0, //clock map makes up 48
+                                0,0,0,0,0,0,0,0,0,0, //bytes in run data pkt
+                                0,0,0,0,0,0,0,0,0,0, //only clock positions
+                                0,0,0,0,0,0,0,0,0,0, //marked as used will be
+                                0,0,0,0,0,0,0,0};    //changed
+
+    //iterate through all of the active channels and simulate values -- unactive
+    //channels will not be simulated
+    for(int i=0; i<activeChannels.length; i+=2) {
         posSignals[i] = simulatePositiveSignal();
-        negSignals[i] = simulateNegativeSignal();        
+        negSignals[i] = simulateNegativeSignal();
+
+        //DEBUG HSS// uncomment this line to test posSignals[i] = posTest; negSignals[i] = negTest;
+        if (count++==100) { posTest++; negTest++; count=0;}
+        if (posTest>=255) { posTest = 128; } if (negTest<=0) { negTest = 127; }
+        clockMap[activeChannels[i].getClockPosition()]
+                = simulateMapData(posSignals[i], negSignals[i]);
     }
-    
-    simulateMapData(dataBuffer, 0);    
-        
-    int p = 0, n = 0, m = 0;
-    
+
+    //DEBUG HSS// remove
+    /*if (clockMap[47]>11) {
+        System.out.println("Pos signal: " + posSignals[0] + " --- "
+                            + "Neg signal: " + negSignals[0] + " --- "
+                            + "Clock map: " + clockMap[47]);
+        System.out.println("----------------------------------------------");
+    }*/
+    //DEBUG HSS//
+
+
     //send run packet -- sendPacket appends Rabbit's checksum
-    
+    int p = 0, n = 0, m = 0;
     sendPacket(Device.GET_RUN_DATA_CMD,
-            
+
         (byte)(rbtRunDataPktCount++ &0xff), //rabbit rundata pkt count
         (byte)(picRunDataPktCount++ &0xff), //pic rundata pkt count
-            
+
         (byte)((posSignals[p] >> 8) & 0xff), //+1
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-1
         (byte)(negSignals[n++] & 0xff),
-        
+
         (byte)((posSignals[p] >> 8) & 0xff), //+2
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-2
         (byte)(negSignals[n++] & 0xff),
 
         (byte)((posSignals[p] >> 8) & 0xff), //+3
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-3
         (byte)(negSignals[n++] & 0xff),
-        
+
         (byte)((posSignals[p] >> 8) & 0xff), //+4
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-4
         (byte)(negSignals[n++] & 0xff),
-        
+
         (byte)((posSignals[p] >> 8) & 0xff), //+5
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-5
         (byte)(negSignals[n++] & 0xff),
-        
+
         (byte)((posSignals[p] >> 8) & 0xff), //+6
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-6
         (byte)(negSignals[n++] & 0xff),
 
         (byte)((posSignals[p] >> 8) & 0xff), //+7
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-7
         (byte)(negSignals[n++] & 0xff),
-        
+
         (byte)((posSignals[p] >> 8) & 0xff), //+8
         (byte)(posSignals[p++] & 0xff),
-    
+
         (byte)((negSignals[n] >> 8) & 0xff), //-8
         (byte)(negSignals[n++] & 0xff),
-        
+
         //Clock map
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],    
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-        (byte)dataBuffer[m++], (byte)dataBuffer[m++], (byte)dataBuffer[m++],
-            
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+        (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff), (byte)(clockMap[m++]& 0xff),
+
         //Address of last A/D value stored in Snapshot buffer
         (byte)0x00,
-        
+
         //Snapshot buffer -- //WIP HSS// -- use better values
         (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
         (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -220,64 +246,26 @@ public int handleGetRunData()
         (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
         (byte)0x00, (byte)0x00
         );
-    
+
     return(result);
-    
+
 }//end of SimulatorTransverse::handleGetRunData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // SimulatorTransverse::simulateMapData
 //
-// Adds simulated map data to pPacket starting at position pIndex.
-//
-// The data range is 0 ~ 127 with zero volts at value of 0.
-//
-// Returns the updated value of pIndex, pointing to the next empty position in
-// pPacket.
-//
-// Note: Currently, any random data generated must be gated by a random switch
-// so that the data is only generated infrequently...the simulation function
-// gets called so frequently between collection that the highest peak will
-// always be generated in that time frame so the data ends up being a straight
-// line at the max possible random value. After reducing the number of times
-// the data is generated, such as with a timer, to mimic the actual devices,
-// the gating can be removed.
+// Compares the two signals passed in and returns the greater of the two.
 //
 
-public int simulateMapData(byte[] pPacket, int pIndex)
+public int simulateMapData(int pPosSignal, int pNegSignal)
 {
 
-/*  
-    //use this code to create a wedge shape on the 3D map
+    pPosSignal = Math.abs(pPosSignal -= AD_ZERO_OFFSET);
+    pNegSignal = Math.abs(pNegSignal -= AD_ZERO_OFFSET);
 
-    int count = 0;
-    
-    //add map data
-    for(int i=0; i<numClockPositions; i++){
-        addUnsignedShortToPacket(pPacket, pIndex, AD_ZERO_OFFSET + count++);
-        pIndex += 2;
-    }
-*/
-        
-    for (int i=0; i<numClockPositions; i++){
+    return pPosSignal>pNegSignal?pPosSignal:pNegSignal;
 
-        int simData = 1;
-        
-        if((int)(100 * Math.random()) < 7){        
-            simData = 1 + (int)(2 * Math.random());
-        }
-        
-        if((int)(5000 * Math.random()) < 1){
-            simData = 1 + (int)(25 * Math.random());
-        }
-        
-        addByteToPacket(pPacket, pIndex, simData);
-        pIndex++;
-    }
-
-    return(pIndex);
-    
 }// end of SimulatorTransverse::simulateMapData
 //-----------------------------------------------------------------------------
 

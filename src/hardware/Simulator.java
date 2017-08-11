@@ -40,22 +40,21 @@ import java.util.logging.Logger;
 
 public class Simulator extends Socket
 {
-    
     private int simulatorNum;
 
     String title;
-    
+
     public InetAddress ipAddr;
-    int port;    
-    String simulationDataSourceFilePath;    
+    int port;
+    String simulationDataSourceFilePath;
     boolean reSynced;
     int reSyncCount = 0;
     public static int instanceCounter = 0;
 
     byte dataBuffer[] = new byte[Device.RUN_DATA_BUFFER_SIZE];
-    
+
     int packetErrorCnt = 0;
-    
+
     int rbtRunDataPktCount = 0;
     int picRunDataPktCount = 0;
 
@@ -69,7 +68,7 @@ public class Simulator extends Socket
     // small.
 
     static int PIPE_SIZE = 8192;
-        
+
     PipedOutputStream outStream;
     PipedInputStream  localInStream;
 
@@ -84,12 +83,13 @@ public class Simulator extends Socket
 
     int OUT_BUFFER_SIZE = 512;
     byte[] outBuffer;
-        
+
     int numClockPositions;
+    protected Channel[] activeChannels;
 
     int spikeOdds = 20;
     int lastSpikeValue = 0;
-    
+
     static final int AD_MAX_VALUE = 255;
     static final int AD_MIN_VALUE = 0;
     static final int AD_MAX_SWING = 127;
@@ -98,7 +98,7 @@ public class Simulator extends Socket
     static final int SPIKE_ODDS_RANGE = 10000;
     static final int WALL_SIM_NOISE = 3;
     static final int WALL_SPIKE_ODDS_RANGE = 100000;
-   
+
 //-----------------------------------------------------------------------------
 // Simulator::Simulator (constructor)
 //
@@ -110,7 +110,7 @@ public Simulator(InetAddress pIPAddress, int pPort, String pTitle,
     port = pPort; ipAddr = pIPAddress; title = pTitle;
 
     simulationDataSourceFilePath = pSimulationDataSourceFilePath;
-        
+
     //give each instance of the class a unique number
     //this can be used to provide a unique simulated IP address
     simulatorNum = instanceCounter++;
@@ -174,7 +174,7 @@ public void init(int pBoardNumber)
     //send greeting to host which will wait for this line
     PrintWriter out = new PrintWriter(localOutStream, true);
     out.println("Hello from " + title);
-        
+
     //load general configuration data from file
 //    try{
 //        configureMain(pBoardNumber);
@@ -185,8 +185,22 @@ public void init(int pBoardNumber)
 
     //load general configuration data
 //    configureSimulationDataSet();
-    
+
 }//end of Simulator::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::setActiveChannels
+//
+// Active channels is used to determine which channels and values to simulate.
+//
+
+public void setActiveChannels(Channel[] pChannels)
+{
+
+    activeChannels = pChannels;
+
+}//end of Simulator::setActiveChannels
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -272,7 +286,7 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
         byteIn.read(inBuffer, 0, 1);
 
         handlePacket(inBuffer[0]);
-         
+
         return 0;
 
     }//try
@@ -302,7 +316,7 @@ public void handlePacket(byte pCommand)
     else
     if (pCommand == Device.SET_POT_CMD) { handleSetPot(); }
     else
-    if (pCommand == Device.GET_ALL_LAST_AD_VALUES_CMD) { 
+    if (pCommand == Device.GET_ALL_LAST_AD_VALUES_CMD) {
                                             handleGetAllLastADValuesPacket(); }
     else
     if (pCommand == Device.GET_RUN_DATA_CMD) { handleGetRunData(); }
@@ -339,10 +353,10 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
     try{
 
         int timeOutProcess = 0;
-        
-        while(timeOutProcess++ < 2){            
+
+        while(timeOutProcess++ < 2){
             if (byteIn.available() >= pNumBytes) {break;}
-            waitSleep(10);            
+            waitSleep(10);
         }
 
         if (byteIn.available() >= pNumBytes) {
@@ -357,11 +371,11 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
         logSevere(e.getMessage() + " - Error: 281");
         return(-3);
     }
-    
+
     byte sum = (byte)pPktID; //packet ID is included in the checksum
 
     //validate checksum by summing the packet id and all data
-    
+
     for(int i = 0; i < pNumBytes; i++){ sum += pBuffer[i]; }
 
     if ( (sum & 0xff) == 0) { return(pNumBytes); }
@@ -385,16 +399,16 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 
 public int handleGetAllStatus()
 {
- 
+
     int numBytesInPkt = 2;  //includes the checksum byte
-    
+
     int result = readBytesAndVerify(
                        inBuffer, numBytesInPkt, Device.GET_ALL_STATUS_CMD);
     if (result != numBytesInPkt){ return(result); }
-    
+
     //send test data packet -- sendPacket appends Rabbit's checksum
-    
-    sendPacket(Device.GET_ALL_STATUS_CMD, 
+
+    sendPacket(Device.GET_ALL_STATUS_CMD,
             //Rabbit Status (12 bytes)
             (byte)0x01,(byte)0x02,              // software version
             (byte)0x12,(byte)0x34,              // confrolFlags
@@ -403,7 +417,7 @@ public int handleGetAllStatus()
             (byte)0x00,(byte)0x00,              // serial port com errors
             (byte)0x01,(byte)0x02,(byte)0x03,   // unused bytes
             //Rabbit Status end
-            
+
             //Master Status (09 bytes)
             (byte)0x01,(byte)0x01,              //software version
             (byte)0x00,                         //flags
@@ -412,7 +426,7 @@ public int handleGetAllStatus()
             (byte)0x00,                         //slave I2C error count
             (byte)0x01,(byte)0x02,(byte)0x03,   // unused bytes
             //Master Status end
-            
+
             //Slave 0 Status (11 bytes)
             (byte)0x00,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -423,7 +437,7 @@ public int handleGetAllStatus()
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
             (byte)0x7b,                         //checksum
             //end Slave 0 Status
-            
+
             //Slave 1 Status (11 bytes)
             (byte)0x01,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -432,9 +446,9 @@ public int handleGetAllStatus()
             (byte)0x00,                         //communication error count
             (byte)0x7c,                         //last A/D sample
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
-            (byte)0x7b, 
+            (byte)0x7b,
             //end Slave 1 Status
-            
+
             //Slave 2 Status (11 bytes)
             (byte)0x02,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -443,9 +457,9 @@ public int handleGetAllStatus()
             (byte)0x00,                         //communication error count
             (byte)0x7c,                         //last A/D sample
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
-            (byte)0x7b, 
+            (byte)0x7b,
             //end Slave 2 Status
-            
+
             //Slave 3 Status (11 bytes)
             (byte)0x03,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -454,9 +468,9 @@ public int handleGetAllStatus()
             (byte)0x00,                         //communication error count
             (byte)0x7c,                         //last A/D sample
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
-            (byte)0x7b, 
+            (byte)0x7b,
             //end Slave 3 Status
-            
+
             //Slave 4 Status (11 bytes)
             (byte)0x04,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -465,9 +479,9 @@ public int handleGetAllStatus()
             (byte)0x00,                         //communication error count
             (byte)0x7c,                         //last A/D sample
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
-            (byte)0x7b, 
+            (byte)0x7b,
             //end Slave 4 Status
-            
+
             //Slave 5 Status (11 bytes)
             (byte)0x05,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -476,9 +490,9 @@ public int handleGetAllStatus()
             (byte)0x00,                         //communication error count
             (byte)0x7c,                         //last A/D sample
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
-            (byte)0x7b, 
+            (byte)0x7b,
             //end Slave 5 Status
-            
+
             //Slave 6 Status (11 bytes)
             (byte)0x06,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -487,9 +501,9 @@ public int handleGetAllStatus()
             (byte)0x00,                         //communication error count
             (byte)0x7c,                         //last A/D sample
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
-            (byte)0x7b, 
+            (byte)0x7b,
             //end Slave 6 Status
-            
+
             //Slave 7 Status (11 bytes)
             (byte)0x07,                         //I2C address
             (byte)0x01,(byte)0x02,              //software version
@@ -500,13 +514,13 @@ public int handleGetAllStatus()
             (byte)0x01,(byte)0x02,(byte)0x03,   //unused
             (byte)0x7b,
             //end Slave 7 Status
-            
+
             (byte)0x0f                          //Master PIC checksum
-    
+
     );
-    
+
     return(result);
-    
+
 }//end of Simulator::handleGetAllStatus
 //-----------------------------------------------------------------------------
 
@@ -525,15 +539,15 @@ public int handleGetAllStatus()
 
 public int handleGetAllLastADValuesPacket()
 {
- 
+
     int numBytesInPkt = 2;  //includes the checksum byte
-    
+
     int result = readBytesAndVerify(
                    inBuffer, numBytesInPkt, Device.GET_ALL_LAST_AD_VALUES_CMD);
     if (result != numBytesInPkt){ return(result); }
-    
+
     //send test data packet -- sendPacket appends Rabbit's checksum
-    
+
     sendPacket(Device.GET_ALL_LAST_AD_VALUES_CMD,
     (byte)0x12,(byte)0x34,(byte)0xba,
     (byte)0x56,(byte)0x78,(byte)0x32,
@@ -545,9 +559,9 @@ public int handleGetAllLastADValuesPacket()
     (byte)0x56,(byte)0x78,(byte)0x32,
     (byte)0x00
     );
-    
+
     return(result);
-    
+
 }//end of Simulator::handleGetAllLastADValuesPacket
 //-----------------------------------------------------------------------------
 
@@ -563,9 +577,9 @@ public int handleGetAllLastADValuesPacket()
 
 public int handleGetRunData()
 {
- 
+
     return(0);
-    
+
 }//end of Simulator::handleGetRunData
 //-----------------------------------------------------------------------------
 
@@ -582,21 +596,21 @@ public int handleGetRunData()
 
 public int handleSetPot()
 {
-    
+
     int numBytesInPkt = 4; //includes the checksum byte
-    
+
     int result = readBytesAndVerify(inBuffer,numBytesInPkt,Device.SET_POT_CMD);
     if (result != numBytesInPkt){ return(result); }
-    
+
     //set pot here -- add code to do this later -- needs to affect the sim sig
     // inBuffer[0] is the I2C address of the PIC enabling the digital pot chip
     // inBuffer[1] is the pot number in the chip
     // inBuffer[2] is the pot value
-    
+
     sendACK();
 
     return(result);
-    
+
 }//end of Simulator::handleSetPot
 //-----------------------------------------------------------------------------
 
@@ -609,11 +623,11 @@ public int handleSetPot()
 
 public void sendACK()
 {
- 
+
     //sendPacket appends Rabbit's checksum
-    
-    sendPacket(Device.ACK_CMD, (byte)0);    
-        
+
+    sendPacket(Device.ACK_CMD, (byte)0);
+
 }//end of Simulator::sendACK
 //-----------------------------------------------------------------------------
 
@@ -631,7 +645,7 @@ void sendPacketHeader(int pCommand) throws IOException
 
    byteOut.write(0xaa); byteOut.write(0x55);
    byteOut.write(0xbb); byteOut.write(0x66);
-    
+
    byteOut.write(pCommand);
 
 }//end of Simulator::sendPacketHeader
@@ -653,30 +667,30 @@ void sendPacket(byte pCommand, byte... pBytes)
 {
 
     int sum = pCommand;//command byte included in checksum
-    
+
     //send packet to remote
     if (byteOut != null) {
         try{
-            
+
               sendPacketHeader(pCommand);
-            
+
               byteOut.write(pBytes, 0 /*offset*/, pBytes.length);
 
               for (int i=0; i<pBytes.length; i++){
                   sum += pBytes[i];
               }
-    
+
             //calculate checksum and send it
             int checksum = (byte)(0x100 - (byte)(sum & 0xff));
             byteOut.write(checksum);
-            
+
             byteOut.flush();
         }
         catch (IOException e) {
             logSevere(e.getMessage() + " - Error: 220");
         }
     }
-    
+
 }//end of Simulator::sendPacketViaSocket
 //-----------------------------------------------------------------------------
 
@@ -824,15 +838,15 @@ int simulatePositiveSignal()
 {
 
     int value = AD_ZERO_OFFSET;
-    
+
     value += (int)(SIM_NOISE * Math.random());
-    
+
     if ((int)(SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
         value += (int)(100 * Math.random());
     }
-    
+
     if (value > AD_MAX_VALUE) { value = AD_MAX_VALUE; }
-    
+
     return(value);
 
 }//end of Simulator::simulatePositiveSignal
@@ -849,15 +863,15 @@ int simulateNegativeSignal()
 {
 
     int value = AD_ZERO_OFFSET;
-    
+
     value -= (int)(SIM_NOISE * Math.random());
-    
+
     if ((int)(SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
         value += (int)(100 * Math.random());
     }
-    
+
     if (value < AD_MIN_VALUE) { value = AD_MIN_VALUE; }
-    
+
     return(value);
 
 }//end of Simulator::simulateNegativeSignal

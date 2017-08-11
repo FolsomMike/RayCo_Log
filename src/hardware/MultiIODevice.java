@@ -317,9 +317,12 @@ public void collectData()
             data = getUnsignedShortFromPacket(packet, index);
             data = Math.abs(data -= AD_ZERO_OFFSET);
             channel.catchPeak(data);
-            index += 2;
 
         }
+
+        //WIP HSS// Device ALWAYS sends back enough bytes for 16
+        // channels, even if ini file specifies otherwise. (2 bytes per channel)
+        index += 32;
 
         if(numClockPositions > 0){ extractMapDataAndCatchPeak(packet, index); }
 

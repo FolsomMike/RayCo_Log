@@ -31,14 +31,14 @@ public class Multi_IO_A_Transverse extends MultiIODevice
 // Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //
 
-public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel, 
+public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel,
                                          IniFile pConfigFile, boolean pSimMode)
 {
 
     super(pIndex, pLogPanel, pConfigFile, pSimMode);
 
 //debug remove this -- superseded by Socket Simulator      if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
-    
+
 }//end of Multi_IO_A_Transverse::Multi_IO_A_Transverse (constructor)
 //-----------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel,
 @Override
 public void init()
 {
-    
+
     super.init();
 
     loadConfigSettings();
@@ -73,7 +73,7 @@ public void init()
 void initAfterConnect(){
 
     super.initAfterConnect();
-     
+
 }//end of Multi_IO_A_Transverse::initAfterConnect
 //-----------------------------------------------------------------------------
 
@@ -108,16 +108,16 @@ void createSimulatedSocket() throws SocketException
 {
 
     super.createSimulatedSocket();
-    
+
     SimulatorTransverse transSimulator = new SimulatorTransverse(
                                                     getIPAddr(), 23, title, "");
-
+    transSimulator.setActiveChannels(channels);
     transSimulator.init(0);
 
     socket = transSimulator;
-    
+
 }//end of Multi_IO_A_Transverse::createSimulatedSocket
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Transverse::collectData
@@ -132,9 +132,9 @@ void createSimulatedSocket() throws SocketException
 @Override
 public void collectData()
 {
-    
+
     super.collectData();
-    
+
 }// end of Multi_IO_A_Transverse::collectData
 //-----------------------------------------------------------------------------
 
@@ -147,9 +147,9 @@ public void collectData()
 @Override
 void loadConfigSettings()
 {
-    
+
     super.loadConfigSettings();
-    
+
     String section = "Device " + getDeviceNum() + " Settings";
 
 }// end of Multi_IO_A_Transverse::loadConfigSettings
