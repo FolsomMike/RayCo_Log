@@ -12,7 +12,7 @@
 * via Ethernet are "flagged" variables which can be written to by the GUI
 * thread and then read later by the thread which handles the Ethernet
 * connection.
-* 
+*
 */
 
 //-----------------------------------------------------------------------------
@@ -36,6 +36,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.DataTransferIntBuffer;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import toolkit.MKSInteger;
@@ -47,7 +48,7 @@ import view.LogPanel;
 
 public class Device implements Runnable
 {
-    
+
     final IniFile configFile;
     private final int deviceNum;
     public int getDeviceNum(){ return(deviceNum); }
@@ -58,7 +59,7 @@ public class Device implements Runnable
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
     public Channel[] getChannels(){ return(channels); }
-    
+
     private boolean hdwParamsDirty = false;
     public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
     public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
@@ -68,14 +69,14 @@ public class Device implements Runnable
     int numGridsHeightPerSourceClock, numGridsLengthPerSourceClock;
 
     private boolean newRunData = false;
-    
+
     byte runDataBuffer[] = new byte[RUN_DATA_BUFFER_SIZE];
-    
+
     private int prevRbtRunDataPktCnt = -1;
     private int rbtRunDataPktCntError = 0;
     private int prevPICRunDataPktCnt = -1;
     private int picRunDataPktCntError = 0;
-    
+
     Socket socket = null;
     PrintWriter out = null;
     BufferedReader in = null;
@@ -83,35 +84,44 @@ public class Device implements Runnable
     byte[] outBuffer;
     DataOutputStream byteOut = null;
     DataInputStream byteIn = null;
-    
+
     private InetAddress ipAddr = null;
     public InetAddress getIPAddr(){ return(ipAddr); }
     private String ipAddrS;
-    
+
     private boolean waitingForRemoteResponse = false;
 
     int pktID;
     boolean reSynced;
-    int reSyncCount = 0, reSyncPktID;    
+    int reSyncCount = 0, reSyncPktID;
     int packetErrorCnt = 0;
-    
+
     int numACKsExpected = 0;
     int numACKsReceived = 0;
-    
+
     private boolean connectionAttemptCompleted = false;
     public boolean getConnectionAttemptCompleted(){
                                          return (connectionAttemptCompleted); }
     private boolean connectionSuccessful = false;
-    public boolean getConnectionSuccessful(){ return (connectionSuccessful); }    
-    
+    public boolean getConnectionSuccessful(){ return (connectionSuccessful); }
+
+    private int snapshotPeakType;
+    PeakArrayBufferInt peakSnapshotBuffer;
+    SampleMetaData snapshotMeta = new SampleMetaData(0);
+    public SampleMetaData getSnapshotMeta(){ return(snapshotMeta); }
+    public void setSnapshotDataBuffer(DataTransferIntMultiDimBuffer pV)
+        { snapshotMeta.dataSnapshotBuffer = pV; }
+    public DataTransferIntMultiDimBuffer getSnapshotDataBuffer()
+        { return(snapshotMeta.dataSnapshotBuffer); }
+
     SampleMetaData mapMeta = new SampleMetaData(0);
     public SampleMetaData getMapMeta(){ return(mapMeta); }
-    
+
     public void setMapDataBuffer(DataTransferIntMultiDimBuffer pV) {
                                                    mapMeta.dataMapBuffer = pV;}
-    public DataTransferIntMultiDimBuffer getMapDataBuffer() { 
+    public DataTransferIntMultiDimBuffer getMapDataBuffer() {
                                                return(mapMeta.dataMapBuffer); }
-    
+
     boolean simMode;
 
     int mapDataType;
@@ -120,9 +130,9 @@ public class Device implements Runnable
     PeakArrayBufferInt peakMapBuffer;
 
     LogPanel logPanel;
-    
+
     final static int RUN_DATA_BUFFER_SIZE = 1024;
-    
+
     final static int OUT_BUFFER_SIZE = 255;
     final static int IN_BUFFER_SIZE = 255;
 
@@ -131,7 +141,7 @@ public class Device implements Runnable
 
     //Commands for all Devices
     //These should match the values in the code for the hardware.
-    
+
     //NOTE: Each subclass can have its own command codes. They should be in the
     //range 40~100 so that they don't overlap the codes in this parent class.
 
@@ -149,11 +159,11 @@ public class Device implements Runnable
     static final byte GET_ALL_LAST_AD_VALUES_CMD = 11;
     static final byte SET_LOCATION_CMD = 12;
     static final byte SET_CLOCK_CMD = 13;
-    
+
     static final byte ERROR = 125;
     static final byte DEBUG_CMD = 126;
     static final byte EXIT_CMD = 127;
-    
+
 //-----------------------------------------------------------------------------
 // Device::Device (constructor)
 //
@@ -166,10 +176,11 @@ public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
     simMode = pSimMode;
 
     mapMeta.deviceNum = deviceNum;
-    
+    snapshotMeta.deviceNum = deviceNum;
+
     outBuffer = new byte[OUT_BUFFER_SIZE];
     inBuffer = new byte[IN_BUFFER_SIZE];
-    
+
 }//end of Device::Device (constructor)
 //-----------------------------------------------------------------------------
 
@@ -214,15 +225,17 @@ public void driveSimulation()
 
 public void initAfterLoadingConfig()
 {
- 
+
     logPanel.setTitle(shortTitle);
-    
+
     setUpPeakMapBuffer();
-    
-    setUpChannels();    
-    
+
+    setUpPeakSnapshotBuffer();
+
+    setUpChannels();
+
     mapMeta.numClockPositions = numClockPositions;
-    
+
 }// end of Device::initAfterLoadingConfig
 //-----------------------------------------------------------------------------
 
@@ -231,7 +244,7 @@ public void initAfterLoadingConfig()
 //
 // Sends a packet with command code pCommand followed by a variable number of
 // bytes (one or more) to the remote device,
-// 
+//
 // A header is prepended and a checksum byte appended. The checksum includes
 // the command byte and all bytes in pBytes, but not the header bytes.
 //
@@ -243,10 +256,10 @@ void sendPacket(byte pCommand, byte... pBytes)
 
     outBuffer[i++] = (byte)0xaa; outBuffer[i++] = (byte)0x55;
     outBuffer[i++] = (byte)0xbb; outBuffer[i++] = (byte)0x66;
-        
+
     outBuffer[i++] = pCommand;        //command byte included in checksum
     checksum = pCommand;
-    
+
     for(int j=0; j<pBytes.length; j++){
         outBuffer[i++] = pBytes[j];
         checksum += pBytes[j];
@@ -291,10 +304,10 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
     try{
 
         int timeOutProcess = 0;
-        
-        while(timeOutProcess++ < 2){            
+
+        while(timeOutProcess++ < 2){
             if (byteIn.available() >= pNumBytes) {break;}
-            waitSleep(10);            
+            waitSleep(10);
         }
 
         if (byteIn.available() >= pNumBytes) {
@@ -309,11 +322,11 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
         logSevere(e.getMessage() + " - Error: 281");
         return(-3);
     }
-    
+
     byte sum = (byte)pPktID; //packet ID is included in the checksum
 
     //validate checksum by summing the packet id and all data
-    
+
     for(int i = 0; i < pNumBytes; i++){ sum += pBuffer[i]; }
 
     if ( (sum & 0xff) == 0) { return(pNumBytes); }
@@ -334,7 +347,7 @@ void requestAllStatusPacket()
 {
 
     sendPacket(GET_ALL_STATUS_CMD, (byte)0);
-    
+
 }//end of Device::requestAllStatusPacket
 //-----------------------------------------------------------------------------
 
@@ -379,7 +392,7 @@ void requestAllStatusPacket()
 //
 // Slave PIC 0 Status Data
 //
-// Slave PIC I2C Bus Address (0-7) 
+// Slave PIC I2C Bus Address (0-7)
 // Slave PIC Software Version MSB
 // Slave PIC Software Version LSB
 // Slave PIC Flags
@@ -398,77 +411,77 @@ void requestAllStatusPacket()
 
 int handleAllStatusPacket()
 {
-    
+
     int numBytesInPkt = 111; //includes Rabbit checksum byte
-    
+
     byte[] buffer = new byte[numBytesInPkt];
-    
+
     int result;
     result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
     if (result != numBytesInPkt){ return(result); }
-    
+
     int i = 0, v;
     int errorSum = packetErrorCnt; //number of errors recorded by host
-    
+
     logPanel.appendTS("\n----------------------------------------------\n");
     logPanel.appendTS("-- All Status Information --\n\n");
-    
+
     logPanel.appendTS("Host com errors: " + packetErrorCnt + "\n\n");
-    
+
     logPanel.appendTS(" - Rabbit Status Data -\n\n");
-    
+
     //software version
     logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
-    
+
     //control flags
-    logPanel.appendTS("," + String.format("0x%4x", 
+    logPanel.appendTS("," + String.format("0x%4x",
                             getUnsignedShortFromPacket(buffer, i))
-                                                .replace(' ', '0')); 
+                                                .replace(' ', '0'));
     i=i+2; //adjust for integer extracted above
-    
+
     //system status
     logPanel.appendTS("," + String.format("0x%2x", buffer[i++])
-                                                            .replace(' ', '0')); 
-    
+                                                            .replace(' ', '0'));
+
     //host com error count
     v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
     logPanel.appendTS("," + v);
-    
+
     //serial com error count
     v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
     logPanel.appendTS("," + v);
-    
+
     //unused values
     logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
     logPanel.appendTS("\n\n");
 
     logPanel.appendTS(" - Master PIC Status Data -\n\n");
-    
+
     //software version
     logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
-    
+
     //flags
     logPanel.appendTS("," + String.format(
                             "0x%2x", buffer[i++]).replace(' ', '0'));
-    
+
     //status flags
     logPanel.appendTS("," + String.format(
                             "0x%2x", buffer[i++]).replace(' ', '0'));
-    
+
     //serial com error count
     v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
-    
+
     //I2C com error count
     v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
-    
+
     //unused values
     logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
     logPanel.appendTS("\n\n");
-    
+
     logPanel.appendTS(" - Slave PIC 0~7 Status Data -\n\n");
-    
+
     int numSlaves = 8;
-    
+
     for(int j=0; j<numSlaves; j++){
 
         logPanel.appendTS(buffer[i++] + "-"); //I2C bus address
@@ -477,29 +490,29 @@ int handleAllStatusPacket()
                                "0x%2x", buffer[i++]).replace(' ', '0')); //flags
         logPanel.appendTS("," + String.format(
                         "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
-        v = buffer[i++]; errorSum += v;        
+        v = buffer[i++]; errorSum += v;
         logPanel.appendTS("," + v); //I2C com error count
-        logPanel.appendTS("," + buffer[i++]); //last read A/D value    
+        logPanel.appendTS("," + buffer[i++]); //last read A/D value
         //unused values
         logPanel.appendTS(","+buffer[i++]+","+buffer[i++]+ "," + buffer[i++]);
         logPanel.appendTS("," + String.format(
           "0x%2x", buffer[i++]).replace(' ', '0')); //Slave PIC packet checksum
         logPanel.appendTS("\n");
-    
+
     }
 
     logPanel.appendTS("Master PIC checksum: " + String.format("0x%2x",
                 buffer[i++]).replace(' ', '0')); //Master PIC packet checksum
     logPanel.appendTS("\n");
-    
+
     logPanel.appendTS("Rabbit checksum: " + String.format("0x%2x",
                 buffer[i++]).replace(' ', '0')); //Rabbit packet checksum
     logPanel.appendTS("\n");
 
     logPanel.appendTS("Total com error count: " + errorSum + "\n\n");
-    
-    return(result);    
-    
+
+    return(result);
+
 }//end of Device::handleAllStatusPacket
 //-----------------------------------------------------------------------------
 
@@ -517,7 +530,7 @@ void requestAllLastADValues()
 {
 
     sendPacket(GET_ALL_LAST_AD_VALUES_CMD, (byte)0);
-    
+
 }//end of Device::requestAllLastADValues
 //-----------------------------------------------------------------------------
 
@@ -545,45 +558,45 @@ void requestAllLastADValues()
 
 int handleAllLastADValuesPacket()
 {
-    
+
     int numBytesInPkt = 26; //includes Rabbit checksum byte
-    
+
     byte[] buffer = new byte[numBytesInPkt];
-    
+
     int result;
     result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
     if (result != numBytesInPkt){ return(result); }
-    
+
     int i = 0, v;
     int errorSum = packetErrorCnt; //number of errors recorded by host
-    
+
     logPanel.appendTS("\n----------------------------------------------\n");
     logPanel.appendTS("-- All Latest AD Values --\n\n");
-    
+
     int numSlaves = 8;
-    
+
     for(int j=0; j<numSlaves; j++){
 
-        logPanel.appendTS("" + String.format("0x%4x", 
+        logPanel.appendTS("" + String.format("0x%4x",
          getUnsignedShortFromPacket(buffer, i)).replace(' ', '0'));
         i=i+2; //adjust for integer extracted above
-        
+
         logPanel.appendTS("," + String.format(
           "0x%2x", buffer[i++]).replace(' ', '0')); //Slave PIC packet checksum
         logPanel.appendTS("\n");
-        
+
     }
 
     logPanel.appendTS("Master PIC checksum: " + String.format("0x%2x",
                 buffer[i++]).replace(' ', '0')); //Master PIC packet checksum
     logPanel.appendTS("\n");
-    
+
     logPanel.appendTS("Rabbit checksum: " + String.format("0x%2x",
                 buffer[i++]).replace(' ', '0')); //Rabbit packet checksum
     logPanel.appendTS("\n");
-    
-    return(result);    
-    
+
+    return(result);
+
 }//end of Device::handleAllLastADValuesPacket
 //-----------------------------------------------------------------------------
 
@@ -599,17 +612,17 @@ int handleAllLastADValuesPacket()
 
 public int handleACKPackets()
 {
- 
-    int numBytesInPkt = 1; //does not include checksum byte    
-    
+
+    int numBytesInPkt = 1; //does not include checksum byte
+
     int result = readBytesAndVerify(
                        inBuffer, numBytesInPkt, Device.ACK_CMD);
     if (result != numBytesInPkt){ return(result); }
-    
+
     numACKsReceived++;
-    
+
     return(result);
-    
+
 }//end of Simulator::handleACKPackets
 //-----------------------------------------------------------------------------
 
@@ -621,18 +634,18 @@ public int handleACKPackets()
 
 void setUpChannels()
 {
-    
+
     if (numChannels <= 0){ return; }
 
     channels = new Channel[numChannels];
-    
+
     for(int i=0; i<numChannels; i++){
-     
+
         channels[i] = new Channel(deviceNum, i, configFile);
         channels[i].init();
-        
+
     }
-    
+
 }// end of Device::setUpChannels
 //-----------------------------------------------------------------------------
 
@@ -652,7 +665,7 @@ public void collectData()
 {
 
     processAllAvailableDataPackets();
-    
+
 }// end of Device::collectData
 //-----------------------------------------------------------------------------
 
@@ -671,7 +684,7 @@ private void parsePeakType(String pValue)
          case "catch lowest" : mapPeakType = CATCH_LOWEST;  break;
          default : mapPeakType = CATCH_LOWEST;  break;
     }
-    
+
 }// end of Device::parsePeakType
 //-----------------------------------------------------------------------------
 
@@ -690,7 +703,7 @@ private void parseDataType(String pValue)
          case "double" : mapDataType = DOUBLE_TYPE;  break;
          default : mapDataType = INTEGER_TYPE;  break;
     }
-    
+
 }// end of Device::parseDataType
 //-----------------------------------------------------------------------------
 
@@ -703,43 +716,43 @@ private void parseDataType(String pValue)
 
 void loadClockMappingTranslation(String pSection)
 {
-    
+
     clockTranslations = new int[numClockPositions];
-    
+
     //translations default to 0>0,1>1,2>2 etc.
     for(int i=0; i<clockTranslations.length; i++){
         clockTranslations[i] = i;
     }
-    
-    numGridsHeightPerSourceClock = configFile.readInt(pSection, 
+
+    numGridsHeightPerSourceClock = configFile.readInt(pSection,
                                 "number of grids height per source clock", 1);
 
-    numGridsLengthPerSourceClock = configFile.readInt(pSection, 
+    numGridsLengthPerSourceClock = configFile.readInt(pSection,
                                 "number of grids length per source clock", 1);
-    
-    int numMapTransLines = configFile.readInt(pSection, 
+
+    int numMapTransLines = configFile.readInt(pSection,
                  "source clock to grid clock translation number of lines", 0);
 
-    
+
     String key = "source clock to grid clock translation line ";
-    
+
     for(int i=0; i<numMapTransLines; i++){
-    
+
         String transLine = configFile.readString(pSection, key + (i+1), "");
-        
+
         if (transLine.isEmpty()){ continue; }
-        
+
         //split line (0>1, 1>1, etc.) to x>y pairs
         String[] transSplits = transLine.split(",");
-        
+
         for(String trans : transSplits){
-         
+
             //split line (x>y) into x and y lines
             String []transSplit = trans.split(">");
-            
-            if(transSplit.length < 2 || 
+
+            if(transSplit.length < 2 ||
               transSplit[0].isEmpty() || transSplit[1].isEmpty()) { continue; }
-            
+
             try{
                 //convert x and y into "from clock" and "to clock" values
                 int fromClk = Integer.parseInt(transSplit[0]);
@@ -747,12 +760,12 @@ void loadClockMappingTranslation(String pSection)
                 if(fromClk < 0 || fromClk >= clockTranslations.length)
                     { continue; }
                 //store "to clock" in array at "fromClk" position
-                clockTranslations[fromClk] = toClk;  
-            }   
+                clockTranslations[fromClk] = toClk;
+            }
             catch(NumberFormatException e){ }
         }
     }
-    
+
 }// end of Device::loadClockMappingTranslation
 //-----------------------------------------------------------------------------
 
@@ -764,12 +777,12 @@ void loadClockMappingTranslation(String pSection)
 
 void loadConfigSettings()
 {
-    
+
     String section = "Device " + deviceNum + " Settings";
 
     title = configFile.readString(section, "title", "Device " + deviceNum);
-    
-    shortTitle = configFile.readString(section, "short title", 
+
+    shortTitle = configFile.readString(section, "short title",
                                                         "Device " + deviceNum);
 
     deviceType = configFile.readString(section, "device type", "unknown");
@@ -780,23 +793,29 @@ void loadConfigSettings()
                                     section, "number of clock positions", 12);
 
     if(numClockPositions > 0) loadClockMappingTranslation(section);
-    
+
+    ////WIP HSS// actually load snapshot settings from ini file
+    snapshotPeakType = CATCH_HIGHEST; //WIP HSS// temp setting, should be loaded from ini
+    snapshotMeta.chartGroup = configFile.readInt(section, "snapshot chart group", -1);
+    snapshotMeta.chart = configFile.readInt(section, "snapshot chart", -1);
+    snapshotMeta.graph = configFile.readInt(section, "snapshot graph", -1);
+
     String s;
-    
+
     s = configFile.readString(section, "map data type", "integer");
     parseDataType(s);
-        
+
     s = configFile.readString(section, "map peak type", "catch highest");
     parsePeakType(s);
-            
+
     mapMeta.chartGroup = configFile.readInt(section, "map chart group", -1);
-    
+
     mapMeta.chart = configFile.readInt(section, "map chart", -1);
-    
+
     mapMeta.graph = configFile.readInt(section, "map graph", -1);
-    
+
     mapMeta.system = configFile.readInt(section, "map system", -1);
-                
+
 }// end of Device::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -811,9 +830,9 @@ void loadConfigSettings()
 
 public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue)
 {
-    
+
     channels[pChannel].getPeakAndReset(pPeakValue);
-    
+
 }// end of Device::getPeakForChannelAndReset
 //-----------------------------------------------------------------------------
 
@@ -829,10 +848,43 @@ public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue)
 
 public void getPeakDataAndReset(int pChannel, PeakData pPeakData)
 {
-    
+
     channels[pChannel].getPeakDataAndReset(pPeakData);
-    
+
 }// end of Device::getPeakDataAndReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getPeakSnapshotDataAndReset
+//
+// Retrieves the current values of the snapshot data peaks along with all
+// relevant info for the channel such as the chart & graph to which it is
+// attached.
+//
+// All data in the pPeakMapData.metaArray is set to the snapshot system number
+// of this device so the data can be identified as necessary.
+//
+// Resets the peaks to the reset value.
+//
+// Returns true if the peak has been updated since the last call to this method
+// or false otherwise.
+//
+
+public boolean getPeakSnapshotDataAndReset(PeakSnapshotData pPeakSnapData)
+{
+
+    if(peakSnapshotBuffer == null) { return(false); }
+
+    pPeakSnapData.meta = snapshotMeta; //channel/buffer/graph etc. info
+
+    boolean peakUpdated
+                = peakSnapshotBuffer.getPeakAndReset(pPeakSnapData.peakArray);
+
+    pPeakSnapData.setMetaArray(snapshotMeta.system);
+
+    return(peakUpdated);
+
+}// end of Device::getPeakSnapshotDataAndReset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -850,19 +902,19 @@ public void getPeakDataAndReset(int pChannel, PeakData pPeakData)
 // or false otherwise.
 //
 
-public boolean getPeakDataAndReset(PeakMapData pPeakMapData)
+public boolean getPeakMapDataAndReset(PeakMapData pPeakMapData)
 {
-    
+
     if(peakMapBuffer == null) { return(false); }
-    
+
     pPeakMapData.meta = mapMeta; //channel/buffer/graph etc. info
-        
+
     boolean peakUpdated = peakMapBuffer.getPeakAndReset(pPeakMapData.peakArray);
-        
+
     pPeakMapData.setMetaArray(mapMeta.system);
-    
+
     return(peakUpdated);
-    
+
 }// end of Device::getPeakMapDataAndReset
 //-----------------------------------------------------------------------------
 
@@ -878,13 +930,13 @@ public boolean getPeakDataAndReset(PeakMapData pPeakMapData)
 
 void requestRunDataPacket()
 {
-    
+
     if (waitingForRemoteResponse) { return; }
 
     waitingForRemoteResponse = true;
-    
+
     sendPacket(GET_RUN_DATA_CMD, (byte)0);
-    
+
 }//end of Device::requestRunDataPacket
 //-----------------------------------------------------------------------------
 
@@ -899,15 +951,15 @@ void requestRunDataPacket()
 
 int handleRunDataPacket()
 {
-    
+
     waitingForRemoteResponse = false;
-    
-    int numBytesInPkt = 212; //includes Rabbit checksum byte   
-    
+
+    int numBytesInPkt = 212; //includes Rabbit checksum byte
+
     int result;
     result = readBytesAndVerify(runDataBuffer, numBytesInPkt, pktID);
-    if (result != numBytesInPkt){ return(result); }    
-    
+    if (result != numBytesInPkt){ return(result); }
+
     //check the run data packet counts for errors
     if (runDataBuffer[0] != ((prevRbtRunDataPktCnt+1)&0xff)) {
         ++rbtRunDataPktCntError;
@@ -915,13 +967,13 @@ int handleRunDataPacket()
     if (runDataBuffer[1] != ((prevPICRunDataPktCnt+1)&0xff)) {
         ++picRunDataPktCntError;
     }
-    
+
     //store the run data packet counts
     prevRbtRunDataPktCnt = runDataBuffer[0];
     prevPICRunDataPktCnt = runDataBuffer[1];
-    
-    newRunData = true;    
-    
+
+    newRunData = true;
+
     return(result);
 
 }// end of Device::handleRunDataPacket
@@ -941,32 +993,32 @@ int handleRunDataPacket()
 
 boolean getRunPacketFromDevice(byte[] pPacket)
 {
-    
+
     if(!newRunData){ return(false); }
-        
+
     System.arraycopy(runDataBuffer, 0, pPacket, 0, pPacket.length);
-    
+
     newRunData = false;
-    
+
     return(true);
-    
+
 }// end of Device::getRunPacketFromDevice
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Device::sendSetLocationPacket
 //
-// Sends a packet to the remote device to set the location of pHdwChannel to 
+// Sends a packet to the remote device to set the location of pHdwChannel to
 // pValue.
 //
 
 void sendSetLocationPacket(int pHdwChannel, int pValue)
 {
-    
+
     sendPacket(SET_LOCATION_CMD, (byte)pHdwChannel, (byte)pValue);
-    
+
     numACKsExpected++;
-    
+
 }//end of Device::sendSetLocationPacket
 //-----------------------------------------------------------------------------
 
@@ -978,32 +1030,32 @@ void sendSetLocationPacket(int pHdwChannel, int pValue)
 
 void setLinearLocationsOfChannels()
 {
-    
+
     for(Channel channel : channels){
-        
+
         if (channel.getBoardChannel() == -1) { continue; }
-        
-        sendSetLocationPacket(channel.getBoardChannel(), 
+
+        sendSetLocationPacket(channel.getBoardChannel(),
                                         channel.getLinearLocation());
     }
-    
+
 }//end of Device::setLinearLocationsOfChannels
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Device::sendSetClockPacket
 //
-// Sends a packet to the remote device to set the clock position of pHdwChannel 
+// Sends a packet to the remote device to set the clock position of pHdwChannel
 // to pValue.
 //
 
 void sendSetClockPacket(int pHdwChannel, int pValue)
 {
-    
+
     sendPacket(SET_CLOCK_CMD, (byte)pHdwChannel, (byte)pValue);
-    
+
     numACKsExpected++;
-    
+
 }//end of Device::sendSetClockPacket
 //-----------------------------------------------------------------------------
 
@@ -1015,16 +1067,16 @@ void sendSetClockPacket(int pHdwChannel, int pValue)
 
 void setClockPositionsOfChannels()
 {
-    
+
     for(Channel channel : channels){
-        
+
         if (channel.getBoardChannel() == -1) { continue; }
-        
-        sendSetClockPacket(channel.getBoardChannel(), 
+
+        sendSetClockPacket(channel.getBoardChannel(),
                                         channel.getClockPosition());
 
     }
-    
+
 }//end of Device::setClockPositionsOfChannels
 //-----------------------------------------------------------------------------
 
@@ -1038,7 +1090,7 @@ int getByteFromPacket(byte[] pPacket, int pIndex)
 {
 
     return(pPacket[pIndex]);
-    
+
 }//end of Device::getByteFromPacket
 //-----------------------------------------------------------------------------
 
@@ -1078,7 +1130,7 @@ int getIntFromPacket(byte[] pPacket, int pIndex)
           + ((pPacket[pIndex++]<<8) & 0xff00)
             + (pPacket[pIndex++] & 0xff)
     );
-    
+
 }//end of Device::getIntFromPacket
 //-----------------------------------------------------------------------------
 
@@ -1094,10 +1146,44 @@ int getUnsignedShortFromPacket(byte[] pPacket, int pIndex)
 
     return (
             (int)((pPacket[pIndex++]<<8) & 0xff00)
-            + (int)(pPacket[pIndex++] & 0xff)    
+            + (int)(pPacket[pIndex++] & 0xff)
     );
-    
+
 }//end of Device::getUnsignedShortFromPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setUpPeakSnapshotBuffer
+//
+// Creates and sets up the appropriate PeakBuffer subclass to capture the type
+// of peak specified in the config file, i.e. highest value, lowest value, etc.
+//
+
+public void setUpPeakSnapshotBuffer()
+{
+
+    switch (snapshotPeakType){
+
+        case CATCH_HIGHEST:
+            peakSnapshotBuffer = new HighPeakArrayBufferInt(0, 128); //WIP HSS// size needs to be ini
+            peakSnapshotBuffer.setResetValue(Integer.MIN_VALUE);
+            break;
+
+        case CATCH_LOWEST:
+            peakSnapshotBuffer = new LowPeakArrayBufferInt(0, 128); //WIP HSS// size needs to be ini
+            peakSnapshotBuffer.setResetValue(Integer.MAX_VALUE);
+            break;
+
+        default:
+            peakSnapshotBuffer = new HighPeakArrayBufferInt(0, 128); //WIP HSS// size needs to be ini
+            peakSnapshotBuffer.setResetValue(Integer.MIN_VALUE);
+            break;
+
+    }
+
+    peakSnapshotBuffer.reset();
+
+}// end of Channel::setUpPeakSnapshotBuffer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1112,30 +1198,30 @@ int getUnsignedShortFromPacket(byte[] pPacket, int pIndex)
 
 public void setUpPeakMapBuffer()
 {
-    
+
     if (numClockPositions == 0) { return; }
 
     switch (mapPeakType){
-        
-        case CATCH_HIGHEST: 
+
+        case CATCH_HIGHEST:
             peakMapBuffer = new HighPeakArrayBufferInt(0, numClockPositions);
             peakMapBuffer.setResetValue(Integer.MIN_VALUE);
             break;
-        
-        case CATCH_LOWEST: 
+
+        case CATCH_LOWEST:
             peakMapBuffer = new HighPeakArrayBufferInt(0, numClockPositions);
             peakMapBuffer.setResetValue(Integer.MAX_VALUE);
             break;
-        
-        default: 
+
+        default:
             peakMapBuffer = new HighPeakArrayBufferInt(0, numClockPositions);
             peakMapBuffer.setResetValue(Integer.MIN_VALUE);
             break;
-            
+
     }
 
     peakMapBuffer.reset();
-    
+
 }// end of Device::setUpPeakMapBuffer
 //-----------------------------------------------------------------------------
 
@@ -1174,15 +1260,15 @@ public void setIPAddr(InetAddress pIPAddr)
 @Override
 public void run()
 {
-    
+
     connectToDevice();
-    
+
     initAfterConnect();
-    
+
     notifyThreadsWaitingOnConnection();
-    
+
     waitForever();
-    
+
 }//end of Device::run
 //-----------------------------------------------------------------------------
 
@@ -1195,7 +1281,7 @@ public void run()
 //
 
 void initAfterConnect(){
-        
+
 }//end of Device::initAfterConnect
 //-----------------------------------------------------------------------------
 
@@ -1239,11 +1325,11 @@ public synchronized void connectToDevice()
 {
 
     logPanel.appendTS("Connecting...\n");
-    
+
     try {
 
         logPanel.appendTS("IP Address: " + ipAddr.toString() + "\n");
-        
+
         if (!simMode) {
             socket = new Socket(ipAddr, 23);
         }
@@ -1281,15 +1367,15 @@ public synchronized void connectToDevice()
         connectionAttemptCompleted = true;
         return;
     }
-        
+
     connectionAttemptCompleted = true;
-    
+
     connectionSuccessful = true;
-    
+
     logPanel.appendTS("\nConnection successful.");
 
 }//end of Device::connectToDevice
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Device::createSimulatedSocket
@@ -1304,7 +1390,7 @@ void createSimulatedSocket() throws SocketException
 {
 
 }//end of Device::createSimulatedSocket
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Device::waitForConnectCompletion
@@ -1331,7 +1417,7 @@ public synchronized boolean waitForConnectCompletion()
     }
 
     return(connectionSuccessful);
-    
+
 }//end of Device::waitForConnectCompletion
 //-----------------------------------------------------------------------------
 
@@ -1351,7 +1437,7 @@ public void processAllAvailableDataPackets()
     try{
         while (byteIn.available() >= 5) { processOneDataPacket(false, 0); }
     }catch(IOException e){}
-    
+
 }//end of Device::processAllAvailableDataPackets
 //-----------------------------------------------------------------------------
 
@@ -1385,7 +1471,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
     if (byteIn == null) {return -1;}  //do nothing if the port is closed
 
     try{
-        
+
         //wait a while for a packet if parameter is true
         if (pWaitForPkt){
             int timeOutWFP = 0;
@@ -1443,7 +1529,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         if (pktID == GET_RUN_DATA_CMD){
             return handleRunDataPacket();
         }
-        
+
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 865");
@@ -1528,9 +1614,9 @@ public boolean updateChannelParameters(String pParamType, String pChannelNum,
 {
 
     int chNum = Integer.parseInt(pChannelNum);
-    
+
     boolean result = false;
-    
+
         switch (pParamType) {
             case "Gain Spinner":
                 result = channels[chNum].setGain(pValue, pForceUpdate);
@@ -1540,11 +1626,11 @@ public boolean updateChannelParameters(String pParamType, String pChannelNum,
                 break;
             case "On-Off Checkbox":
                 result = channels[chNum].setOnOff(pValue, pForceUpdate);
-                break;                                
+                break;
         }
-        
-    if(result) { setHdwParamsDirty(true); }    
-    
+
+    if(result) { setHdwParamsDirty(true); }
+
     return(result);
 
 }//end of Device::updateChannelParameters
@@ -1569,7 +1655,7 @@ public boolean updateChannelParameters(String pParamType, String pChannelNum,
 
 synchronized public void processChannelParameterChanges()
 {
-    
+
 }//end of MainHandler::processChannelParameterChanges
 //-----------------------------------------------------------------------------
 

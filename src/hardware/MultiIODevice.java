@@ -312,19 +312,25 @@ public void collectData()
         //first channel's buffer location specifies start of channel data section
         int index = channels[0].getBufferLoc();
 
+        //Device ALWAYS sends back enough bytes for 16 channels, even if ini
+        //file specifies otherwise. (2 bytes per channel)
+        int clockMapIndex = index+32;
+        int snapshotIndex = clockMapIndex+49;
+
         for(Channel channel : channels){
 
             data = getUnsignedShortFromPacket(packet, index);
             data = Math.abs(data -= AD_ZERO_OFFSET);
             channel.catchPeak(data);
+            index+=2; //skip two because short is 2 bytes
 
         }
 
-        //WIP HSS// Device ALWAYS sends back enough bytes for 16
-        // channels, even if ini file specifies otherwise. (2 bytes per channel)
-        index += 32;
+        extractSnapshotData(packet, snapshotIndex);
 
-        if(numClockPositions > 0){ extractMapDataAndCatchPeak(packet, index); }
+        if(numClockPositions > 0) {
+            extractMapDataAndCatchPeak(packet, clockMapIndex);
+        }
 
     }
 
@@ -332,6 +338,32 @@ public void collectData()
     requestRunDataPacket();
 
 }// end of MultiIODevice::collectData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::extractSnapshotData
+//
+// Extracts snapshot data from pPacket beginning at position pIndex.
+//
+// Returns the updated value of pIndex which will then point at the next
+// bayte after the map data which was extracted.
+//
+
+public int extractSnapshotData(byte[] pPacket, int pIndex)
+{
+
+    //WIP HSS// number of bytes needs to be specified in ini file
+    int[] data = new int[128];
+    for(int i=0; i<128; i++){ //WIP HSS// number of bytes needs to be specified in ini file
+        data[i] = getUnsignedByteFromPacket(pPacket, pIndex); //WIP HSS// -- divisor should be read from config file
+        pIndex++;
+    }
+
+    peakSnapshotBuffer.setPeak(data);
+
+    return(pIndex);
+
+}// end of MultiIODevice::extractSnapshotData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -682,7 +682,7 @@ public void updateAnnotationGraph()
 
     if (prevX != prevXGraph0Trace0 && (prevX % 104 == 0)){
         prevXGraph0Trace0 = prevX;
-        zoomGraph.addZoomBox(0, simulateZoomGraph());
+        zoomGraph.addZoomBox(0);
     }
 
 }// end of Chart::updateAnnotationGraph
@@ -722,36 +722,6 @@ public void updateChild(int pGraphNum, int pChildNum)
 
 }// end of Chart::updateChild
 //-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ???::simulateZoomGraph
-//
-// Creates a simulated data stream representing a high resolution graph of
-// an indication.
-//
-// debug mks -- move this to a simulator class
-//
-
-private int[] simulateZoomGraph()
-{
-        
-    int data[] = new int[100];
-
-    for(int i=0; i<data.length; i++){
-        data[i] = (int)(5 * Math.random());
-    }
-
-    int spikeLoc = (int)(40 + 20 * Math.random());
-
-    data[spikeLoc-2] = 20 + (int)(5 * Math.random());
-    data[spikeLoc] = - 20 - (int)(5 * Math.random());
-    data[spikeLoc+2] = 20 + (int)(5 * Math.random());
-
-    return(data);
-
-}// end of ???::simulateZoomGraph
-//-----------------------------------------------------------------------------
-
 
 }//end of class Chart
 //-----------------------------------------------------------------------------

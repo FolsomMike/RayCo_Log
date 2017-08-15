@@ -32,24 +32,29 @@ public class Graph extends JPanel{
 
     IniFile configFile;
     String configFileSection;
-    
+
     ChartInfo chartInfo;
     public GraphInfo graphInfo = new GraphInfo();
-    
+
     String title, shortTitle, objectType;
     int chartGroupNum;
     public int getChartGroupNum(){ return(chartGroupNum); }
     int chartNum;
-    public int getChartNum(){ return(chartNum); }    
+    public int getChartNum(){ return(chartNum); }
     int graphNum;
     public int getGraphNum(){ return(graphNum); }
     int width, height, specifiedWidth, specifiedHeight;
     Color backgroundColor;
 
+    DataTransferIntMultiDimBuffer snapshotBuffer; //see notes at top of file
+    public void setSnapshotBuffer(DataTransferIntMultiDimBuffer pSnapBuffer)
+        { snapshotBuffer = pSnapBuffer; }
+    public DataTransferIntMultiDimBuffer getSnapshotBuffer(){ return snapshotBuffer; }
+
     DataTransferIntMultiDimBuffer mapBuffer; //see notes at top of file
     public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer){
-                                                      mapBuffer = pMapBuffer; }    
-    public DataTransferIntMultiDimBuffer getMapBuffer(){ return mapBuffer; }    
+                                                      mapBuffer = pMapBuffer; }
+    public DataTransferIntMultiDimBuffer getMapBuffer(){ return mapBuffer; }
 
     int scrollTrackChartGroupNum, scrollTrackChartNum, scrollTrackGraphNum;
     ArrayList<Graph> graphsTrackingThisGraphsScrolling;
@@ -57,16 +62,16 @@ public class Graph extends JPanel{
                                 return (graphsTrackingThisGraphsScrolling); }
 
     int animationDirection = 0;
-    int animationCount = 0;        
+    int animationCount = 0;
 
     //peakType is not used for all Graph types, some child classes such as
     //Trace load their own peakType setting from config file
-    
+
     private int peakType;
     public int getPeakType(){ return(peakType); }
-    
+
     //type of graph subclasses
-    
+
     public static final int UNDEFINED_GRAPH = 0;
     public static final int TRACE_GRAPH = 1;
     public static final int ZOOM_GRAPH = 2;
@@ -74,7 +79,7 @@ public class Graph extends JPanel{
 
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
-        
+
 //-----------------------------------------------------------------------------
 // Graph::Graph (constructor)
 //
@@ -88,7 +93,7 @@ public Graph(int pChartGroupNum, int pChartNum, int pGraphNum,
     chartNum = pChartNum; graphNum = pGraphNum;
     width = pWidth; height = pHeight;
     chartInfo = pChartInfo; configFile = pConfigFile;
-    
+
 }//end of Chart::Graph (constructor)
 //-----------------------------------------------------------------------------
 
@@ -107,9 +112,9 @@ public void init()
 {
 
     loadConfigSettings();
-    
+
     setSizes(this, width, height);
-    
+
 }// end of Graph::init
 //-----------------------------------------------------------------------------
 
@@ -127,7 +132,7 @@ public void init()
 public void updateDimensions()
 {
 
-        
+
 }// end of Chart::updateDimensions
 //-----------------------------------------------------------------------------
 
@@ -157,7 +162,7 @@ public void resetAll()
 
 public void update(ArrayList <Object> pValues)
 {
-    
+
 
 }// end of Graph::update
 //-----------------------------------------------------------------------------
@@ -173,7 +178,7 @@ public void update(ArrayList <Object> pValues)
 
 public ArrayList<Object>getParameters()
 {
-    
+
     return(null);
 
 }// end of Graph::getParameters
@@ -188,9 +193,9 @@ public ArrayList<Object>getParameters()
 
 public void scrollGraph (int pShiftAmount)
 {
-    
+
     Graphics2D g2 = (Graphics2D) getGraphics();
-    
+
     //scroll the screen to the left
     g2.copyArea(0, 0, width, height, -1 * pShiftAmount, 0);
     //erase the line at the far right
@@ -199,7 +204,7 @@ public void scrollGraph (int pShiftAmount)
 
     graphInfo.scrollOffset += pShiftAmount;
     graphInfo.lastScrollAmount = pShiftAmount;
-        
+
 }// end of Graph::scrollGraph
 //-----------------------------------------------------------------------------
 
@@ -215,7 +220,7 @@ public Trace getTrace(int pTrace)
 {
 
     return(null);
-    
+
 }// end of Graph::getTrace
 //-----------------------------------------------------------------------------
 
@@ -245,7 +250,7 @@ public int getNumChildren()
 
 public void setAllChildrenXScale(double pScale)
 {
-    
+
 
 }// end of Graph::setAllChildrenXScale
 //-----------------------------------------------------------------------------
@@ -274,7 +279,7 @@ public void setChildYScale(int pChildNum, double pScale)
 
 public void setChildOffset(int pChildNum, int pOffset)
 {
-    
+
 }// end of Graph::setChildOffset
 //-----------------------------------------------------------------------------
 
@@ -288,8 +293,8 @@ public void setChildOffset(int pChildNum, int pOffset)
 //
 
 public void setChildBaseLine(int pChildNum, int pBaseLine)
-{   
- 
+{
+
 }// end of Graph::setChildBaseLine
 //-----------------------------------------------------------------------------
 
@@ -305,7 +310,7 @@ public void setChildBaseLine(int pChildNum, int pBaseLine)
 public void setChildConnectPoints(int pChildNum, boolean pValue)
 {
 
-    
+
 }// end of Graph::setChildConnectPoints
 //-----------------------------------------------------------------------------
 
@@ -334,10 +339,10 @@ public void setVerticalBarAllChildren()
 // Generally overridden by subclasses to provide appropriate processing.
 //
 
-public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
                                                            String pObjectType)
 {
-    
+
     if (objectType.equals(pObjectType)){ pObjectList.add(this); }
 
 }// end of Graph::scanForGUIObjectsOfAType
@@ -371,7 +376,7 @@ public void setHeight(int pHeight)
     height = pHeight;
     setSizes(this, width, height);
     invalidate();
-    
+
 }// end of Graph::setHeight
 //-----------------------------------------------------------------------------
 
@@ -384,13 +389,13 @@ public void setHeight(int pHeight)
 
 public void addGraphTrackingThisGraphsScrolling(Graph pGraph)
 {
-    
-    if (graphsTrackingThisGraphsScrolling == null){    
-        graphsTrackingThisGraphsScrolling = new ArrayList<>();        
+
+    if (graphsTrackingThisGraphsScrolling == null){
+        graphsTrackingThisGraphsScrolling = new ArrayList<>();
     }
-    
+
     graphsTrackingThisGraphsScrolling.add(pGraph);
-    
+
 }// end of Graph::addGraphTrackingThisGraphsScrolling
 //-----------------------------------------------------------------------------
 
@@ -406,19 +411,19 @@ public void addGraphTrackingThisGraphsScrolling(Graph pGraph)
 public GUIDataSet getGraphTrackedForScrolling()
 {
 
-    if (scrollTrackChartGroupNum == -1 || scrollTrackChartNum == -1 
-                                                || scrollTrackGraphNum == -1){        
+    if (scrollTrackChartGroupNum == -1 || scrollTrackChartNum == -1
+                                                || scrollTrackGraphNum == -1){
         return(null);
     }
-    
+
     GUIDataSet gds = new GUIDataSet();
-    
+
     gds.chartGroupNum = scrollTrackChartGroupNum;
     gds.chartNum = scrollTrackChartNum;
     gds.graphNum = scrollTrackGraphNum;
-        
+
     return(gds);
-    
+
 }// end of Graph::getGraphTrackedForScrolling
 //-----------------------------------------------------------------------------
 
@@ -430,7 +435,7 @@ public GUIDataSet getGraphTrackedForScrolling()
 
 public void setViewParamsToNormalLayout()
 {
-    
+
 }// end of Graph::setViewParamsToNormalLayout
 //-----------------------------------------------------------------------------
 
@@ -442,7 +447,7 @@ public void setViewParamsToNormalLayout()
 
 public void setViewParamsToExpandedLayout()
 {
-    
+
 }// end of Graph::setViewParamsToExpandedLayout
 //-----------------------------------------------------------------------------
 
@@ -456,7 +461,7 @@ public void setViewParamsToExpandedLayout()
 
 public void animate()
 {
-    
+
 }// end of Graph::animate
 //-----------------------------------------------------------------------------
 
@@ -470,7 +475,7 @@ public void animate()
 
 public void paintChildren(Graphics2D pG2)
 {
-    
+
 }// end of Graph::paintChildren
 //-----------------------------------------------------------------------------
 
@@ -489,7 +494,7 @@ public void paintChildren(Graphics2D pG2)
 
 public void setChildCanvasSizeToMatchPanel()
 {
-    
+
 }// end of Graph::setChildCanvasSizeToMatchPanel
 //-----------------------------------------------------------------------------
 
@@ -507,7 +512,7 @@ public void setChildCanvasSizeToMatchPanel()
 
 public void setChildCanvasSize(int pWidth, int pHeight)
 {
-    
+
 }// end of Graph::setChildCanvasSize
 //-----------------------------------------------------------------------------
 
@@ -526,7 +531,7 @@ void parsePeakType(String pValue)
          case "catch lowest" : peakType = CATCH_LOWEST;  break;
          default : peakType = CATCH_LOWEST;  break;
     }
-    
+
 }// end of Graph::parsePeakType
 //-----------------------------------------------------------------------------
 
@@ -547,35 +552,35 @@ void loadConfigSettings()
 
     objectType = configFile.readString(
                                     configFileSection, "object type", "graph");
-    
+
     int configWidth = configFile.readInt(configFileSection, "width", 0);
 
     if (configWidth > 0) width = configWidth; //override if > 0
-    
+
     specifiedWidth = width; //save for restoring to normal size
-    
+
     int configHeight = configFile.readInt(configFileSection, "height", 0);
 
     if (configHeight > 0) height = configHeight; //override if > 0
-    
+
     specifiedHeight = height; //save for restoring to normal size
-    
+
     backgroundColor = configFile.readColor(
                                 configFileSection, "background color", null);
 
     if(backgroundColor == null) { backgroundColor = getBackground(); }
-    
+
     scrollTrackChartGroupNum = configFile.readInt(configFileSection,
                       "chart group number of graph tracked for scrolling", -1);
     scrollTrackChartNum = configFile.readInt(configFileSection,
                             "chart number of graph tracked for scrolling", -1);
     scrollTrackGraphNum = configFile.readInt(configFileSection,
                             "graph number of graph tracked for scrolling", -1);
-    
+
     String peakTypeText = configFile.readString(
                               configFileSection, "peak type", "catch highest");
     parsePeakType(peakTypeText);
-    
+
 }// end of Graph::loadConfigSettings
 //-----------------------------------------------------------------------------
 

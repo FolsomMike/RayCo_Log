@@ -867,7 +867,7 @@ int simulateNegativeSignal()
     value -= (int)(SIM_NOISE * Math.random());
 
     if ((int)(SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
-        value += (int)(100 * Math.random());
+        value -= (int)(100 * Math.random());
     }
 
     if (value < AD_MIN_VALUE) { value = AD_MIN_VALUE; }

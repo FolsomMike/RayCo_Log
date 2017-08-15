@@ -2,19 +2,19 @@
 * Title: PeakArrayBufferInt.java
 * Author: Mike Schoonover
 * Date: 03/18/15
-* 
+*
 * Purpose:
-*  
+*
 * This is a parent class used to detect and store peak values in an int array.
 * The subclasses override the catchPeak method to provide specific code
 * for catching different types of peaks, such as highest value, lowest value,
 * closest to a target value, etc...
-* 
+*
 * The methods to store a peak, retrieve a peak, and set a peak are all
 * synchronized so they are thread safe.
-* 
+*
 * -- Note --
-* 
+*
 * An attempt was made to make this class a Generic, but Generics only work
 * with Objects and not primitives. If an Object wrapper (Integer, Double, etc.)
 * was used to store the peak, it would have been inefficient as those objects
@@ -36,12 +36,12 @@ public class PeakArrayBufferInt
 
     int[] peakArray;
     int[] peakArrayReset;
-        
+
     final int peakArrayBufferNum;
     final int arraySize;
 
     boolean peakUpdated;
-    
+
 //-----------------------------------------------------------------------------
 // PeakArrayBufferInt::PeakArrayBufferInt (constructor)
 //
@@ -54,9 +54,9 @@ public PeakArrayBufferInt(int pPeakArrayBufferNum, int pArraySize)
 
     peakArray = new int[arraySize];
     peakArrayReset = new int[arraySize];
-        
+
     peakUpdated = false;
-    
+
 }//end of PeakArrayBufferInt::PeakArrayBufferInt (constructor)
 //-----------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ public PeakArrayBufferInt(int pPeakArrayBufferNum, int pArraySize)
 
 public synchronized void catchPeak(int[] pNewData)
 {
-    
+
     // This method must be overridden by subclasses.
 
 }// end of PeakArrayBufferInt::catchPeak
@@ -84,9 +84,11 @@ public synchronized void catchPeak(int[] pNewData)
 
 public synchronized void setPeak(int[] pValueArray)
 {
-    
+
+    peakUpdated = true;
+
     System.arraycopy(pValueArray, 0, peakArray, 0, arraySize);
-    
+
 }// end of PeakArrayBufferInt::setPeak
 //-----------------------------------------------------------------------------
 
@@ -102,7 +104,7 @@ public synchronized void reset()
     System.arraycopy(peakArrayReset, 0, peakArray, 0, arraySize);
 
     peakUpdated = false;
-    
+
 }// end of PeakArrayBufferInt::reset
 //-----------------------------------------------------------------------------
 
@@ -120,7 +122,7 @@ public synchronized void setResetValue(int[] pValueArray)
 {
 
     System.arraycopy(pValueArray, 0, peakArrayReset, 0, arraySize);
-    
+
 }// end of PeakArrayBufferInt::setResetValue
 //-----------------------------------------------------------------------------
 
@@ -137,7 +139,7 @@ public synchronized void setResetValue(int pValue)
 {
 
     for(int i=0; i<arraySize; i++){ peakArrayReset[i] = pValue; }
- 
+
 }// end of PeakArrayBufferInt::setResetValue
 //-----------------------------------------------------------------------------
 
@@ -151,7 +153,7 @@ public synchronized void getPeak(int[] pPeakData)
 {
 
     System.arraycopy(peakArray, 0, pPeakData, 0, arraySize);
-    
+
 }// end of PeakArrayBufferInt::getPeak
 //-----------------------------------------------------------------------------
 
@@ -169,12 +171,12 @@ public synchronized boolean getPeakAndReset(int[] pPeakData)
 {
 
     boolean lPeakUpdated = peakUpdated;
-    
+
     System.arraycopy(peakArray, 0, pPeakData, 0, arraySize);
     reset();
-    
+
     return(lPeakUpdated);
-    
+
 }// end of PeakArrayBufferInt::getPeakAndReset
 //-----------------------------------------------------------------------------
 

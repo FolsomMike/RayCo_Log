@@ -10,11 +10,11 @@
 * allows the information to be transferred efficiently as a pointer to an
 * object of this class can be returned rather than returning each individual
 * value.
-* 
+*
 * This information includes the channel number, the chart group/chart/graph/
 * trace to which the data should be applied, and any other pertinent
 * information which doesn't change often after initialization.
-* 
+*
 */
 
 //-----------------------------------------------------------------------------
@@ -50,6 +50,7 @@ public int system = -1;
 
 public Channel channel;
 public DataTransferIntBuffer dataBuffer;
+public DataTransferIntMultiDimBuffer dataSnapshotBuffer;
 public DataTransferIntMultiDimBuffer dataMapBuffer;
 
 //-----------------------------------------------------------------------------
@@ -60,7 +61,7 @@ public SampleMetaData(int pSampleMetaDataNum)
 {
 
     sampleMetaDataNum = pSampleMetaDataNum;
-    
+
 }//end of SampleMetaData::SampleMetaData (constructor)
 //-----------------------------------------------------------------------------
 
@@ -73,7 +74,7 @@ public SampleMetaData(int pSampleMetaDataNum)
 public void init()
 {
 
-    
+
 }// end of SampleMetaData::init
 //-----------------------------------------------------------------------------
 

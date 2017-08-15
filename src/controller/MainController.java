@@ -41,6 +41,7 @@ import view.GUIDataSet;
 import hardware.MainHandler;
 import hardware.PeakData;
 import hardware.PeakMapData;
+import hardware.PeakSnapshotData;
 import hardware.SampleMetaData;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -66,6 +67,7 @@ import view.MainView;
 import view.Map3D;
 import view.Map3DGraph;
 import view.Trace;
+import view.ZoomGraph;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -82,7 +84,7 @@ public class MainController implements EventHandler, Runnable
     private MainHandler mainHandler;
 
     private PeakData peakData;
-
+    private PeakSnapshotData peakSnapshotData;
     private PeakMapData peakMapData;
 
     private MainDataClass mainDataClass;
@@ -120,6 +122,8 @@ public class MainController implements EventHandler, Runnable
 
     private int numDataBuffers;
     private DataTransferIntBuffer dataBuffers[];
+    private int numSnapshotBuffers;
+    private DataTransferIntMultiDimBuffer snapshotBuffers[];
     private int numMapBuffers;
     private DataTransferIntMultiDimBuffer mapBuffers[];
 
@@ -159,6 +163,7 @@ public void init()
     peakData = new PeakData(0);
 
     peakMapData = new PeakMapData(0, 48); //debug mks -- this needs to be loaded from config file!!!
+    peakSnapshotData = new PeakSnapshotData(0, 128);
 
     mainDataClass = new MainDataClass();
     mainDataClass.init();
@@ -280,6 +285,9 @@ private void setUpDataTransferBuffers()
     //create a buffer for each trace
     createAndAssignDataBuffersToTraces();
 
+    //create a buffer for each snapshot/zoom graph
+    createAndAssignDataBuffersToSnapshots();
+
     //create a buffer for each map
     createAndAssignDataBuffersToMaps();
 
@@ -287,6 +295,9 @@ private void setUpDataTransferBuffers()
 
     //link each channel with the appropriate data buffer
     setChannelDataBuffers();
+
+    //link each device with the appropriate snapshot buffer
+    setDeviceSnapshotDataBuffers();
 
     //link each device with the appropriate map buffer
     setDeviceMapDataBuffers();
@@ -335,6 +346,52 @@ private void createAndAssignDataBuffersToTraces()
     }
 
 }// end of MainController::createAndAssignDataBuffersToTraces
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::createAndAssignDataBuffersToSnapshots
+//
+// Scans through all snapshot graphs and creates a DataTransferIntBuffer for
+// each one.
+//
+
+private void createAndAssignDataBuffersToSnapshots()
+{
+
+    ArrayList<Object> snaps = new ArrayList<>();
+
+    //prepare to iterate through all traces
+    mainView.scanForGUIObjectsOfAType(snaps, "zoom graph");
+
+    numSnapshotBuffers = snaps.size();
+    snapshotBuffers = new DataTransferIntMultiDimBuffer[numSnapshotBuffers];
+
+    int i = 0;
+
+    ListIterator iter = snaps.listIterator();
+
+    while(iter.hasNext()){
+
+        ZoomGraph zoomGraph = (ZoomGraph)iter.next();
+
+        snapshotBuffers[i] = new DataTransferIntMultiDimBuffer(
+              200, //WIP HSS// both of these need to be determined in a different way
+              128,
+              zoomGraph.getPeakType());
+        snapshotBuffers[i].init(0, -1);//WIP HSS// see if another way to do this
+        snapshotBuffers[i].reset();
+
+        zoomGraph.setSnapshotBuffer(snapshotBuffers[i]);
+
+        snapshotBuffers[i].chartGroupNum = zoomGraph.getChartGroupNum();
+        snapshotBuffers[i].chartNum = zoomGraph.getChartNum();
+        snapshotBuffers[i].graphNum = zoomGraph.getGraphNum();
+
+        i++;
+
+    }
+
+}// end of MainController::createAndAssignDataBuffersToSnapshots
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -584,6 +641,45 @@ private ArrayList<PeakData> getChannelList()
     return(chList);
 
 }// end of MainController::getChannelList
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::setDeviceSnapshotDataBuffers
+//
+// Scans through all devices and links each to the DataTransferIntBuffer
+// to which the map associated with that device has been linked. This allows
+// data from a device to be passed to its associated snapshot.
+//
+// wip mks -- check if the target link object is actually a snap object of some
+// type and generate the error in that case as well
+//
+
+private void setDeviceSnapshotDataBuffers()
+{
+
+    //traverse all the devices
+    for(Device device : mainHandler.getDevices()){
+
+        SampleMetaData snapshotMeta = device.getSnapshotMeta();
+
+        try{
+            device.setSnapshotDataBuffer(mainView.getGraph(
+               snapshotMeta.chartGroup, snapshotMeta.chart,
+                   snapshotMeta.graph).getSnapshotBuffer());
+        }catch(NullPointerException e){
+
+            GUITools.displayErrorMessage(
+                "Error Linking Snapshot Data Buffer/Snapshot to Device...\n"
+                + "Device: " + snapshotMeta.deviceNum + "\n"
+                + "Channel: " + snapshotMeta.channelNum + "\n"
+                + "Chart Group: " + snapshotMeta.chartGroup + "\n"
+                + "Chart : " + snapshotMeta.chart + "\n"
+                + "Graph : " + snapshotMeta.graph + "\n"
+                ,null);
+        }
+    }
+
+}// end of MainController::setDeviceSnapshotDataBuffers
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -877,6 +973,8 @@ private void displayDataFromDevices()
 
     displayDataFromDeviceChannels();
 
+    displayDataFromDeviceSnapshots();
+
     displayDataFromDeviceMaps();
 
     mainView.updateAnnotationGraphs(0);
@@ -926,6 +1024,38 @@ private void displayDataFromDeviceChannels()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::displayDataFromDeviceSnapshots
+//
+// Handles data display of snapshots from all channels of all devices
+//
+
+private void displayDataFromDeviceSnapshots()
+{
+
+    //prepares to scan through all channels
+    mainHandler.initForPeakScan();
+
+    //get peak data for each channel and insert it into the transfer buffer
+    for (Device device : mainHandler.getDevices()){
+        if (device.getPeakSnapshotDataAndReset(peakSnapshotData) == true){
+            peakSnapshotData.meta.dataSnapshotBuffer
+                                .putData(peakSnapshotData.peakArray,
+                                            peakSnapshotData.peakMetaArray);//DEBUG HSS//
+        }
+    }
+
+    //update display objects from transfer buffers
+    for(DataTransferIntMultiDimBuffer snapBuffer: snapshotBuffers){
+        //pace this with timer to control scan speed
+        snapBuffer.incPutPtrAndSetReadyAfterDataFill();
+        //update trace with all data changes
+        mainView.updateAnnotationGraphs(snapBuffer.chartGroupNum);
+    }
+
+}// end of MainController::displayDataFromDeviceSnapshots
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::displayDataFromDeviceMaps
 //
 // Handles data display of peak data from all map datasets from all devices.
@@ -939,7 +1069,7 @@ private void displayDataFromDeviceMaps()
     //get peak map data for each device and insert it into the transfer buffer
 
     for (Device device : mainHandler.getDevices()){
-        if (device.getPeakDataAndReset(peakMapData) == true){
+        if (device.getPeakMapDataAndReset(peakMapData) == true){
             peakMapData.meta.dataMapBuffer.putData(
                             peakMapData.peakArray, peakMapData.peakMetaArray);
         }

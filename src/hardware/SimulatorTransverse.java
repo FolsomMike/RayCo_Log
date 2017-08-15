@@ -128,16 +128,17 @@ public int handleGetRunData()
     for(int i=0; i<activeChannels.length; i+=2) {
         posSignals[i] = simulatePositiveSignal();
         negSignals[i] = simulateNegativeSignal();
-
+        posSignals[i] = 130; negSignals[i] = 125;
+        if (count++==500) { posSignals[i] = 134; negSignals[i] = 50; count=0; }//DEBUG HSS//
         //DEBUG HSS// uncomment this line to test posSignals[i] = posTest; negSignals[i] = negTest;
-        if (count++==100) { posTest++; negTest++; count=0;}
-        if (posTest>=255) { posTest = 128; } if (negTest<=0) { negTest = 127; }
+        //if (count++==100) { posTest++; negTest++; count=0;}//DEBUG HSS//
+        if (posTest>=255) { posTest = 128; } if (negTest<=0) { negTest = 127; }//DEBUG HSS//
         clockMap[activeChannels[i].getClockPosition()]
                 = simulateMapData(posSignals[i], negSignals[i]);
     }
 
     //DEBUG HSS// remove
-    /*if (clockMap[47]>11) {
+    /*if (clockMap[47]>20) {
         System.out.println("Pos signal: " + posSignals[0] + " --- "
                             + "Neg signal: " + negSignals[0] + " --- "
                             + "Clock map: " + clockMap[47]);
@@ -145,9 +146,10 @@ public int handleGetRunData()
     }*/
     //DEBUG HSS//
 
+    int snapshot[] = simulateSnapshot();
 
     //send run packet -- sendPacket appends Rabbit's checksum
-    int p = 0, n = 0, m = 0;
+    int p = 0, n = 0, m = 0, s=0;
     sendPacket(Device.GET_RUN_DATA_CMD,
 
         (byte)(rbtRunDataPktCount++ &0xff), //rabbit rundata pkt count
@@ -222,29 +224,77 @@ public int handleGetRunData()
         //Address of last A/D value stored in Snapshot buffer
         (byte)0x00,
 
-        //Snapshot buffer -- //WIP HSS// -- use better values
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00
+        //Snapshot buffer
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff),
+        (byte)(snapshot[s++]& 0xff), (byte)(snapshot[s++]& 0xff)
         );
 
     return(result);
@@ -258,7 +308,7 @@ public int handleGetRunData()
 // Compares the two signals passed in and returns the greater of the two.
 //
 
-public int simulateMapData(int pPosSignal, int pNegSignal)
+private int simulateMapData(int pPosSignal, int pNegSignal)
 {
 
     pPosSignal = Math.abs(pPosSignal -= AD_ZERO_OFFSET);
@@ -267,6 +317,39 @@ public int simulateMapData(int pPosSignal, int pNegSignal)
     return pPosSignal>pNegSignal?pPosSignal:pNegSignal;
 
 }// end of SimulatorTransverse::simulateMapData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimulatorTransverse::simulateSnapshot
+//
+// Creates a simulated data stream representing a snapshot of a peak.
+//
+
+private int[] simulateSnapshot()
+{
+
+    int data[] = new int[128];
+
+    for(int i=0; i<data.length; i++){
+        data[i] = (int)(5 * Math.random());
+    }
+
+    int spikeLoc = (int)(40 + 20 * Math.random());
+
+    data[spikeLoc-2] = 20 + (int)(5 * Math.random());
+    data[spikeLoc] = - 20 - (int)(5 * Math.random());
+    data[spikeLoc+2] = 20 + (int)(5 * Math.random());
+
+    //DEBUG HSS//
+    //int data[] = new int[128]; for(int i=0; i<data.length; i++){ data[i] = 0; }
+    //data[10] = 10; data[11] = 10; data[12] = 10; data[13] = 10;
+    //data[90] = 150; data[91] = 150; data[92] = 150; data[93] = 150;
+    //data[120] = -10; data[121] = -10; data[122] = -10; data[123] = -10;
+    //DEBUG HSS// end
+
+    return(data);
+
+}// end of SimulatorTransverse::simulateSnapshot
 //-----------------------------------------------------------------------------
 
 }//end of class SimulatorTransverse

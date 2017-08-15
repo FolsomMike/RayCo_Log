@@ -19,6 +19,8 @@ package view;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.ListIterator;
+import model.DataSetIntMultiDim;
+import model.DataTransferIntBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -26,8 +28,8 @@ import model.IniFile;
 // class ZoomGraph
 //
 
-class ZoomGraph extends Graph{
-        
+public class ZoomGraph extends Graph{
+
     private final ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
 
     private int annoX = 0;
@@ -35,7 +37,17 @@ class ZoomGraph extends Graph{
     private final int annoWidth = 100, annoHeight = 50;
     private int gap;
     private int maxNumZoomBoxes;
-    
+
+    DataSetIntMultiDim snapshotDataSet;
+
+    //length is the x axis, width is the y axis (o'clock position)
+    private int lengthInDataPoints;
+    public int getLengthInDataPoints(){return(lengthInDataPoints);}
+    private int widthInDataPoints;
+    public int getWidthInDataPoints(){return(widthInDataPoints);}
+    private int bufferLengthInDataPoints;
+    public int getBufferLengthInDataPoints(){return(bufferLengthInDataPoints);}
+
 //-----------------------------------------------------------------------------
 // ZoomGraph::ZoomGraph (constructor)
 //
@@ -47,7 +59,7 @@ public ZoomGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
 
     super(pChartGroupNum, pChartNum, pGraphNum,
                                      pWidth, pHeight, pChartInfo, pConfigFile);
-        
+
 }//end of Chart::ZoomGraph (constructor)
 //-----------------------------------------------------------------------------
 
@@ -62,7 +74,9 @@ public void init()
 {
 
     super.init();
-    
+
+    snapshotDataSet = new DataSetIntMultiDim(128); //WIP HSS// determine another way
+
 }// end of ZoomGraph::init
 //-----------------------------------------------------------------------------
 
@@ -77,11 +91,11 @@ public void paintComponent (Graphics g)
     super.paintComponent(g);
 
     ListIterator iter = zoomBoxes.listIterator();
-    
+
     while(iter.hasNext()){
         ((ZoomBox)iter.next()).paint((Graphics2D)g);
     }
-        
+
 }// end of ZoomGraph::paintComponent
 //-----------------------------------------------------------------------------
 
@@ -91,22 +105,24 @@ public void paintComponent (Graphics g)
 // A ZoomBox to the list so it will be displayed on the graph.
 //
 
-public void addZoomBox(int pZoomBoxNum, int[] pDataSet)
+public void addZoomBox(int pZoomBoxNum)
 {
 
     zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, pZoomBoxNum,
                 annoX - graphInfo.scrollOffset, annoY, annoWidth, annoHeight));
 
     annoX += annoWidth + gap; //prepare x to add next anno object to the right
-    
-    zoomBoxes.get(zoomBoxes.size()-1).setData(pDataSet);
-    
+
+    //WIP HSS// this probably bad, fix it
+    while(snapshotBuffer.getDataChange(snapshotDataSet) != 0){
+       zoomBoxes.get(zoomBoxes.size()-1).setData(snapshotDataSet.d);
+    }
+
     zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
 
     //limit number of boxes
-    if (zoomBoxes.size() > maxNumZoomBoxes){ 
-        zoomBoxes.remove(0); }
-    
+    if (zoomBoxes.size() > maxNumZoomBoxes){ zoomBoxes.remove(0); }
+
 }// end of ZoomGraph::addZoomBox
 //-----------------------------------------------------------------------------
 
@@ -119,11 +135,11 @@ public void addZoomBox(int pZoomBoxNum, int[] pDataSet)
 @Override
 public void resetAll()
 {
-    
+
     super.resetAll();
 
     annoX = 0; //adding anno objects starts over at left edge
-    
+
 }// end of ZoomGraph::resetAll
 //-----------------------------------------------------------------------------
 
@@ -137,17 +153,17 @@ public void resetAll()
 void loadConfigSettings()
 {
 
-    configFileSection = 
+    configFileSection =
             "Chart Group " + chartGroupNum + " Chart " + chartNum
                                             + " Graph " + graphNum;
 
     super.loadConfigSettings();
 
     gap = configFile.readInt(configFileSection, "gap between annotations", 4);
-    
+
     maxNumZoomBoxes = configFile.readInt(
             configFileSection, "maximum number of annotation objects", 20);
-    
+
 }// end of ZoomGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
 
