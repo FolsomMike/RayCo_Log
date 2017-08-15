@@ -128,23 +128,9 @@ public int handleGetRunData()
     for(int i=0; i<activeChannels.length; i+=2) {
         posSignals[i] = simulatePositiveSignal();
         negSignals[i] = simulateNegativeSignal();
-        posSignals[i] = 130; negSignals[i] = 125;
-        if (count++==500) { posSignals[i] = 134; negSignals[i] = 50; count=0; }//DEBUG HSS//
-        //DEBUG HSS// uncomment this line to test posSignals[i] = posTest; negSignals[i] = negTest;
-        //if (count++==100) { posTest++; negTest++; count=0;}//DEBUG HSS//
-        if (posTest>=255) { posTest = 128; } if (negTest<=0) { negTest = 127; }//DEBUG HSS//
         clockMap[activeChannels[i].getClockPosition()]
                 = simulateMapData(posSignals[i], negSignals[i]);
     }
-
-    //DEBUG HSS// remove
-    /*if (clockMap[47]>20) {
-        System.out.println("Pos signal: " + posSignals[0] + " --- "
-                            + "Neg signal: " + negSignals[0] + " --- "
-                            + "Clock map: " + clockMap[47]);
-        System.out.println("----------------------------------------------");
-    }*/
-    //DEBUG HSS//
 
     int snapshot[] = simulateSnapshot();
 
