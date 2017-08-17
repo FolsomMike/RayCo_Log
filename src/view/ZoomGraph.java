@@ -138,9 +138,12 @@ public void addZoomBox(int pSnapshotIndex)
     annoX += annoWidth + gap; //prepare x to add next anno object to the right
 
     //use the last data set collected if index out of bounds
-    int [] zoomData;
-    if (pSnapshotIndex>=data.size()) { zoomData = dataSet.d; }
-    else { zoomData = data.get(pSnapshotIndex); }
+    int [] zoomData; int arrowX; int arrowY=1;
+    if (pSnapshotIndex>=data.size()) {
+        zoomData = data.get(data.size()-1); arrowX = data.size()-1;
+    }
+    else { zoomData = data.get(pSnapshotIndex); arrowX = pSnapshotIndex; }
+    zoomBoxes.get(zoomBoxes.size()-1).setArrowLocation(arrowX, arrowY);
     zoomBoxes.get(zoomBoxes.size()-1).setData(zoomData);
 
     zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());

@@ -19,7 +19,6 @@ package view;
 
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
-import model.DataTransferIntBuffer;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -35,13 +34,21 @@ class ZoomBox{
 
     int data[];
 
+
+    //WIP HSS// all of these should be read from inifile (except x&y)
+    private boolean hasArrows = true;
+    private int arrowX = -1;
+    private int arrowY = -1;
+    private int arrowWidth = 10;
+    private int arrowHeight = 6;
+
 //-----------------------------------------------------------------------------
 // ZoomBox::ZoomBox (constructor)
 //
 //
 
 public ZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
-                      int pZoomBoxNum, int pX, int pY, int pWidth, int pHeight)
+                int pZoomBoxNum, int pX, int pY, int pWidth, int pHeight)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum; graphNum = pGraphNum;
@@ -73,6 +80,24 @@ public void setData(int[] pData)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ZoomBox::setArrowLocation
+//
+// The point of the arrow is set to the x,y location.
+//
+// Note that paint() needs to be called after this function for the changes to
+// take affect.
+//
+
+public void setArrowLocation(int pX, int pY)
+{
+
+    arrowX = pX;
+    arrowY = pY;
+
+}// end of ZoomBox::setArrowLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ZoomBox::paint
 //
 
@@ -98,9 +123,42 @@ public void paint(Graphics2D pG2)
         pG2.drawLine(x+i-1, y1, x+i, y2);
     }
 
+    drawArrow(pG2);
+
 }// end of ZoomBox::paint
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ZoomBox::drawArrow
+//
+// Draws the arrow the canvas.
+//
+
+public void drawArrow(Graphics2D pG2)
+{
+
+    //draw arrow
+    int[] xPoints = {arrowX-arrowWidth/2,   arrowX,     arrowX+arrowWidth/2};
+    int[] yPoints = {arrowY+arrowHeight,    arrowY,     arrowY+arrowHeight};
+
+    //if left or right points lie outside the zoom box, split them in
+    //half so that users can easily discern which arrow belongs to which box
+    if (xPoints[0]<x) {
+        xPoints[0] = arrowX; xPoints[2] += arrowWidth/2;
+    }
+    else if (xPoints[2]>x+width) {
+        xPoints[2] = arrowX; xPoints[0] += arrowWidth/2;
+    }
+
+    pG2.setColor(Color.BLACK);
+    pG2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_ON);
+
+
+    pG2.fillPolygon(xPoints, yPoints, 3);
+
+}// end of ZoomBox::drawArrow
+//-----------------------------------------------------------------------------
 
 }//end of class ZoomBox
 //-----------------------------------------------------------------------------
