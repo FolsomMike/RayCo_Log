@@ -33,18 +33,21 @@ public class Trace{
     private IniFile configFile;
 
     private GraphInfo graphInfo;
-    
-    DataSetInt dataSet = new DataSetInt();    
-    
+
+    DataSetInt dataSet = new DataSetInt();
+
     DataTransferIntBuffer dataBuffer;
     public void setDataBuffer(DataTransferIntBuffer pV) { dataBuffer = pV; }
     public DataTransferIntBuffer getDataBuffer() { return(dataBuffer); }
-    
+
+    ArrayList<Integer> data = new ArrayList<>(10000);
+    ArrayList<Integer> dataFlags = new ArrayList<>(10000);
+
     private String title, shortTitle, objectType;
-    public Color traceColor;    
+    public Color traceColor;
     public String colorKeyText;
     public int colorKeyXPos;
-    public int colorKeyYPos;    
+    public int colorKeyYPos;
     public int chartGroupNum, chartNum, graphNum, traceNum;
     private int width, height;
     Color backgroundColor;
@@ -56,7 +59,7 @@ public class Trace{
     public int getPrevX(){ return prevX; }
     private int xMax, yMax;
     private int numDataPoints;
-    private double xScale = 1.0;    
+    private double xScale = 1.0;
     private double yScale = 1.0;
     private int offset = 0;
     private int baseLine = 0;
@@ -70,24 +73,24 @@ public class Trace{
     int gridXSpacing = 10;
     int gridYSpacing;
     int gridY1;
-    
+
     //simple getters & setters
-    
+
     public int getWidth(){ return(width); }
     public int getPeakType(){ return(peakType); }
     public int getNumDataPoints() { return(numDataPoints); }
-    
+
     //constants
-    
+
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
 
     private static final Color VERTICAL_BAR_COLOR = Color.DARK_GRAY;
     private static final Color DEFAULT_CIRCLE_COLOR = Color.BLACK;
-    
+
     public static final boolean CONNECT_POINTS = true;
     public static final boolean DO_NOT_CONNECT_POINTS = false;
-    
+
 //-----------------------------------------------------------------------------
 // Trace::Trace (constructor)
 //
@@ -123,11 +126,11 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     graphInfo = pGraphInfo; configFile = pConfigFile;
 
     gridY1 = gridYSpacing-1; //do math once for repeated use
-    
+
     loadConfigSettings();
 
     xMax = width - 1; yMax = height - 1;
-        
+
 }// end of Trace::init
 //-----------------------------------------------------------------------------
 
@@ -144,9 +147,9 @@ public void updateDimensions(int pNewWidth, int pNewHeight)
 {
 
     width = pNewWidth; height = pNewHeight;
-    
+
     xMax = width - 1; yMax = height - 1;
-            
+
 }// end of Trace::updateDimensions
 //-----------------------------------------------------------------------------
 
@@ -168,29 +171,29 @@ private void loadConfigSettings()
     shortTitle = configFile.readString(
                             section, "short title", "trace" + (traceNum + 1));
 
-    objectType = configFile.readString(section, "object type", "trace");    
-    
-    traceColor = configFile.readColor(section, "color", Color.BLACK);    
-    
+    objectType = configFile.readString(section, "object type", "trace");
+
+    traceColor = configFile.readColor(section, "color", Color.BLACK);
+
     colorKeyText = configFile.readString(section, "color key text", "hidden");
     colorKeyXPos = configFile.readInt(section, "color key x position", 0);
-    colorKeyYPos = configFile.readInt(section, "color key y position", 0);    
-        
+    colorKeyYPos = configFile.readInt(section, "color key y position", 0);
+
     int configWidth = configFile.readInt(section, "width", 0);
 
     if (configWidth > 0) width = configWidth; //override if > 0
-    
+
     int configHeight = configFile.readInt(section, "height", 0);
 
     if (configHeight > 0) height = configHeight; //override if > 0
 
     connectPoints = configFile.readBoolean(
                             section, "connect data points with line", false);
-    
+
     invertTrace = configFile.readBoolean(section, "invert trace", true);
 
     numDataPoints = configFile.readInt(section, "number of data points", width);
-    
+
     offset = configFile.readInt(section, "offset", 0);
     xScale = configFile.readDouble(section, "x scale", 1.0);
     yScale = configFile.readDouble(section, "y scale", 1.0);
@@ -199,10 +202,10 @@ private void loadConfigSettings()
     String peakTypeText = configFile.readString(
                                         section, "peak type", "catch highest");
     parsePeakType(peakTypeText);
-    
+
     leadDataPlotter = configFile.readBoolean(
-                                          section, "lead data plotter", true);    
-    
+                                          section, "lead data plotter", true);
+
 }// end of Trace::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -221,10 +224,10 @@ private void parsePeakType(String pValue)
          case "catch lowest" : peakType = CATCH_LOWEST;  break;
          default : peakType = CATCH_LOWEST;  break;
     }
-    
+
 }// end of Trace::parsePeakType
 //-----------------------------------------------------------------------------
-    
+
 //-----------------------------------------------------------------------------
 // Trace::setXScale
 //
@@ -305,12 +308,12 @@ public void setConnectPoints(boolean pValue)
 
 public void resetData()
 {
-    
+
     if (dataBuffer!=null) { dataBuffer.reset(); }
-    
+
     dataIndex = 0; gridTrack = 0;
     prevX = -1; prevY = Integer.MAX_VALUE;
-    
+
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
 
@@ -343,8 +346,8 @@ public boolean checkForMatch(GUIDataSet pGuiDataSet)
     return(
             (chartGroupNum == pGuiDataSet.chartGroupNum)
             && (chartNum == pGuiDataSet.chartNum)
-            && (graphNum == pGuiDataSet.graphNum) 
-            && (traceNum == pGuiDataSet.traceNum)            
+            && (graphNum == pGuiDataSet.graphNum)
+            && (traceNum == pGuiDataSet.traceNum)
             );
 
 }// end of Trace::checkForMatch
@@ -353,19 +356,27 @@ public boolean checkForMatch(GUIDataSet pGuiDataSet)
 //-----------------------------------------------------------------------------
 // Trace::paintTrace
 //
-// Draws the entire trace.
+// Draws the entire trace, drawing the grid as it goes.
 //
 
 public void paintTrace(Graphics2D pG2)
 {
 
     if(!visible) { return; }
-    
-    for(int i = 0; i<width-1; i++){
 
-//debug mks        paintSingleTraceDataPoint(pG2, i);
-        
+    int realX = prevX; prevX=0; //store prev x for use after repaint
+    int realY = prevY; prevY=0; //store prev x for use after repaint
+    int realGridTrack = gridTrack; gridTrack=0; //store for use after repaint
+    for(int i=0; i<width-1; i++){
+
+        if (i>=data.size()) { break; }
+
+        paintSingleTraceDataPoint(pG2, i, data.get(i), dataFlags.get(i));
+
     }
+    //restore so next data drawn in proper pos
+    prevX = realX; prevY = realY; gridTrack = realGridTrack;
+
 
 }// end of Trace::paintTrace
 //-----------------------------------------------------------------------------
@@ -382,26 +393,26 @@ public void paintTrace(Graphics2D pG2)
 
 public void drawGrid (Graphics2D pG2, int pX)
 {
-    
+
     pG2.setColor(gridColor);
 
     //adjust for any scrolling that has occurred
     int xAdj = pX - graphInfo.scrollOffset;
     int prevXAdj = prevX - graphInfo.scrollOffset;
 
-    for(int i=prevXAdj+1; i<=xAdj; i++){    
-        if (drawGridBaseline) { 
+    for(int i=prevXAdj+1; i<=xAdj; i++){
+        if (drawGridBaseline) {
             int y;
             if(invertTrace) { y=yMax; } else { y=0; }
             pG2.drawLine(i, y, i, y);
         }
-        
+
         if((++gridTrack) == 10){
             gridTrack = 0;
             for(int j=gridY1; j<yMax; j+=gridYSpacing){
-                pG2.drawLine(i, j, i, j);
+                pG2.drawLine(xAdj, j, xAdj, j);
             }
-        }        
+        }
     }
 
 }// end of Trace::drawGrid
@@ -421,8 +432,8 @@ public void drawGrid (Graphics2D pG2, int pX)
 public void scrollGraph (Graphics2D pG2, int pX)
 {
     //number of pixels to shift to bring pX back on the graph
-    int shiftAmt = pX - graphInfo.scrollOffset - xMax;
-    
+    /*int shiftAmt = pX - graphInfo.scrollOffset - xMax;
+
     //scroll the screen to the left
     pG2.copyArea(0, 0, width, height, -1 * shiftAmt, 0);
     //erase the line at the far right
@@ -430,8 +441,8 @@ public void scrollGraph (Graphics2D pG2, int pX)
     pG2.fillRect(width-shiftAmt, 0, shiftAmt, height);
 
     graphInfo.scrollOffset += shiftAmt;
-    graphInfo.lastScrollAmount = shiftAmt;
-    
+    graphInfo.lastScrollAmount = shiftAmt;*/ //DEBUG HSS//
+
 }// end of Trace::scrollGraph
 //-----------------------------------------------------------------------------
 
@@ -448,9 +459,9 @@ public void handleLeadPlotterActions (Graphics2D pG2, int pX)
 
     //scroll chart left if enabled and new point is off the chart
     if((pX - graphInfo.scrollOffset) > xMax){ scrollGraph(pG2, pX); }
-    
+
     drawGrid(pG2, pX);
-        
+
 }// end of Trace::handleLeadPlotterActions
 //-----------------------------------------------------------------------------
 
@@ -467,13 +478,13 @@ public void paintSingleTraceDataPoint(
 {
 
     if(!visible) { return; }
-    
+
     //calculate the x position in pixels
     int x = (int)Math.round(pDataIndex * xScale);
 
     //lead plotter invokes scrolling and decorating
     if (leadDataPlotter){ handleLeadPlotterActions(pG2, x); }
-    
+
     //adjust for any scrolling that has occurred before plotting
     int xAdj = x - graphInfo.scrollOffset;
     int prevXAdj = prevX - graphInfo.scrollOffset;
@@ -496,9 +507,9 @@ public void paintSingleTraceDataPoint(
         if(y > yMax){ y = 0; }
         else { y = yMax - y; }
     }
-    
+
     //draw between each two points
-    if(connectPoints) { 
+    if(connectPoints) {
         pG2.drawLine(prevXAdj, prevY, xAdj, y);
     }
     else{
@@ -506,7 +517,7 @@ public void paintSingleTraceDataPoint(
     }
 
     prevX = x; prevY = y;
-    
+
     //draw a circle on the datapoint if the CIRCLE flag is set
     if ((pFlags & DataTransferIntBuffer.CIRCLE) != 0){
         pG2.setColor(circleColor);
@@ -525,18 +536,22 @@ public void paintSingleTraceDataPoint(
 
 public void updateTrace(Graphics2D pG2)
 {
-    
+
     int r;
-    
+
     while((r = dataBuffer.getDataChange(dataSet)) != 0){
-            
+
+        //store for future use
+        data.add(dataSet.d);
+        dataFlags.add(dataSet.flags);
+
         paintSingleTraceDataPoint(pG2, dataIndex, dataSet.d, dataSet.flags);
 
         if(r == 1){ dataIndex++; }
         else if(r == -1){ dataIndex--; }
-        
+
     }
-        
+
 }// end of Trace::updateTrace
 //-----------------------------------------------------------------------------
 
@@ -548,12 +563,12 @@ public void updateTrace(Graphics2D pG2)
 // add itself to the ArrayList pObjectList and query its own children.
 //
 
-public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
                                                            String pObjectType)
 {
 
     if (objectType.equals(pObjectType)){ pObjectList.add(this); }
-    
+
 }// end of Trace::scanForGUIObjectsOfAType
 //-----------------------------------------------------------------------------
 

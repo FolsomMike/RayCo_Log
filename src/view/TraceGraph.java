@@ -29,7 +29,7 @@ import model.IniFile;
 //
 
 public class TraceGraph extends Graph{
-    
+
     private int numTraces;
     private Trace[] traces;
 
@@ -39,7 +39,7 @@ public class TraceGraph extends Graph{
     private boolean drawGridBaseline;
 
     private boolean invertGraph;
-    
+
 //-----------------------------------------------------------------------------
 // TraceGraph::TraceGraph (constructor)
 //
@@ -63,11 +63,11 @@ public void init()
 {
 
     super.init();
-        
+
     setOpaque(true);
-    setBackground(backgroundColor);    
+    setBackground(backgroundColor);
     addTraces();
-    
+
 }// end of TraceGraph::init
 //-----------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ public void updateDimensions()
     for (Trace trace : traces) {
         trace.updateDimensions(getHeight(), getWidth());
     }
-        
+
 }// end of TraceGraph::updateDimensions
 //-----------------------------------------------------------------------------
 
@@ -107,23 +107,23 @@ void loadConfigSettings()
                                                         + " Graph " + graphNum;
 
     super.loadConfigSettings();
-    
+
     numTraces = configFile.readInt(configFileSection, "number of traces", 0);
-    
+
     gridColor = configFile.readColor(
                                  configFileSection, "grid color", Color.BLACK);
-    
+
     drawGridBaseline = configFile.readBoolean(
                                configFileSection, "draw grid baseline", false);
-    
+
     invertGraph = configFile.readBoolean(
                                       configFileSection, "invert graph", true);
-    
+
     int numVerGridDivisions = configFile.readInt(
                    configFileSection, "number of vertical grid divisions", 10);
-    
+
     gridYSpacing = height / numVerGridDivisions;
-    
+
 }// end of Chart::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ public void paintComponent (Graphics g)
 {
 
     super.paintComponent(g);
-    
+
     Graphics2D g2 = (Graphics2D) g;
 
     if (drawGridBaseline){
@@ -182,7 +182,7 @@ public void paintComponent (Graphics g)
 @Override
 public void paintChildren(Graphics2D pG2)
 {
-    
+
     for (Trace trace : traces) { trace.paintTrace(pG2); }
 
 }// end of TraceGraph::paintChildren
@@ -213,7 +213,7 @@ public void paintSingleTraceDataPoint(int pTrace, int pIndex)
 @Override
 public void updateChild(int pChildNum)
 {
-    
+
     traces[pChildNum].updateTrace((Graphics2D) getGraphics());
 
 }// end of TraceGraph::updateChild
@@ -262,7 +262,7 @@ public void resetAll()
 {
 
     super.resetAll();
-    
+
     for (Trace trace : traces) { trace.resetData(); }
 
 }// end of TraceGraph::resetAll
@@ -277,7 +277,7 @@ public void resetAll()
 
 public void resetAllChildrenData()
 {
-    
+
     for (Trace trace : traces) { trace.resetData(); }
 
 }// end of TraceGraph::resetAllChildrenData
@@ -316,7 +316,7 @@ public void setChildConnectPoints(int pChildNum, boolean pValue)
     if (pChildNum < 0 || pChildNum >= traces.length){ return; }
 
     traces[pChildNum].setConnectPoints(pValue);
-    
+
 }// end of TraceGraph::setChildConnectPoints
 //-----------------------------------------------------------------------------
 
@@ -346,7 +346,7 @@ public void setChildYScale(int pChildNum, double pScale)
 @Override
 public void setChildOffset(int pChildNum, int pOffset)
 {
-    
+
     if (pChildNum < 0 || pChildNum >= traces.length){ return; }
 
     traces[pChildNum].setOffset(pOffset);
@@ -364,7 +364,7 @@ public void setChildOffset(int pChildNum, int pOffset)
 @Override
 public void setChildBaseLine(int pChildNum, int pBaseLine)
 {
-    
+
     if (pChildNum < 0 || pChildNum >= traces.length){ return; }
 
     traces[pChildNum].setBaseLine(pBaseLine);
@@ -381,7 +381,7 @@ public void setChildBaseLine(int pChildNum, int pBaseLine)
 @Override
 public void setAllChildrenXScale(double pScale)
 {
-    
+
     for (Trace trace : traces) { trace.setXScale(pScale); }
 
 }// end of TraceGraph::setAllChildrenXScale
@@ -396,10 +396,10 @@ public void setAllChildrenXScale(double pScale)
 public Trace getTrace(int pGraph, int pTrace)
 {
 
-    if (pTrace < 0 || pTrace >= traces.length){ return(null); }            
-    
+    if (pTrace < 0 || pTrace >= traces.length){ return(null); }
+
     return( traces[pTrace] );
-    
+
 }// end of TraceGraph::getTrace
 //-----------------------------------------------------------------------------
 
@@ -413,13 +413,13 @@ public Trace getTrace(int pGraph, int pTrace)
 //
 
 @Override
-public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList, 
+public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
                                                            String pObjectType)
 {
-    
+
     super.scanForGUIObjectsOfAType(pObjectList, pObjectType);
-    
-    for (Trace trace : traces) { 
+
+    for (Trace trace : traces) {
         trace.scanForGUIObjectsOfAType(pObjectList, pObjectType);
     }
 
