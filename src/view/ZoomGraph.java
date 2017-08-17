@@ -20,7 +20,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import model.DataSetIntMultiDim;
-import model.DataTransferIntBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -33,12 +32,16 @@ public class ZoomGraph extends Graph{
     private final ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
 
     private int annoX = 0;
+    public int getNextBoxStartX() { return annoX; }
+    public int getNextBoxEndX() { return annoX+annoWidth+gap; }
     private final int annoY = 10;
-    private final int annoWidth = 100, annoHeight = 50;
+    private final int annoWidth = 128, annoHeight = 50; //WIP HSS// read in from ini file
     private int gap;
     private int maxNumZoomBoxes;
 
-    DataSetIntMultiDim snapshotDataSet;
+    ArrayList<int[]> data = new ArrayList<>(10000);
+    ArrayList<Integer> dataFlags = new ArrayList<>(10000);
+    DataSetIntMultiDim dataSet;
 
     //length is the x axis, width is the y axis (o'clock position)
     private int lengthInDataPoints;
@@ -75,7 +78,7 @@ public void init()
 
     super.init();
 
-    snapshotDataSet = new DataSetIntMultiDim(128); //WIP HSS// determine another way
+    dataSet = new DataSetIntMultiDim(128); //WIP HSS// determine another way
 
 }// end of ZoomGraph::init
 //-----------------------------------------------------------------------------
@@ -100,23 +103,45 @@ public void paintComponent (Graphics g)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ZoomGraph::addZoomBox
+// ZoomGraph::retrieveDataChanges
 //
-// A ZoomBox to the list so it will be displayed on the graph.
+// Snags all of the data changes in the buffer.
 //
 
-public void addZoomBox(int pZoomBoxNum)
+public void retrieveDataChanges()
 {
 
-    zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, pZoomBoxNum,
+    while(snapshotBuffer.getDataChange(dataSet) != 0){
+
+        //store for future use -- clone used so that all objects in data
+        //do not point to dataSet object
+        data.add(dataSet.d.clone());
+
+    }
+
+}// end of ZoomGraph::retrieveDataChanges
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::addZoomBox
+//
+// Adds a ZoomBox to the graph at pX, using the snapshot found at the index for
+// data.
+//
+
+public void addZoomBox(int pSnapshotIndex)
+{
+
+    zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
                 annoX - graphInfo.scrollOffset, annoY, annoWidth, annoHeight));
 
     annoX += annoWidth + gap; //prepare x to add next anno object to the right
 
-    //WIP HSS// this probably bad, fix it
-    while(snapshotBuffer.getDataChange(snapshotDataSet) != 0){
-       zoomBoxes.get(zoomBoxes.size()-1).setData(snapshotDataSet.d);
-    }
+    //use the last data set collected if index out of bounds
+    int [] zoomData;
+    if (pSnapshotIndex>=data.size()) { zoomData = dataSet.d; }
+    else { zoomData = data.get(pSnapshotIndex); }
+    zoomBoxes.get(zoomBoxes.size()-1).setData(zoomData);
 
     zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
 

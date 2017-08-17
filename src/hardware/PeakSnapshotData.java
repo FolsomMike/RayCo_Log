@@ -30,6 +30,7 @@ public SampleMetaData meta;
 
 public int[] peakArray;
 public int[] peakMetaArray;
+public int peak;
 
 //-----------------------------------------------------------------------------
 // PeakSnapshotData::PeakSnapshotData (constructor)

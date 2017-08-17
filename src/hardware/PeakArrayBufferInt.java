@@ -36,6 +36,7 @@ public class PeakArrayBufferInt
 
     int[] peakArray;
     int[] peakArrayReset;
+    public int peak = 0;
 
     final int peakArrayBufferNum;
     final int arraySize;
@@ -77,6 +78,22 @@ public synchronized void catchPeak(int[] pNewData)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// PeakArrayBufferInt::catchPeak
+//
+// This method must be overridden by subclasses to provide the specific
+// comparison to a catch the desire type of peak, such as the highest value,
+// lowest value, closest to a target value, etc.
+//
+
+public synchronized void catchPeak(int pNewPeak, int[] pNewData)
+{
+
+    // This method must be overridden by subclasses.
+
+}// end of PeakArrayBufferInt::catchPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // PeakArrayBufferInt::setPeak
 //
 // Forces peak array to pValue.
@@ -102,7 +119,7 @@ public synchronized void reset()
 {
 
     System.arraycopy(peakArrayReset, 0, peakArray, 0, arraySize);
-
+    peak = 0;
     peakUpdated = false;
 
 }// end of PeakArrayBufferInt::reset

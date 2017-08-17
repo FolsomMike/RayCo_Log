@@ -317,16 +317,19 @@ public void collectData()
         int clockMapIndex = index+32;
         int snapshotIndex = clockMapIndex+49;
 
+        int peak=0;
         for(Channel channel : channels){
 
             data = getUnsignedShortFromPacket(packet, index);
-            data = Math.abs(data -= AD_ZERO_OFFSET);
+            data = Math.abs(data - AD_ZERO_OFFSET);
             channel.catchPeak(data);
             index+=2; //skip two because short is 2 bytes
 
+            if (data>peak) { peak=data; }
+
         }
 
-        extractSnapshotData(packet, snapshotIndex);
+        extractSnapshotData(packet, snapshotIndex, peak);
 
         if(numClockPositions > 0) {
             extractMapDataAndCatchPeak(packet, clockMapIndex);
@@ -349,17 +352,17 @@ public void collectData()
 // bayte after the map data which was extracted.
 //
 
-public int extractSnapshotData(byte[] pPacket, int pIndex)
+public int extractSnapshotData(byte[] pPacket, int pIndex, int pPeak)
 {
 
     //WIP HSS// number of bytes needs to be specified in ini file
     int[] data = new int[128];
     for(int i=0; i<128; i++){ //WIP HSS// number of bytes needs to be specified in ini file
-        data[i] = getUnsignedByteFromPacket(pPacket, pIndex); //WIP HSS// -- divisor should be read from config file
+        data[i] = getUnsignedByteFromPacket(pPacket, pIndex)-AD_ZERO_OFFSET;
         pIndex++;
     }
 
-    peakSnapshotBuffer.setPeak(data);
+    peakSnapshotBuffer.catchPeak(pPeak, data);
 
     return(pIndex);
 

@@ -7,13 +7,13 @@
 *
 * This class handles storing of integer data by one thread in a circular buffer
 * for retrieval by another thread.
-* 
+*
 * For any location which has not yet had data stored, the first data value will
 * be stored without testing. Subsequent data stored at the same location will
 * be tested against the data already in the location and the new data will only
 * replace the existing data if the new data is a greater or lesser value,
 * depending on the type of peak being stored (high or low).
-* 
+*
 * If the put pointer is moved and the ready flag set but no valid data is yet
 * in place for that position, data from the previous position will be copied
 * if that data is valid (ready flag set). If that data is not valid, then the
@@ -26,10 +26,10 @@
 * Because data can be erased, at which time the put and get pointers might
 * end up pointing at the same place simultaneously, all data storage and
 * retrieval as well as pointer manipulation must be synchronized.
-* 
+*
 * The data buffer dataBuf is circular. When the end is reached, storage starts
 * back over at the beginning.
-* 
+*
 * Open Source Policy:
 *
 * This source code is Public Domain and free to any interested party.  Any
@@ -45,12 +45,12 @@ package model;
 
 public class DataTransferIntBuffer{
 
-    
+
 public int chartGroupNum = -1;
 public int chartNum = -1;
 public int graphNum = -1;
 public int traceNum = -1;
-    
+
 int putPointer;
 int getPointer;
 
@@ -65,7 +65,7 @@ synchronized public void setDefaultData(int pValue){ defaultData = pValue; }
 
 //simple getters & setters
 
-//constants    
+//constants
 
 public static final int CATCH_HIGHEST = 0;
 public static final int CATCH_LOWEST = 1;
@@ -92,7 +92,7 @@ public DataTransferIntBuffer(int pBufLength, int pPeakType)
 {
 
     bufLength = pBufLength; peakType = pPeakType;
-    
+
 }//end of DataTransferIntBuffer::DataTransferIntBuffer (constr)
 //-----------------------------------------------------------------------------
 
@@ -104,19 +104,19 @@ public DataTransferIntBuffer(int pBufLength, int pPeakType)
 
 public void init(int pDefaultDataValue)
 {
-    
+
     defaultData = pDefaultDataValue;
 
     if (peakType == CATCH_HIGHEST){
         DATA_RESET_VALUE = Integer.MIN_VALUE;
     }
     else{
-        DATA_RESET_VALUE = Integer.MAX_VALUE;        
+        DATA_RESET_VALUE = Integer.MAX_VALUE;
     }
 
     dataBuf = new int[bufLength];
     flags = new int[bufLength];
-    
+
 }// end of DataTransferIntBuffer::init
 //-----------------------------------------------------------------------------
 
@@ -132,7 +132,7 @@ synchronized public void reset()
     for(int i=0; i<dataBuf.length; i++){
         dataBuf[i] = DATA_RESET_VALUE;
     }
-        
+
     for(int k=0; k<dataBuf.length; k++){
         flags[k] = FLAG_RESET_VALUE;
     }
@@ -146,37 +146,44 @@ synchronized public void reset()
 //-----------------------------------------------------------------------------
 // DataTransferIntBuffer::putData
 //
-// Stores pData at location pointed by putPointer. If no data has been 
+// Stores pData at location pointed by putPointer. If no data has been
 // previously stored at that location, the location is simply set to pData.
-// If data has been stored at that row, it is only updated with pData if the 
+// If data has been stored at that row, it is only updated with pData if the
 // value in pData is greater or lesser than the old data, depending on the
 // state of peakIsHigher (true means higher data is a peak, false means lower
 // data is a peak).
 //
 
-synchronized public void putData(int pData)
+synchronized public boolean putData(int pData)
 {
-    
+
+    boolean stored = false;
+
     if ((flags[putPointer] & DATA_VALID) == 0){
 
         //no data previously stored, so store new data
         dataBuf[putPointer] = pData;
         flags[putPointer] |= DATA_VALID;
-        
+        stored = true;
+
     }else{
         //only store if new data is a new peak
         if(peakType == CATCH_HIGHEST){
             if (pData > dataBuf[putPointer]){
                 dataBuf[putPointer] = pData;
+                stored = true;
             }
         }
-        else{            
+        else{
             if (pData < dataBuf[putPointer]){
                 dataBuf[putPointer] = pData;
-            }            
-        }        
+                stored = true;
+            }
+        }
     }
-    
+
+    return stored;
+
 }// end of DataTransferIntBuffer::putData
 //-----------------------------------------------------------------------------
 
@@ -223,12 +230,12 @@ synchronized public void setFlagsAtCurrentInsertionPoint(int pFlags)
 
 synchronized public boolean getData(DataSetInt pDataSet)
 {
-    
+
     pDataSet.d = dataBuf[getPointer];
     pDataSet.flags = flags[getPointer];
-    
+
     return( (flags[getPointer] & DATA_VALID) != 0 );
-    
+
 }// end of DataTransferIntBuffer::getData
 //-----------------------------------------------------------------------------
 
@@ -256,32 +263,32 @@ synchronized public boolean getData(DataSetInt pDataSet)
 
 synchronized public int getDataChange(DataSetInt pDataSet)
 {
-        
+
     //if data at current location has been marked erased, return that data and
     //move pointer to previous location
-    
+
     if ((flags[getPointer] & DATA_ERASED) != 0){
-        flags[getPointer] &= ~DATA_ERASED; //remove ERASED flag    
+        flags[getPointer] &= ~DATA_ERASED; //remove ERASED flag
         pDataSet.d = dataBuf[getPointer];
-        pDataSet.flags = flags[getPointer];        
+        pDataSet.flags = flags[getPointer];
         getPointer--;
         if(getPointer < 0) getPointer = bufLength-1;
         return(-1);
     }
-        
+
     //if data at current location has been marked ready, return that data and
     //move pointer to next location
-    
-    if ((flags[getPointer] & DATA_READY) != 0){    
+
+    if ((flags[getPointer] & DATA_READY) != 0){
         pDataSet.d = dataBuf[getPointer];
-        pDataSet.flags = flags[getPointer];        
+        pDataSet.flags = flags[getPointer];
         getPointer++;
         if(getPointer >= bufLength) getPointer = 0;
         return(1);
-    }    
-            
+    }
+
     return(0); //no data newly ready or removed
-    
+
 }// end of DataTransferIntBuffer::getDataChange
 //-----------------------------------------------------------------------------
 
@@ -289,7 +296,7 @@ synchronized public int getDataChange(DataSetInt pDataSet)
 // DataTransferIntBuffer::incPutPtrAndSetReadyAfterDataFill
 //
 // Increments the putPointer. If the new value is past the end of the buffer,
-// it is restarted at zero. The data ready flag is set to signal that it is 
+// it is restarted at zero. The data ready flag is set to signal that it is
 // ready fro retrieval.
 //
 // Since the buffer is circular and data slots will be reused, the slot
@@ -305,31 +312,31 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
 {
 
     //if valid data present in current slot, mark ready and inc pointer
-    
+
     if ((flags[putPointer] & DATA_VALID) != 0){ //flag set if result != 0
         incrementPutPointerAndSetReadyFlag();
         return;
     }
-    
+
     //if previous buffer position has valid data, copy it to current position
-    
+
     //get pointer to previous slot
     int prevSlotPtr = putPointer-1;
     if(prevSlotPtr < 0) prevSlotPtr = bufLength-1;
-    
+
     if ((flags[prevSlotPtr] & DATA_VALID) != 0){ //flag set if result != 0
         dataBuf[putPointer] = dataBuf[prevSlotPtr];
         incrementPutPointerAndSetReadyFlag();
         return;
     }
-    
+
     //since previous data was also invalid, use the default values instead
 
     dataBuf[putPointer] = defaultData;
-    
+
     incrementPutPointerAndSetReadyFlag();
-    return;            
-    
+    return;
+
 }// end of DataTransferIntBuffer::incPutPtrAndSetReadyAfterDataFill
 //-----------------------------------------------------------------------------
 
@@ -355,15 +362,15 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
 
 private void incrementPutPointerAndSetReadyFlag()
 {
-    
+
     flags[putPointer] |= DATA_READY;
-    
-    putPointer++;    
+
+    putPointer++;
     if(putPointer >= bufLength) putPointer = 0;
 
     dataBuf[putPointer] = DATA_RESET_VALUE;
-    
-    flags[putPointer] = FLAG_RESET_VALUE;    
+
+    flags[putPointer] = FLAG_RESET_VALUE;
 
 }// end of DataTransferIntBuffer::incrementPutPointerAndSetReadyFlag
 //-----------------------------------------------------------------------------
@@ -387,19 +394,19 @@ private void incrementPutPointerAndSetReadyFlag()
 
 private void incrementPutPointer()
 {
-    
-    putPointer++;    
+
+    putPointer++;
     if(putPointer >= bufLength) putPointer = 0;
 
     for (int i=0; i<bufLength; i++){
         dataBuf[putPointer] = DATA_RESET_VALUE;
     }
-    
-    flags[putPointer] = FLAG_RESET_VALUE;    
-    
+
+    flags[putPointer] = FLAG_RESET_VALUE;
+
 }// end of DataTransferIntBuffer::incrementPutPointer
 //-----------------------------------------------------------------------------
-    
+
 //-----------------------------------------------------------------------------
 // DataTransferIntBuffer::decrementPutPointer
 //
@@ -412,7 +419,7 @@ synchronized public void decrementPutPointer()
 
     putPointer--;
     if(putPointer < 0) putPointer = bufLength-1;
-    
+
 }// end of DataTransferIntBuffer::decrementPutPointer
 //-----------------------------------------------------------------------------
 
@@ -431,7 +438,7 @@ synchronized public void decrementPutPointerAndSetErasedFlag()
     flags[putPointer] |= DATA_ERASED;
     putPointer--;
     if(putPointer < 0) putPointer = bufLength-1;
-    
+
 }// end of DataTransferIntBuffer::decrementPutPointerAndSetErasedFlag
 //-----------------------------------------------------------------------------
 
@@ -445,9 +452,9 @@ synchronized public void decrementPutPointerAndSetErasedFlag()
 synchronized public void incrementGetPointer()
 {
 
-    getPointer++;    
+    getPointer++;
     if(getPointer >= bufLength) getPointer = 0;
-    
+
 }// end of DataTransferIntBuffer::incrementGetPointer
 //-----------------------------------------------------------------------------
 
@@ -461,9 +468,9 @@ synchronized public void incrementGetPointer()
 synchronized public void decrementGetPointer()
 {
 
-    getPointer--;    
+    getPointer--;
     if(getPointer < 0) getPointer = bufLength-1;
-    
+
 }// end of DataTransferIntBuffer::decrementGetPointer
 //-----------------------------------------------------------------------------
 

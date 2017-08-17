@@ -161,9 +161,8 @@ public void init()
     loadConfigSettings();
 
     peakData = new PeakData(0);
-
     peakMapData = new PeakMapData(0, 48); //debug mks -- this needs to be loaded from config file!!!
-    peakSnapshotData = new PeakSnapshotData(0, 128);
+    peakSnapshotData = new PeakSnapshotData(0, 128); //DEBUG HSS// this needs to be loaded from config
 
     mainDataClass = new MainDataClass();
     mainDataClass.init();
@@ -995,21 +994,13 @@ private void displayDataFromDeviceChannels()
     mainHandler.initForPeakScan();
 
     //get peak data for each channel and insert it into the transfer buffer
-
     for (Device device : mainHandler.getDevices()){
         for (Channel channel : device.getChannels()){
             if (channel.getPeakDataAndReset(peakData) == true
-                 && peakData.meta.dataBuffer != null){
-                            peakData.meta.dataBuffer.putData(peakData.peak);
-            }
+                 && peakData.meta.dataBuffer != null)
+            { peakData.meta.dataBuffer.putData(peakData.peak); }
         }
     }
-
-//    //get peak data for each channel
-//    while (mainHandler.getNextPeakData(peakData) != -1){
-//        //put data in the transfer buffer
-//        peakData.meta.dataBuffer.putData(peakData.peak);
-//    }
 
     //update display objects from transfer buffers
     for(DataTransferIntBuffer dataBuffer: dataBuffers){
@@ -1035,12 +1026,21 @@ private void displayDataFromDeviceSnapshots()
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
 
-    //get peak data for each channel and insert it into the transfer buffer
+    //if there was a peak stored, store the snapshot data for that peak
+    int peak=0;
     for (Device device : mainHandler.getDevices()){
-        if (device.getPeakSnapshotDataAndReset(peakSnapshotData) == true){
+        if (device.getPeakSnapshotDataAndReset(peakSnapshotData) == true) {
+            //force put data does not ensure that only greatest peaks make it
+            //through, so we do it here.
+            if (peakSnapshotData.peak<peak) { continue; }
+            else { peak=peakSnapshotData.peak; }
+
+            //WIP HSS// need a better way to pass the peak to the view
+            peakSnapshotData.peakMetaArray[0] = peakSnapshotData.peak;
+
             peakSnapshotData.meta.dataSnapshotBuffer
-                                .putData(peakSnapshotData.peakArray,
-                                            peakSnapshotData.peakMetaArray);//DEBUG HSS//
+                                .forcePutData(peakSnapshotData.peakArray,
+                                                peakSnapshotData.peakMetaArray);
         }
     }
 

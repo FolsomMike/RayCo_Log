@@ -880,6 +880,8 @@ public boolean getPeakSnapshotDataAndReset(PeakSnapshotData pPeakSnapData)
     boolean peakUpdated
                 = peakSnapshotBuffer.getPeakAndReset(pPeakSnapData.peakArray);
 
+    pPeakSnapData.peak = peakSnapshotBuffer.peak;
+
     pPeakSnapData.setMetaArray(snapshotMeta.system);
 
     return(peakUpdated);

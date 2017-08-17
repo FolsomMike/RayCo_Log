@@ -91,7 +91,11 @@ public void paint(Graphics2D pG2)
     int vertOffset = y + height/2;
 
     for(int i=1; i<data.length; i++){
-       pG2.drawLine(x+i-1, data[i-1]+vertOffset, x+i, data[i]+vertOffset);
+        //data values inverted because 0 is in top left corner
+        int yScale = 5; //WIP HSS// read in from ini file
+        int y1 = ((data[i-1]/yScale)*-1)+vertOffset;
+        int y2 = ((data[i]/yScale)*-1)+vertOffset;
+        pG2.drawLine(x+i-1, y1, x+i, y2);
     }
 
 }// end of ZoomBox::paint

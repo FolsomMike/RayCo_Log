@@ -125,14 +125,33 @@ public int handleGetRunData()
 
     //iterate through all of the active channels and simulate values -- unactive
     //channels will not be simulated
+    int snap=0; int abs=0; boolean channelsOn = false;
     for(int i=0; i<activeChannels.length; i+=2) {
+
+        //made it through once, so at least one channel is on
+        channelsOn = true;
+
+        //simulate pos/neg signals
         posSignals[i] = simulatePositiveSignal();
         negSignals[i] = simulateNegativeSignal();
-        clockMap[activeChannels[i].getClockPosition()]
-                = simulateMapData(posSignals[i], negSignals[i]);
+
+        //determine greatest absolute value and which signal used for snapshot
+        //snapshot uses the signal whose abs value is greatest
+        int posAbs = Math.abs(posSignals[i] - AD_ZERO_OFFSET);
+        int negAbs = Math.abs(negSignals[i] - AD_ZERO_OFFSET);
+        if (posAbs>=negAbs&&posAbs>abs) {
+            snap = posSignals[i]; abs = posAbs;
+        }
+        else if (negAbs>posAbs&&negAbs>abs) {
+            snap = negSignals[i]; abs = negAbs;
+        }
+
+        //simulate clock map (greatest absolute value of pos/neg signals)
+        clockMap[activeChannels[i].getClockPosition()] = abs;
+
     }
 
-    int snapshot[] = simulateSnapshot();
+    int snapshot[] = simulateSnapshot(snap, channelsOn);
 
     //send run packet -- sendPacket appends Rabbit's checksum
     int p = 0, n = 0, m = 0, s=0;
@@ -289,49 +308,28 @@ public int handleGetRunData()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SimulatorTransverse::simulateMapData
-//
-// Compares the two signals passed in and returns the greater of the two.
-//
-
-private int simulateMapData(int pPosSignal, int pNegSignal)
-{
-
-    pPosSignal = Math.abs(pPosSignal -= AD_ZERO_OFFSET);
-    pNegSignal = Math.abs(pNegSignal -= AD_ZERO_OFFSET);
-
-    return pPosSignal>pNegSignal?pPosSignal:pNegSignal;
-
-}// end of SimulatorTransverse::simulateMapData
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // SimulatorTransverse::simulateSnapshot
 //
 // Creates a simulated data stream representing a snapshot of a peak.
 //
+// If no channels are on, snapshot is filled with 0s (0x7f due to pos/neg
+// offset).
+//
 
-private int[] simulateSnapshot()
+private int[] simulateSnapshot(int pPeak, boolean pChannelsOn)
 {
 
-    int data[] = new int[128];
+    int signal = pPeak;
 
+    //simulate noise or 0s if no channels on
+    int data[] = new int[128];
     for(int i=0; i<data.length; i++){
-        data[i] = (int)(5 * Math.random());
+        data[i] = 0x7f;
+        if (pChannelsOn) { data[i] += (int)(SIM_NOISE * Math.random()); }
     }
 
-    int spikeLoc = (int)(40 + 20 * Math.random());
-
-    data[spikeLoc-2] = 20 + (int)(5 * Math.random());
-    data[spikeLoc] = - 20 - (int)(5 * Math.random());
-    data[spikeLoc+2] = 20 + (int)(5 * Math.random());
-
-    //DEBUG HSS//
-    //int data[] = new int[128]; for(int i=0; i<data.length; i++){ data[i] = 0; }
-    //data[10] = 10; data[11] = 10; data[12] = 10; data[13] = 10;
-    //data[90] = 150; data[91] = 150; data[92] = 150; data[93] = 150;
-    //data[120] = -10; data[121] = -10; data[122] = -10; data[123] = -10;
-    //DEBUG HSS// end
+    int spikeLoc = (int)(data.length/2 + 20*Math.random());
+    data[spikeLoc] = signal;
 
     return(data);
 

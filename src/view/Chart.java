@@ -53,6 +53,7 @@ class Chart extends JPanel{
 
     private Graph graphs[];
     private ZoomGraph zoomGraph;
+    private ArrayList<Object> traces;
     private ChartInfoPanel infoPanel;
 
     ActionListener parentActionListener;
@@ -163,6 +164,10 @@ private void addGraphs()
         }
 
     }
+
+    //set up the list of traces for future use
+    traces=new ArrayList<>();
+    scanForGUIObjectsOfAType(traces, "trace");
 
 }// end of Chart::addGraphs
 //-----------------------------------------------------------------------------
@@ -673,20 +678,30 @@ public void updateAnnotationGraph()
 
     if(!hasZoomGraph){ return; }
 
+    zoomGraph.retrieveDataChanges();
+
     int prevX = graphs[0].getTrace(0).getPrevX();
+    if (prevXGraph0Trace0 == -1){ prevXGraph0Trace0 = prevX; return; }
 
-    if (prevXGraph0Trace0 == -1){
-        prevXGraph0Trace0 = prevX;
-        return;
-    }
+    if (prevX!=prevXGraph0Trace0 && (prevX % zoomGraph.getNextBoxEndX()== 0)) {
 
-    if (prevX != prevXGraph0Trace0 && (prevX % 104 == 0)){
         prevXGraph0Trace0 = prevX;
-        zoomGraph.addZoomBox(0);
+
+        //use the x position that has the highest peak of all the traces
+        Trace t; Trace peakTrace = null; int peak=0; int peakX=0;
+        for (Object o : traces) {
+            t = (Trace)o;
+            int newP = t.getPeak(zoomGraph.getNextBoxStartX(),
+                                    zoomGraph.getNextBoxEndX());
+            if (newP>peak) { peak=newP; peakTrace=t; }
+        }
+        if (peakTrace!=null) { peakX = peakTrace.getXOfLastRequestedPeak(); }
+        zoomGraph.addZoomBox(peakX);
+
     }
 
 }// end of Chart::updateAnnotationGraph
-//-----------------------------------------------------------------------------
+//---:getTrac--------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Chart::updateChild

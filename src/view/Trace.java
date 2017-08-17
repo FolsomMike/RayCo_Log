@@ -74,6 +74,10 @@ public class Trace{
     int gridYSpacing;
     int gridY1;
 
+    private int lastRequestedPeak = -1;
+    private int xOfLastRequestedPeak = -1;
+    public int getXOfLastRequestedPeak() { return xOfLastRequestedPeak; }
+
     //simple getters & setters
 
     public int getWidth(){ return(width); }
@@ -570,6 +574,28 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
     if (objectType.equals(pObjectType)){ pObjectList.add(this); }
 
 }// end of Trace::scanForGUIObjectsOfAType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getPeak
+//
+// Searches for and returns the highest peak within the indexes specified.
+//
+
+public int getPeak (int pIndexStart, int pIndexEnd)
+{
+
+    lastRequestedPeak=0;
+    for (int i=pIndexStart; i<pIndexEnd&&i<data.size(); i++){
+        if(data.get(i)>lastRequestedPeak) {
+            lastRequestedPeak=data.get(i);
+            xOfLastRequestedPeak = i;
+        }
+    }
+
+    return lastRequestedPeak;
+
+}// end of Trace::getPeak
 //-----------------------------------------------------------------------------
 
 }//end of class Trace
