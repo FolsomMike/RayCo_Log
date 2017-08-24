@@ -113,8 +113,11 @@ public void paint(Graphics2D pG2)
     pG2.setColor(Color.BLACK);
     pG2.draw(roundedRect);
 
+    pG2.drawLine(x,y+height/2, x+width, y+height/2);
+
     int vertOffset = y + height/2;
 
+    pG2.setColor(Color.RED);
     for(int i=1; i<data.length; i++){
         //data values inverted because 0 is in top left corner
         int yScale = 5; //WIP HSS// read in from ini file
@@ -147,7 +150,7 @@ public void drawArrow(Graphics2D pG2)
         xPoints[0] = arrowX; xPoints[2] += arrowWidth/2;
     }
     else if (xPoints[2]>x+width) {
-        xPoints[2] = arrowX; xPoints[0] += arrowWidth/2;
+        xPoints[2] = arrowX; xPoints[0] -= arrowWidth/2;
     }
 
     pG2.setColor(Color.BLACK);
