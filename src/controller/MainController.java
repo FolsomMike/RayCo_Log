@@ -976,8 +976,6 @@ private void displayDataFromDevices()
 
     displayDataFromDeviceMaps();
 
-    mainView.updateAnnotationGraphs(0);
-
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
 
