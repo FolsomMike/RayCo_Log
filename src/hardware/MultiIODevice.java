@@ -315,7 +315,7 @@ public void collectData()
         //Device ALWAYS sends back enough bytes for 16 channels, even if ini
         //file specifies otherwise. (2 bytes per channel)
         int clockMapIndex = index+32;
-        int snapshotIndex = clockMapIndex+49;
+        int snapshotIndex = clockMapIndex+48;
 
         int peak=0;
         for(Channel channel : channels){
@@ -355,11 +355,14 @@ public void collectData()
 public int extractSnapshotData(byte[] pPacket, int pIndex, int pPeak)
 {
 
-    //WIP HSS// number of bytes needs to be specified in ini file
-    int[] data = new int[128];
-    for(int i=0; i<128; i++){ //WIP HSS// number of bytes needs to be specified in ini file
-        data[i] = getUnsignedByteFromPacket(pPacket, pIndex)-AD_ZERO_OFFSET;
-        pIndex++;
+    int[] data = new int[128]; //WIP HSS// number of bytes needs to be specified in ini file
+
+    //not used, but good to have
+    int lastEnteredAddr = pPacket[pIndex++];
+
+    for(int i=0; i<data.length; i++) {
+        //retrieve the next byte from packet
+        data[i]=getUnsignedByteFromPacket(pPacket, pIndex++)-AD_ZERO_OFFSET;
     }
 
     peakSnapshotBuffer.catchPeak(pPeak, data);
