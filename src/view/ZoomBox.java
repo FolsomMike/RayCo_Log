@@ -31,9 +31,23 @@ class ZoomBox{
     private String shortTitle;
     private final int chartGroupNum, chartNum, graphNum, zoomBoxNum;
     private final int x, y, width, height;
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
 
     int data[];
 
+    //data start and end indexes are NOT used to determine where to start
+    //in the data array stored in this class. They are used to store the
+    //indexes that this box can cover in another array that contains the data
+    //array
+    private int dataStartIndex = 0;
+    public void setDataStartIndex(int pI) { dataStartIndex = pI; }
+    public int getDataStartIndex() { return dataStartIndex; }
+    private int dataEndIndex = 0;
+    public void setDataEndIndex(int pI) { dataEndIndex = pI; }
+    public int getDataEndIndex() { return dataEndIndex; }
 
     //WIP HSS// all of these should be read from inifile (except x&y)
     private boolean hasArrows = true;
@@ -143,7 +157,13 @@ public void drawArrow(Graphics2D pG2)
     //draw arrow
     int[] xPoints = {arrowX-arrowWidth/2,   arrowX,     arrowX+arrowWidth/2};
     int[] yPoints = {arrowY+arrowHeight,    arrowY,     arrowY+arrowHeight};
-
+    
+    //width to clear all possible x positions of the arrow. The start and end 
+    //indexes are the x positions.
+    pG2.setColor(pG2.getBackground());
+    int clearWidth = dataEndIndex-dataStartIndex;
+    pG2.fillRect(dataStartIndex, arrowY, clearWidth, arrowHeight);
+    
     //if left or right points lie outside the zoom box, split them in
     //half so that users can easily discern which arrow belongs to which box
     if (xPoints[0]<x) {

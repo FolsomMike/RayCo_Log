@@ -20,6 +20,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
@@ -30,7 +32,7 @@ import model.IniFile;
 // class Chart
 //
 
-class Chart extends JPanel{
+class Chart extends JPanel implements MouseMotionListener {
 
     private final IniFile configFile;
 
@@ -101,6 +103,8 @@ public void init()
 
     setGraphsVisible(graphsVisible);
 
+    addMouseMotionListener(this);
+
 }// end of Chart::init
 //-----------------------------------------------------------------------------
 
@@ -140,6 +144,7 @@ private void addGraphs()
             graphs[i] = new TraceGraph(chartGroupNum, chartNum, i,
                                graphWidth, graphHeight, chartInfo, configFile);
             graphs[i].init();
+            graphs[i].addMouseMotionListener(this);
             add(graphs[i]);
             addSeparatorPanelSpecifiedInConfigFile(i);
 
@@ -663,6 +668,31 @@ public Trace getTrace(int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::getXOfTracesPeak
+//
+// Determines and returns which x point has the highest peak out of all of the
+// traces and returns that x point.
+//
+
+private int getXOfTracesPeak(int pXStart, int pXEnd)
+{
+
+    //use the x position that has the highest peak of all the traces to
+    //determine which data set to display for this box
+    Trace t; Trace peakTrace = null; int peak=0; int peakX=0;
+    for (Object o : traces) {
+        t = (Trace)o;
+        int newP = t.getPeak(pXStart, pXEnd);
+        if (newP>peak) { peak=newP; peakTrace=t; }
+    }
+    if (peakTrace!=null) { peakX = peakTrace.getXOfLastRequestedPeak(); }
+
+    return peakX;
+
+}// end of Chart::getXOfTracesPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::updateAnnotationGraph
 //
 // Plots data added to annoBuffer and/or erases any data which has been
@@ -687,15 +717,8 @@ public void updateAnnotationGraph()
 
         prevXGraph0Trace0 = prevX;
 
-        //use the x position that has the highest peak of all the traces
-        Trace t; Trace peakTrace = null; int peak=0; int peakX=0;
-        for (Object o : traces) {
-            t = (Trace)o;
-            int newP = t.getPeak(zoomGraph.getNextBoxStartX(),
-                                    zoomGraph.getNextBoxEndX());
-            if (newP>peak) { peak=newP; peakTrace=t; }
-        }
-        if (peakTrace!=null) { peakX = peakTrace.getXOfLastRequestedPeak(); }
+        int peakX = getXOfTracesPeak(zoomGraph.getNextBoxStartX(),
+                                        zoomGraph.getNextBoxEndX());
         zoomGraph.addZoomBox(peakX);
 
     }
@@ -737,6 +760,35 @@ public void updateChild(int pGraphNum, int pChildNum)
 
 }// end of Chart::updateChild
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::mouseMoved
+//
+// Called when the mouse has moved on any object that this class has been
+// assigned as a listener.
+//
+
+@Override
+public void mouseMoved(MouseEvent pEvent) {
+
+    int x = pEvent.getX(); int y = pEvent.getY();
+
+    //only take action if mouse movement was on a TraceGraph
+    if (pEvent.getComponent() instanceof TraceGraph && zoomGraph!=null) {
+        TraceGraph g = (TraceGraph)pEvent.getComponent();
+
+        //determine the x at which to display data
+        int dataX = g.getXOfPeakInBox(x, y, 10, 10); //WIP HSS// read width and height from ini file
+        zoomGraph.updateZoomBox(dataX);
+    }
+
+}// end of Chart::mouseMoved
+//-----------------------------------------------------------------------------
+
+//Required to be overriden for interface MouseMotionListener
+@Override
+public void mouseDragged(MouseEvent me) {}
+
 
 }//end of class Chart
 //-----------------------------------------------------------------------------

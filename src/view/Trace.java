@@ -585,6 +585,10 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 public int getPeak (int pIndexStart, int pIndexEnd)
 {
 
+    //ensure index starts and ends don't exceed array bounds
+    if (pIndexStart<0) { pIndexStart = 0; }
+    if (pIndexEnd>=data.size()) { pIndexEnd = data.size()-1; }
+
     lastRequestedPeak=0;
     for (int i=pIndexStart; i<pIndexEnd&&i<data.size(); i++){
         if(data.get(i)>lastRequestedPeak) {
@@ -594,6 +598,26 @@ public int getPeak (int pIndexStart, int pIndexEnd)
     }
 
     return lastRequestedPeak;
+
+}// end of Trace::getPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getPeak
+//
+// Searches for and returns the highest peak within the box specified.
+//
+
+public int getPeak (int pXStart, int pYStart, int pXEnd, int pYEnd)
+{
+
+    //get the peak within the x points
+    int peak = getPeak(pXStart, pXEnd);
+
+    //if peak does not lie within y points, set peak to -1
+    //DEBUG HSS// need to make use of y-coordinates if (peak<pYStart||pYEnd>peak) { peak = -1; }
+
+    return peak;
 
 }// end of Trace::getPeak
 //-----------------------------------------------------------------------------

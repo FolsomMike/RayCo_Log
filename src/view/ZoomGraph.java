@@ -132,10 +132,13 @@ public void retrieveDataChanges()
 public void addZoomBox(int pSnapshotIndex)
 {
 
-    zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
-                annoX - graphInfo.scrollOffset, annoY, annoWidth, annoHeight));
+    int zoomX = annoX - graphInfo.scrollOffset;
+    int zoomY = annoY;
 
     annoX += annoWidth + gap; //prepare x to add next anno object to the right
+
+    zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
+                    zoomX, zoomY, annoWidth, annoHeight));
 
     //use the last data set collected if index out of bounds
     int [] zoomData; int arrowX; int arrowY=1;
@@ -143,8 +146,13 @@ public void addZoomBox(int pSnapshotIndex)
         zoomData = data.get(data.size()-1); arrowX = data.size()-1;
     }
     else { zoomData = data.get(pSnapshotIndex); arrowX = pSnapshotIndex; }
+
+    //set zoombox stuff
     zoomBoxes.get(zoomBoxes.size()-1).setArrowLocation(arrowX, arrowY);
     zoomBoxes.get(zoomBoxes.size()-1).setData(zoomData);
+    zoomBoxes.get(zoomBoxes.size()-1).setDataStartIndex(zoomX);
+    //annoX should be set to start of next zoomBox/end of this one
+    zoomBoxes.get(zoomBoxes.size()-1).setDataEndIndex(annoX-1);
 
     zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
 
@@ -152,6 +160,27 @@ public void addZoomBox(int pSnapshotIndex)
     if (zoomBoxes.size() > maxNumZoomBoxes){ zoomBoxes.remove(0); }
 
 }// end of ZoomGraph::addZoomBox
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::updateZoomBox
+//
+// Determines which ZoomBox is used to display data at pX and sets the data to
+// display the snapshot at pX.
+//
+
+void updateZoomBox(int pX)
+{
+
+    for (ZoomBox b : zoomBoxes) {
+        if (b.getDataStartIndex()<=pX&&pX<=b.getDataEndIndex()){
+            b.setArrowLocation(pX, 1);
+            b.setData(data.get(pX));
+            b.paint((Graphics2D)getGraphics());
+        }
+    }
+
+}// end of ZoomGraph::updateZoomBox
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
