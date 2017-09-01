@@ -19,7 +19,6 @@ package view;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.ListIterator;
-import model.DataSetIntMultiDim;
 import model.DataSetSnapshot;
 import model.IniFile;
 
