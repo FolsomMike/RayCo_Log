@@ -436,7 +436,7 @@ public void drawGrid (Graphics2D pG2, int pX)
 public void scrollGraph (Graphics2D pG2, int pX)
 {
     //number of pixels to shift to bring pX back on the graph
-    /*int shiftAmt = pX - graphInfo.scrollOffset - xMax;
+    int shiftAmt = pX - graphInfo.scrollOffset - xMax;
 
     //scroll the screen to the left
     pG2.copyArea(0, 0, width, height, -1 * shiftAmt, 0);
@@ -445,7 +445,7 @@ public void scrollGraph (Graphics2D pG2, int pX)
     pG2.fillRect(width-shiftAmt, 0, shiftAmt, height);
 
     graphInfo.scrollOffset += shiftAmt;
-    graphInfo.lastScrollAmount = shiftAmt;*/ //DEBUG HSS//
+    graphInfo.lastScrollAmount = shiftAmt;
 
 }// end of Trace::scrollGraph
 //-----------------------------------------------------------------------------

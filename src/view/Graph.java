@@ -195,7 +195,7 @@ public ArrayList<Object>getParameters()
 public void scrollGraph (int pShiftAmount)
 {
 
-    /*Graphics2D g2 = (Graphics2D) getGraphics();
+    Graphics2D g2 = (Graphics2D) getGraphics();
 
     //scroll the screen to the left
     g2.copyArea(0, 0, width, height, -1 * pShiftAmount, 0);
@@ -204,7 +204,7 @@ public void scrollGraph (int pShiftAmount)
     g2.fillRect(width-pShiftAmount, 0, pShiftAmount, height);
 
     graphInfo.scrollOffset += pShiftAmount;
-    graphInfo.lastScrollAmount = pShiftAmount;*///DEBUG HSS//
+    graphInfo.lastScrollAmount = pShiftAmount;
 
 }// end of Graph::scrollGraph
 //-----------------------------------------------------------------------------
