@@ -24,24 +24,23 @@ package hardware;
 public class PeakSnapshotData
 {
 
-public int peakMapDataNum = 0;
+public int peakDataNum = 0;
 
 public SampleMetaData meta;
 
-public int[] peakArray;
-public int[] peakMetaArray;
 public int peak;
+public int[] peakArray;
 
 //-----------------------------------------------------------------------------
 // PeakSnapshotData::PeakSnapshotData (constructor)
 //
 
-public PeakSnapshotData(int pPeakSnapshotDataNum, int pArraySize)
+public PeakSnapshotData(int pPeakDataNum, int pArraySize)
 {
 
-    peakMapDataNum = pPeakSnapshotDataNum;
+    peakDataNum = pPeakDataNum;
 
-    peakArray = new int[pArraySize]; peakMetaArray = new int[pArraySize];
+    peakArray = new int[pArraySize];
 
 }//end of PeakSnapshotData::PeakSnapshotData (constructor)
 //-----------------------------------------------------------------------------
@@ -61,52 +60,16 @@ public void init()
 //-----------------------------------------------------------------------------
 // PeakSnapshotData::setData
 //
-// Copies the values in pInputArray to peakArray and pInputMetaArray to
-// peakMetaArray.
+// Copies the values in pInputArray to peakArray and stores pPeak.
 //
 
-public void setData(int[] pInputArray, int[] pInputMetaArray)
+public void setData(int pPeak, int[] pInputArray)
 {
 
-    System.arraycopy(pInputArray,0,peakArray,0,pInputArray.length);
-    System.arraycopy(pInputMetaArray,0,peakMetaArray,0,pInputMetaArray.length);
-
-}// end of PeakSnapshotData::setData
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakSnapshotData::setData
-//
-// Copies the values in pInputArray to peakArray and copies the single value of
-// pInputMetaValue to all positions in peakMetaArray.
-//
-
-public void setData(int[] pInputArray, int pInputMetaValue)
-{
-
+    peak = pPeak;
     System.arraycopy(pInputArray,0,peakArray,0,pInputArray.length);
 
-    for(int i=0; i<peakMetaArray.length; i++){
-        peakMetaArray[i] = pInputMetaValue;
-    }
-
 }// end of PeakSnapshotData::setData
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakSnapshotData::setMetaArray
-//
-// Copies value of pInputMetaValue to all positions in peakMetaArray.
-//
-
-public void setMetaArray(int pInputMetaValue)
-{
-
-    for(int i=0; i<peakMetaArray.length; i++){
-        peakMetaArray[i] = pInputMetaValue;
-    }
-
-}// end of PeakSnapshotData::setMetaArray
 //-----------------------------------------------------------------------------
 
 }//end of class PeakSnapshotData

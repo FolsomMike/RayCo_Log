@@ -25,6 +25,7 @@ package hardware;
 
 import model.DataTransferIntBuffer;
 import model.DataTransferIntMultiDimBuffer;
+import model.DataTransferSnapshotBuffer;
 
 
 
@@ -50,7 +51,7 @@ public int system = -1;
 
 public Channel channel;
 public DataTransferIntBuffer dataBuffer;
-public DataTransferIntMultiDimBuffer dataSnapshotBuffer;
+public DataTransferSnapshotBuffer dataSnapshotBuffer;
 public DataTransferIntMultiDimBuffer dataMapBuffer;
 
 //-----------------------------------------------------------------------------

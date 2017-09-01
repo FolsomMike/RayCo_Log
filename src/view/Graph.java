@@ -21,6 +21,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.DataTransferIntMultiDimBuffer;
+import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -46,10 +47,10 @@ public class Graph extends JPanel{
     int width, height, specifiedWidth, specifiedHeight;
     Color backgroundColor;
 
-    DataTransferIntMultiDimBuffer snapshotBuffer; //see notes at top of file
-    public void setSnapshotBuffer(DataTransferIntMultiDimBuffer pSnapBuffer)
+    DataTransferSnapshotBuffer snapshotBuffer; //see notes at top of file
+    public void setSnapshotBuffer(DataTransferSnapshotBuffer pSnapBuffer)
         { snapshotBuffer = pSnapBuffer; }
-    public DataTransferIntMultiDimBuffer getSnapshotBuffer(){ return snapshotBuffer; }
+    public DataTransferSnapshotBuffer getSnapshotBuffer(){ return snapshotBuffer; }
 
     DataTransferIntMultiDimBuffer mapBuffer; //see notes at top of file
     public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer){

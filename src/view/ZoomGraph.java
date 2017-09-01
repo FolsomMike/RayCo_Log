@@ -20,6 +20,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import model.DataSetIntMultiDim;
+import model.DataSetSnapshot;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -41,7 +42,7 @@ public class ZoomGraph extends Graph{
 
     ArrayList<int[]> data = new ArrayList<>(10000);
     ArrayList<Integer> dataFlags = new ArrayList<>(10000);
-    DataSetIntMultiDim dataSet;
+    DataSetSnapshot dataSet;
 
     //length is the x axis, width is the y axis (o'clock position)
     private int lengthInDataPoints;
@@ -78,7 +79,7 @@ public void init()
 
     super.init();
 
-    dataSet = new DataSetIntMultiDim(128); //WIP HSS// determine another way
+    dataSet = new DataSetSnapshot(128); //WIP HSS// determine another way
 
 }// end of ZoomGraph::init
 //-----------------------------------------------------------------------------

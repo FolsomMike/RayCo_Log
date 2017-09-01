@@ -56,6 +56,7 @@ import mksystems.mswing.MFloatSpinner;
 import model.MainDataClass;
 import model.DataTransferIntBuffer;
 import model.DataTransferIntMultiDimBuffer;
+import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
@@ -123,7 +124,7 @@ public class MainController implements EventHandler, Runnable
     private int numDataBuffers;
     private DataTransferIntBuffer dataBuffers[];
     private int numSnapshotBuffers;
-    private DataTransferIntMultiDimBuffer snapshotBuffers[];
+    private DataTransferSnapshotBuffer snapshotBuffers[];
     private int numMapBuffers;
     private DataTransferIntMultiDimBuffer mapBuffers[];
 
@@ -363,7 +364,7 @@ private void createAndAssignDataBuffersToSnapshots()
     mainView.scanForGUIObjectsOfAType(snaps, "zoom graph");
 
     numSnapshotBuffers = snaps.size();
-    snapshotBuffers = new DataTransferIntMultiDimBuffer[numSnapshotBuffers];
+    snapshotBuffers = new DataTransferSnapshotBuffer[numSnapshotBuffers];
 
     int i = 0;
 
@@ -373,11 +374,11 @@ private void createAndAssignDataBuffersToSnapshots()
 
         ZoomGraph zoomGraph = (ZoomGraph)iter.next();
 
-        snapshotBuffers[i] = new DataTransferIntMultiDimBuffer(
+        snapshotBuffers[i] = new DataTransferSnapshotBuffer(
               200, //WIP HSS// both of these need to be determined in a different way
               128,
               zoomGraph.getPeakType());
-        snapshotBuffers[i].init(0, -1);//WIP HSS// see if another way to do this
+        snapshotBuffers[i].init(0); //init requires default data value
         snapshotBuffers[i].reset();
 
         zoomGraph.setSnapshotBuffer(snapshotBuffers[i]);
@@ -1033,17 +1034,14 @@ private void displayDataFromDeviceSnapshots()
             if (peakSnapshotData.peak<peak) { continue; }
             else { peak=peakSnapshotData.peak; }
 
-            //WIP HSS// need a better way to pass the peak to the view
-            peakSnapshotData.peakMetaArray[0] = peakSnapshotData.peak;
-
-            peakSnapshotData.meta.dataSnapshotBuffer
-                                .forcePutData(peakSnapshotData.peakArray,
-                                                peakSnapshotData.peakMetaArray);
+            peakSnapshotData.meta
+                    .dataSnapshotBuffer.putData(peakSnapshotData.peak, 
+                                                    peakSnapshotData.peakArray);
         }
     }
 
     //update display objects from transfer buffers
-    for(DataTransferIntMultiDimBuffer snapBuffer: snapshotBuffers){
+    for(DataTransferSnapshotBuffer snapBuffer: snapshotBuffers){
         //pace this with timer to control scan speed
         snapBuffer.incPutPtrAndSetReadyAfterDataFill();
         //update trace with all data changes

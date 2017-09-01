@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.DataTransferIntBuffer;
 import model.DataTransferIntMultiDimBuffer;
+import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 import toolkit.MKSInteger;
 import view.LogPanel;
@@ -106,12 +107,12 @@ public class Device implements Runnable
     public boolean getConnectionSuccessful(){ return (connectionSuccessful); }
 
     private int snapshotPeakType;
-    PeakArrayBufferInt peakSnapshotBuffer;
+    PeakSnapshotBuffer peakSnapshotBuffer;
     SampleMetaData snapshotMeta = new SampleMetaData(0);
     public SampleMetaData getSnapshotMeta(){ return(snapshotMeta); }
-    public void setSnapshotDataBuffer(DataTransferIntMultiDimBuffer pV)
+    public void setSnapshotDataBuffer(DataTransferSnapshotBuffer pV)
         { snapshotMeta.dataSnapshotBuffer = pV; }
-    public DataTransferIntMultiDimBuffer getSnapshotDataBuffer()
+    public DataTransferSnapshotBuffer getSnapshotDataBuffer()
         { return(snapshotMeta.dataSnapshotBuffer); }
 
     SampleMetaData mapMeta = new SampleMetaData(0);
@@ -882,8 +883,6 @@ public boolean getPeakSnapshotDataAndReset(PeakSnapshotData pPeakSnapData)
 
     pPeakSnapData.peak = peakSnapshotBuffer.peak;
 
-    pPeakSnapData.setMetaArray(snapshotMeta.system);
-
     return(peakUpdated);
 
 }// end of Device::getPeakSnapshotDataAndReset
@@ -1167,17 +1166,17 @@ public void setUpPeakSnapshotBuffer()
     switch (snapshotPeakType){
 
         case CATCH_HIGHEST:
-            peakSnapshotBuffer = new HighPeakArrayBufferInt(0, 128); //WIP HSS// size needs to be ini
+            peakSnapshotBuffer = new HighPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
             peakSnapshotBuffer.setResetValue(Integer.MIN_VALUE);
             break;
 
         case CATCH_LOWEST:
-            peakSnapshotBuffer = new LowPeakArrayBufferInt(0, 128); //WIP HSS// size needs to be ini
+            peakSnapshotBuffer = new LowPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
             peakSnapshotBuffer.setResetValue(Integer.MAX_VALUE);
             break;
 
         default:
-            peakSnapshotBuffer = new HighPeakArrayBufferInt(0, 128); //WIP HSS// size needs to be ini
+            peakSnapshotBuffer = new HighPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
             peakSnapshotBuffer.setResetValue(Integer.MIN_VALUE);
             break;
 
