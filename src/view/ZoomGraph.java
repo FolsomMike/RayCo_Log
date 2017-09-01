@@ -143,9 +143,13 @@ public void addZoomBox(int pSnapshotIndex)
     //use the last data set collected if index out of bounds
     int [] zoomData; int arrowX; int arrowY=1;
     if (pSnapshotIndex>=data.size()) {
-        zoomData = data.get(data.size()-1); arrowX = data.size()-1;
+        zoomData = data.get(data.size()-1); 
+        arrowX = data.size()-1 - graphInfo.scrollOffset;;
     }
-    else { zoomData = data.get(pSnapshotIndex); arrowX = pSnapshotIndex; }
+    else { 
+        zoomData = data.get(pSnapshotIndex); 
+        arrowX = pSnapshotIndex - graphInfo.scrollOffset;
+    }
 
     //set zoombox stuff
     zoomBoxes.get(zoomBoxes.size()-1).setArrowLocation(arrowX, arrowY);
