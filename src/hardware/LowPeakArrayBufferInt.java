@@ -61,6 +61,24 @@ public synchronized void catchPeak(int[] pNewData)
 }// end of LowPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// LowPeakBufferInt::catchPeak
+//
+// This method overrides that in the parent class to provide the specific
+// type of comparison for the peak type being captured.
+//
+// If pNewData > old peak, pNewData is stored as the new peak.
+//
+
+@Override
+public synchronized void catchPeak(int pNewPeak, int[] pNewData)
+{
+
+    if (pNewPeak<peak) { peak=pNewPeak; setPeak(pNewData); }
+
+}// end of LowPeakBufferInt::catchPeak
+//-----------------------------------------------------------------------------
+
 }//end of class LowPeakBufferInt
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
