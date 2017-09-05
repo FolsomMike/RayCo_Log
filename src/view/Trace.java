@@ -582,15 +582,14 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 // Searches for and returns the highest peak within the indexes specified.
 //
 
-public int getPeak (int pIndexStart, int pIndexEnd)
+public int getPeak (int pXStart, int pXEnd)
 {
 
     //ensure index starts and ends don't exceed array bounds
-    if (pIndexStart<0) { pIndexStart = 0; }
-    if (pIndexEnd>=data.size()) { pIndexEnd = data.size()-1; }
+    if (pXStart<0||pXEnd>=data.size()) { return -1; }
 
     lastRequestedPeak=0;
-    for (int i=pIndexStart; i<pIndexEnd&&i<data.size(); i++){
+    for (int i=pXStart; i<pXEnd&&i<data.size(); i++){
         if(data.get(i)>lastRequestedPeak) {
             lastRequestedPeak=data.get(i);
             xOfLastRequestedPeak = i;
@@ -608,11 +607,11 @@ public int getPeak (int pIndexStart, int pIndexEnd)
 // Searches for and returns the highest peak within the box specified.
 //
 
-public int getPeak (int pIndexStart, int pIndexEnd, int pYStart, int pYEnd)
+public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
 {
 
     //get the peak within the x points
-    int peak = getPeak(pIndexStart, pIndexEnd);
+    int peak = getPeak(pXStart, pXEnd);
 
     //if peak does not lie within y points, set peak to -1
     //DEBUG HSS// need to make use of y-coordinates if (peak<pYStart||pYEnd>peak) { peak = -1; }

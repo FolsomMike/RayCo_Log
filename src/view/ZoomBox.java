@@ -27,12 +27,16 @@ import java.awt.geom.RoundRectangle2D;
 
 class ZoomBox{
 
+    private GraphInfo graphInfo;
+
     private String title;
     private String shortTitle;
     private final int chartGroupNum, chartNum, graphNum, zoomBoxNum;
-    private int x, y;
+    private int x, xEnd, y;
     public void setX(int pX) { x = pX; }
     public int getX() { return x; }
+    public void setXEnd(int pI) { xEnd = pI; }
+    public int getXEnd() { return xEnd; }
     public void setY(int pY) { y = pY; }
     public int getY() { return y; }
     private final int width, height;
@@ -41,23 +45,12 @@ class ZoomBox{
 
     int data[];
 
-    //data start and end indexes are NOT used to determine where to start
-    //in the data array stored in this class. They are used to store the
-    //indexes that this box can cover in another array that contains the data
-    //array
-    private int dataStartIndex = 0;
-    public void setDataStartIndex(int pI) { dataStartIndex = pI; }
-    public int getDataStartIndex() { return dataStartIndex; }
-    private int dataEndIndex = 0;
-    public void setDataEndIndex(int pI) { dataEndIndex = pI; }
-    public int getDataEndIndex() { return dataEndIndex; }
-
     //WIP HSS// all of these should be read from inifile (except x&y)
-    private boolean hasArrows = true;
-    private int arrowX = -1;
-    private int arrowY = -1;
-    private int arrowWidth = 10;
-    private int arrowHeight = 6;
+    private final boolean hasArrow;
+    private int arrowX;
+    private final int arrowY;
+    private final int arrowWidth;
+    private final int arrowHeight;
 
 //-----------------------------------------------------------------------------
 // ZoomBox::ZoomBox (constructor)
@@ -65,13 +58,20 @@ class ZoomBox{
 //
 
 public ZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
-                int pZoomBoxNum, int pX, int pY, int pWidth, int pHeight)
+                int pZoomBoxNum, GraphInfo pGraphInfo, int pX, int pY,
+                int pWidth, int pHeight, boolean pHasArrow,
+                int pArrowX, int pArrowY, int pArrowWidth, int pArrowHeight)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum; graphNum = pGraphNum;
     zoomBoxNum = pZoomBoxNum;
+    graphInfo = pGraphInfo;
 
-    x = pX; y = pY; width = pWidth; height = pHeight;
+    x = pX; xEnd = x+pWidth; y = pY; width = pWidth; height = pHeight;
+
+    hasArrow = pHasArrow;
+    arrowX = pArrowX; arrowY = pArrowY;
+    arrowWidth = pArrowWidth; arrowHeight = pArrowHeight;
 
     data = new int[pWidth];
 
@@ -84,7 +84,7 @@ public ZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
 // Copies the data in pData array to the data array so it can be displayed.
 //
 
-public void setData(int[] pData)
+public void setData(int[] pData, int pDataX)
 {
 
     int length;
@@ -93,25 +93,9 @@ public void setData(int[] pData)
 
     System.arraycopy(pData, 0, data, 0, length);
 
+    arrowX = pDataX;
+
 }// end of ZoomBox::setData
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ZoomBox::setArrowLocation
-//
-// The point of the arrow is set to the x,y location.
-//
-// Note that paint() needs to be called after this function for the changes to
-// take affect.
-//
-
-public void setArrowLocation(int pX, int pY)
-{
-
-    arrowX = pX;
-    arrowY = pY;
-
-}// end of ZoomBox::setArrowLocation
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -121,16 +105,18 @@ public void setArrowLocation(int pX, int pY)
 public void paint(Graphics2D pG2)
 {
 
+    int adjX = x - graphInfo.scrollOffset;
+
     pG2.setColor(new Color(0xd9, 0xef, 0xef));
 
     RoundRectangle2D roundedRect =
-                    new RoundRectangle2D.Float(x, y, width, height, 10, 10);
+                    new RoundRectangle2D.Float(adjX, y, width, height, 10, 10);
     pG2.fill(roundedRect);
 
     pG2.setColor(Color.BLACK);
     pG2.draw(roundedRect);
 
-    pG2.drawLine(x,y+height/2, x+width, y+height/2);
+    pG2.drawLine(adjX,y+height/2, adjX+width, y+height/2);
 
     int vertOffset = y + height/2;
 
@@ -140,10 +126,10 @@ public void paint(Graphics2D pG2)
         int yScale = 5; //WIP HSS// read in from ini file
         int y1 = ((data[i-1]/yScale)*-1)+vertOffset;
         int y2 = ((data[i]/yScale)*-1)+vertOffset;
-        pG2.drawLine(x+i-1, y1, x+i, y2);
+        pG2.drawLine(adjX+i-1, y1, adjX+i, y2);
     }
 
-    drawArrow(pG2);
+    if (hasArrow) { drawArrow(pG2); }
 
 }// end of ZoomBox::paint
 //-----------------------------------------------------------------------------
@@ -157,23 +143,26 @@ public void paint(Graphics2D pG2)
 private void drawArrow(Graphics2D pG2)
 {
 
+    int adjX = x - graphInfo.scrollOffset;
+    int adjXEnd = xEnd - graphInfo.scrollOffset;
+    int adjArrowX = arrowX - graphInfo.scrollOffset;
+
     //draw arrow
-    int[] xPoints = {arrowX-arrowWidth/2,   arrowX,     arrowX+arrowWidth/2};
+    int[] xPoints = {adjArrowX-arrowWidth/2,adjArrowX,  adjArrowX+arrowWidth/2};
     int[] yPoints = {arrowY+arrowHeight,    arrowY,     arrowY+arrowHeight};
 
     //width to clear all possible x positions of the arrow. The start and end
     //indexes are the x positions.
     pG2.setColor(pG2.getBackground());
-    int clearWidth = dataEndIndex-dataStartIndex;
-    pG2.fillRect(x, arrowY, clearWidth, arrowHeight);
+    pG2.fillRect(adjX, arrowY, adjXEnd-adjX, arrowHeight);
 
     //if left or right points lie outside the zoom box, split them in
     //half so that users can easily discern which arrow belongs to which box
-    if (xPoints[0]<x) {
-        xPoints[0] = arrowX; xPoints[2] += arrowWidth/2;
+    if (xPoints[0]<adjX) {
+        xPoints[0] = adjArrowX; xPoints[2] += arrowWidth/2;
     }
-    else if (xPoints[2]>x+width) {
-        xPoints[2] = arrowX; xPoints[0] -= arrowWidth/2;
+    else if (xPoints[2]>adjX+width) {
+        xPoints[2] = adjArrowX; xPoints[0] -= arrowWidth/2;
     }
 
     pG2.setColor(Color.BLACK);

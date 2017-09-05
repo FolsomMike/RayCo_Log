@@ -717,8 +717,8 @@ public void updateAnnotationGraph()
 
         prevXGraph0Trace0 = prevX;
 
-        int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartIndex(),
-                                        zoomGraph.getNextBoxEndIndex());
+        int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartX(),
+                                                zoomGraph.getNextBoxEndX());
         zoomGraph.addZoomBox(peakIndex);
 
     }
@@ -779,7 +779,7 @@ public void mouseMoved(MouseEvent pEvent) {
 
         //determine the x at which to display data
         int dataX = g.getXOfPeakInBox(x, y, 10, 10); //WIP HSS// read width and height from ini file
-        zoomGraph.updateZoomBox(dataX);
+        if (dataX!=-1) { zoomGraph.updateZoomBox(dataX); }
     }
 
 }// end of Chart::mouseMoved

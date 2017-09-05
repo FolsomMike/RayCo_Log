@@ -231,17 +231,17 @@ public int getXOfPeakInBox(int pX, int pY, int pWidth, int pHeight)
 {
 
     //calculate x points of box
-    int indexStart = pX+graphInfo.scrollOffset-pWidth/2;
-    int indexEnd = pX+graphInfo.scrollOffset+pWidth/2;
+    int xStart = pX+graphInfo.scrollOffset-pWidth/2;
+    int xEnd = pX+graphInfo.scrollOffset+pWidth/2;
 
     //calculate y points of box
     int yStart = pY-pHeight/2;
     int yEnd = pY+pHeight/2;
 
     //determine the greatest peak
-    Trace peakTrace = null; int peak=-1; int peakX=0;
+    Trace peakTrace = null; int peak=-1; int peakX=-1;
     for (Trace t : traces) {
-        int newP = t.getPeak(indexStart, indexEnd, yStart, yEnd);
+        int newP = t.getPeak(xStart, xEnd, yStart, yEnd);
         if (newP>peak) { peak=newP; peakTrace=t; }
     }
     if (peakTrace!=null) { peakX = peakTrace.getXOfLastRequestedPeak(); }
