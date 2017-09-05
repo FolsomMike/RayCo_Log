@@ -608,11 +608,11 @@ public int getPeak (int pIndexStart, int pIndexEnd)
 // Searches for and returns the highest peak within the box specified.
 //
 
-public int getPeak (int pXStart, int pYStart, int pXEnd, int pYEnd)
+public int getPeak (int pIndexStart, int pIndexEnd, int pYStart, int pYEnd)
 {
 
     //get the peak within the x points
-    int peak = getPeak(pXStart, pXEnd);
+    int peak = getPeak(pIndexStart, pIndexEnd);
 
     //if peak does not lie within y points, set peak to -1
     //DEBUG HSS// need to make use of y-coordinates if (peak<pYStart||pYEnd>peak) { peak = -1; }

@@ -30,9 +30,12 @@ class ZoomBox{
     private String title;
     private String shortTitle;
     private final int chartGroupNum, chartNum, graphNum, zoomBoxNum;
-    private final int x, y, width, height;
+    private int x, y;
+    public void setX(int pX) { x = pX; }
     public int getX() { return x; }
+    public void setY(int pY) { y = pY; }
     public int getY() { return y; }
+    private final int width, height;
     public int getWidth() { return width; }
     public int getHeight() { return height; }
 
@@ -151,19 +154,19 @@ public void paint(Graphics2D pG2)
 // Draws the arrow the canvas.
 //
 
-public void drawArrow(Graphics2D pG2)
+private void drawArrow(Graphics2D pG2)
 {
 
     //draw arrow
     int[] xPoints = {arrowX-arrowWidth/2,   arrowX,     arrowX+arrowWidth/2};
     int[] yPoints = {arrowY+arrowHeight,    arrowY,     arrowY+arrowHeight};
-    
-    //width to clear all possible x positions of the arrow. The start and end 
+
+    //width to clear all possible x positions of the arrow. The start and end
     //indexes are the x positions.
     pG2.setColor(pG2.getBackground());
     int clearWidth = dataEndIndex-dataStartIndex;
-    pG2.fillRect(dataStartIndex, arrowY, clearWidth, arrowHeight);
-    
+    pG2.fillRect(x, arrowY, clearWidth, arrowHeight);
+
     //if left or right points lie outside the zoom box, split them in
     //half so that users can easily discern which arrow belongs to which box
     if (xPoints[0]<x) {

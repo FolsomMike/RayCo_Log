@@ -36,6 +36,9 @@ public class ZoomGraph extends Graph{
     public int getNextBoxEndX() { return annoX+annoWidth+gap; }
     private final int annoY = 10;
     private final int annoWidth = 128, annoHeight = 50; //WIP HSS// read in from ini file
+    private int annoIndex = 0, annoNumIndexes = 132; //WIP HSS// read in from ini file
+    public int getNextBoxStartIndex() { return annoIndex; }
+    public int getNextBoxEndIndex() { return annoIndex+annoNumIndexes-1; }
     private int gap;
     private int maxNumZoomBoxes;
 
@@ -125,38 +128,46 @@ public void retrieveDataChanges()
 //-----------------------------------------------------------------------------
 // ZoomGraph::addZoomBox
 //
-// Adds a ZoomBox to the graph at pX, using the snapshot found at the index for
-// data.
+// Adds a ZoomBox to the graph at pX, using the data found at the specified
+// index.
 //
 
-public void addZoomBox(int pSnapshotIndex)
+public void addZoomBox(int pIndex)
 {
 
+    //scroll offset may have changed since annoX was updated
+    //so we subtract it now
     int zoomX = annoX - graphInfo.scrollOffset;
-    int zoomY = annoY;
 
-    annoX += annoWidth + gap; //prepare x to add next anno object to the right
+    //prepare x to add next zoom box to the right -- scroll offset not
+    //subtracted because it may change
+    annoX += annoWidth + gap;
+
+    int indexStart = annoIndex;
+    int indexEnd = annoIndex + annoNumIndexes - 1;
+    //prepare next index start
+    annoIndex += annoNumIndexes;
 
     zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
-                    zoomX, zoomY, annoWidth, annoHeight));
+                    zoomX, annoY, annoWidth, annoHeight));
 
     //use the last data set collected if index out of bounds
     int [] zoomData; int arrowX; int arrowY=1;
-    if (pSnapshotIndex>=data.size()) {
-        zoomData = data.get(data.size()-1); 
+    if (pIndex>=data.size()) {
+        zoomData = data.get(data.size()-1);
         arrowX = data.size()-1 - graphInfo.scrollOffset;;
     }
-    else { 
-        zoomData = data.get(pSnapshotIndex); 
-        arrowX = pSnapshotIndex - graphInfo.scrollOffset;
+    else {
+        zoomData = data.get(pIndex);
+        arrowX = pIndex - graphInfo.scrollOffset;
     }
 
     //set zoombox stuff
     zoomBoxes.get(zoomBoxes.size()-1).setArrowLocation(arrowX, arrowY);
     zoomBoxes.get(zoomBoxes.size()-1).setData(zoomData);
-    zoomBoxes.get(zoomBoxes.size()-1).setDataStartIndex(zoomX);
+    zoomBoxes.get(zoomBoxes.size()-1).setDataStartIndex(indexStart);
     //annoX should be set to start of next zoomBox/end of this one
-    zoomBoxes.get(zoomBoxes.size()-1).setDataEndIndex(annoX-1);
+    zoomBoxes.get(zoomBoxes.size()-1).setDataEndIndex(indexEnd);
 
     zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
 
@@ -177,9 +188,13 @@ void updateZoomBox(int pX)
 {
 
     for (ZoomBox b : zoomBoxes) {
-        if (b.getDataStartIndex()<=pX&&pX<=b.getDataEndIndex()){
-            b.setArrowLocation(pX, 1);
+        if ((b.getDataStartIndex())<=pX && pX<=(b.getDataEndIndex())){
+
             b.setData(data.get(pX));
+
+            b.setX(b.getDataStartIndex()-graphInfo.scrollOffset);
+            b.setArrowLocation(pX-graphInfo.scrollOffset, 1);
+
             b.paint((Graphics2D)getGraphics());
         }
     }

@@ -668,13 +668,13 @@ public Trace getTrace(int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::getXOfTracesPeak
+// Chart::getIndexOfTracesPeak
 //
-// Determines and returns which x point has the highest peak out of all of the
-// traces and returns that x point.
+// Determines and returns which index has the highest peak out of all of the
+// traces and returns that index.
 //
 
-private int getXOfTracesPeak(int pXStart, int pXEnd)
+private int getIndexOfTracesPeak(int pIndexStart, int pIndexEnd)
 {
 
     //use the x position that has the highest peak of all the traces to
@@ -682,14 +682,14 @@ private int getXOfTracesPeak(int pXStart, int pXEnd)
     Trace t; Trace peakTrace = null; int peak=0; int peakX=0;
     for (Object o : traces) {
         t = (Trace)o;
-        int newP = t.getPeak(pXStart, pXEnd);
+        int newP = t.getPeak(pIndexStart, pIndexEnd);
         if (newP>peak) { peak=newP; peakTrace=t; }
     }
     if (peakTrace!=null) { peakX = peakTrace.getXOfLastRequestedPeak(); }
 
     return peakX;
 
-}// end of Chart::getXOfTracesPeak
+}// end of Chart::getIndexOfTracesPeak
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -717,9 +717,9 @@ public void updateAnnotationGraph()
 
         prevXGraph0Trace0 = prevX;
 
-        int peakX = getXOfTracesPeak(zoomGraph.getNextBoxStartX(),
-                                        zoomGraph.getNextBoxEndX());
-        zoomGraph.addZoomBox(peakX);
+        int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartIndex(),
+                                        zoomGraph.getNextBoxEndIndex());
+        zoomGraph.addZoomBox(peakIndex);
 
     }
 
