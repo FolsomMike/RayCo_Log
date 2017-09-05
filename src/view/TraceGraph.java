@@ -222,7 +222,9 @@ public void updateChild(int pChildNum)
 //-----------------------------------------------------------------------------
 // TraceGraph::getXOfPeakInBox
 //
-// Returns the x location of the greatest peak within the box.
+// Returns the x location of the greatest peak within the box. If no peak is
+// found within the box, then the x location of the peak closest to the center
+// of the box is returned.
 //
 // The box is centered at pX, pY.
 //
@@ -239,12 +241,27 @@ public int getXOfPeakInBox(int pX, int pY, int pWidth, int pHeight)
     int yEnd = pY+pHeight/2;
 
     //determine the greatest peak
-    Trace peakTrace = null; int peak=-1; int peakX=-1;
+    Trace peakTrace = null; int peak=-1; int peakX=-1; int yDistance=-1;
     for (Trace t : traces) {
+
         int newP = t.getPeak(xStart, xEnd, yStart, yEnd);
-        if (newP>peak) { peak=newP; peakTrace=t; }
+
+        //if trace has a peak, but its not in the box, and no other
+        //peaks have been found in the box yet, use the trace as the
+        //peak trace if his peak's y distance from the center of the
+        //box is closer than any other traces'
+        if (newP==-1&&peak==-1&&t.getLastRequestedPeakX()!=-1) {
+            int newYDist = Math.abs(t.getLastRequestedPeakY()-pY);
+
+            if (yDistance==-1||newYDist<yDistance) {
+                yDistance = newYDist;
+                peakTrace=t;
+            }
+        }
+        //peak found and is new peak
+        else if (newP>peak) { peak=newP; peakTrace=t; }
     }
-    if (peakTrace!=null) { peakX = peakTrace.getXOfLastRequestedPeak(); }
+    if (peakTrace!=null) { peakX = peakTrace.getLastRequestedPeakX(); }
 
     return peakX;
 

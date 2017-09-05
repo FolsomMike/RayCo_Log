@@ -685,7 +685,7 @@ private int getIndexOfTracesPeak(int pIndexStart, int pIndexEnd)
         int newP = t.getPeak(pIndexStart, pIndexEnd);
         if (newP>peak) { peak=newP; peakTrace=t; }
     }
-    if (peakTrace!=null) { peakX = peakTrace.getXOfLastRequestedPeak(); }
+    if (peakTrace!=null) { peakX = peakTrace.getLastRequestedPeakX(); }
 
     return peakX;
 

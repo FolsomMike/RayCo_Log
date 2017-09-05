@@ -75,8 +75,10 @@ public class Trace{
     int gridY1;
 
     private int lastRequestedPeak = -1;
-    private int xOfLastRequestedPeak = -1;
-    public int getXOfLastRequestedPeak() { return xOfLastRequestedPeak; }
+    private int lastRequestedPeakX = -1;
+    public int getLastRequestedPeakX() { return lastRequestedPeakX; }
+    private int lastRequestedPeakY = -1;
+    public int getLastRequestedPeakY() { return lastRequestedPeakY; }
 
     //simple getters & setters
 
@@ -501,9 +503,7 @@ public void paintSingleTraceDataPoint(
 
     pG2.setColor(traceColor);
 
-    int y = (int)(pY - baseLine);
-
-    y = (int)(y * yScale) + offset;
+    int y = calculateY(pY);
 
     //if so configured, invert y so zero is at the bottom of the chart
 
@@ -577,6 +577,20 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Trace::calculateY
+//
+// Calculates and returns the scaled and offset y derived from pY.
+//
+
+private int calculateY(int pY)
+{
+
+    return (int)((pY - baseLine) * yScale) + offset;
+
+}// end of Trace::calculateY
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Trace::getPeak
 //
 // Searches for and returns the highest peak within the indexes specified.
@@ -586,13 +600,13 @@ public int getPeak (int pXStart, int pXEnd)
 {
 
     //ensure index starts and ends don't exceed array bounds
-    if (pXStart<0||pXEnd>=data.size()) { return -1; }
+    if (pXStart<0||pXEnd>=data.size()) { lastRequestedPeakX = -1; return -1; }
 
     lastRequestedPeak=0;
     for (int i=pXStart; i<=pXEnd&&i<data.size(); i++){
         if(data.get(i)>lastRequestedPeak) {
-            lastRequestedPeak=data.get(i);
-            xOfLastRequestedPeak = i;
+            lastRequestedPeak = data.get(i);
+            lastRequestedPeakX = i;
         }
     }
 
@@ -614,7 +628,8 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
     int peak = getPeak(pXStart, pXEnd);
 
     //if peak does not lie within y points, set peak to -1
-    //DEBUG HSS// need to make use of y-coordinates if (peak<pYStart||pYEnd>peak) { peak = -1; }
+    lastRequestedPeakY = calculateY(peak);
+    if (lastRequestedPeakY<pYStart||pYEnd<lastRequestedPeakY) { peak = -1; }
 
     return peak;
 
