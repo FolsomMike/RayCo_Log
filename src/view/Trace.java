@@ -589,7 +589,7 @@ public int getPeak (int pXStart, int pXEnd)
     if (pXStart<0||pXEnd>=data.size()) { return -1; }
 
     lastRequestedPeak=0;
-    for (int i=pXStart; i<pXEnd&&i<data.size(); i++){
+    for (int i=pXStart; i<=pXEnd&&i<data.size(); i++){
         if(data.get(i)>lastRequestedPeak) {
             lastRequestedPeak=data.get(i);
             xOfLastRequestedPeak = i;
