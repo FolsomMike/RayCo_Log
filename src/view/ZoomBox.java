@@ -19,6 +19,7 @@ package view;
 
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import javax.swing.UIManager;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -153,7 +154,7 @@ private void drawArrow(Graphics2D pG2)
 
     //width to clear all possible x positions of the arrow. The start and end
     //indexes are the x positions.
-    pG2.setColor(pG2.getBackground());
+    pG2.setColor(UIManager.getColor ("Panel.background"));
     pG2.fillRect(adjX, arrowY, adjXEnd-adjX, arrowHeight);
 
     //if left or right points lie outside the zoom box, split them in
