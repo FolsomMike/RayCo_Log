@@ -6,7 +6,7 @@
 * Purpose:
 *
 * This class subclasses a JPanel to display a 3D map.
-* 
+*
 * A reference to the transfer data buffer, mapBuffer is stored in the class but
 * it is not used in the same manner as the dataBuffer reference in the Trace
 * class. All the data for the Trace class is stored in the dataBuffer. For the
@@ -44,41 +44,41 @@ public class Map3DGraph extends Graph{
     int colorMappingStyle;
     int mapBaselineThreshold;
     Color mapBaselineColor;
-    
+
     int currentMapInsertionRow;
-    
+
     // view parameters used when scanning/inspecting
     // this view must be directly from the side
 
     Map3DViewParameters normalViewParams = new Map3DViewParameters();
-    
+
     // view parameters used when graph is expanded for better viewing
-    
+
     Map3DViewParameters expandedViewParams = new Map3DViewParameters();
-    
+
     // used to hold the parameters currently in use
-    
+
     Map3DViewParameters currentViewParams = new Map3DViewParameters();
-    
+
     //length is the x axis, width is the y axis (o'clock position)
     private int mapLengthInDataPoints;
     public int getMapLengthInDataPoints(){ return(mapLengthInDataPoints); }
     private int mapWidthInDataPoints;
-    public int getMapWidthInDataPoints(){ return(mapWidthInDataPoints); }    
+    public int getMapWidthInDataPoints(){ return(mapWidthInDataPoints); }
     private int bufferLengthInDataPoints;
-    public int getBufferLengthInDataPoints(){return(bufferLengthInDataPoints);}    
-    
+    public int getBufferLengthInDataPoints(){return(bufferLengthInDataPoints);}
+
     DataSetIntMultiDim mapDataSet;
-    
+
     private static final int ANALYSIS_STRETCHX = 1;
     private static final int ANALYSIS_STRETCHY = 1;
     private static final int NORMAL_LEVEL = 2;
     private static final int WARNING_LEVEL = 10;
     private static final int CRITICAL_LEVEL = 20;
-        
+
     public static final int ASSIGN_COLOR_BY_HEIGHT = 0;
     public static final int ASSIGN_COLOR_BY_SYSTEM = 1;
-    
+
 //-----------------------------------------------------------------------------
 // Map3DGraph::Map3DGraph (constructor)
 //
@@ -90,7 +90,7 @@ public Map3DGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
 
     super(pChartGroupNum, pChartNum, pGraphNum,
                                      pWidth, pHeight, pChartInfo, pConfigFile);
-        
+
 }//end of Chart::Map3DGraph (constructor)
 //-----------------------------------------------------------------------------
 
@@ -106,8 +106,8 @@ public void init()
 
     super.init();
 
-    mapDataSet = new DataSetIntMultiDim(mapWidthInDataPoints);        
-    
+    mapDataSet = new DataSetIntMultiDim(mapWidthInDataPoints);
+
     addMaps();
 
 }// end of Map3DGraph::init
@@ -132,7 +132,7 @@ private void addMaps()
     map3D.resetAll();
 
     map3D.setSystemInfo(systemNames, systemColors);
-    
+
 }//end of Map3DGraph::addMaps
 //-----------------------------------------------------------------------------
 
@@ -148,29 +148,29 @@ public void update(ArrayList <Object> pValues)
 {
 
     int i = 1;
-    
+
     currentViewParams.xPos = (Integer)pValues.get(i++);
-    
+
     currentViewParams.yPos = (Integer)pValues.get(i++);
     //flip y so higher values towards top of screen
     currentViewParams.yPos = -(currentViewParams.yPos);
 
     currentViewParams.xFrom = (Integer)pValues.get(i++);
-    
+
     currentViewParams.yFrom = (Integer)pValues.get(i++);
-    
-    currentViewParams.zFrom = (Integer)pValues.get(i++);    
-    
+
+    currentViewParams.zFrom = (Integer)pValues.get(i++);
+
     currentViewParams.xAt = (Integer)pValues.get(i++);
-    
+
     currentViewParams.yAt = (Integer)pValues.get(i++);
-    
-    currentViewParams.zAt = (Integer)pValues.get(i++);    
-        
+
+    currentViewParams.zAt = (Integer)pValues.get(i++);
+
     currentViewParams.rotation = (Integer)pValues.get(i++);
-    
+
     currentViewParams.viewAngle = (Integer)pValues.get(i++);
-    
+
     repaint();
 
 }// end of Map3DGraph::update
@@ -187,29 +187,29 @@ public ArrayList<Object> getParameters()
 {
 
     ArrayList<Object> values = new ArrayList<>();
-    
+
     values.add("Map3DManipulator");
-    
+
     values.add(currentViewParams.xPos);
-    
+
     values.add(-(currentViewParams.yPos));
-    
+
     values.add(currentViewParams.xFrom);
-    
+
     values.add(currentViewParams.yFrom);
-    
+
     values.add(currentViewParams.zFrom);
-    
+
     values.add(currentViewParams.xAt);
-    
+
     values.add(currentViewParams.yAt);
-    
+
     values.add(currentViewParams.zAt);
 
     values.add(currentViewParams.rotation);
-    
+
     values.add(currentViewParams.viewAngle);
-    
+
     return(values);
 
 }// end of Map3DGraph::getParameters
@@ -231,12 +231,11 @@ public void updateChild(int pChildNum)
 {
 
     int r;
-    
     while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
-                
+
         map3D.setAndDrawDataRow(
                         (Graphics2D)getGraphics(), mapDataSet.d, mapDataSet.m);
-                    
+
     }
 
 }// end of Map3DGraph::updateChild
@@ -251,7 +250,7 @@ public void paintComponent (Graphics g)
 {
 
     super.paintComponent(g);
-           
+
     map3D.paint((Graphics2D)g,
             currentViewParams,
             ANALYSIS_STRETCHX, ANALYSIS_STRETCHY,
@@ -270,7 +269,7 @@ public void paintComponent (Graphics g)
 public void addRow(int[] pDataSet)
 {
 
-    
+
 }// end of Map3DGraph::addRow
 //-----------------------------------------------------------------------------
 
@@ -283,9 +282,9 @@ public void addRow(int[] pDataSet)
 @Override
 public void setViewParamsToNormalLayout()
 {
-    
+
     currentViewParams.setValues(normalViewParams);
-    
+
 }// end of Map3DGraph::setViewParamsToNormalLayout
 //-----------------------------------------------------------------------------
 
@@ -298,9 +297,9 @@ public void setViewParamsToNormalLayout()
 @Override
 public void setViewParamsToExpandedLayout()
 {
-    
+
     currentViewParams.setValues(expandedViewParams);
-    
+
 }// end of Map3DGraph::setViewParamsToExpandedLayout
 //-----------------------------------------------------------------------------
 
@@ -313,13 +312,13 @@ public void setViewParamsToExpandedLayout()
 @Override
 public void resetAll()
 {
-    
+
     super.resetAll();
-    
+
     resetData();
- 
+
     currentMapInsertionRow = 0;
-    
+
 }// end of Map3DGraph::resetAll
 //-----------------------------------------------------------------------------
 
@@ -332,11 +331,11 @@ public void resetAll()
 
 public void resetData()
 {
-    
+
     map3D.resetAll();
-    
+
     if (mapBuffer!=null) { mapBuffer.reset(); }
-        
+
 }// end of Map3DGraph::resetData
 //-----------------------------------------------------------------------------
 
@@ -354,9 +353,9 @@ public void resetData()
 @Override
 public void setChildCanvasSizeToMatchPanel()
 {
-    
+
     map3D.setCanvasSize(getWidth(), getHeight());
-    
+
 }// end of Map3DGraph::setChildCanvasSizeToMatchPanel
 //-----------------------------------------------------------------------------
 
@@ -373,9 +372,9 @@ public void setChildCanvasSizeToMatchPanel()
 @Override
 public void setChildCanvasSize(int pWidth, int pHeight)
 {
-    
+
     map3D.setCanvasSize(pWidth, pHeight);
-    
+
 }// end of Map3DGraph::setChildCanvasSize
 //-----------------------------------------------------------------------------
 
@@ -389,27 +388,27 @@ public void setChildCanvasSize(int pWidth, int pHeight)
 @Override
 public void animate()
 {
-    
+
     if(animationDirection == 0){
-        
+
         animationCount++;
-        
+
         //reverse direction when max reached
         if(animationCount > 24){ animationDirection = 1; }
-       
+
     }else{
-        
+
         animationCount--;
-        
+
         //reverse direction when min reached
         if(animationCount < -24){ animationDirection = 0; }
-                
+
     }
-    
-    currentViewParams.rotation = expandedViewParams.rotation + animationCount;    
-    
+
+    currentViewParams.rotation = expandedViewParams.rotation + animationCount;
+
     repaint();
-    
+
 }// end of Map3DGraph::animate
 //-----------------------------------------------------------------------------
 
@@ -425,14 +424,14 @@ private void parseColorMappingStyle(String pValue)
 {
 
     switch (pValue) {
-         case "assign by height": 
+         case "assign by height":
              colorMappingStyle = ASSIGN_COLOR_BY_HEIGHT; break;
-         case "assign by system" : 
+         case "assign by system" :
              colorMappingStyle = ASSIGN_COLOR_BY_SYSTEM; break;
-         default : 
+         default :
              colorMappingStyle = ASSIGN_COLOR_BY_SYSTEM; break;
     }
-    
+
 }// end of Channel::parseColorMappingStyle
 //-----------------------------------------------------------------------------
 
@@ -446,33 +445,33 @@ private void parseColorMappingStyle(String pValue)
 void loadConfigSettings()
 {
 
-    configFileSection = 
+    configFileSection =
             "Chart Group " + chartGroupNum + " Chart " + chartNum
                                             + " Graph " + graphNum;
 
     super.loadConfigSettings();
 
     double pixelWidthOfGridBlockInRuntimeLayout;
-    
+
     pixelWidthOfGridBlockInRuntimeLayout = configFile.readDouble(
-            configFileSection, 
+            configFileSection,
             "pixel width of each grid block in runtime layout", 9.5);
 
-    mapLengthInDataPoints = 
+    mapLengthInDataPoints =
       configFile.readInt(configFileSection, "length of map in data points", 12);
 
     //if value in config file is -1, set such that the graph is filled
     if (mapLengthInDataPoints == -1){
-        mapLengthInDataPoints = 
+        mapLengthInDataPoints =
                            (int)(width / pixelWidthOfGridBlockInRuntimeLayout);
     }
-        
-    mapWidthInDataPoints = 
+
+    mapWidthInDataPoints =
        configFile.readInt(configFileSection, "width of map in data points", -1);
 
     bufferLengthInDataPoints = configFile.readInt(configFileSection,
                 "length of data buffer in data points", mapLengthInDataPoints);
-    
+
     //3D map view parameters for runtime layout
 
     normalViewParams.loadConfigSettings(
@@ -482,34 +481,34 @@ void loadConfigSettings()
 
     expandedViewParams.loadConfigSettings(
                                     configFile, configFileSection, "expanded");
-        
+
     //if xPos is MAX_VALUE, adjust to set left edge of grid to left graph edge
     //this is only done for the runtime view...adjustments to expanded view
     //must be set in the config file
-    
+
     if (normalViewParams.xPos == Integer.MAX_VALUE){
-        normalViewParams.xPos = (int)((width - 
+        normalViewParams.xPos = (int)((width -
            (mapLengthInDataPoints * pixelWidthOfGridBlockInRuntimeLayout)) / 2);
         normalViewParams.xPos = -(normalViewParams.xPos);
     }
-    
-    
+
+
      String s = configFile.readString(configFileSection,
                                     "color mapping style", "assign by system");
 
     parseColorMappingStyle(s);
-        
+
     mapBaselineThreshold = configFile.readInt(configFileSection,
                                                  "map baseline threshold", 4);
-        
+
     mapBaselineColor = configFile.readColor(configFileSection,
-                                       "map baseline color", Color.LIGHT_GRAY);      
-    
+                                       "map baseline color", Color.LIGHT_GRAY);
+
     //start out using the runtime view parameters
     currentViewParams.setValues(normalViewParams);
-    
+
     loadSystemsConfigSettings(configFileSection);
-    
+
 }// end of Map3DGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -521,27 +520,48 @@ void loadConfigSettings()
 
 void loadSystemsConfigSettings(String configFileSection)
 {
-    
-    numSystems  = 
+
+    numSystems  =
        configFile.readInt(configFileSection, "number of systems on map", 0);
 
-    if (numSystems <= 0) { return; }    
-    
+    if (numSystems <= 0) { return; }
+
     systemNames = new String[numSystems];
     systemColors = new Color[numSystems];
-    
+
     for(int i=0; i<numSystems; i++){
-    
+
         systemNames[i] = configFile.readString(
                       configFileSection, "system " + i + " name", "undefined");
 
         systemColors[i] = configFile.readColor(
                            configFileSection, "system " + i + " color", null);
-        
+
     }
-    
+
 }// end of Map3DGraph::loadSystemsConfigSettings
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::scrollGraph
+//
+// Scrolls the graph if appropriate.
+//
+
+@Override
+public void scrollGraph (int pShiftAmount)
+{
+
+    //WIP HSS// 20 pixels subtracted looks good, but I used guesswork to figure
+    //it out there has to be some way to do calculate it. Also if Map is working
+    //faster than other graphs, gui errors occur
+    if (map3D.getLastDrawnX()<map3D.getXMaxPix()-20) { return; }//DEBUG HSS/
+
+    super.scrollGraph(pShiftAmount);
+
+}// end of Map3DGraph::scrollGraph
+//-----------------------------------------------------------------------------
+
 
 }//end of class Map3DGraph
 //-----------------------------------------------------------------------------

@@ -109,7 +109,7 @@ public class MainController implements EventHandler, Runnable
 
     private int displayUpdateTimer = 0;
 
-    int mapUpdateRateTrigger = 0;
+    private int mapUpdateRateTrigger = 0;
 
     private String XMLPageFromRemote;
 
@@ -1035,7 +1035,7 @@ private void displayDataFromDeviceSnapshots()
             else { peak=peakSnapshotData.peak; }
 
             peakSnapshotData.meta
-                    .dataSnapshotBuffer.putData(peakSnapshotData.peak, 
+                    .dataSnapshotBuffer.putData(peakSnapshotData.peak,
                                                     peakSnapshotData.peakArray);
         }
     }
@@ -1060,7 +1060,10 @@ private void displayDataFromDeviceSnapshots()
 private void displayDataFromDeviceMaps()
 {
 
-    if (mapUpdateRateTrigger++ < 8){ return; } else { mapUpdateRateTrigger = 0; }    //debug mks -- does this belong here?
+    if (mapUpdateRateTrigger++ < 9){ return; } else { mapUpdateRateTrigger = 0; }    //debug mks -- does this belong here?
+
+    //prepares to scan through all channels
+    mainHandler.initForPeakScan();
 
     //get peak map data for each device and insert it into the transfer buffer
 
