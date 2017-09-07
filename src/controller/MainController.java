@@ -997,7 +997,9 @@ private void displayDataFromDeviceChannels()
         for (Channel channel : device.getChannels()){
             if (channel.getPeakDataAndReset(peakData) == true
                  && peakData.meta.dataBuffer != null)
-            { peakData.meta.dataBuffer.putData(peakData.peak); }
+            {
+                peakData.meta.dataBuffer.putData(peakData.peak);
+            }
         }
     }
 
@@ -1026,13 +1028,8 @@ private void displayDataFromDeviceSnapshots()
     mainHandler.initForPeakScan();
 
     //if there was a peak stored, store the snapshot data for that peak
-    int peak=0;
     for (Device device : mainHandler.getDevices()){
         if (device.getPeakSnapshotDataAndReset(peakSnapshotData) == true) {
-            //force put data does not ensure that only greatest peaks make it
-            //through, so we do it here.
-            if (peakSnapshotData.peak<peak) { continue; }
-            else { peak=peakSnapshotData.peak; }
 
             peakSnapshotData.meta
                     .dataSnapshotBuffer.putData(peakSnapshotData.peak,
