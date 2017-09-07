@@ -145,7 +145,7 @@ public void addZoomBox(int pIndex)
 
     //prepare x to add next zoom box to the right -- scroll offset not
     //subtracted because it may change
-    annoX += annoWidth + gap;
+    annoX += annoWidth + gap + 1;
 
     //use the last data set collected if index out of bounds
     int [] zoomData;
