@@ -375,7 +375,7 @@ private void createAndAssignDataBuffersToSnapshots()
         ZoomGraph zoomGraph = (ZoomGraph)iter.next();
 
         snapshotBuffers[i] = new DataTransferSnapshotBuffer(
-              200, //WIP HSS// both of these need to be determined in a different way
+              2000, //WIP HSS// both of these need to be determined in a different way
               128,
               zoomGraph.getPeakType());
         snapshotBuffers[i].init(0); //init requires default data value
@@ -973,7 +973,7 @@ private void displayDataFromDevices()
 
     displayDataFromDeviceChannels();
 
-    displayDataFromDeviceSnapshots();
+    //DEBUG HSS//displayDataFromDeviceSnapshots();
 
     displayDataFromDeviceMaps();
 

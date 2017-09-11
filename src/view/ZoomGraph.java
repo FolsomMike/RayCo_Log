@@ -120,9 +120,18 @@ public void retrieveDataChanges()
 
     while(snapshotBuffer.getDataChange(dataSet) != 0){
 
-        //store for future use -- clone used so that all objects in data
-        //do not point to dataSet object
+        //store for future use
         data.add(dataSet.d.clone());
+
+        //DEBUG HSS//
+        int p = -1; int newP;
+        for (int d : data.get(data.size()-1)) {
+            newP = Math.abs(d);
+            if (newP>p) { p = newP; }
+        }
+
+        //System.out.println(" ~ Snap: " + p);//DEBUG HSS//
+        //DEBUG HSS//
 
     }
 
@@ -136,6 +145,7 @@ public void retrieveDataChanges()
 // index.
 //
 
+int debugHss = -1;//DEBUG HSS//
 public void addZoomBox(int pIndex)
 {
 
@@ -153,6 +163,15 @@ public void addZoomBox(int pIndex)
         zoomData = data.get(data.size()-1); pIndex = data.size()-1;
     }
     else { zoomData = data.get(pIndex); }
+
+    //DEBUG HSS//
+    int p=-1;
+    for (int d : zoomData) {
+        int absD = Math.abs(d);
+        if (absD>p) { p = absD; }
+    }
+    debugHss = p;
+    //DEBUG HSS//
 
     //set zoombox stuff
     zoomBoxes.get(zoomBoxes.size()-1).setData(zoomData, pIndex);

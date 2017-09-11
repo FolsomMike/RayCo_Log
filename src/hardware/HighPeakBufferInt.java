@@ -2,13 +2,13 @@
 * Title: HighPeakBufferInt.java
 * Author: Mike Schoonover
 * Date: 03/18/15
-* 
+*
 * Purpose:
-* 
+*
 * This class is used to detect and store the highest peak value of type int. A
 * new value replaces the previously stored peak if the new value is greater than
 * the old peak.
-* 
+*
 * The methods to store a peak, retrieve a peak, and set a peak are all
 * synchronized so they are thread safe.
 *
@@ -25,7 +25,7 @@ package hardware;
 
 public class HighPeakBufferInt extends PeakBufferInt
 {
-    
+
 //-----------------------------------------------------------------------------
 // HighPeakBufferInt::HighPeakBufferInt (constructor)
 //
@@ -34,7 +34,7 @@ public HighPeakBufferInt(int pIndex)
 {
 
     super(pIndex);
-    
+
 }//end of HighPeakBufferInt::HighPeakBufferInt (constructor)
 //-----------------------------------------------------------------------------
 
@@ -49,10 +49,14 @@ public HighPeakBufferInt(int pIndex)
 
 @Override
 public synchronized void catchPeak(int pNewData)
-{    
+{
+
+    System.out.println("peak before catch: "+pNewData);//DEBUG HSS//
 
     if(pNewData > peak) { peak = pNewData; peakUpdated = true; }
-        
+
+    System.out.println("peak after catch: "+peak);//DEBUG HSS//
+
 }// end of HighPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------
 

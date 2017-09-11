@@ -2,19 +2,19 @@
 * Title: PeakBufferInt.java
 * Author: Mike Schoonover
 * Date: 03/18/15
-* 
+*
 * Purpose:
-*  
+*
 * This is a parent class used to detect and store peak values in an int.
 * The subclasses override the catchPeak method to provide specific code
 * for catching different types of peaks, such as highest value, lowest value,
 * closest to a target value, etc...
-* 
+*
 * The methods to store a peak, retrieve a peak, and set a peak are all
 * synchronized so they are thread safe.
-* 
+*
 * -- Note --
-* 
+*
 * An attempt was made to make this class a Generic, but Generics only work
 * with Objects and not primitives. If an Object wrapper (Integer, Double, etc.)
 * was used to store the peak, it would have been inefficient as those objects
@@ -38,11 +38,11 @@ public class PeakBufferInt
 
     int peak;
     int peakReset;
-        
+
     final int peakBufferNum;
 
     boolean peakUpdated;
-    
+
 //-----------------------------------------------------------------------------
 // PeakBufferInt::PeakBufferInt (constructor)
 //
@@ -51,9 +51,9 @@ public PeakBufferInt(int pPeakBufferNum)
 {
 
     peakBufferNum = pPeakBufferNum;
-        
+
     peakUpdated = false;
-    
+
 }//end of PeakBufferInt::PeakBufferInt (constructor)
 //-----------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ public PeakBufferInt(int pPeakBufferNum)
 
 public synchronized void catchPeak(int pNewData)
 {
-    
+
     // This method must be overridden by subclasses.
 
 }// end of PeakBufferInt::catchPeak
@@ -81,9 +81,9 @@ public synchronized void catchPeak(int pNewData)
 
 public synchronized void setPeak(int pValue)
 {
-    
+
     peak = pValue;
-    
+
 }// end of PeakBufferInt::setPeak
 //-----------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ public synchronized void reset()
     peak = peakReset;
 
     peakUpdated = false;
-    
+
 }// end of PeakBufferInt::reset
 //-----------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ public synchronized void setResetValue(int pValue)
 {
 
     peakReset = pValue;
-    
+
 }// end of PeakBufferInt::setResetValue
 //-----------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ public synchronized void getPeak(MKSInteger pPeakData)
 {
 
     pPeakData.x = peak;
-    
+
 }// end of PeakBufferInt::getPeak
 //-----------------------------------------------------------------------------
 
@@ -144,15 +144,17 @@ public synchronized void getPeak(MKSInteger pPeakData)
 
 public synchronized boolean getPeakAndReset(MKSInteger pPeakData)
 {
-    
+
+    System.out.println("peak data grabbed");//DEBUG HSS//
+
     boolean lPeakUpdated = peakUpdated;
-    
+
     pPeakData.x = peak;
-    
+
     reset();
-    
+
     return(lPeakUpdated);
-    
+
 }// end of PeakBufferInt::getPeakAndReset
 //-----------------------------------------------------------------------------
 

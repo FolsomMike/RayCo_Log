@@ -9,11 +9,11 @@
 * for retrieval by another thread.
 *
 * The buffer is in two arrays: a multidimensional array for snapshots and an
-* array for the peaks each snapshot is associated with. Data is stored and 
+* array for the peaks each snapshot is associated with. Data is stored and
 * retrieved one slice at a time.
 *
 * For any location which has not yet had data stored, the first data value will
-* be stored without testing. Subsequent data stored at the same location will 
+* be stored without testing. Subsequent data stored at the same location will
 * only be stored if the new peak is of greater or lesser value, depending on the
 * type of peak being stored (high or low).
 *
@@ -140,9 +140,9 @@ synchronized public void reset()
 
     for(int i=0; i<dataBuf.length; i++){
         flags[i] = FLAG_RESET_VALUE;
-        
+
         dataPeakBuf[i] = DATA_RESET_VALUE;
-        
+
         for(int j=0; j<dataBuf[i].length; j++) {
             dataBuf[i][j] = DATA_RESET_VALUE;
         }
@@ -161,8 +161,8 @@ synchronized public void reset()
 // has been previously stored at that row, the locations are simple set equal
 // to pData. If data has been stored at that row, it is only updated
 // with the values in pData if the peak value is greater or lesser than
-// the old peak value in each corresponding position in the row, depending on 
-// the state of peakIsHigher (true means higher data is a peak, false means 
+// the old peak value in each corresponding position in the row, depending on
+// the state of peakIsHigher (true means higher data is a peak, false means
 // lower data is a peak).
 //
 
@@ -273,6 +273,9 @@ synchronized public boolean getData(DataSetSnapshot pDataSet)
 
 synchronized public int getDataChange(DataSetSnapshot pDataSet)
 {
+
+
+    //DEBUG HSS//System.out.print(" ~ Get pointer: " + getPointer);
 
     //if data at current location has been marked erased, return that data and
     //move pointer to previous location

@@ -36,7 +36,7 @@ public class PeakSnapshotBuffer
 
     int[] peakArray;
     int[] peakArrayReset;
-    public int peak = 0;
+    int peak = 0;
 
     final int peakArrayBufferNum;
     final int arraySize;

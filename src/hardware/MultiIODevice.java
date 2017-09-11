@@ -355,17 +355,27 @@ public void collectData()
 public int extractSnapshotData(byte[] pPacket, int pIndex, int pPeak)
 {
 
-    int[] data = new int[128]; //WIP HSS// number of bytes needs to be specified in ini file
+    int[] snapData = new int[128]; //WIP HSS// number of bytes needs to be specified in ini file
 
     //not used, but good to have
     int lastEnteredAddr = pPacket[pIndex++];
 
-    for(int i=0; i<data.length; i++) {
+    for(int i=0; i<snapData.length; i++) {
         //retrieve the next byte from packet
-        data[i]=getUnsignedByteFromPacket(pPacket, pIndex++)-AD_ZERO_OFFSET;
+        snapData[i]=getUnsignedByteFromPacket(pPacket, pIndex++)-AD_ZERO_OFFSET;
     }
 
-    peakSnapshotBuffer.catchPeak(pPeak, data);
+    //DEBUG HSS//
+    int p=-1;
+    for (int d : snapData) {
+        int absD = Math.abs(d);
+        if (absD>p) { p = absD; }
+    }
+
+    //DEBUGSHSS//System.out.println("Dev Peak: "+pPeak+" ~ Snap: "+p);
+    //DEBUG HSS//
+
+    peakSnapshotBuffer.catchPeak(pPeak, snapData);
 
     return(pIndex);
 

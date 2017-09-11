@@ -5,7 +5,7 @@
 *
 * Purpose:
 *
-* This class used to detect and store an array of highest peak values for a 
+* This class used to detect and store an array of highest peak values for a
 * snapshot. A new array replaces the previously stored array if the new peak is
 * greater than the old peak.
 *
@@ -51,7 +51,12 @@ public HighPeakSnapshotBuffer(int pIndex, int pArraySize)
 public synchronized void catchPeak(int pNewPeak, int[] pNewData)
 {
 
+    System.out.println("snap before catch: "+pNewPeak);//DEBUG HSS//
+
     if (pNewPeak>peak) { peak=pNewPeak; setPeak(pNewData); }
+
+    System.out.println("snap after catch: "+peak);//DEBUG HSS//
+    System.out.println("--------------------------------------------");//DEBUG HSS//
 
 }// end of HighPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------

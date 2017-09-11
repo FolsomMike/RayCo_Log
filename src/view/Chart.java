@@ -674,6 +674,7 @@ public Trace getTrace(int pGraph, int pTrace)
 // traces and returns that index.
 //
 
+int debugHss = -1;//DEBUG HSS//
 private int getIndexOfTracesPeak(int pIndexStart, int pIndexEnd)
 {
 
@@ -686,6 +687,8 @@ private int getIndexOfTracesPeak(int pIndexStart, int pIndexEnd)
         if (newP>peak) { peak=newP; peakTrace=t; }
     }
     if (peakTrace!=null) { peakX = peakTrace.getLastRequestedPeakX(); }
+
+    debugHss = peak; //DEBUG HSS//
 
     return peakX;
 
@@ -720,6 +723,11 @@ public void updateAnnotationGraph()
         int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartX(),
                                                 zoomGraph.getNextBoxEndX());
         zoomGraph.addZoomBox(peakIndex);
+
+        //DEBUG HSS//
+        if (this.debugHss != zoomGraph.debugHss) {
+            return;
+        }
 
     }
 

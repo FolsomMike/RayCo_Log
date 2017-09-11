@@ -67,7 +67,7 @@ public void init(int pBoardNumber)
 
     numClockPositions = 48;
 
-    spikeOdds = 20;
+    spikeOdds = 500;
 
 }// end of SimulatorTransverse::init
 //-----------------------------------------------------------------------------
@@ -125,7 +125,7 @@ public int handleGetRunData()
 
     //iterate through all of the active channels and simulate values -- unactive
     //channels will not be simulated
-    int snap=0; int abs=0; boolean channelsOn = false;
+    int snap=127; int abs=0; boolean channelsOn = false;
     for(int i=0; i<activeChannels.length; i+=2) {
 
         //made it through once, so at least one channel is on
@@ -325,10 +325,10 @@ private int[] simulateSnapshot(int pPeak, boolean pChannelsOn)
     int data[] = new int[128];
     for(int i=0; i<data.length; i++){
         data[i] = 0x7f;
-        if (pChannelsOn) { data[i] += (int)(SIM_NOISE * Math.random()); }
+        //debug hss//if (pChannelsOn) { data[i] += (int)(SIM_NOISE * Math.random()); }
     }
 
-    int spikeLoc = (int)(data.length/2 + 20*Math.random());
+    int spikeLoc = (int)(data.length/2);
     data[spikeLoc] = signal;
 
     return(data);

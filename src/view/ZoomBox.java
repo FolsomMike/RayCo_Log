@@ -46,7 +46,6 @@ class ZoomBox{
 
     int data[];
 
-    //WIP HSS// all of these should be read from inifile (except x&y)
     private final boolean hasArrow;
     private int arrowX;
     private final int arrowY;
