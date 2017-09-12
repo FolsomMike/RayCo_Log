@@ -273,7 +273,6 @@ synchronized public int getDataChange(DataSetInt pDataSet)
         pDataSet.flags = flags[getPointer];
         getPointer--;
         if(getPointer < 0) getPointer = bufLength-1;
-        System.out.println("----------!!!DATA ERASED");//DEBUG HSS//
         return(-1);
     }
 

@@ -8,7 +8,7 @@
 * This class is the main handler for all hardware interfaces. It provides
 * methods to initialize devices and for sending and receiving data to and from
 * those devices.
-* 
+*
 * It also generates simulated data for testing and demonstration purposes.
 *
 */
@@ -49,17 +49,19 @@ public class MainHandler
 
     private final int handlerNum;
     private final MainController mainController;
-    private final IniFile configFile;    
+    private final IniFile configFile;
     private final SharedSettings sharedSettings;
 
-    LogPanel logPanel;    
-    
+    LogPanel logPanel;
+
     private int numDevices;
+    private int maxNumChannels;
+    public int getMaxNumChannels() { return maxNumChannels; }
 
     private boolean hdwParamsDirty = false;
     public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
     public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
-        
+
     int peakScanDev;
     int peakScanCh;
 
@@ -69,15 +71,15 @@ public class MainHandler
     ArrayList<String> deviceTypesSimulated = new ArrayList<>();
     ArrayList<String> deviceHandlers = new ArrayList<>();
     ArrayList<String> deviceTypes = new ArrayList<>();
-    
+
     private boolean allDevicesSimulatedOverride;
-    
+
     public boolean ready = false;
-    
+
     private static final int LONG = 0;  //longitudinal system
     private static final int TRANS = 1; //transverse system
     private static final int WALL = 2;  //wall system
-    
+
 //-----------------------------------------------------------------------------
 // MainHandler::MainHandler (constructor)
 //
@@ -88,7 +90,7 @@ public MainHandler(int pHandlerNum, MainController pMainController,
 
     handlerNum = pHandlerNum; mainController = pMainController;
     sharedSettings = pSharedSettings; configFile = pConfigFile;
-        
+
 }//end of MainHandler::MainHandler (constructor)
 //-----------------------------------------------------------------------------
 
@@ -104,18 +106,18 @@ public void init()
     loadConfigSettings();
 
     //add one logging master panel for the main handler to use
-    
+
     ArrayList<LogPanel> logPanels = mainController.setupDeviceLogPanels(1,true);
     logPanel = logPanels.get(0); logPanel.setTitle("Device Handler");
-    
+
     //set up a logging text panel so each device can display messages
     logPanels = mainController.setupDeviceLogPanels(numDevices, false);
-    
+
     //create the handlers for the different remote hardware data acquisition
     //and control boards
 
     setUpDevices(logPanels);
-    
+
 }// end of MainHandler::init
 //-----------------------------------------------------------------------------
 
@@ -133,15 +135,15 @@ public void connectToDevices()
 {
 
     logPanel.appendTS("Searching for devices...\n\n");
-    
+
     boolean status;
-    
+
     status = findAndConnectToDevices();
-    
+
     //if (status) { status = initializeDevices();}
-    
+
     ready = status; //if set true, devices are ready for use
-    
+
 }// end of MainHandler::connectToDevices
 //-----------------------------------------------------------------------------
 
@@ -160,19 +162,19 @@ private void setUpDevices(ArrayList<LogPanel> pLogPanels)
 {
 
     devices = new Device[numDevices];
-    
-    int index = 0;    
-    
+
+    int index = 0;
+
     LogPanel logIter;
-    
+
     ListIterator iDevType = deviceTypes.listIterator();
     ListIterator iLogPanel = pLogPanels.listIterator();
-    
+
     while(iDevType.hasNext()){
-        
+
         if(iLogPanel.hasNext()){ logIter = (LogPanel)iLogPanel.next(); }
         else { logIter = null; }
-        
+
         devices[index] = createDevice((String) iDevType.next(), index,
                      logIter, configFile, (boolean)deviceSimModes.get(index));
         devices[index].init();
@@ -192,7 +194,7 @@ private void setUpDevices(ArrayList<LogPanel> pLogPanels)
 //
 // Each device will be given a link to a logging text panel on which it can
 // display messages.
-// 
+//
 // The pSimMode value will be passed on to the device.
 //
 
@@ -200,22 +202,22 @@ private Device createDevice(
         String pDeviceType, int pIndex, LogPanel pLogPanel, IniFile pConfigFile,
                                                                boolean pSimMode)
 {
-        
+
     switch(pDeviceType){
-    
+
         case "Longitudinal ~ RayCo Log ~ A" : return (new
             Multi_IO_A_Longitudinal(pIndex, pLogPanel, pConfigFile, pSimMode));
 
         case "Transverse ~ RayCo Log ~ A" : return (new
               Multi_IO_A_Transverse(pIndex, pLogPanel, pConfigFile, pSimMode));
-            
+
         case "Wall ~ RayCo Log ~ A" : return (new
                     Multi_IO_A_Wall(pIndex, pLogPanel, pConfigFile, pSimMode));
 
         default: return(null);
-            
+
     }
-    
+
 }// end of MainHandler::createDevice
 //-----------------------------------------------------------------------------
 
@@ -234,17 +236,17 @@ private boolean findAndConnectToDevices()
 {
 
     try{
-    
-        HashMap<InetAddress, String>ipToDeviceTypeMap = new HashMap<>();    
+
+        HashMap<InetAddress, String>ipToDeviceTypeMap = new HashMap<>();
 
         findDevices(ipToDeviceTypeMap);
 
         logPanel.appendTS("\nAll devices found.\n\n");
-        
+
         assignFoundDevicesToDeviceObjects(ipToDeviceTypeMap);
 
         connectToFoundDevices();
-        
+
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 227");
@@ -253,9 +255,9 @@ private boolean findAndConnectToDevices()
                         + "found or set up properly!\n\n");
         return(false);
     }
-    
+
     return(true);
-    
+
 }// end of MainHandler::findAndConnectToDevices
 //-----------------------------------------------------------------------------
 
@@ -263,29 +265,29 @@ private boolean findAndConnectToDevices()
 // MainHandler::findDevices
 //
 // Makes initial contact with all devices and determines their IP addresses.
-// The IP addresses and board 
+// The IP addresses and board
 //
 
-private void findDevices(HashMap<InetAddress, String> pIPToDeviceTypeMap) 
+private void findDevices(HashMap<InetAddress, String> pIPToDeviceTypeMap)
                                            throws SocketException , IOException
 {
-    
-    SocketSet socketSet = new SocketSet("Device Query");        
-    
+
+    SocketSet socketSet = new SocketSet("Device Query");
+
     try{
-    
+
         NetworkInterface networkInterface;
 
         networkInterface = findNetworkInterface();
 
         findDevicesAndCollectIPAddresses(
                                socketSet, networkInterface, pIPToDeviceTypeMap);
-        
-        if(pIPToDeviceTypeMap.size() < numDevices){ 
+
+        if(pIPToDeviceTypeMap.size() < numDevices){
             throw new IOException("Some devices not found!"); }
-        
+
     }
-    finally{ 
+    finally{
         socketSet.closeAll();
     }
 
@@ -311,13 +313,13 @@ private void findDevicesAndCollectIPAddresses(SocketSet pSocketSet,
     logPanel.appendTS("Broadcasting to all devices...\n");
 
     openMulticastSocket(pSocketSet, pNetworkInterface);
-   
+
     if (!pSocketSet.checkIfASocketOpened()){ throw new IOException(); }
-    
+
     setupSocketAndDatagram(pSocketSet);
-    
+
     broadcastAndCollectResponses(pSocketSet, pIPToDeviceTypeMap);
-    
+
 }//end of MainHandler::findDevicesAndCollectIPAddresses
 //-----------------------------------------------------------------------------
 
@@ -330,20 +332,20 @@ private void broadcastAndCollectResponses(SocketSet pSocketSet,
 {
 
     int loopCount = 0;
-    
+
     //broadcast the roll call greeting several times, checking for responses
     //each time - quit when expected number of unique devices have responded
-    
+
     while(loopCount++ < 5 && pIPToDeviceTypeMap.size() < numDevices){
 
-        pSocketSet.sendOutPacket(); //broadcast the query        
+        pSocketSet.sendOutPacket(); //broadcast the query
 
-        waitSleep(1000); //sleep to delay between broadcasts        
-        
+        waitSleep(1000); //sleep to delay between broadcasts
+
         collectResponses(pSocketSet, pIPToDeviceTypeMap);
-                        
+
     }
-    
+
 }//end of MainHandler::broadcastAndCollectResponses
 //-----------------------------------------------------------------------------
 
@@ -373,27 +375,27 @@ private void broadcastAndCollectResponses(SocketSet pSocketSet,
 // this method will time out as well and another broadcast message should be
 // sent by the calling method. This method can then be called again to collect
 // any late coming responses.
-// 
+//
 
 private void collectResponses(SocketSet pSocketSet,
             HashMap<InetAddress, String> pIPToDeviceTypeMap) throws IOException
 {
-    
+
     String response;
     byte[] inBuf = new byte[256];
-    DatagramPacket inPacket = new DatagramPacket(inBuf, inBuf.length);    
+    DatagramPacket inPacket = new DatagramPacket(inBuf, inBuf.length);
     int loopCount = 0;
-    
-    
+
+
     boolean status;
 
     while(loopCount++ < numDevices){
-    
+
         status = pSocketSet.receive(inPacket);
 
         if(status){
 
-            String ipAddrS = inPacket.getAddress().toString(); 
+            String ipAddrS = inPacket.getAddress().toString();
 
             //get response string sent by device
             response = new String(inPacket.getData(), 0, inPacket.getLength());
@@ -401,13 +403,13 @@ private void collectResponses(SocketSet pSocketSet,
             //display the response string from the remote -- any device might
             //respond several times before the process is complete
 
-            logPanel.appendTS(ipAddrS + "  " + response + "\n");                
+            logPanel.appendTS(ipAddrS + "  " + response + "\n");
 
             pIPToDeviceTypeMap.put(inPacket.getAddress(), response);
 
         }
     }
-        
+
 }//end of MainHandler::collectResponses
 //-----------------------------------------------------------------------------
 
@@ -443,7 +445,7 @@ public NetworkInterface findNetworkInterface() throws SocketException
     logPanel.appendTS("");
 
     NetworkInterface iFace = null;
-        
+
     logPanel.appendTS("Full list of Network Interfaces:" + "\n\n");
     for (Enumeration<NetworkInterface> en =
           NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
@@ -468,12 +470,12 @@ public NetworkInterface findNetworkInterface() throws SocketException
     }
 
     logPanel.appendTS("\n");
-    
+
     if(iFace == null){
         logPanel.appendTS("WARNING: no viable adapter found, using default.\n"
         + "System may not find devices!\n\n");
     }
-    
+
     return(iFace);
 
 }//end of MainHandler::findNetworkInterface
@@ -500,9 +502,9 @@ private void openMulticastSocket(SocketSet pSocketSet,
                                             throws SocketException, IOException
 {
 
-    boolean someDevicesNotSimulated = checkIfAnyDevicesNotSimulated();    
+    boolean someDevicesNotSimulated = checkIfAnyDevicesNotSimulated();
     boolean someDevicesSimulated = checkIfAnyDevicesSimulated();
-    
+
     if (someDevicesNotSimulated) {
         pSocketSet.socket = new MulticastSocket(4445);
         if (pNetworkInterface != null) {
@@ -510,10 +512,10 @@ private void openMulticastSocket(SocketSet pSocketSet,
         }
     }
 
-    if (someDevicesSimulated) {        
+    if (someDevicesSimulated) {
         pSocketSet.simSocket = new UDPSimulator(4445, deviceTypesSimulated);
     }
-        
+
 }// end of MainHandler::openMulticastSocket
 //-----------------------------------------------------------------------------
 
@@ -529,19 +531,19 @@ private void openMulticastSocket(SocketSet pSocketSet,
 private void assignFoundDevicesToDeviceObjects(
             HashMap <InetAddress, String>pIPToDeviceTypeMap) throws IOException
 {
-        
+
     int numFound = pIPToDeviceTypeMap.size();
     String msg;
-    
+
     if(numFound < numDevices){
-        msg = "Only " + numFound + " of " + numDevices 
+        msg = "Only " + numFound + " of " + numDevices
                                                      + " expected were found.";
         logSevere(msg + " Error: 448"); logPanel.appendTS(msg + "\n\n");
         throw(new IOException(msg));
     }
 
     if(numFound > numDevices){
-        msg = "" + numFound + " devices were found when only " 
+        msg = "" + numFound + " devices were found when only "
                                             + numDevices + " were expected.";
         logSevere(msg + " Error: 448"); logPanel.appendTS(msg + "\n\n");
         throw(new IOException(msg));
@@ -551,26 +553,26 @@ private void assignFoundDevicesToDeviceObjects(
     //there may be multiple devices with the same Device Type, each will be
     //assigned to a different Device object matching that type in no particular
     //order of assignment
-    
+
     for(Map.Entry<InetAddress, String> entry : pIPToDeviceTypeMap.entrySet()){
 
         for(Device device : devices){
-            
-            if(device.getIPAddr() == null 
+
+            if(device.getIPAddr() == null
                     && entry.getValue().startsWith(device.getDeviceType())){
-            
+
                 device.setIPAddr(entry.getKey());
                 break;
             }
-        }   
+        }
     }
-        
+
     //scan through device objects checking to see if any were not assigned to
     //a found device, usually due to mismatched Device Type strings in the
     //config file vs the device itself
-    
-    for(Device device : devices){    
-    
+
+    for(Device device : devices){
+
         if(device.getIPAddr() == null){
             msg = "Missing a device of type: " + device.getDeviceType();
             throw(new IOException(msg));
@@ -599,20 +601,20 @@ public boolean connectToFoundDevices()
 
         Thread thread = new Thread(device, "Device " + device.getDeviceNum());
         thread.start();
-        
+
     }
-    
+
     boolean allDevicesConnected = true;
-    
+
     //wait a while for each object to complete its connection
     for(int i=0; i<5; i++){
         allDevicesConnected = true;
-        for (Device device : devices) { 
-            if (!device.getConnectionSuccessful()) { 
-                allDevicesConnected = false; 
-            }                    
+        for (Device device : devices) {
+            if (!device.getConnectionSuccessful()) {
+                allDevicesConnected = false;
+            }
         }
-        if(allDevicesConnected) { break; }        
+        if(allDevicesConnected) { break; }
         waitSleep(500);
     }
 
@@ -623,7 +625,7 @@ public boolean connectToFoundDevices()
     }
 
     return(allDevicesConnected);
-    
+
 }//end of MainHandler::connectToFoundDevices
 //-----------------------------------------------------------------------------
 
@@ -639,12 +641,12 @@ private void setupSocketAndDatagram(SocketSet pSocketSet)
 
     pSocketSet.group = InetAddress.getByName("230.0.0.1");
 
-    pSocketSet.outPacket = new DatagramPacket(pSocketSet.outBuf, 
+    pSocketSet.outPacket = new DatagramPacket(pSocketSet.outBuf,
                             pSocketSet.outBuf.length, pSocketSet.group, 4446);
 
     //force socket.receive to return if no packet available within 1 second
     pSocketSet.setSoTimeout(1000);
-        
+
 }// end of MainHandler::setupSocketAndDatagram
 //-----------------------------------------------------------------------------
 
@@ -667,11 +669,11 @@ public void collectData()
 {
 
     processChannelParameterChanges(); //process updated values
-    
+
     for(Device device : devices){ device.collectData(); }
 
     for(Device device : devices){ device.driveSimulation(); }
-    
+
 }// end of MainHandler::collectData
 //-----------------------------------------------------------------------------
 
@@ -684,7 +686,7 @@ public void collectData()
 
 public void initForPeakScan()
 {
-    
+
     peakScanDev = 0;
     peakScanCh = 0;
 
@@ -695,7 +697,7 @@ public void initForPeakScan()
 // MainHandler::getNextPeakData
 //
 // Returns data for the next peakData info to be displayed or processed via
-// the pPeakData parameter. 
+// the pPeakData parameter.
 //
 // When no more datasets are available, returns -1. Returns 0 otherwise.
 //
@@ -708,7 +710,7 @@ public void initForPeakScan()
 
 public int getNextPeakData(PeakData pPeakData)
 {
-    
+
     if(peakScanDev == numDevices){ return(-1); }
 
     //move to next device after reaching last channel for the current one
@@ -718,13 +720,16 @@ public int getNextPeakData(PeakData pPeakData)
         if(peakScanDev == numDevices){ return(-1); }
         peakScanCh = 0;
     }
-    
+
     devices[peakScanDev].getPeakDataAndReset(peakScanCh, pPeakData);
-    
+
+    //put recently grabbed meta data in main meta
+    pPeakData.meta = pPeakData.metaArray[peakScanCh];
+
     peakScanCh++;
-    
+
     return(0);
-    
+
 }// end of MainHandler::getNextPeakData
 //-----------------------------------------------------------------------------
 
@@ -734,15 +739,15 @@ public int getNextPeakData(PeakData pPeakData)
 // Returns true if any devices in the list are configured for simulation
 // OR
 // if the allDevicesSimulatedOverride flag is true.
-// 
+//
 
 private boolean checkIfAnyDevicesSimulated()
 {
 
     if(allDevicesSimulatedOverride) { return(true); }
-    
+
     return(checkSimListForValue(true));
-    
+
 }// end of MainHandler::checkIfAnyDevicesSimulated
 //-----------------------------------------------------------------------------
 
@@ -754,15 +759,15 @@ private boolean checkIfAnyDevicesSimulated()
 //
 // Returns false if all in the list are set to simulate or if
 // allDevicesSimulatedOverride is true.
-// 
+//
 
 private boolean checkIfAnyDevicesNotSimulated()
 {
 
     if(allDevicesSimulatedOverride){ return(false); }
-    
+
     return(checkSimListForValue(false));
-    
+
 }// end of MainHandler::checkIfAnyDevicesNotSimulated
 //-----------------------------------------------------------------------------
 
@@ -770,19 +775,19 @@ private boolean checkIfAnyDevicesNotSimulated()
 // MainHandler::checkSimListForValue
 //
 // Returns true if pValue is found in the devSimModes ArrayList.
-// 
+//
 
 private boolean checkSimListForValue(boolean pValue)
 {
 
     ListIterator iter = deviceSimModes.listIterator();
-   
+
     while(iter.hasNext()){
-        if ((boolean)iter.next() == pValue){ return(true); }        
+        if ((boolean)iter.next() == pValue){ return(true); }
     }
 
     return(false);
-    
+
 }// end of MainHandler::checkSimListForValue
 //-----------------------------------------------------------------------------
 
@@ -798,13 +803,13 @@ private boolean checkSimListForValue(boolean pValue)
 
 public void processData()
 {
-    
+
     for(Device device : devices){ device.collectData(); }
-    
-    
-    
-    
-    
+
+
+
+
+
 }// end of MainHandler::processData
 //-----------------------------------------------------------------------------
 
@@ -842,14 +847,14 @@ synchronized public boolean updateChannelParameters(
 {
 
     String[] split = pInfo.split(",");
-    
+
     int deviceNum = Integer.parseInt(split[4]);
-    
+
     boolean result = devices[deviceNum].updateChannelParameters(
                                 split[1], split[5], split[6], pForceUpdate);
 
     if(result) { setHdwParamsDirty(true); }
-    
+
     return(false);
 
 }//end of MainHandler::updateChannelParameters
@@ -874,19 +879,19 @@ synchronized private void processChannelParameterChanges()
     if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
 
     // invoke all devices with changed values to process those changes
-    
+
     for(Device device : devices){
-        if (device.getHdwParamsDirty()){ 
+        if (device.getHdwParamsDirty()){
             device.processChannelParameterChanges();
-        }                
+        }
     }
-    
+
     //updates have been applied, so clear dirty flag...since this method and
     //the method which handels the updates are synchronized, no updates will
     //have occurred while all this method has processed all the updates
-    
+
     setHdwParamsDirty(false);
-    
+
 }//end of MainHandler::processChannelParameterChanges
 //-----------------------------------------------------------------------------
 
@@ -898,31 +903,32 @@ synchronized private void processChannelParameterChanges()
 
 private void loadConfigSettings()
 {
-    
+
     String section = "Hardware Settings";
 
     allDevicesSimulatedOverride = configFile.readBoolean(
                                         section, "simulate all devices", true);
-    
+
     numDevices = configFile.readInt(section, "number of devices", 0);
-    
+    maxNumChannels = configFile.readInt(section, "max number of channels", 10);
+
     //read in the device type string for each device
-    for(int i=0; i<numDevices; i++){        
-        
+    for(int i=0; i<numDevices; i++){
+
         String s = configFile.readString(section,"device " +i+ " handler", "");
-        deviceHandlers.add(s);        
-        
+        deviceHandlers.add(s);
+
         String t = configFile.readString(section, "device " + i + " type", "");
         deviceTypes.add(s);
-        
+
         boolean sim = configFile.readBoolean(
                            section, "device " + i + " simulation mode", false);
-        
+
         deviceSimModes.add(sim || allDevicesSimulatedOverride);
-        
+
         //if device is simulated, add its type to a list of such
         if(sim || allDevicesSimulatedOverride){ deviceTypesSimulated.add(t); }
-        
+
     }
 
 }// end of MainHandler::loadConfigSettings
@@ -970,8 +976,8 @@ void waitSleep(int pTime)
 
 }//end of MainHandler::waitSleep
 //-----------------------------------------------------------------------------
-    
-    
+
+
 }//end of class MainHandler
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -983,7 +989,7 @@ void waitSleep(int pTime)
 
 class SocketSet
 {
-    
+
     MulticastSocket socket = null;
     MulticastSocket simSocket = null;
 
@@ -1000,12 +1006,12 @@ class SocketSet
 
 public SocketSet(String pBroadcastMsg)
 {
-  
+
     outBuf = pBroadcastMsg.getBytes();
 
 }//end of SocketSet::SocketSet (constructor)
 //-----------------------------------------------------------------------------
-        
+
 //-----------------------------------------------------------------------------
 // SocketSet::checkIfASocketOpened
 //
@@ -1014,7 +1020,7 @@ public SocketSet(String pBroadcastMsg)
 
 boolean checkIfASocketOpened()
 {
-  
+
     if(socket != null || simSocket != null){ return(true); }
     else { return(false); }
 
@@ -1030,10 +1036,10 @@ boolean checkIfASocketOpened()
 
 void sendOutPacket()throws IOException
 {
-  
+
     if (socket != null) { socket.send(outPacket); }
     if (simSocket != null) { simSocket.send(outPacket); }
-    
+
 }//end of SocketSet::sendOutPacket
 //-----------------------------------------------------------------------------
 
@@ -1056,18 +1062,18 @@ boolean receive(DatagramPacket pPacket) throws IOException
 {
 
     //check real socket for packet first
-    
-    try{ 
+
+    try{
         if(socket != null) { socket.receive(pPacket); return(true); }
     }
     catch(SocketTimeoutException e){ }
-    
+
     //if socket timed out or null and simSocket open, check it for a packet
-    
-    try{ 
+
+    try{
         if(simSocket != null){ simSocket.receive(pPacket); return(true); }
     }
-    catch(SocketTimeoutException e){ }        
+    catch(SocketTimeoutException e){ }
 
     //no packet received if this point reached
     return(false);
@@ -1085,7 +1091,7 @@ void setSoTimeout(int pTimeMilliSec) throws SocketException
 {
 
     if (socket != null) { socket.setSoTimeout(pTimeMilliSec); }
-    
+
 }//end of SocketSet::setSoTimeout
 //-----------------------------------------------------------------------------
 
@@ -1111,10 +1117,10 @@ void logSevere(String pMessage)
 
 void closeAll()
 {
-    
+
     if(socket!= null){ socket.close(); }
     simSocket = null;
-   
+
 }//end of SocketSet::closeAll
 //-----------------------------------------------------------------------------
 

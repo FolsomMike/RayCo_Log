@@ -545,8 +545,6 @@ public void updateTrace(Graphics2D pG2)
 
     while((r = dataBuffer.getDataChange(dataSet)) != 0){
 
-        //System.out.print(" ~ Peak: " + dataSet.d);//DEBUG HSS//
-
         //store for future use
         data.add(dataSet.d);
         dataFlags.add(dataSet.flags);

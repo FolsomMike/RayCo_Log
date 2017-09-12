@@ -31,27 +31,27 @@ public class Channel
     IniFile configFile;
 
     SampleMetaData meta = new SampleMetaData(0);
-    
+
     public void setDataBuffer(DataTransferIntBuffer pV) {meta.dataBuffer = pV;}
     public DataTransferIntBuffer getDataBuffer() { return(meta.dataBuffer); }
-    
+
     String title, shortTitle;
-        
+
     private String calPanelGroup;
     private String calPanelName;
 
     private int boardChannel;
     public int getBoardChannel(){ return(boardChannel); }
-    
+
     private int clockPosition;
     public int getClockPosition(){ return(clockPosition); }
-    
+
     private int linearLocation;
     public int getLinearLocation(){ return(linearLocation); }
-    
+
     public String getCalPanelGroup(){ return calPanelGroup; }
     public String getCalPanelName(){ return calPanelName; }
-    
+
     public int getChartGroup(){ return(meta.chartGroup); }
     public int getChart(){ return(meta.chart); }
     public int getGraph(){ return(meta.graph); }
@@ -59,29 +59,29 @@ public class Channel
 
     private int dataType;
     public int getDataType(){ return (dataType);}
-    
-    private int bufferLoc;    
+
+    private int bufferLoc;
     public int getBufferLoc(){ return (bufferLoc);}
 
     private boolean hdwParamsDirty = false;
     public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
     public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
-    
+
     FlaggedInt gain = new FlaggedInt(0);
     FlaggedInt offset = new FlaggedInt(0);
     FlaggedBoolean onOff = new FlaggedBoolean(false);
-    
+
     int peakType;
     PeakBufferInt peakBuffer;
-    
+
     MKSInteger data = new MKSInteger(0);
-    
+
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
-    
+
     public static final int INTEGER_TYPE = 0;
     public static final int DOUBLE_TYPE = 1;
-    
+
 //-----------------------------------------------------------------------------
 // Channel::Channel (constructor)
 //
@@ -91,7 +91,7 @@ public Channel(int pDeviceNum, int pChannelNum, IniFile pConfigFile)
 
     meta.deviceNum = pDeviceNum; meta.channelNum = pChannelNum;
     configFile = pConfigFile;
-    
+
 }//end of Channel::Channel (constructor)
 //-----------------------------------------------------------------------------
 
@@ -105,11 +105,11 @@ public void init()
 {
 
     meta.channel = this;
-    
+
     loadConfigSettings();
 
     setUpPeakBuffer();
-    
+
 }// end of Channel::init
 //-----------------------------------------------------------------------------
 
@@ -124,26 +124,26 @@ public void setUpPeakBuffer()
 {
 
     switch (peakType){
-        
-        case CATCH_HIGHEST: 
+
+        case CATCH_HIGHEST:
             peakBuffer = new HighPeakBufferInt(0);
             peakBuffer.setResetValue(Integer.MIN_VALUE);
             break;
-        
-        case CATCH_LOWEST: 
+
+        case CATCH_LOWEST:
             peakBuffer = new LowPeakBufferInt(0);
             peakBuffer.setResetValue(Integer.MAX_VALUE);
             break;
-        
-        default: 
+
+        default:
             peakBuffer = new HighPeakBufferInt(0);
             peakBuffer.setResetValue(Integer.MIN_VALUE);
             break;
-            
+
     }
 
     peakBuffer.reset();
-    
+
 }// end of Channel::setUpPeakBuffer
 //-----------------------------------------------------------------------------
 
@@ -157,7 +157,7 @@ private void loadConfigSettings()
 {
 
     int deviceNum = meta.deviceNum, channelNum = meta.channelNum;
-    
+
     String section = "Device " + deviceNum + " Channel " + channelNum;
 
     title = configFile.readString(
@@ -167,35 +167,35 @@ private void loadConfigSettings()
                 section, "short title", "Dev" + deviceNum + "Ch" + channelNum);
 
     boardChannel = configFile.readInt(section, "board channel", -1);
-    
+
     clockPosition = configFile.readInt(section, "clock position", -1);
-    
+
     linearLocation = configFile.readInt(section, "linear location", -1);
-    
+
     calPanelGroup = configFile.readString(
                         section, "calibration panel group", "Dev" + deviceNum);
 
     calPanelName = configFile.readString(
      section, "calibration panel name", "Dev" + deviceNum + "Ch" + channelNum);
-    
+
     meta.chartGroup = configFile.readInt(section, "chart group", -1);
-    
+
     meta.chart = configFile.readInt(section, "chart", -1);
-    
+
     meta.graph = configFile.readInt(section, "graph", -1);
-    
-    meta.trace = configFile.readInt(section, "trace", -1);    
-    
+
+    meta.trace = configFile.readInt(section, "trace", -1);
+
     String s;
-            
+
     s = configFile.readString(section, "peak type", "catch highest");
     parsePeakType(s);
-    
+
     s = configFile.readString(section, "data type", "integer");
     parseDataType(s);
 
     bufferLoc = configFile.readInt(section, "buffer location", -1);
-    
+
 }// end of Channel::loadConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -214,7 +214,7 @@ private void parsePeakType(String pValue)
          case "catch lowest" : peakType = CATCH_LOWEST;  break;
          default : peakType = CATCH_LOWEST;  break;
     }
-    
+
 }// end of Channel::parsePeakType
 //-----------------------------------------------------------------------------
 
@@ -233,7 +233,7 @@ private void parseDataType(String pValue)
          case "double" : dataType = DOUBLE_TYPE;  break;
          default : dataType = INTEGER_TYPE;  break;
     }
-    
+
 }// end of Channel::parseDataType
 //-----------------------------------------------------------------------------
 
@@ -241,14 +241,14 @@ private void parseDataType(String pValue)
 // Channel::catchPeak
 //
 // Stores value incapsulated in pPeakValue as a new peak if it is
-// greater/lesser (depending on peak type) than the current peak. 
+// greater/lesser (depending on peak type) than the current peak.
 //
 
 public void catchPeak(int pPeakValue)
 {
-    
+
     peakBuffer.catchPeak(pPeakValue);
-    
+
 }// end of Channel::catchPeak
 //-----------------------------------------------------------------------------
 
@@ -263,9 +263,9 @@ public void catchPeak(int pPeakValue)
 
 public void getPeakAndReset(MKSInteger pPeakValue)
 {
-    
+
     peakBuffer.getPeakAndReset(pPeakValue);
-    
+
 }// end of Channel::getPeakAndReset
 //-----------------------------------------------------------------------------
 
@@ -284,14 +284,14 @@ public void getPeakAndReset(MKSInteger pPeakValue)
 public boolean getPeakDataAndReset(PeakData pPeakData)
 {
 
-    pPeakData.meta = meta; //channel/buffer/trace etc. info
-        
-    boolean peakUpdated = peakBuffer.getPeakAndReset(data);    
-    
-    pPeakData.peak = data.x;
-    
+    pPeakData.metaArray[meta.channelNum] = meta; //channel/buffer/trace etc. info
+
+    boolean peakUpdated = peakBuffer.getPeakAndReset(data);
+
+    pPeakData.peakArray[meta.channelNum] = data.x;
+
     return(peakUpdated);
-    
+
 }// end of Channel::getPeakDataAndReset
 //-----------------------------------------------------------------------------
 
@@ -308,13 +308,13 @@ public boolean getPeakDataAndReset(PeakData pPeakData)
 
 public boolean setGain(String pValue, boolean pForceUpdate)
 {
-    
+
     boolean result = gain.setValue(pValue, pForceUpdate);
 
     if(result){ setHdwParamsDirty(true); }
-    
+
     return(result);
-    
+
 }// end of Channel::setGain
 //-----------------------------------------------------------------------------
 
@@ -331,13 +331,13 @@ public boolean setGain(String pValue, boolean pForceUpdate)
 
 public boolean setOffset(String pValue, boolean pForceUpdate)
 {
-    
+
     boolean result = offset.setValue(pValue, pForceUpdate);
 
     if(result){ setHdwParamsDirty(true); }
-    
+
     return(result);
-    
+
 }// end of Channel::setOffset
 //-----------------------------------------------------------------------------
 
@@ -354,13 +354,13 @@ public boolean setOffset(String pValue, boolean pForceUpdate)
 
 public boolean setOnOff(String pValue, boolean pForceUpdate)
 {
-    
+
     boolean result = onOff.setValue(pValue, pForceUpdate);
 
     if(result){ setHdwParamsDirty(true); }
-    
+
     return(result);
-    
+
 }// end of Channel::setOnOff
 //-----------------------------------------------------------------------------
 

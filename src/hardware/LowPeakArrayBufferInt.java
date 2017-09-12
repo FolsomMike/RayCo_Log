@@ -2,13 +2,13 @@
 * Title: LowPeakBufferArrayInt.java
 * Author: Mike Schoonover
 * Date: 03/18/15
-* 
+*
 * Purpose:
-* 
+*
 * This class used to detect and store an array of highest peak values of type
 * integer. A new value replaces the previously stored peak if the new value is
 * lesser than the old peak.
-* 
+*
 * The methods to store a peak, retrieve a peak, and set a peak are all
 * synchronized so they are thread safe.
 *
@@ -25,7 +25,7 @@ package hardware;
 
 public class LowPeakArrayBufferInt extends PeakArrayBufferInt
 {
-    
+
 //-----------------------------------------------------------------------------
 // LowPeakBufferInt::LowPeakBufferInt (constructor)
 //
@@ -34,7 +34,7 @@ public LowPeakArrayBufferInt(int pIndex, int pArraySize)
 {
 
     super(pIndex, pArraySize);
-    
+
 }//end of LowPeakBufferInt::LowPeakBufferInt (constructor)
 //-----------------------------------------------------------------------------
 
@@ -48,11 +48,11 @@ public LowPeakArrayBufferInt(int pIndex, int pArraySize)
 //
 
 @Override
-public synchronized void catchPeak(int[] pNewData)
-{    
-    
+public void catchPeak(int[] pNewData)
+{
+
     for(int i=0; i<arraySize; i++){
-        if(pNewData[i] < peakArray[i]) { 
+        if(pNewData[i] < peakArray[i]) {
             peakArray[i] = pNewData[i];
             peakUpdated = true;
         }
@@ -71,7 +71,7 @@ public synchronized void catchPeak(int[] pNewData)
 //
 
 @Override
-public synchronized void catchPeak(int pNewPeak, int[] pNewData)
+public void catchPeak(int pNewPeak, int[] pNewData)
 {
 
     if (pNewPeak<peak) { peak=pNewPeak; setPeak(pNewData); }

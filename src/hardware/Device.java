@@ -36,7 +36,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.DataTransferIntBuffer;
 import model.DataTransferIntMultiDimBuffer;
 import model.DataTransferSnapshotBuffer;
 import model.IniFile;
@@ -105,6 +104,11 @@ public class Device implements Runnable
                                          return (connectionAttemptCompleted); }
     private boolean connectionSuccessful = false;
     public boolean getConnectionSuccessful(){ return (connectionSuccessful); }
+
+    //WIP HSS//
+    protected DeviceData deviceData;
+    protected int[] channelPeaks;
+    //WIP HSS//
 
     private int snapshotPeakType;
     PeakSnapshotBuffer peakSnapshotBuffer;
@@ -234,6 +238,12 @@ public void initAfterLoadingConfig()
     setUpPeakSnapshotBuffer();
 
     setUpChannels();
+
+    //WIP HSS//
+    deviceData = new DeviceData(this);
+    deviceData.init();
+    channelPeaks = new int[channels.length];
+    //WIP HSS//
 
     mapMeta.numClockPositions = numClockPositions;
 
@@ -671,6 +681,34 @@ public void collectData()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::catchMapPeak
+//
+// Catches the passed in clock map data.
+//
+
+public void catchMapPeak(int[] pData)
+{
+
+     peakMapBuffer.catchPeak(pData);
+
+}// end of Device::catchMapPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::catchSnapshotPeak
+//
+// Catches the passed in snapshot data.
+//
+
+public void catchSnapshotPeak(int pPeak, int[] pData)
+{
+
+    peakSnapshotBuffer.catchPeak(pPeak, pData);
+
+}// end of Device::catchSnapshotPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::parsePeakType
 //
 // Converts the descriptive string loaded from the config file for the map peak
@@ -818,6 +856,24 @@ void loadConfigSettings()
     mapMeta.system = configFile.readInt(section, "map system", -1);
 
 }// end of Device::loadConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getDeviceDataAndReset
+//
+// Gets the device data (peaks, snapshot, and map) and resets the values.
+//
+// This function makes use of DeviceData so that actions are synchronized.
+//
+
+public boolean getDeviceDataAndReset(PeakData pPeakData,
+                                    PeakSnapshotData pSnapshotData,
+                                    PeakMapData pMapData)
+{
+
+    return deviceData.getData(pPeakData, pSnapshotData, pMapData);
+
+}// end of Device::getDeviceDataAndReset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

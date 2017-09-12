@@ -274,9 +274,6 @@ synchronized public boolean getData(DataSetSnapshot pDataSet)
 synchronized public int getDataChange(DataSetSnapshot pDataSet)
 {
 
-
-    //DEBUG HSS//System.out.print(" ~ Get pointer: " + getPointer);
-
     //if data at current location has been marked erased, return that data and
     //move pointer to previous location
 

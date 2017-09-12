@@ -5,7 +5,7 @@
 *
 * Purpose:
 *
-* This class used to detect and store an array of highest peak values for a 
+* This class used to detect and store an array of highest peak values for a
 * snapshot. A new array replaces the previously stored array if the new peak is
 * greater than the old peak.
 *
@@ -48,7 +48,7 @@ public LowPeakSnapshotBuffer(int pIndex, int pArraySize)
 //
 
 @Override
-public synchronized void catchPeak(int pNewPeak, int[] pNewData)
+public void catchPeak(int pNewPeak, int[] pNewData)
 {
 
     if (pNewPeak<peak) { peak=pNewPeak; setPeak(pNewData); }

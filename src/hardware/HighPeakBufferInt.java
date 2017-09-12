@@ -48,14 +48,10 @@ public HighPeakBufferInt(int pIndex)
 //
 
 @Override
-public synchronized void catchPeak(int pNewData)
+public void catchPeak(int pNewData)
 {
 
-    System.out.println("peak before catch: "+pNewData);//DEBUG HSS//
-
     if(pNewData > peak) { peak = pNewData; peakUpdated = true; }
-
-    System.out.println("peak after catch: "+peak);//DEBUG HSS//
 
 }// end of HighPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------

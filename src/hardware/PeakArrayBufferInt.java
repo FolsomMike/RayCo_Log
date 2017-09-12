@@ -69,7 +69,7 @@ public PeakArrayBufferInt(int pPeakArrayBufferNum, int pArraySize)
 // lowest value, closest to a target value, etc.
 //
 
-public synchronized void catchPeak(int[] pNewData)
+public void catchPeak(int[] pNewData)
 {
 
     // This method must be overridden by subclasses.
@@ -85,7 +85,7 @@ public synchronized void catchPeak(int[] pNewData)
 // lowest value, closest to a target value, etc.
 //
 
-public synchronized void catchPeak(int pNewPeak, int[] pNewData)
+public void catchPeak(int pNewPeak, int[] pNewData)
 {
 
     // This method must be overridden by subclasses.
@@ -99,7 +99,7 @@ public synchronized void catchPeak(int pNewPeak, int[] pNewData)
 // Forces peak array to pValue.
 //
 
-public synchronized void setPeak(int[] pValueArray)
+public void setPeak(int[] pValueArray)
 {
 
     peakUpdated = true;
@@ -115,7 +115,7 @@ public synchronized void setPeak(int[] pValueArray)
 // Forces peak to the reset value, usually in preparation to find a new peak.
 //
 
-public synchronized void reset()
+public void reset()
 {
 
     System.arraycopy(peakArrayReset, 0, peakArray, 0, arraySize);
@@ -135,7 +135,7 @@ public synchronized void reset()
 // individually.
 //
 
-public synchronized void setResetValue(int[] pValueArray)
+public void setResetValue(int[] pValueArray)
 {
 
     System.arraycopy(pValueArray, 0, peakArrayReset, 0, arraySize);
@@ -152,7 +152,7 @@ public synchronized void setResetValue(int[] pValueArray)
 // This version of the method sets all positions in the reset array to pValue.
 //
 
-public synchronized void setResetValue(int pValue)
+public void setResetValue(int pValue)
 {
 
     for(int i=0; i<arraySize; i++){ peakArrayReset[i] = pValue; }
@@ -166,7 +166,7 @@ public synchronized void setResetValue(int pValue)
 // Retrieves the current value of the peak array without resetting it.
 //
 
-public synchronized void getPeak(int[] pPeakData)
+public void getPeak(int[] pPeakData)
 {
 
     System.arraycopy(peakArray, 0, pPeakData, 0, arraySize);
@@ -184,7 +184,7 @@ public synchronized void getPeak(int[] pPeakData)
 // or false otherwise.
 //
 
-public synchronized boolean getPeakAndReset(int[] pPeakData)
+public boolean getPeakAndReset(int[] pPeakData)
 {
 
     boolean lPeakUpdated = peakUpdated;

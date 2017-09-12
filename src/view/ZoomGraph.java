@@ -123,16 +123,6 @@ public void retrieveDataChanges()
         //store for future use
         data.add(dataSet.d.clone());
 
-        //DEBUG HSS//
-        int p = -1; int newP;
-        for (int d : data.get(data.size()-1)) {
-            newP = Math.abs(d);
-            if (newP>p) { p = newP; }
-        }
-
-        //System.out.println(" ~ Snap: " + p);//DEBUG HSS//
-        //DEBUG HSS//
-
     }
 
 }// end of ZoomGraph::retrieveDataChanges

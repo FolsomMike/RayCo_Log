@@ -28,7 +28,7 @@ public class MultiIODevice extends Device
 {
 
     int data;
-
+    int[] snapData;
     int[] mapData;
 
     byte[] packet;
@@ -285,6 +285,7 @@ public void initAfterLoadingConfig()
     super.initAfterLoadingConfig();
 
     if(numClockPositions != 0){ mapData = new int[numClockPositions]; }
+    snapData = new int[128]; //WIP HSS// number of bytes needs to be specified in ini file
 
 }// end of MultiIODevice::initAfterLoadingConfig
 //-----------------------------------------------------------------------------
@@ -318,22 +319,22 @@ public void collectData()
         int snapshotIndex = clockMapIndex+48;
 
         int peak=0;
-        for(Channel channel : channels){
+        for(int i=0; i<channels.length; i++){
 
             data = getUnsignedShortFromPacket(packet, index);
             data = Math.abs(data - AD_ZERO_OFFSET);
-            channel.catchPeak(data);
             index+=2; //skip two because short is 2 bytes
+            channelPeaks[i] = data;
 
             if (data>peak) { peak=data; }
 
         }
 
-        extractSnapshotData(packet, snapshotIndex, peak);
+        extractSnapshotData(packet, snapshotIndex);
 
-        if(numClockPositions > 0) {
-            extractMapDataAndCatchPeak(packet, clockMapIndex);
-        }
+        if(numClockPositions > 0) { extractMapData(packet, clockMapIndex); }
+
+        deviceData.putData(channelPeaks, peak, snapData, mapData);
 
     }
 
@@ -352,10 +353,8 @@ public void collectData()
 // bayte after the map data which was extracted.
 //
 
-public int extractSnapshotData(byte[] pPacket, int pIndex, int pPeak)
+public int extractSnapshotData(byte[] pPacket, int pIndex)
 {
-
-    int[] snapData = new int[128]; //WIP HSS// number of bytes needs to be specified in ini file
 
     //not used, but good to have
     int lastEnteredAddr = pPacket[pIndex++];
@@ -365,34 +364,21 @@ public int extractSnapshotData(byte[] pPacket, int pIndex, int pPeak)
         snapData[i]=getUnsignedByteFromPacket(pPacket, pIndex++)-AD_ZERO_OFFSET;
     }
 
-    //DEBUG HSS//
-    int p=-1;
-    for (int d : snapData) {
-        int absD = Math.abs(d);
-        if (absD>p) { p = absD; }
-    }
-
-    //DEBUGSHSS//System.out.println("Dev Peak: "+pPeak+" ~ Snap: "+p);
-    //DEBUG HSS//
-
-    peakSnapshotBuffer.catchPeak(pPeak, snapData);
-
     return(pIndex);
 
 }// end of MultiIODevice::extractSnapshotData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MultiIODevice::extractMapDataAndCatchPeak
+// MultiIODevice::extractMapData
 //
-// Extracts map data from pPacket beginning at position pIndex and catches
-// peak values.
+// Extracts map data from pPacket beginning at position pIndex.
 //
 // Returns the updated value of pIndex which will then point at the next
 // bayte after the map data which was extracted.
 //
 
-public int extractMapDataAndCatchPeak(byte[] pPacket, int pIndex)
+public int extractMapData(byte[] pPacket, int pIndex)
 {
 
     for(int i=0; i<numClockPositions; i++){
@@ -400,11 +386,9 @@ public int extractMapDataAndCatchPeak(byte[] pPacket, int pIndex)
         pIndex++;
     }
 
-    peakMapBuffer.catchPeak(mapData);
-
     return(pIndex);
 
-}// end of MultiIODevice::extractMapDataAndCatchPeak
+}// end of MultiIODevice::extractMapData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

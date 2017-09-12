@@ -48,15 +48,10 @@ public HighPeakSnapshotBuffer(int pIndex, int pArraySize)
 //
 
 @Override
-public synchronized void catchPeak(int pNewPeak, int[] pNewData)
+public void catchPeak(int pNewPeak, int[] pNewData)
 {
 
-    System.out.println("snap before catch: "+pNewPeak);//DEBUG HSS//
-
     if (pNewPeak>peak) { peak=pNewPeak; setPeak(pNewData); }
-
-    System.out.println("snap after catch: "+peak);//DEBUG HSS//
-    System.out.println("--------------------------------------------");//DEBUG HSS//
 
 }// end of HighPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------

@@ -65,7 +65,7 @@ public PeakBufferInt(int pPeakBufferNum)
 // lowest value, closest to a target value, etc.
 //
 
-public synchronized void catchPeak(int pNewData)
+public void catchPeak(int pNewData)
 {
 
     // This method must be overridden by subclasses.
@@ -79,7 +79,7 @@ public synchronized void catchPeak(int pNewData)
 // Forces peak to pValue.
 //
 
-public synchronized void setPeak(int pValue)
+public void setPeak(int pValue)
 {
 
     peak = pValue;
@@ -93,7 +93,7 @@ public synchronized void setPeak(int pValue)
 // Forces peak to the reset value, usually in preparation to find a new peak.
 //
 
-public synchronized void reset()
+public void reset()
 {
 
     peak = peakReset;
@@ -110,7 +110,7 @@ public synchronized void reset()
 // has been retrieved and a new peak is to be found.
 //
 
-public synchronized void setResetValue(int pValue)
+public void setResetValue(int pValue)
 {
 
     peakReset = pValue;
@@ -124,7 +124,7 @@ public synchronized void setResetValue(int pValue)
 // Retrieves the current value of the peak without resetting it.
 //
 
-public synchronized void getPeak(MKSInteger pPeakData)
+public void getPeak(MKSInteger pPeakData)
 {
 
     pPeakData.x = peak;
@@ -142,10 +142,8 @@ public synchronized void getPeak(MKSInteger pPeakData)
 // or false otherwise.
 //
 
-public synchronized boolean getPeakAndReset(MKSInteger pPeakData)
+public boolean getPeakAndReset(MKSInteger pPeakData)
 {
-
-    System.out.println("peak data grabbed");//DEBUG HSS//
 
     boolean lPeakUpdated = peakUpdated;
 

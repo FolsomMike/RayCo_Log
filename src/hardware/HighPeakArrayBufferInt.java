@@ -48,7 +48,7 @@ public HighPeakArrayBufferInt(int pIndex, int pArraySize)
 //
 
 @Override
-public synchronized void catchPeak(int[] pNewData)
+public void catchPeak(int[] pNewData)
 {
 
     for(int i=0; i<arraySize; i++){
@@ -71,7 +71,7 @@ public synchronized void catchPeak(int[] pNewData)
 //
 
 @Override
-public synchronized void catchPeak(int pNewPeak, int[] pNewData)
+public void catchPeak(int pNewPeak, int[] pNewData)
 {
 
     if (pNewPeak>peak) { peak=pNewPeak; setPeak(pNewData); }
