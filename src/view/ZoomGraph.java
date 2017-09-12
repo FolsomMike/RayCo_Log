@@ -140,8 +140,9 @@ public void addZoomBox(int pIndex)
 {
 
     zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
-                    graphInfo, annoX, annoY, annoWidth, annoHeight, hasArrows,
-                    defaultArrowX, arrowY, arrowWidth, arrowHeight));
+                    graphInfo, annoX, annoX+annoWidth+gap, annoY, annoWidth,
+                    annoHeight, hasArrows, defaultArrowX, arrowY, arrowWidth,
+                    arrowHeight));
 
     //prepare x to add next zoom box to the right -- scroll offset not
     //subtracted because it may change

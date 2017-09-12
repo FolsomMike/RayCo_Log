@@ -58,7 +58,7 @@ class ZoomBox{
 //
 
 public ZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
-                int pZoomBoxNum, GraphInfo pGraphInfo, int pX, int pY,
+                int pZoomBoxNum, GraphInfo pGraphInfo, int pX, int pXEnd,int pY,
                 int pWidth, int pHeight, boolean pHasArrow,
                 int pArrowX, int pArrowY, int pArrowWidth, int pArrowHeight)
 {
@@ -67,7 +67,7 @@ public ZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
     zoomBoxNum = pZoomBoxNum;
     graphInfo = pGraphInfo;
 
-    x = pX; xEnd = x+pWidth; y = pY; width = pWidth; height = pHeight;
+    x = pX; xEnd = pXEnd; y = pY; width = pWidth; height = pHeight;
 
     hasArrow = pHasArrow;
     arrowX = pArrowX; arrowY = pArrowY;
