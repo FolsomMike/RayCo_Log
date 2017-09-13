@@ -51,11 +51,11 @@ class ControlPanelBasic extends ControlPanel
                      implements ActionListener, ChangeListener, MouseListener{
 
     JTabbedPane tabPane;
-    
+
     int numChannelsPerGroup;
     LinkedHashSet<String> groupTitles;
     ArrayList<ChannelInfo> channelList;
-    
+
     private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
     private MFloatSpinnerPanel viewAngle;
@@ -63,10 +63,10 @@ class ControlPanelBasic extends ControlPanel
     private MFloatSpinnerPanel xAt, yAt, zAt;
 
     JButton expandBtn, animateBtn;
-    
+
     ArrayList<Object> values = new ArrayList<>();
-    
-    private static final String ACTION_COMMAND = 
+
+    private static final String ACTION_COMMAND =
                                         "Handle Channel Control Panel Change";
 
 //-----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ class ControlPanelBasic extends ControlPanel
 // For multiple groups, titles such as "Shoe 1" and "Shoe 2" make sense; the
 // fact that the numbers below those titles are channel numbers can be deduced
 // by the user.
-// 
+//
 
 public ControlPanelBasic(int pChartGroupNum, int pChartNum, String pPanelTitle,
       LinkedHashSet<String> pGroupTitles, ArrayList<ChannelInfo> pChannelList,
@@ -94,12 +94,12 @@ public ControlPanelBasic(int pChartGroupNum, int pChartNum, String pPanelTitle,
     super(pChartGroupNum, pChartNum, pParentActionListener);
 
     groupTitles = pGroupTitles; channelList = pChannelList;
-    
+
     panelTitle = pPanelTitle;
-        
+
     //assume that the channels are distributed evenly amongst the groups
     numChannelsPerGroup = channelList.size() / groupTitles.size();
-    
+
 }//end of ControlPanelBasic::ControlPanelBasic (constructor)
 //-----------------------------------------------------------------------------
 
@@ -114,9 +114,9 @@ public void init()
 {
 
     super.init();
-   
+
     setupGUI();
-    
+
 }// end of ControlPanelBasic::init
 //-----------------------------------------------------------------------------
 
@@ -128,61 +128,61 @@ public void init()
 
 public void setupGUI()
 {
-    
+
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    
+
     tabPane = new JTabbedPane();
 
     add(tabPane);
-    
+
     JPanel gainTab = new JPanel();
     tabPane.addTab("Gain", null, gainTab, "Gain & Centering");
     setupGainTab(gainTab);
-    
+
     JPanel offsetTab = new JPanel();
     tabPane.addTab("Chart", null, offsetTab, "Offsets");
 
     JPanel processingTab = new JPanel();
     tabPane.addTab("Processing", null, processingTab, "Processing");
-        
+
     JPanel optionsTab = new JPanel();
     tabPane.addTab("Options", null, optionsTab, "Options");
 
-    
-    
+
+
     /*
-    
+
     //panel.setBorder(BorderFactory.createTitledBorder(""));
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
     setAlignmentX(Component.LEFT_ALIGNMENT);
-    
+
     addVerticalSpacer(this, 10);
-    
+
     createXYPositionPanel();
-    
+
     addVerticalSpacer(this, 5);
-    
+
     createViewFromPositionPanel();
 
     addVerticalSpacer(this, 5);
-    
+
     createViewAtPositionPanel();
-    
-    addVerticalSpacer(this, 5);    
+
+    addVerticalSpacer(this, 5);
 
     createRotationPanel();
-    
+
     addVerticalSpacer(this, 5);
-        
+
     createViewAnglePanel();
-    
-    addVerticalSpacer(this, 5);    
-    
+
+    addVerticalSpacer(this, 5);
+
     createChartControlsPanel();
-    
+
             */
-            
+
 }// end of ControlPanelBasic::setupGUI
 //-----------------------------------------------------------------------------
 
@@ -210,16 +210,16 @@ public void addGainOffsetPanel(JPanel pPanel)
 {
 
     JPanel panel = new JPanel();
-        
+
     int numChGr = numChannelsPerGroup;
     int numGroups = groupTitles.size();
-    
+
     //calculate number of rows needed to hold the titles/labels/controls
-    
+
     int numRows = 1; //start with 1 row for top labels and first group title
-    
+
     numRows += numChGr * numGroups; //add one row for each channel
-    
+
     //add title row for each group
     numRows += numGroups;
 
@@ -228,19 +228,19 @@ public void addGainOffsetPanel(JPanel pPanel)
     panel.add(new JLabel("Channel"));
     panel.add(new JLabel("On/Off"));
     panel.add(new JLabel("Gain"));
-    panel.add(new JLabel("Centering"));    
-    
+    panel.add(new JLabel("Centering"));
+
     //title for first group is included on the top header row
     //titles for groups thereafter placed on a row inserted between groups
-    
+
     Iterator<String> itr = groupTitles.iterator();
-    
+
     int infoIndex = 0;
-    
+
     while(itr.hasNext()){
 
         String groupName = itr.next();
-        
+
         //fill in group title row for each group after the first one
         panel.add(new JLabel(groupName));
         panel.add(createAllOnOrOffButton("On", groupName));
@@ -248,45 +248,45 @@ public void addGainOffsetPanel(JPanel pPanel)
         panel.add(new JLabel("")); //blank space(s)
 
         for(int j=0; j<numChGr; j++){
-            
+
             panel.add(new JLabel("" + (j+1)));
-            
+
             ChannelInfo chInfo = channelList.get(infoIndex);
-            
+
             chInfo.onOffBox = new JCheckBox();
-            chInfo.onOffBox.setName("On-Off Checkbox," + groupName + "," + 
+            chInfo.onOffBox.setName("On-Off Checkbox," + groupName + "," +
                   infoIndex + "," + chInfo.deviceNum + ","+ chInfo.channelNum);
             chInfo.onOffBox.addActionListener(this);
             chInfo.onOffBox.setActionCommand("On-Off Checkbox");
             chInfo.onOffBox.addMouseListener(this);
             panel.add(chInfo.onOffBox);
-            
+
             chInfo.gainSpin = new MFloatSpinner(127,0,255.0,1,"##0",60,-1);
             chInfo.gainSpin.addChangeListener(this);
-            chInfo.gainSpin.setName("Gain Spinner," + groupName + "," + 
+            chInfo.gainSpin.setName("Gain Spinner," + groupName + "," +
                   infoIndex + "," + chInfo.deviceNum + ","+ chInfo.channelNum);
             //watch for right mouse clicks
-            setSpinnerNameAndMouseListener(chInfo.gainSpin, 
-                                            chInfo.gainSpin.getName(), this); 
+            setSpinnerNameAndMouseListener(chInfo.gainSpin,
+                                            chInfo.gainSpin.getName(), this);
             panel.add(chInfo.gainSpin);
-            
+
             chInfo.offsetSpin = new MFloatSpinner(127,0,255.0,1,"##0",60,-1);
             chInfo.offsetSpin.addChangeListener(this);
-            chInfo.offsetSpin.setName("Offset Spinner," + groupName + "," + 
+            chInfo.offsetSpin.setName("Offset Spinner," + groupName + "," +
                   infoIndex + "," + chInfo.deviceNum + ","+ chInfo.channelNum);
             //watch for right mouse clicks
-            setSpinnerNameAndMouseListener(chInfo.offsetSpin, 
-                                            chInfo.offsetSpin.getName(), this);            
+            setSpinnerNameAndMouseListener(chInfo.offsetSpin,
+                                            chInfo.offsetSpin.getName(), this);
             panel.add(chInfo.offsetSpin);
-            
+
             infoIndex++;
-            
+
         }
-       
+
     }
-        
+
     pPanel.add(panel);
-    
+
 }// end of ControlPanelBasic::addGainOffsetPanel
 //-----------------------------------------------------------------------------
 
@@ -324,27 +324,32 @@ void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
 //
 // Sets mode of all checkboxex in the group specified at the end of
 // pActionCommand to pState.
-// 
+//
 
-private void setStateOfAllCheckboxesInAGroup(String pActionCommand, 
+private void setStateOfAllCheckboxesInAGroup(String pActionCommand,
                                                                 boolean pState)
 {
 
     String groupName = pActionCommand.split(",")[1];
-    
+
     Iterator<ChannelInfo> itr = channelList.iterator();
-    
+
     while(itr.hasNext()){
 
         ChannelInfo chInfo = itr.next();
-    
+
         if(chInfo.calPanelGroup.equals(groupName)){
 
+            parentActionListener.actionPerformed(new ActionEvent(this, 1,
+                                            "Update Channel,"
+                                            + chInfo.onOffBox.getName() + ","
+                                            + pState));
+
             chInfo.onOffBox.setSelected(pState);
-            
+
         }
     }
-        
+
 }// end of ControlPanelBasic::setStateOfAllCheckboxesInAGroup
 //-----------------------------------------------------------------------------
 
@@ -353,7 +358,7 @@ private void setStateOfAllCheckboxesInAGroup(String pActionCommand,
 //
 // Creates and returns a JButton with text "All On" or "All Off". Parameter
 // pOnOff should either be "On" or "Off" to select the function.
-// 
+//
 // Parameter pGroupName should be the name of the group controlled by the
 // button. This will be passed in the action command when the button is pressed
 // so the action listener will know which group is affected.
@@ -365,7 +370,7 @@ public JButton createAllOnOrOffButton(String pOnOff, String pGroupName)
     JButton button = new JButton("All " + pOnOff);
     button.setMargin(new Insets(0, 0, 0, 0));
     setSizes(button, 55, 15); //ignored when placed in grid layout
-    
+
     button.setActionCommand("All " + pOnOff + "," + pGroupName);
     button.addActionListener(this);
     button.setToolTipText("Turns all channels in this group "
@@ -386,14 +391,14 @@ public void createXYPositionPanel()
 {
 
     JPanel panel = new JPanel();
-    panel.setBorder(BorderFactory.createTitledBorder("Position on Screen XY"));    
+    panel.setBorder(BorderFactory.createTitledBorder("Position on Screen XY"));
     panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
 
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     xPos = new MFloatSpinnerPanel("X Position",
             "Adjusts the x position of the display. (xPos variable)",
-            this, -19, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, -19, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     xPos.init();
     panel.add(xPos);
@@ -404,11 +409,11 @@ public void createXYPositionPanel()
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     yPos.init();
     panel.add(yPos);
-    
+
     setSizes(panel, 190, 47);
-    
+
     add(panel);
-    
+
 }// end of ControlPanelBasic::createXYPositionPanel
 //-----------------------------------------------------------------------------
 
@@ -430,29 +435,29 @@ public void createViewFromPositionPanel()
 
     xFrom = new MFloatSpinnerPanel("X From Position",
             "Adjusts 'view from' position. (xFrom variable)",
-            this, 15, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 15, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     xFrom.init();
     panel.add(xFrom);
 
     yFrom = new MFloatSpinnerPanel("Y From Position",
             "Adjusts 'view from' position. (yFrom variable)",
-            this, 9, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 9, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     yFrom.init();
     panel.add(yFrom);
 
     zFrom = new MFloatSpinnerPanel("Z From Position",
             "Adjusts 'view from' position. (zFrom variable)",
-            this, 26, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 26, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     zFrom.init();
     panel.add(zFrom);
-        
-    setSizes(panel, 190, 47);    
-    
+
+    setSizes(panel, 190, 47);
+
     add(panel);
-    
+
 }// end of ControlPanelBasic::createViewFromPositionPanel
 //-----------------------------------------------------------------------------
 
@@ -474,29 +479,29 @@ public void createViewAtPositionPanel()
 
     xAt = new MFloatSpinnerPanel("X At Position",
             "Adjusts 'view at' position. (xAt variable)",
-            this, 11, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 11, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     xAt.init();
     panel.add(xAt);
 
     yAt = new MFloatSpinnerPanel("Y At Position",
             "Adjusts 'view at' position. (yAt variable)",
-            this, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     yAt.init();
     panel.add(yAt);
 
     zAt = new MFloatSpinnerPanel("Z At Position",
             "Adjusts 'view at' position. (zAt variable)",
-            this, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1, 
+            this, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1,
             "##0", 55, 20, "", "", ACTION_COMMAND, 60, 25);
     zAt.init();
     panel.add(zAt);
-        
-    setSizes(panel, 190, 47);    
-    
+
+    setSizes(panel, 190, 47);
+
     add(panel);
-    
+
 }// end of ControlPanelBasic::createViewAtPositionPanel
 //-----------------------------------------------------------------------------
 
@@ -521,15 +526,15 @@ public void createRotationPanel()
             this, 200, 0, 359, 1, "##0", 60, 20,
              "", "degrees", ACTION_COMMAND, 160, 25);
     rotation.init();
-    rotation.setAlignmentX(Component.LEFT_ALIGNMENT);    
+    rotation.setAlignmentX(Component.LEFT_ALIGNMENT);
     add(rotation);
 
     panel.add(rotation);
-    
-    setSizes(panel, 190, 47);    
-    
+
+    setSizes(panel, 190, 47);
+
     add(panel);
-    
+
 }// end of ControlPanelBasic::createRotationPanel
 //-----------------------------------------------------------------------------
 
@@ -559,15 +564,15 @@ public void createViewAnglePanel()
             this, 7, 1, 179, 1, "##0", 60, 20,
              "", "degrees", ACTION_COMMAND, 175, 25);
     viewAngle.init();
-    viewAngle.setAlignmentX(Component.LEFT_ALIGNMENT);    
+    viewAngle.setAlignmentX(Component.LEFT_ALIGNMENT);
     add(viewAngle);
 
     panel.add(viewAngle);
-    
-    setSizes(panel, 190, 47);    
-    
+
+    setSizes(panel, 190, 47);
+
     add(panel);
-    
+
 }// end of ControlPanelBasic::createViewAnglePanel
 //-----------------------------------------------------------------------------
 
@@ -586,14 +591,14 @@ public void createChartControlsPanel()
 
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    addVerticalSpacer(panel, 5);    
-    
+    addVerticalSpacer(panel, 5);
+
     expandBtn = new JButton("Expanded View");
     expandBtn.setActionCommand("Expand Chart Height");
     expandBtn.addActionListener(this);
-    expandBtn.setToolTipText("Expand chart height.");            
+    expandBtn.setToolTipText("Expand chart height.");
     panel.add(expandBtn);
-    
+
     addVerticalSpacer(panel, 5);
 
     animateBtn = new JButton("Animate");
@@ -601,14 +606,14 @@ public void createChartControlsPanel()
     animateBtn.addActionListener(this);
     animateBtn.setToolTipText("Start or stop animation of a graph.");
     panel.add(animateBtn);
-    
+
     addVerticalSpacer(panel, 5);
-    
-    
+
+
     setSizes(panel, 190, 90);
-    
+
     add(panel);
-    
+
 }// end of ControlPanelBasic::createChartControlsPanel
 //-----------------------------------------------------------------------------
 
@@ -620,7 +625,7 @@ public void createChartControlsPanel()
 
 public void resetAll()
 {
-    
+
 }// end of ControlPanelBasic::resetAll
 //-----------------------------------------------------------------------------
 
@@ -639,31 +644,31 @@ public ArrayList<Object> getAllValues()
 {
 
     values.clear();
-    
+
     values.add("Channel Control Panel");
-    
-    values.add(xPos.getIntValue());    
-    
-    values.add(yPos.getIntValue());    
-    
+
+    values.add(xPos.getIntValue());
+
+    values.add(yPos.getIntValue());
+
     values.add(xFrom.getIntValue());
-    
+
     values.add(yFrom.getIntValue());
-    
+
     values.add(zFrom.getIntValue());
-    
+
     values.add(xAt.getIntValue());
-    
+
     values.add(yAt.getIntValue());
-    
+
     values.add(zAt.getIntValue());
 
     values.add(rotation.getIntValue());
-    
-    values.add(viewAngle.getIntValue());    
-    
+
+    values.add(viewAngle.getIntValue());
+
     return(values);
-    
+
 }// end of ControlPanelBasic::getAllValues
 //-----------------------------------------------------------------------------
 
@@ -680,29 +685,29 @@ public void setAllValues(ArrayList<Object> pValues)
 {
 
     if(pValues == null) { return; }
-    
+
     int i = 1;
-    
+
     xPos.setValueAsInt((Integer)pValues.get(i++));
-    
+
     yPos.setValueAsInt((Integer)pValues.get(i++));
 
     xFrom.setValueAsInt((Integer)pValues.get(i++));
-    
+
     yFrom.setValueAsInt((Integer)pValues.get(i++));
-    
+
     zFrom.setValueAsInt((Integer)pValues.get(i++));
-    
+
     xAt.setValueAsInt((Integer)pValues.get(i++));
-    
+
     yAt.setValueAsInt((Integer)pValues.get(i++));
-    
+
     zAt.setValueAsInt((Integer)pValues.get(i++));
-        
+
     rotation.setValueAsInt((Integer)pValues.get(i++));
-    
+
     viewAngle.setValueAsInt((Integer)pValues.get(i++));
-        
+
 }// end of ControlPanelBasic::setAllValues
 //-----------------------------------------------------------------------------
 
@@ -716,7 +721,7 @@ public void addVerticalSpacer(JPanel pTarget, int pNumPixels)
 {
 
     pTarget.add(Box.createRigidArea(new Dimension(0,pNumPixels)));
-    
+
 }// end of ControlPanelBasic::addVerticalSpacer
 //-----------------------------------------------------------------------------
 
@@ -730,7 +735,7 @@ public void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
 {
 
     pTarget.add(Box.createRigidArea(new Dimension(pNumPixels,0)));
-    
+
 }// end of ControlPanelBasic::addHorizontalSpacer
 //-----------------------------------------------------------------------------
 
@@ -745,7 +750,7 @@ public void actionPerformed(ActionEvent e)
 {
 
     if (actionPerformedLocal(e) == true) { return; } //local processing
-    
+
     parentActionListener.actionPerformed(e); //parent handler processing
 
 }//end of ControlPanelBasic::actionPerformed
@@ -779,17 +784,17 @@ private boolean actionPerformedLocal(ActionEvent e)
     }
 
     if (e.getActionCommand().startsWith("On-Off Checkbox")){
-        
+
         if (!(e.getSource() instanceof JCheckBox)) { return(false); }
         JCheckBox box = (JCheckBox)e.getSource();
-        
-        parentActionListener.actionPerformed(new ActionEvent(this, 1, 
+
+        parentActionListener.actionPerformed(new ActionEvent(this, 1,
                 "Update Channel," + box.getName() + "," + box.isSelected()));
         return(true);
     }
- 
+
     return(false);
-    
+
 }//end of ControlPanelBasic::actionPerformedLocal
 //-----------------------------------------------------------------------------
 
@@ -804,20 +809,20 @@ private boolean actionPerformedLocal(ActionEvent e)
 
 public void handleExpandButtonClick()
 {
-    
-    
+
+
     if(expandBtn.getText().equals("Expanded View")){
 
-        expandBtn.setText("Normal View");    
+        expandBtn.setText("Normal View");
         expandBtn.setActionCommand("Set Normal Chart Height");
-        expandBtn.setToolTipText("Set chart height to normal view.");            
-          
+        expandBtn.setToolTipText("Set chart height to normal view.");
+
     }else{
-    
+
         expandBtn.setText("Expanded View");
         expandBtn.setActionCommand("Expand Chart Height");
-        expandBtn.setToolTipText("Expand chart height.");  
-        
+        expandBtn.setToolTipText("Expand chart height.");
+
     }
 
 }//end of ControlPanelBasic::handleExpandButtonClick
@@ -855,28 +860,28 @@ public void stateChanged(ChangeEvent e)
 
     //if for some reason the object which changed state is not a subclass of
     //of Component, do nothing as this code only handles Components
-    
-    if (!(e.getSource() instanceof Component)) { return; }    
-        
+
+    if (!(e.getSource() instanceof Component)) { return; }
+
     MFloatSpinner sp;
-    
+
     //try casting the source component to a spinner - if valid, then get the
     //name if the component is a threshold control, then update chart
     //settings only
 
-    try{        
+    try{
         sp = (MFloatSpinner)e.getSource();
-        handleSpinnerChange(sp);        
+        handleSpinnerChange(sp);
         return;
     }
     catch (ClassCastException ce){
         //this is an expected exception -- do not print warning to err file
     }
-    
+
     //all other components which fire stateChanged events call to copy their
     //values to the appropriate variables
     //do something here with all uncaught changes
-    
+
     return;
 
 }//end of ControlPanelBasic::stateChanged
@@ -892,7 +897,7 @@ public void stateChanged(ChangeEvent e)
 
 private void handleSpinnerChange(MFloatSpinner pSpinner)
 {
-    
+
     if (pSpinner == null) { return; }
 
     String name = pSpinner.getName();
@@ -914,7 +919,7 @@ private void handleSpinnerChange(MFloatSpinner pSpinner)
     }
 
 }//end of ControlPanelBasic::handleSpinnerChange
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // ControlPanelBasic::handleOnOffCheckBoxRightClick
@@ -929,18 +934,18 @@ private void handleSpinnerChange(MFloatSpinner pSpinner)
 
 private void handleOnOffCheckBoxRightClick(String pName)
 {
-    
+
     String[] split = pName.split(",");
-    
+
     String groupName = split[1];
     int index = Integer.parseInt(split[2]);
-        
+
     setStateOfAllCheckboxesInAGroup("All Off" + "," + groupName, false);
 
     channelList.get(index).onOffBox.setSelected(true);
-    
+
 }//end of ControlPanelBasic::handleOnOffCheckBoxRightClick
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // ControlPanelBasic::mouseClicked
@@ -961,7 +966,7 @@ public void mouseClicked(MouseEvent e)
     int button = e.getButton();
 
     String name = e.getComponent().getName();
-    
+
     //catch left clicks
     if (button == MouseEvent.BUTTON1){
         return;
@@ -969,12 +974,12 @@ public void mouseClicked(MouseEvent e)
 
     //catch right clicks
     if (button == MouseEvent.BUTTON3){
-        
-        if(name.startsWith("On-Off Checkbox")){ 
+
+        if(name.startsWith("On-Off Checkbox")){
             handleOnOffCheckBoxRightClick(name);
             return;
         }
-            
+
         return;
     }
 
