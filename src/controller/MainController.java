@@ -743,6 +743,8 @@ public void actionPerformed(ActionEvent e)
 
     if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
 
+    if ("Display Job Info".equals(e.getActionCommand())) {displayJobInfo(); return;}
+
     if ("Display Log".equals(e.getActionCommand())) {displayLog(); return;}
 
     if ("Display Help".equals(e.getActionCommand())) {displayHelp(); return;}
@@ -1028,6 +1030,20 @@ private void displayDataFromDevices()
     }
 
 }// end of MainController::displayDataFromDevices
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayJobInfo
+//
+// Displays job info.
+//
+
+private void displayJobInfo()
+{
+
+    mainView.displayJobInfo();
+
+}//end of MainController::displayJobInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

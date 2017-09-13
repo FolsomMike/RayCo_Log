@@ -109,6 +109,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private GuiUpdater guiUpdater;
     private Log log;
     private ThreadSafeLogger tsLog;
+    private JobInfo jobInfo;
     private Help help;
     private About about;
 
@@ -724,6 +725,25 @@ public void createFonts()
     yellowLargeFont = blackLargeFont.deriveFont(map);
 
 }// end of MainView::createFonts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::displayJobInfo
+//
+// Displays job info.
+//
+
+public void displayJobInfo()
+{
+
+    jobInfo = new JobInfo(mainFrame, sharedSettings.jobPathPrimary,
+                            sharedSettings.jobPathSecondary,
+                            sharedSettings.currentJobName, this,
+                            sharedSettings.mainFileFormat);
+    jobInfo.init();
+    jobInfo = null;  //window will be released on close, so point should be null
+
+}//end of MainView::displayJobInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
