@@ -680,7 +680,7 @@ private int getIndexOfTracesPeak(int pIndexStart, int pIndexEnd)
 
     //use the x position that has the highest peak of all the traces to
     //determine which data set to display for this box
-    Trace t; Trace peakTrace = null; int peak=0; int peakX=0;
+    Trace t; Trace peakTrace = null; int peak=-1; int peakX=-1;
     for (Object o : traces) {
         t = (Trace)o;
         int newP = t.getPeak(pIndexStart, pIndexEnd);

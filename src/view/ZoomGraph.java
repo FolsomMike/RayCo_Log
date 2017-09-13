@@ -150,7 +150,7 @@ public void addZoomBox(int pIndex)
 
     //use the last data set collected if index out of bounds
     int [] zoomData;
-    if (pIndex>=data.size()) {
+    if (pIndex<0||pIndex>=data.size()) {
         zoomData = data.get(data.size()-1); pIndex = data.size()-1;
     }
     else { zoomData = data.get(pIndex); }

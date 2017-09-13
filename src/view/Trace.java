@@ -602,7 +602,7 @@ public int getPeak (int pXStart, int pXEnd)
     //ensure index starts and ends don't exceed array bounds
     if (pXStart<0||pXEnd>=data.size()) { lastRequestedPeakX = -1; return -1; }
 
-    lastRequestedPeak=0;
+    lastRequestedPeak=-1;
     for (int i=pXStart; i<=pXEnd&&i<data.size(); i++){
         if(data.get(i)>lastRequestedPeak) {
             lastRequestedPeak = data.get(i);
