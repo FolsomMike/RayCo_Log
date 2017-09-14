@@ -260,7 +260,7 @@ public void removeMasterPanel()
 public void loadConfigSettings()
 {
 
-    String filename = sharedSettings.jobPathPrimary + "00 - " +
+    String filename = sharedSettings.jobPathPrimary + "01 - " +
                 sharedSettings.currentJobName + " Main Configuration.ini";
 
     try {
@@ -755,6 +755,12 @@ public void actionPerformed(ActionEvent e)
         changeJob(e.getActionCommand()); return;
     }
 
+    if ("Display New Job".equals(e.getActionCommand())) {displayNewJob(); return;}
+
+    if (e.getActionCommand().startsWith("New Job")) {
+        createNewJob(e.getActionCommand()); return;
+    }
+
     if ("Display Log".equals(e.getActionCommand())) {displayLog(); return;}
 
     if ("Display Help".equals(e.getActionCommand())) {displayHelp(); return;}
@@ -1074,6 +1080,50 @@ private void displayChangeJob()
     mainView.displayChangeJob();
 
 }//end of MainController::displayChangeJob
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayNewJob
+//
+// Displays new job window.
+//
+
+private void displayNewJob()
+{
+
+    mainView.displayNewJob();
+
+}//end of MainController::displayNewJob
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::createNewJob
+//
+// Creates a new job.
+//
+
+public void createNewJob(String pInfo)
+{
+
+    String[] split = pInfo.split(",");
+
+    sharedSettings.currentJobName = split[1]; //use the new job name
+    sharedSettings.save(); //save the new current job name so it will be loaded
+
+    //update the data paths
+    sharedSettings.jobPathPrimary = sharedSettings.dataPathPrimary
+                                        + sharedSettings.currentJobName + "/";
+    sharedSettings.jobPathSecondary = sharedSettings.dataPathSecondary
+                                        + sharedSettings.currentJobName + "/";
+
+    //exit the program, passing true to instantiate a new program which will
+    //load the new work order on startup - it is required to create a new
+    //program and kill the old one so that all of the configuration data for
+    //the job will be loaded properly
+    sharedSettings.restartProgram = true;
+    beginShutDown();
+
+}//end of MainController::createNewJob
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

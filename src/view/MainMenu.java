@@ -36,6 +36,7 @@ public class MainMenu extends JMenuBar{
     JMenu fileMenu;
     JMenuItem jobInfoMenuItem;
     JMenuItem changeJob;
+    JMenuItem newJob;
     JMenuItem newFile;
     JMenuItem openFile;
     JMenuItem saveFile;
@@ -76,6 +77,14 @@ public MainMenu(ActionListener pActionListener)
     changeJob.setActionCommand("Display Change Job");
     changeJob.addActionListener(actionListener);
     fileMenu.add(changeJob);
+
+    //File/New Job
+    newJob = new JMenuItem("New Job");
+    newJob.setMnemonic(KeyEvent.VK_N);
+    newJob.setToolTipText("New Job");
+    newJob.setActionCommand("Display New Job");
+    newJob.addActionListener(actionListener);
+    fileMenu.add(newJob);
 
     //File/Exit menu item
     exitMenuItem = new JMenuItem("Exit");

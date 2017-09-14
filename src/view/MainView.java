@@ -111,6 +111,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private ThreadSafeLogger tsLog;
     private JobInfo jobInfo;
     private ChooseJob chooseJob;
+    private NewJob newJob;
     private Help help;
     private About about;
 
@@ -774,6 +775,31 @@ public void displayChangeJob()
     }
 
 }//end of MainView::displayChangeJob
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::displayNewJob
+//
+// Displays New Job window.
+//
+
+public void displayNewJob()
+{
+
+    newJob = new NewJob(mainFrame, sharedSettings.dataPathPrimary,
+                                sharedSettings.dataPathSecondary, xfer,
+                                sharedSettings.mainFileFormat);
+    newJob.init();
+    newJob = null;
+
+    //send message to event handler to create if new job specified
+    if (xfer.rBoolean1) {
+        eventHandler.actionPerformed(new ActionEvent(this,
+                                                ActionEvent.ACTION_PERFORMED,
+                                                "New Job,"+xfer.rString1));
+    }
+
+}//end of MainView::displayNewJob
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
