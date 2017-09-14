@@ -77,22 +77,6 @@ public MainMenu(ActionListener pActionListener)
     changeJob.addActionListener(actionListener);
     fileMenu.add(changeJob);
 
-    //File/New
-    newFile = new JMenuItem("New File");
-    newFile.setMnemonic(KeyEvent.VK_N);
-    newFile.setToolTipText("Create a new blank file.");
-    newFile.setActionCommand("New File");
-    newFile.addActionListener(actionListener);
-    fileMenu.add(newFile);
-
-    //File/Open
-    openFile = new JMenuItem("Open File");
-    openFile.setMnemonic(KeyEvent.VK_O);
-    openFile.setToolTipText("Open an existing file");
-    openFile.setActionCommand("Open File");
-    openFile.addActionListener(actionListener);
-    fileMenu.add(openFile);
-
     //File/Exit menu item
     exitMenuItem = new JMenuItem("Exit");
     exitMenuItem.setMnemonic(KeyEvent.VK_X);
