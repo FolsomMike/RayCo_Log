@@ -896,6 +896,23 @@ synchronized private void processChannelParameterChanges()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainHandler::shutDown
+//
+// This function should be called before exiting the program.  Overriding the
+// "finalize" method does not work as it does not get called reliably upon
+// program exit.
+//
+
+public void shutDown()
+{
+
+    //tell all devices to shut down
+    for (Device d : devices) { d.shutDown(); }
+
+}//end of MainHandler::shutDown
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainHandler::loadConfigSettings
 //
 // Loads settings for the object from configFile.

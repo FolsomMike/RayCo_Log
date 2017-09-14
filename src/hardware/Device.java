@@ -49,6 +49,8 @@ import view.LogPanel;
 public class Device implements Runnable
 {
 
+    boolean shutDown = false;
+
     final IniFile configFile;
     private final int deviceNum;
     public int getDeviceNum(){ return(deviceNum); }
@@ -1366,7 +1368,7 @@ public synchronized void notifyThreadsWaitingOnConnection()
 public synchronized void waitForever()
 {
 
-    while (true){ try{wait();} catch (InterruptedException e) { } }
+    while (!shutDown){ try{wait();} catch (InterruptedException e) { } }
 
 }//end of Device::waitForever
 //-----------------------------------------------------------------------------
@@ -1714,6 +1716,35 @@ synchronized public void processChannelParameterChanges()
 {
 
 }//end of MainHandler::processChannelParameterChanges
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::shutDown
+//
+// This function should be called before exiting the program.  Overriding the
+// "finalize" method does not work as it does not get called reliably upon
+// program exit.
+//
+
+public void shutDown()
+{
+
+    //close everything - the order of closing may be important
+    try{
+        if (byteOut != null) {byteOut.close();}
+        if (byteIn != null) {byteIn.close();}
+        if (out != null) {out.close();}
+        if (in != null) {in.close();}
+        if (socket != null) {socket.close();}
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 1739");
+    }
+
+    //kill device thread, no longer needed alive
+    shutDown = true;
+
+}//end of Device::shutDown
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

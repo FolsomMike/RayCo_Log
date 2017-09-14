@@ -174,6 +174,7 @@ public void init()
 
     mainHandler = new MainHandler(0, this, sharedSettings, configFile);
     mainHandler.init();
+    devicesConnected = false;
 
     peakData = new PeakData(0, mainHandler.getMaxNumChannels());
     peakMapData = new PeakMapData(0, 48); //debug mks -- this needs to be loaded from config file!!!
@@ -181,6 +182,9 @@ public void init()
 
     //create data transfer buffers
     setUpDataTransferBuffers();
+
+    //force garbage collection before beginning any time sensitive tasks
+    System.gc();
 
     //start the timer and control thread after everything else created
     mainView.setupAndStartMainTimer();
@@ -745,6 +749,12 @@ public void actionPerformed(ActionEvent e)
 
     if ("Display Job Info".equals(e.getActionCommand())) {displayJobInfo(); return;}
 
+    if ("Display Change Job".equals(e.getActionCommand())) {displayChangeJob(); return;}
+
+    if (e.getActionCommand().startsWith("Change Job")) {
+        changeJob(e.getActionCommand()); return;
+    }
+
     if ("Display Log".equals(e.getActionCommand())) {displayLog(); return;}
 
     if ("Display Help".equals(e.getActionCommand())) {displayHelp(); return;}
@@ -938,6 +948,26 @@ public void saveUserSettingsToFile()
 public void doTimerActions()
 {
 
+    //If a shut down is initiated, clean up, save data, etc
+    if(sharedSettings.beginShutDown) {
+        sharedSettings.beginShutDown = false; //set false so we don't repeat
+        mainView.shutDown();
+        sharedSettings.isViewShutDown = true; //view is now shut down
+        return;
+    }
+
+    //shut the program down if everyone is ready
+    if(sharedSettings.isViewShutDown && sharedSettings.isHardwareShutDown) {
+
+        //stop calling main timer during shutdown
+        mainView.getMainTimer().stop();
+
+        //if a restart was requested, restart
+        if (sharedSettings.restartProgram) { init(); }
+        else { System.exit(0); }//exit the program
+        return;
+    }
+
     updateGUIPeriodically();
 
 }//end of MainController::doTimerActions
@@ -1033,6 +1063,20 @@ private void displayDataFromDevices()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::displayChangeJob
+//
+// Displays change job window.
+//
+
+private void displayChangeJob()
+{
+
+    mainView.displayChangeJob();
+
+}//end of MainController::displayChangeJob
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::displayJobInfo
 //
 // Displays job info.
@@ -1041,9 +1085,39 @@ private void displayDataFromDevices()
 private void displayJobInfo()
 {
 
+    //NOTE: save must be done BEFORE calling the dialog window else new changes
+    //may be overwritten or written to the wrong directory as the dialog window
+    //may save files or switch directories
+
+    //DEBUG HSS// do later //saveEverything(); //save all data
+
     mainView.displayJobInfo();
 
 }//end of MainController::displayJobInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::changeJob
+//
+// Switches jobs.
+//
+
+public void changeJob(String pInfo)
+{
+
+    String[] split = pInfo.split(",");
+
+    sharedSettings.currentJobName = split[1]; //use the new job name
+    sharedSettings.save(); //save the new current job name so it will be loaded
+
+    //exit the program, passing true to instantiate a new program which will
+    //load the new work order on startup - it is required to create a new
+    //program and kill the old one so that all of the configuration data for
+    //the job will be loaded properly
+    sharedSettings.restartProgram = true;
+    beginShutDown();
+
+}//end of MainController::changeJob
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1200,7 +1274,13 @@ public void run()
 {
 
     //call the control method repeatedly
-    while(true){
+    while(!sharedSettings.isHardwareShutDown){
+
+        if (sharedSettings.beginHardwareShutDown) {
+            mainHandler.shutDown();
+            sharedSettings.isHardwareShutDown = true;
+            return;
+        }
 
         if(!devicesConnected){
             mainHandler.connectToDevices(); devicesConnected = true;
@@ -1257,13 +1337,6 @@ public void control()
         mainHandler.collectData();
     }
 
-    //If a shut down is initiated, clean up and exit the program.
-
-    if(shutDown){
-        //exit the program
-        System.exit(0);
-    }
-
 }//end of MainController::control
 //-----------------------------------------------------------------------------
 
@@ -1296,23 +1369,19 @@ void waitSleep(int pTime)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainController::shutDown
+// MainController::beginShutDown
 //
-// Disables chassis power and performs any other appropriate shut down
-// operations.
-//
-// This is done by setting a flag so that this class's thread can do the
-// actual work, thus avoiding thread contention.
+// //WIP HSS//
 //
 
-public void shutDown()
+public void beginShutDown()
 {
 
-    saveUserSettingsToFile();
+    //set flag so that processes can be handled by appropriate threads
+    sharedSettings.beginShutDown = true;
+    sharedSettings.beginHardwareShutDown = true;
 
-    shutDown = true;
-
-}//end of MainController::shutDown
+}//end of MainController::beginShutDown
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1326,8 +1395,7 @@ public void windowClosing(WindowEvent e)
 {
 
     //perform all shut down procedures
-
-    shutDown();
+    beginShutDown();
 
 }//end of MainController::windowClosing
 //-----------------------------------------------------------------------------

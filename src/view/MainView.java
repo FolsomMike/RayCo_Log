@@ -110,10 +110,14 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private Log log;
     private ThreadSafeLogger tsLog;
     private JobInfo jobInfo;
+    private ChooseJob chooseJob;
     private Help help;
     private About about;
 
+    private Xfer xfer;
+
     private javax.swing.Timer mainTimer;
+    public javax.swing.Timer getMainTimer() { return mainTimer; }
 
     boolean animateGraph = false;
     int animateGraphTimer = 0;
@@ -171,6 +175,8 @@ public void init()
     loadConfigSettings();
 
     setupMainFrame();
+
+    xfer = new Xfer();
 
     mainFrame.setTitle(sharedSettings.appTitle);
 
@@ -744,6 +750,30 @@ public void displayJobInfo()
     jobInfo = null;  //window will be released on close, so point should be null
 
 }//end of MainView::displayJobInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::displayChangeJob
+//
+// Displays Change Job window.
+//
+
+public void displayChangeJob()
+{
+
+    chooseJob = new ChooseJob(mainFrame, sharedSettings.dataPathPrimary,
+                                sharedSettings.dataPathSecondary, xfer);
+    chooseJob.init();
+    chooseJob = null;
+
+    //send message to event handler to change jobs if new job selected
+    if (xfer.rBoolean1) {
+        eventHandler.actionPerformed(new ActionEvent(this,
+                                                ActionEvent.ACTION_PERFORMED,
+                                                "Change Job"+","+xfer.rString1));
+    }
+
+}//end of MainView::displayChangeJob
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1407,6 +1437,23 @@ public void packDeviceLogWindow()
     deviceLog.pack();
 
 }// end of MainView::packDeviceLogWindow
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::shutDown
+//
+
+public void shutDown() {
+
+    //save everything that needs to be saved
+    //WIP HSS//
+
+    //dispose of the mainframe
+    mainFrame.setVisible(false);
+    mainFrame.dispose();
+    mainFrame = null;
+
+}//end of MainView::shutDown
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 * Purpose:
 *
 * This class handles values shared amongst various classes.
-* 
+*
 * Init method loads the basic configuration settings from a file.
 *
 * Open Source Policy:
@@ -42,27 +42,33 @@ public class SharedSettings{
 
 
     JFrame mainFrame;
-    
+
     public String appTitle;
-    
+
     public String currentJobName = "";
     public String jobPathPrimary = "";
-    public String jobPathSecondary = "";    
-    public String dataPathPrimary = ""; String dataPathSecondary = "";
+    public String jobPathSecondary = "";
+    public String dataPathPrimary = "", dataPathSecondary = "";
+
+    public boolean beginShutDown = false;
+    public boolean isViewShutDown = false;
+    public boolean beginHardwareShutDown = false;
+    public boolean isHardwareShutDown = false;
+    public boolean restartProgram = false;
 
     public int lastPieceNumber;
     public int lastCalPieceNumber;
-    
+
     public String mainFileFormat = "UTF-8";
-    
+
     static final String MAIN_CONFIG_SETTINGS_FILENAME =
                                              "Main Configuration Settings.ini";
-    static final String MAIN_SETTINGS_FILENAME = "Main Settings.ini";    
+    static final String MAIN_SETTINGS_FILENAME = "Main Settings.ini";
     static final String DEFAULT_PRIMARY_DATA_PATH = "Data Folder - Primary";
     static final String DEFAULT_SECONDARY_DATA_PATH = "Data Folder - Secondary";
 
     private static final int ERROR_LOG_MAX_SIZE = 10000;
-    
+
 //-----------------------------------------------------------------------------
 // SharedSettings::SharedSettings (constructor)
 //
@@ -70,7 +76,7 @@ public class SharedSettings{
 
 public SharedSettings()
 {
-    
+
 }//end of SharedSettings::SharedSettings (constructor)
 //-----------------------------------------------------------------------------
 
@@ -82,15 +88,15 @@ public void init(JFrame pMainFrame)
 {
 
     mainFrame = pMainFrame;
-    
+
     loadMainConfigSettings();
 
     verifyDataPathsAndCreateIfMissing();
 
     loadMainSettings();
-    
+
     createJobPaths();
-    
+
 }// end of SharedSettings::init
 //-----------------------------------------------------------------------------
 
@@ -103,10 +109,10 @@ public void init(JFrame pMainFrame)
 private void createJobPaths()
 {
 
-    jobPathPrimary = dataPathPrimary + currentJobName;        
+    jobPathPrimary = dataPathPrimary + currentJobName;
     jobPathPrimary = trimAndAppendFileSeparatorIfMissing(jobPathPrimary);
 
-    jobPathSecondary = dataPathSecondary + currentJobName;        
+    jobPathSecondary = dataPathSecondary + currentJobName;
     jobPathSecondary = trimAndAppendFileSeparatorIfMissing(jobPathSecondary);
 
 }// end of SharedSettings::createJobPaths
@@ -132,17 +138,17 @@ private void loadMainConfigSettings()
 
     appTitle = configFile.readString(
                                 "Main Settings", "application title", "Chart");
-    
+
     dataPathPrimary = configFile.readString(
                "Main Settings", "primary data path", DEFAULT_PRIMARY_DATA_PATH);
-    
+
     dataPathPrimary = trimAndAppendFileSeparatorIfMissing(dataPathPrimary);
-    
+
     dataPathSecondary = configFile.readString(
            "Main Settings", "secondary data path", DEFAULT_SECONDARY_DATA_PATH);
 
     dataPathSecondary = trimAndAppendFileSeparatorIfMissing(dataPathSecondary);
-    
+
 }// end of SharedSettings::loadMainConfigSettings
 //-----------------------------------------------------------------------------
 
@@ -168,14 +174,45 @@ private void loadMainSettings()
 
     currentJobName = configFile.readString(
                                      "Main Settings", "current job name", "");
-    
+
     lastPieceNumber = configFile.readInt(
                  "Main Settings", "number of last piece processed", 0);
 
     lastCalPieceNumber = configFile.readInt(
              "Main Settings", "number of last calibration piece processed", 0);
-    
+
 }// end of SharedSettings::loadMainSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::save
+//
+// Saves all of the settings.
+//
+
+public void save()
+{
+
+    IniFile configFile;
+
+    try {
+        configFile = new IniFile(MAIN_SETTINGS_FILENAME, mainFileFormat);
+        configFile.init();
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 142");
+        return;
+    }
+
+    configFile.writeString("Main Settings", "current job name", currentJobName);
+    configFile.writeInt("Main Settings", "number of last piece processed",
+                                                                lastPieceNumber);
+    configFile.writeInt("Main Settings",
+                            "number of last calibration piece processed",
+                            lastCalPieceNumber);
+    configFile.save();
+
+}//end of SharedSettings::save
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -186,16 +223,16 @@ private void loadMainSettings()
 
 private void verifyDataPathsAndCreateIfMissing()
 {
-    
+
     if (!Files.exists(Paths.get(dataPathPrimary))) {
         logSevere("Primary Data Path not found, creating now - Error: 122");
-        createDataFolder(dataPathPrimary, "primary");        
-    }    
+        createDataFolder(dataPathPrimary, "primary");
+    }
 
     if (!Files.exists(Paths.get(dataPathSecondary))) {
         logSevere("Secondary Data Path not found, creating now - Error: 136");
-        createDataFolder(dataPathSecondary, "secondary");        
-    }    
+        createDataFolder(dataPathSecondary, "secondary");
+    }
 
 }// end of SharedSettings::verifyDataPathsAndCreateIfMissing
 //-----------------------------------------------------------------------------
@@ -208,10 +245,10 @@ private void verifyDataPathsAndCreateIfMissing()
 //
 
 private void createDataFolder(String pPath, String pErrorMsgID)
-{    
-    
+{
+
     File folder = new File(pPath);
-    
+
     if (!folder.exists() && !folder.mkdirs()){
         displayErrorMessage("Could not create the " + pErrorMsgID
                                                         + " data directory.");
@@ -219,7 +256,7 @@ private void createDataFolder(String pPath, String pErrorMsgID)
                                               + " data directory - Error: 160");
         return;
     }
-    
+
 }// end of SharedSettings::verifyDataPathsAndCreateIfMissing
 //-----------------------------------------------------------------------------
 
@@ -235,12 +272,12 @@ private String trimAndAppendFileSeparatorIfMissing(String pPath)
 {
 
     pPath = pPath.trim();
-    
+
     //add a separator if not one already at the end
     if (!pPath.endsWith(File.separator)) { pPath += File.separator; }
 
     return(pPath);
-    
+
 }// end of SharedSettings::trimAndAppendFileSeparatorIfMissing
 //-----------------------------------------------------------------------------
 
