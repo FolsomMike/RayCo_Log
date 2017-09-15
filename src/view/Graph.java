@@ -586,6 +586,24 @@ void loadConfigSettings()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+}//end of Graph::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::saveCalFile
 //
 // This saves the file used for storing calibration information pertinent to a

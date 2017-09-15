@@ -1463,6 +1463,24 @@ public void packDeviceLogWindow()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+    for (ChartGroup c : chartGroups) { c.loadCalFile(pCalFile); }
+
+}//end of MainView::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::saveCalFile
 //
 

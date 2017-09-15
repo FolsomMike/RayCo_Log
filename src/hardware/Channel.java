@@ -365,6 +365,25 @@ public boolean setOnOff(String pValue, boolean pForceUpdate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+    String section = "Device " + meta.deviceNum + " Channel " + meta.channelNum;
+
+}//end of Channel::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::saveCalFile
 //
 // This saves the file used for storing calibration information pertinent to a

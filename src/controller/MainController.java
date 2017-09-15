@@ -183,6 +183,9 @@ public void init()
     //create data transfer buffers
     setUpDataTransferBuffers();
 
+    //load the cal file
+    loadCalFile();
+
     //force garbage collection before beginning any time sensitive tasks
     System.gc();
 
@@ -944,11 +947,45 @@ public void saveUserSettingsToFile()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+private void loadCalFile()
+{
+
+    String fileName = sharedSettings.jobPathPrimary + "00 - "
+                            + sharedSettings.currentJobName
+                            + " Calibration File.ini";
+
+    try {
+
+        IniFile calFile = new IniFile(fileName,
+                                        sharedSettings.mainFileFormat);
+        calFile.init();
+
+        //tell view and hardware handlers to add their data to cal file
+        mainView.loadCalFile(calFile); mainHandler.loadCalFile(calFile);
+
+    }
+    catch(IOException e){
+        MKSTools.logSevere(getClass().getName(), e.getMessage()
+                                                    + " - Error: 979");
+    }
+
+}//end of MainController::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::saveCalFile
 //
-// Performs actions driven by the timer.
-//
-// Not used for accessing network -- see run function for details.
+// Saves the calibration data to file. This is done in a separate thread to
+// allow status messages to be displayed and updated during the save.
 //
 
 private void saveCalFile()

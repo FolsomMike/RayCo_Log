@@ -1748,6 +1748,27 @@ public void shutDown()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+    String section = "Device " + deviceNum + " Settings";
+
+    for (Channel c : channels) { c.loadCalFile(pCalFile); }
+
+}//end of Device::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::saveCalFile
 //
 // This saves the file used for storing calibration information pertinent to a

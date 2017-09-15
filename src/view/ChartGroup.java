@@ -425,6 +425,27 @@ public void animateGraph(int pChart, int pGraph)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+    String section = "Chart Group " + chartGroupNum;
+
+    // call each chart to load its data
+    for (Chart c : charts) { c.saveCalFile(pCalFile); }
+
+}//end of ChartGroup::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::saveCalFile
 //
 // This saves the file used for storing calibration information pertinent to a

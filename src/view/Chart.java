@@ -770,6 +770,26 @@ public void updateChild(int pGraphNum, int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum;
+
+    for (Graph g : graphs) { g.loadCalFile(pCalFile); }
+
+}//end of Chart::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::saveCalFile
 //
 // This saves the file used for storing calibration information pertinent to a
