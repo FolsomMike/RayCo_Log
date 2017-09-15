@@ -56,6 +56,8 @@ public class SharedSettings{
     public boolean isHardwareShutDown = false;
     public boolean restartProgram = false;
 
+    public boolean isCalDataSaved = false;
+
     public int lastPieceNumber;
     public int lastCalPieceNumber;
 

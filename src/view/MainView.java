@@ -226,10 +226,6 @@ public void setupMainFrame()
     mainPanel = new JPanel();
     mainFrame.setContentPane(mainPanel);
 
-    //set the min/max/preferred sizes of the panel to set the size of the frame
-    //not used here -- frame is packed around contents
-    //Tools.setSizes(mainPanel, 200, 375);
-
     mainFrame.addWindowListener(this);
 
     //turn off default bold for Metal look and feel
@@ -245,7 +241,8 @@ public void setupMainFrame()
         System.out.println("Could not set Look and Feel");
         }
 
-    mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    //do not auto exit on close - shut down handled by the timer function
+    mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
     getScreenSize();
 
@@ -1466,18 +1463,30 @@ public void packDeviceLogWindow()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::saveCalFile
+//
+
+public void saveCalFile(IniFile pCalFile) {
+
+    for (ChartGroup c : chartGroups) { c.saveCalFile(pCalFile); }
+
+}//end of MainView::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::shutDown
 //
 
 public void shutDown() {
 
-    //save everything that needs to be saved
-    //WIP HSS//
+    sharedSettings.isViewShutDown = false; //just now beginning shut down process
 
     //dispose of the mainframe
     mainFrame.setVisible(false);
     mainFrame.dispose();
     mainFrame = null;
+
+    sharedSettings.isViewShutDown = true; //view is now shut down
 
 }//end of MainView::shutDown
 //-----------------------------------------------------------------------------

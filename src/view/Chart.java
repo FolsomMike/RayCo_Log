@@ -770,6 +770,28 @@ public void updateChild(int pGraphNum, int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::saveCalFile
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFile(IniFile pCalFile)
+{
+
+    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum;
+
+    pCalFile.writeString(section, "Chart Test Value", "Test");
+
+    for (Graph g : graphs) { g.saveCalFile(pCalFile); }
+
+}//end of Chart::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::mouseMoved
 //
 // Called when the mouse has moved on any object that this class has been

@@ -586,6 +586,26 @@ void loadConfigSettings()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::saveCalFile
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void saveCalFile(IniFile pCalFile)
+{
+
+    pCalFile.writeString(configFileSection, "Graph Test Value", "Test");
+
+}//end of Graph::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::setSizes
 //
 // Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.

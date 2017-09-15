@@ -944,6 +944,49 @@ public void saveUserSettingsToFile()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::saveCalFile
+//
+// Performs actions driven by the timer.
+//
+// Not used for accessing network -- see run function for details.
+//
+
+private void saveCalFile()
+{
+
+    sharedSettings.isCalDataSaved = false; //not saved yet
+
+    //save data in different thread so that other shut down processes run async
+    Runnable r = () -> {
+
+        String fileName = sharedSettings.jobPathPrimary + "00 - "
+                                + sharedSettings.currentJobName
+                                + " Calibration File.ini";
+
+        try {
+
+            IniFile calFile = new IniFile(fileName,
+                                            sharedSettings.mainFileFormat);
+            calFile.init();
+
+            //tell view and hardware handlers to add their data to cal file
+            mainView.saveCalFile(calFile); mainHandler.saveCalFile(calFile);
+
+            calFile.save(); //save everything to file
+            sharedSettings.isCalDataSaved = true; //done saving
+
+        }
+        catch(IOException e){
+            MKSTools.logSevere(getClass().getName(), e.getMessage()
+                                                        + " - Error: 979");
+        }
+    };
+    (new Thread(r)).start();
+
+}//end of MainController::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::doTimerActions
 //
 // Performs actions driven by the timer.
@@ -956,14 +999,23 @@ public void doTimerActions()
 
     //If a shut down is initiated, clean up, save data, etc
     if(sharedSettings.beginShutDown) {
-        sharedSettings.beginShutDown = false; //set false so we don't repeat
-        mainView.shutDown();
-        sharedSettings.isViewShutDown = true; //view is now shut down
+
+        //set true so hardware thread starts shutting down
+        sharedSettings.beginHardwareShutDown = true;
+
+        saveCalFile(); //save the calibration data to file
+
+        mainView.shutDown(); //tell view to shut down all of his stuff
+
+        sharedSettings.beginShutDown = false; //set false because already begun
+
         return;
     }
 
     //shut the program down if everyone is ready
-    if(sharedSettings.isViewShutDown && sharedSettings.isHardwareShutDown) {
+    if(sharedSettings.isViewShutDown && sharedSettings.isHardwareShutDown
+        && sharedSettings.isCalDataSaved)
+    {
 
         //stop calling main timer during shutdown
         mainView.getMainTimer().stop();
@@ -1120,8 +1172,7 @@ public void createNewJob(String pInfo)
     //load the new work order on startup - it is required to create a new
     //program and kill the old one so that all of the configuration data for
     //the job will be loaded properly
-    sharedSettings.restartProgram = true;
-    beginShutDown();
+    beginShutDown(true);
 
 }//end of MainController::createNewJob
 //-----------------------------------------------------------------------------
@@ -1164,8 +1215,7 @@ public void changeJob(String pInfo)
     //load the new work order on startup - it is required to create a new
     //program and kill the old one so that all of the configuration data for
     //the job will be loaded properly
-    sharedSettings.restartProgram = true;
-    beginShutDown();
+    beginShutDown(true);
 
 }//end of MainController::changeJob
 //-----------------------------------------------------------------------------
@@ -1421,15 +1471,17 @@ void waitSleep(int pTime)
 //-----------------------------------------------------------------------------
 // MainController::beginShutDown
 //
-// //WIP HSS//
+// Begins the shut down by setting the appropriate flags.
 //
 
-public void beginShutDown()
+public void beginShutDown(boolean pRestart)
 {
 
     //set flag so that processes can be handled by appropriate threads
     sharedSettings.beginShutDown = true;
-    sharedSettings.beginHardwareShutDown = true;
+
+    //set flag to know whether or not to restart
+    sharedSettings.restartProgram = false;
 
 }//end of MainController::beginShutDown
 //-----------------------------------------------------------------------------
@@ -1445,7 +1497,7 @@ public void windowClosing(WindowEvent e)
 {
 
     //perform all shut down procedures
-    beginShutDown();
+    beginShutDown(false);
 
 }//end of MainController::windowClosing
 //-----------------------------------------------------------------------------

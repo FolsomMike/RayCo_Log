@@ -952,6 +952,26 @@ private void loadConfigSettings()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainHandler::saveCalFile
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFile(IniFile pCalFile)
+{
+
+    pCalFile.writeString("Hardware", "Hardware Test Value", "test");
+
+    for (Device d : devices) { d.saveCalFile(pCalFile); }
+
+}//end of MainHandler::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainHandler::logSevere
 //
 // Logs pMessage with level SEVERE using the Java logger.
