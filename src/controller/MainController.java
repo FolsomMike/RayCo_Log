@@ -1063,7 +1063,7 @@ public void doTimerActions()
         return;
     }
 
-    updateGUIPeriodically();
+    if(!sharedSettings.isViewShutDown) { updateGUIPeriodically(); }
 
 }//end of MainController::doTimerActions
 //-----------------------------------------------------------------------------
