@@ -313,7 +313,7 @@ public class IniFile extends Object{
     private boolean modified;
 
     DecimalFormat[] DecimalFormats;
-    
+
 //-----------------------------------------------------------------------------
 // IniFile::IniFile (constructor)
 //
@@ -411,6 +411,20 @@ public void init() throws IOException
 public void save()
 {
 
+    save(filename);
+
+}//end of IniFile::save
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// IniFile::save
+//
+// Writes the buffer contents to the the specified file.
+//
+
+public void save(String pFilePath)
+{
+
     //create a buffered writer stream
 
     FileOutputStream fileOutputStream = null;
@@ -419,7 +433,7 @@ public void save()
 
     try{
 
-        fileOutputStream = new FileOutputStream(filename);
+        fileOutputStream = new FileOutputStream(pFilePath);
         outputStreamWriter =
                         new OutputStreamWriter(fileOutputStream, fileFormat);
         out = new BufferedWriter(outputStreamWriter);
@@ -465,12 +479,12 @@ public void setFileFormatAndSave(String pFileFormat)
 {
 
     fileFormat = pFileFormat;
-    
+
     save();
-    
+
 }//end of IniFile::setFileFormatAndSave
 //-----------------------------------------------------------------------------
-    
+
 //-----------------------------------------------------------------------------
 // IniFile::removeAllLinesWhichStartsWith
 //
@@ -479,7 +493,7 @@ public void setFileFormatAndSave(String pFileFormat)
 
 public void removeAllLinesWhichStartsWith(String pPrefix)
 {
-    
+
     ListIterator i;
 
     //write each line in the buffer to the file
@@ -489,7 +503,7 @@ public void removeAllLinesWhichStartsWith(String pPrefix)
         if (((String)i.next()).startsWith(pPrefix)){
             i.remove();
         }
-        
+
     }
 
 }//end of IniFile::removeAllLinesWhichStartsWith
