@@ -359,6 +359,37 @@ void createJob()
             "Error", JOptionPane.ERROR_MESSAGE);
     }
 
+    //determine if the user has selected a preset
+    boolean presetSelected =
+                     !presetName.equalsIgnoreCase("Select a Preset (optional)");
+
+    //put a copy of the selected preset file into the job folder
+    //this is the Job Info file and stores user settings
+    //note that the "00 - " prefix is to force the file to the top of the
+    //explorer window when the files are alphabetized to make it easier to find
+
+    if (presetSelected){
+       if( (!copyFile("presets" + "/" + presetName,
+               primaryFolder + "/00 - " + newJobName + " Calibration File.ini")
+     ||
+        !copyFile("presets" + "/" + presetName,
+              backupFolder + "/00 - " + newJobName + " Calibration File.ini"))){
+
+            JOptionPane.showMessageDialog(frame,
+            "The preset file could not be copied " +
+            "to the primary and/or backup directories.",
+            "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    else{
+        //if no preset selected for copying, then create a blank place holder
+        //file so error won't be generated the first time the job is opened
+        createPlaceHolderCalFile(
+               primaryFolder + "/00 - " + newJobName + " Calibration File.ini");
+        createPlaceHolderCalFile(
+               backupFolder + "/00 - " + newJobName + " Calibration File.ini");
+    }
+
     //signal the class which invoked this window that a new job or jobs have
     //been created and pass back the name of the last valid job created
 
