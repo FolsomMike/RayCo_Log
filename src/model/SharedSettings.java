@@ -49,6 +49,7 @@ public class SharedSettings{
     public String jobPathPrimary = "";
     public String jobPathSecondary = "";
     public String dataPathPrimary = "", dataPathSecondary = "";
+    public String calFileName = "";
 
     public boolean beginShutDown = false;
     public boolean isViewShutDown = false;
@@ -98,6 +99,9 @@ public void init(JFrame pMainFrame)
     loadMainSettings();
 
     createJobPaths();
+
+    calFileName = jobPathPrimary + "00 - " + currentJobName
+                        + " Calibration File.ini";
 
 }// end of SharedSettings::init
 //-----------------------------------------------------------------------------

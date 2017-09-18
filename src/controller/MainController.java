@@ -996,13 +996,9 @@ private void saveCalFile()
     //save data in different thread so that other shut down processes run async
     Runnable r = () -> {
 
-        String fileName = sharedSettings.jobPathPrimary + "00 - "
-                                + sharedSettings.currentJobName
-                                + " Calibration File.ini";
-
         try {
 
-            IniFile calFile = new IniFile(fileName,
+            IniFile calFile = new IniFile(sharedSettings.calFileName,
                                             sharedSettings.mainFileFormat);
             calFile.init();
 
@@ -1518,7 +1514,7 @@ public void beginShutDown(boolean pRestart)
     sharedSettings.beginShutDown = true;
 
     //set flag to know whether or not to restart
-    sharedSettings.restartProgram = false;
+    sharedSettings.restartProgram = pRestart;
 
 }//end of MainController::beginShutDown
 //-----------------------------------------------------------------------------
