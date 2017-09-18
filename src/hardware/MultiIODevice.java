@@ -245,19 +245,20 @@ synchronized public void processChannelParameterChanges()
     // invoke all devices with changed values to process those changes
 
     for(Channel channel : channels){
-        if (channel.getHdwParamsDirty()){
-            if(channel.gain.isDirty()){
-                sendSetGainPacket(
-                           channel.getBoardChannel(), channel.gain.getValue());
+        if (channel.getHdwParams().getHdwParamsDirty()){
+            if(channel.getHdwParams().gain.isDirty()){
+                sendSetGainPacket(channel.getBoardChannel(),
+                                channel.getHdwParams().gain.getValue());
             }
-            if(channel.offset.isDirty()){
-                sendSetOffsetPacket(
-                         channel.getBoardChannel(), channel.offset.getValue());
+            if(channel.getHdwParams().offset.isDirty()){
+                sendSetOffsetPacket(channel.getBoardChannel(),
+                                channel.getHdwParams().offset.getValue());
             }
-            if(channel.onOff.isDirty()){
-                sendSetOnOffPacket(
-                          channel.getBoardChannel(), channel.onOff.getValue());
+            if(channel.getHdwParams().onOff.isDirty()){
+                sendSetOnOffPacket(channel.getBoardChannel(),
+                            channel.getHdwParams().onOff.getValue());
             }
+            channel.getHdwParams().setHdwParamsDirty(false);
         }
     }
 

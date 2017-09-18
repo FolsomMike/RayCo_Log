@@ -652,10 +652,21 @@ void setUpChannels()
 
     channels = new Channel[numChannels];
 
+    int lastBoardChannel = -1; BoardChannelParameters params = null;
     for(int i=0; i<numChannels; i++){
 
         channels[i] = new Channel(deviceNum, i, configFile);
         channels[i].init();
+
+        if (channels[i].getBoardChannel()==lastBoardChannel&&params!=null)
+        {
+            channels[i].setHdwParams(params);
+        }
+        else {
+            channels[i].setHdwParams(params = new BoardChannelParameters());
+        }
+
+        lastBoardChannel = channels[i].getBoardChannel();
 
     }
 
@@ -1678,13 +1689,16 @@ public boolean updateChannelParameters(String pParamType, String pChannelNum,
 
         switch (pParamType) {
             case "Gain Spinner":
-                result = channels[chNum].setGain(pValue, pForceUpdate);
+                result = channels[chNum].getHdwParams().setGain(pValue,
+                                                                pForceUpdate);
                 break;
             case "Offset Spinner":
-                result = channels[chNum].setOffset(pValue, pForceUpdate);
+                result = channels[chNum].getHdwParams().setOffset(pValue,
+                                                                pForceUpdate);
                 break;
             case "On-Off Checkbox":
-                result = channels[chNum].setOnOff(pValue, pForceUpdate);
+                result = channels[chNum].getHdwParams().setOnOff(pValue,
+                                                                pForceUpdate);
                 break;
         }
 
