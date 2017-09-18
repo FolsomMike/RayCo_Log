@@ -259,6 +259,7 @@ public void addGainOffsetPanel(JPanel pPanel)
             chInfo.onOffBox.addActionListener(this);
             chInfo.onOffBox.setActionCommand("On-Off Checkbox");
             chInfo.onOffBox.addMouseListener(this);
+            chInfo.onOffBox.setSelected(chInfo.onOff);
             panel.add(chInfo.onOffBox);
 
             chInfo.gainSpin = new MFloatSpinner(127,0,255.0,1,"##0",60,-1);

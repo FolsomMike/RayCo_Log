@@ -1670,12 +1670,6 @@ public void reSync()
 // If pForceUpdate is true, the value will always be updated and the dirty flag
 // set true.
 //
-// NOTE: This method and processChannelParameterChanges() should only be called
-// by synchronized methods so that values cannot be updated by one thread while
-// another is processing all the changes. The device object's dirty flag is
-// cleared after all changes handled, so no changes can be allowed during that
-// process.
-//
 // Returns true if the value was updated, false otherwise.
 //
 
@@ -1717,16 +1711,10 @@ public boolean updateChannelParameters(String pParamType, String pChannelNum,
 //
 // All dirty flags are cleared as the changes are processes.
 //
-// NOTE: This method and processChannelParameterChanges() should only be called
-// by synchronized methods so that values cannot be updated by one thread while
-// another is processing all the changes. The device object's dirty flag is
-// cleared after all changes handled, so no changes can be allowed during that
-// process.
-//
 // Should be overridden by child classes to provide custom handling.
 //
 
-synchronized public void processChannelParameterChanges()
+public void processChannelParameterChanges()
 {
 
 }//end of MainHandler::processChannelParameterChanges

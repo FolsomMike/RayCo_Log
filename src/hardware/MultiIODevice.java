@@ -227,15 +227,9 @@ void sendSetOnOffPacket(int pHdwChannel, boolean pValue)
 //
 // All dirty flags are cleared as the changes are processes.
 //
-// NOTE: This method and processChannelParameterChanges() should only be called
-// by synchronized methods so that values cannot be updated by one thread while
-// another is processing all the changes. The device object's dirty flag is
-// cleared after all changes handled, so no changes can be allowed during that
-// process.
-//
 
 @Override
-synchronized public void processChannelParameterChanges()
+public void processChannelParameterChanges()
 {
 
     super.processChannelParameterChanges();
@@ -246,17 +240,17 @@ synchronized public void processChannelParameterChanges()
 
     for(Channel channel : channels){
         if (channel.getHdwParams().getHdwParamsDirty()){
-            if(channel.getHdwParams().gain.isDirty()){
+            if(channel.getHdwParams().isGainDirty()){
                 sendSetGainPacket(channel.getBoardChannel(),
-                                channel.getHdwParams().gain.getValue());
+                                channel.getHdwParams().getGain(false));
             }
-            if(channel.getHdwParams().offset.isDirty()){
+            if(channel.getHdwParams().isOffsetDirty()){
                 sendSetOffsetPacket(channel.getBoardChannel(),
-                                channel.getHdwParams().offset.getValue());
+                                channel.getHdwParams().getOffset(false));
             }
-            if(channel.getHdwParams().onOff.isDirty()){
+            if(channel.getHdwParams().isOnOffDirty()){
                 sendSetOnOffPacket(channel.getBoardChannel(),
-                            channel.getHdwParams().onOff.getValue());
+                            channel.getHdwParams().getOnOff(false));
             }
             channel.getHdwParams().setHdwParamsDirty(false);
         }

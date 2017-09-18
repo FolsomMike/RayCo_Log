@@ -307,6 +307,8 @@ public void loadCalFile(IniFile pCalFile)
 
     String section = "Device " + meta.deviceNum + " Channel " + meta.channelNum;
 
+    chanHdwParams.setOnOff(pCalFile.readString(section, "onOff", "off"), true);
+
 }//end of Channel::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -325,7 +327,7 @@ public void saveCalFile(IniFile pCalFile)
 
     String section = "Device " + meta.deviceNum + " Channel " + meta.channelNum;
 
-    pCalFile.writeBoolean(section, "onOff", chanHdwParams.onOff.sniffValue());
+    pCalFile.writeBoolean(section, "onOff", chanHdwParams.getOnOff(true));
 
 }//end of Channel::saveCalFile
 //-----------------------------------------------------------------------------

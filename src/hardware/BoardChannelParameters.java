@@ -27,12 +27,17 @@ public class BoardChannelParameters
 {
 
     private boolean hdwParamsDirty;
-    public boolean getHdwParamsDirty() { return hdwParamsDirty; }
-    public void setHdwParamsDirty(boolean pDirty) { hdwParamsDirty=pDirty; }
+    synchronized public boolean getHdwParamsDirty() { return hdwParamsDirty; }
+    synchronized  public void setHdwParamsDirty(boolean pDirty) { hdwParamsDirty=pDirty; }
 
-    FlaggedBoolean onOff = new FlaggedBoolean(false);
-    FlaggedInt gain = new FlaggedInt(0);
-    FlaggedInt offset = new FlaggedInt(0);
+    private final FlaggedBoolean onOff = new FlaggedBoolean(false);
+    synchronized public boolean isOnOffDirty() { return onOff.isDirty(); }
+
+    private final FlaggedInt gain = new FlaggedInt(0);
+    synchronized public boolean isGainDirty() { return gain.isDirty(); }
+
+    private final FlaggedInt offset = new FlaggedInt(0);
+    synchronized public boolean isOffsetDirty() { return offset.isDirty(); }
 
 //-----------------------------------------------------------------------------
 // BoardChannelParameters::BoardChannelParameters (constructor)
@@ -56,7 +61,36 @@ public void init()
 }// end of BoardChannelParameters::init
 //-----------------------------------------------------------------------------
 
-///-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// BoardChannelParameters::setParameters
+//
+// Sets the gain value from a String input.
+//
+// If pForceUpdate is true, the value will always be updated and the dirty flag
+// set true.
+//
+// Returns true if any of the values were updated, false otherwise.
+//
+
+synchronized public boolean setParameters(String pOnOff, String pGain,
+                                            String pOffset,
+                                            boolean pForceUpdate)
+{
+
+    boolean result = false;
+
+    if (onOff.setValue(pOnOff, pForceUpdate)) { result = true; }
+    if (gain.setValue(pGain, pForceUpdate)) { result = true; }
+    if (offset.setValue(pOffset, pForceUpdate)) { result = true; }
+
+    if (result) { setHdwParamsDirty(true); }
+
+    return result;
+
+}// end of BoardChannelParameters::setParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // BoardChannelParameters::setGain
 //
 // Sets the gain value from a String input.
@@ -67,7 +101,7 @@ public void init()
 // Returns true if the value was updated, false otherwise.
 //
 
-public boolean setGain(String pValue, boolean pForceUpdate)
+synchronized public boolean setGain(String pValue, boolean pForceUpdate)
 {
 
     boolean result = gain.setValue(pValue, pForceUpdate);
@@ -77,6 +111,21 @@ public boolean setGain(String pValue, boolean pForceUpdate)
     return(result);
 
 }// end of BoardChannelParameters::setGain
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelParameters::getGain
+//
+// Returns the gain value. If pSniff is true, the value is retrieved WITHOUT
+// clearing the dirty flag.
+//
+
+synchronized public int getGain(boolean pSniff)
+{
+
+    return pSniff?gain.sniffValue():gain.getValue();
+
+}// end of BoardChannelParameters::getGain
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -90,7 +139,7 @@ public boolean setGain(String pValue, boolean pForceUpdate)
 // Returns true if the value was updated, false otherwise.
 //
 
-public boolean setOffset(String pValue, boolean pForceUpdate)
+synchronized public boolean setOffset(String pValue, boolean pForceUpdate)
 {
 
     boolean result = offset.setValue(pValue, pForceUpdate);
@@ -100,6 +149,21 @@ public boolean setOffset(String pValue, boolean pForceUpdate)
     return(result);
 
 }// end of BoardChannelParameters::setOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelParameters::getOffset
+//
+// Returns the offset value. If pSniff is true, the value is retrieved WITHOUT
+// clearing the dirty flag.
+//
+
+synchronized public int getOffset(boolean pSniff)
+{
+
+    return pSniff?offset.sniffValue():offset.getValue();
+
+}// end of BoardChannelParameters::getOffset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -113,7 +177,7 @@ public boolean setOffset(String pValue, boolean pForceUpdate)
 // Returns true if the value was updated, false otherwise.
 //
 
-public boolean setOnOff(String pValue, boolean pForceUpdate)
+synchronized public boolean setOnOff(String pValue, boolean pForceUpdate)
 {
 
     boolean result = onOff.setValue(pValue, pForceUpdate);
@@ -123,6 +187,21 @@ public boolean setOnOff(String pValue, boolean pForceUpdate)
     return(result);
 
 }// end of BoardChannelParameters::setOnOff
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelParameters::getOnOff
+//
+// Returns the on/off value. If pSniff is true, the value is retrieved WITHOUT
+// clearing the dirty flag.
+//
+
+synchronized public boolean getOnOff(boolean pSniff)
+{
+
+    return pSniff?onOff.sniffValue():onOff.getValue();
+
+}// end of BoardChannelParameters::getOnOff
 //-----------------------------------------------------------------------------
 
 }//end of class BoardChannelParameters

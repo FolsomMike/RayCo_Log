@@ -609,7 +609,10 @@ private ArrayList<ChannelInfo> getChannelCalPanelInfo(
                 chCalList.add(new ChannelInfo(
                 ch.meta.deviceNum, ch.meta.channelNum,
                 ch.meta.channel.getCalPanelGroup(),
-                ch.meta.channel.getCalPanelName()
+                ch.meta.channel.getCalPanelName(),
+                ch.meta.channel.getHdwParams().getOnOff(true),
+                ch.meta.channel.getHdwParams().getGain(true),
+                ch.meta.channel.getHdwParams().getOffset(true)
                 ));
             }
         }

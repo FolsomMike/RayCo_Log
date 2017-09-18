@@ -32,7 +32,11 @@ public class ChannelInfo
 
     public String calPanelGroup;
     public String calPanelName;
-        
+
+    public boolean onOff;
+    public double gain;
+    public double offset;
+
     public JCheckBox onOffBox;
     public MFloatSpinner gainSpin;
     public MFloatSpinner offsetSpin;
@@ -43,13 +47,16 @@ public class ChannelInfo
 //
 
 public ChannelInfo(int pDeviceNum, int pChannelNum, String pCalPanelGroup,
-                                                        String pCalPanelName)
+                    String pCalPanelName, boolean pOnOff, double pGain,
+                    double pOffset)
 {
 
     deviceNum = pDeviceNum; channelNum = pChannelNum;
-    
+
     calPanelGroup = pCalPanelGroup; calPanelName = pCalPanelName;
-    
+
+    onOff = pOnOff; gain = pGain; offset = pOffset;
+
 }//end of ChannelInfo::ChannelInfo (constructor)
 //-----------------------------------------------------------------------------
 
@@ -61,7 +68,7 @@ public ChannelInfo(int pDeviceNum, int pChannelNum, String pCalPanelGroup,
 
 public void init()
 {
-    
+
 }// end of ChannelInfo::init
 //-----------------------------------------------------------------------------
 
