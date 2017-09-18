@@ -262,7 +262,8 @@ public void addGainOffsetPanel(JPanel pPanel)
             chInfo.onOffBox.setSelected(chInfo.onOff);
             panel.add(chInfo.onOffBox);
 
-            chInfo.gainSpin = new MFloatSpinner(127,0,255.0,1,"##0",60,-1);
+            chInfo.gainSpin = new MFloatSpinner(chInfo.gain,0,255.0,1,
+                                                                "##0",60,-1);
             chInfo.gainSpin.addChangeListener(this);
             chInfo.gainSpin.setName("Gain Spinner," + groupName + "," +
                   infoIndex + "," + chInfo.deviceNum + ","+ chInfo.channelNum);
@@ -271,7 +272,8 @@ public void addGainOffsetPanel(JPanel pPanel)
                                             chInfo.gainSpin.getName(), this);
             panel.add(chInfo.gainSpin);
 
-            chInfo.offsetSpin = new MFloatSpinner(127,0,255.0,1,"##0",60,-1);
+            chInfo.offsetSpin = new MFloatSpinner(chInfo.offset,0,255.0,1,
+                                                                "##0",60,-1);
             chInfo.offsetSpin.addChangeListener(this);
             chInfo.offsetSpin.setName("Offset Spinner," + groupName + "," +
                   infoIndex + "," + chInfo.deviceNum + ","+ chInfo.channelNum);

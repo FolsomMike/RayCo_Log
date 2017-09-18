@@ -308,6 +308,8 @@ public void loadCalFile(IniFile pCalFile)
     String section = "Device " + meta.deviceNum + " Channel " + meta.channelNum;
 
     chanHdwParams.setOnOff(pCalFile.readString(section, "onOff", "off"), true);
+    chanHdwParams.setGain(pCalFile.readString(section, "gain", "127"), true);
+    chanHdwParams.setOffset(pCalFile.readString(section, "offset", "127"), true);
 
 }//end of Channel::loadCalFile
 //-----------------------------------------------------------------------------
@@ -328,6 +330,8 @@ public void saveCalFile(IniFile pCalFile)
     String section = "Device " + meta.deviceNum + " Channel " + meta.channelNum;
 
     pCalFile.writeBoolean(section, "onOff", chanHdwParams.getOnOff(true));
+    pCalFile.writeInt(section, "gain", chanHdwParams.getGain(true));
+    pCalFile.writeInt(section, "offset", chanHdwParams.getOffset(true));
 
 }//end of Channel::saveCalFile
 //-----------------------------------------------------------------------------
