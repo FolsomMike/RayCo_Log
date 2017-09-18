@@ -1001,14 +1001,20 @@ private void saveCalFile()
 
         try {
 
-            IniFile calFile = new IniFile(sharedSettings.calFileName,
+            String primaryPath = sharedSettings.jobPathPrimary
+                                    + sharedSettings.calFileName;
+            String secondaryPath = sharedSettings.jobPathSecondary
+                                    + sharedSettings.calFileName;
+
+            IniFile calFile = new IniFile(primaryPath,
                                             sharedSettings.mainFileFormat);
             calFile.init();
 
             //tell view and hardware handlers to add their data to cal file
             mainView.saveCalFile(calFile); mainHandler.saveCalFile(calFile);
 
-            calFile.save(); //save everything to file
+            calFile.save(); //save everything to primary data folder
+            calFile.save(secondaryPath); //save everything to secondary data folder
             sharedSettings.isCalDataSaved = true; //done saving
 
         }

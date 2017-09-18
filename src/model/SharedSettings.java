@@ -100,8 +100,7 @@ public void init(JFrame pMainFrame)
 
     createJobPaths();
 
-    calFileName = jobPathPrimary + "00 - " + currentJobName
-                        + " Calibration File.ini";
+    calFileName = "00 - " + currentJobName + " Calibration File.ini";
 
 }// end of SharedSettings::init
 //-----------------------------------------------------------------------------
