@@ -33,6 +33,9 @@ public class TraceGraph extends Graph{
     private int numTraces;
     private Trace[] traces;
 
+    private int numThresholds;
+    private Threshold[] thresholds;
+
     Color gridColor;
     int gridXSpacing = 10;
     int gridYSpacing = 10;
@@ -67,6 +70,7 @@ public void init()
     setOpaque(true);
     setBackground(backgroundColor);
     addTraces();
+    addThresholds();
 
 }// end of TraceGraph::init
 //-----------------------------------------------------------------------------
@@ -110,6 +114,9 @@ void loadConfigSettings()
 
     numTraces = configFile.readInt(configFileSection, "number of traces", 0);
 
+    numThresholds = configFile.readInt(configFileSection,
+                                            "number of thresholds", 0);
+
     gridColor = configFile.readColor(
                                  configFileSection, "grid color", Color.BLACK);
 
@@ -150,6 +157,29 @@ private void addTraces()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// TraceGraph::addThresholds
+//
+// Creates and sets up the thresholds and adds them to the panel.
+//
+
+private void addThresholds()
+{
+
+    thresholds = new Threshold[numThresholds];
+
+    for(int i=0; i<thresholds.length; i++){
+
+        thresholds[i] = new Threshold(configFile, chartGroupNum, chartNum,
+                                        graphNum, i, width, height,
+                                        backgroundColor);
+        thresholds[i].init();
+
+    }
+
+}//end of TraceGraph::addThresholds
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // TraceGraph::paintComponent
 //
 
@@ -184,6 +214,7 @@ public void paintChildren(Graphics2D pG2)
 {
 
     for (Trace trace : traces) { trace.paintTrace(pG2); }
+    for (Threshold t : thresholds) { t.paintThresholdLine(pG2); }
 
 }// end of TraceGraph::paintChildren
 //-----------------------------------------------------------------------------
