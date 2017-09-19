@@ -20,7 +20,6 @@ package view;
 
 import java.awt.*;
 import java.io.*;
-import javax.swing.*;
 import model.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -38,6 +37,10 @@ public class Threshold extends Object{
     private int width, height;
     private int xMax, yMax;
     private Color backgroundColor;
+
+    private double xScale = 1.0, yScale = 1.0;
+    private int offset = 0;
+    private int baseLine = 0;
 
     public static int flagWidth = 5;
     public static int flagHeight = 7;
@@ -132,6 +135,11 @@ private void configure(IniFile pConfigFile)
 
     alarmChannel = pConfigFile.readInt(section, "Alarm Channel", 0);
 
+    offset = configFile.readInt(section, "offset", 0);
+    xScale = configFile.readDouble(section, "x scale", 1.0);
+    yScale = configFile.readDouble(section, "y scale", 1.0);
+    baseLine = configFile.readInt(section, "baseline", 0);
+
     setThresholdLevel(thresholdLevel);
 
 }//end of Threshold::configure
@@ -174,6 +182,20 @@ public void saveCalFile(IniFile pCalFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Threshold::calculateY
+//
+// Calculates and returns the scaled and offset y derived from pY.
+//
+
+private int calculateY(int pY)
+{
+
+    return (int)((pY - baseLine) * yScale) + offset;
+
+}// end of Threshold::calculateY
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Threshold::setThresholdLevel
 //
 // Sets the level for the threshold indexed by pWhich.
@@ -184,7 +206,7 @@ public void setThresholdLevel(int pLevel)
 
     thresholdLevel = pLevel;
 
-    plotThresholdLevel = thresholdLevel;
+    plotThresholdLevel = calculateY(thresholdLevel);
     if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
     if(plotThresholdLevel > height) {plotThresholdLevel = height;}
 
