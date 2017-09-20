@@ -1127,7 +1127,8 @@ private void displayDataFromDevices()
         //put data in channel buffers
         Channel[] channels = device.getChannels();
         for (int i=0; i<channels.length; i++){
-            peakData.metaArray[i].dataBuffer.putData(peakData.peakArray[i]);
+            peakData.metaArray[i].dataBuffer.putData(peakData.peakArray[i],
+                                                        peakData.flagArray[i]);
         }
     }
 

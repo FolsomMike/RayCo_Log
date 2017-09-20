@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
 import model.IniFile;
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -35,6 +36,7 @@ import model.IniFile;
 class Chart extends JPanel implements MouseMotionListener {
 
     private final IniFile configFile;
+    private final SharedSettings sharedSettings;
 
     private String title, shortTitle, objectType;
     private final int chartGroupNum;
@@ -67,7 +69,7 @@ class Chart extends JPanel implements MouseMotionListener {
 
 public Chart(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
               int pDefaultGraphHeight, ActionListener pParentActionListener,
-                                                           IniFile pConfigFile)
+                                IniFile pConfigFile, SharedSettings pSettings)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
@@ -76,6 +78,8 @@ public Chart(int pChartGroupNum, int pChartNum, int pDefaultGraphWidth,
 
     graphWidth = pDefaultGraphWidth;
     graphHeight = pDefaultGraphHeight;
+
+    sharedSettings = pSettings;
 
 }//end of Chart::Chart (constructor)
 //-----------------------------------------------------------------------------
@@ -142,7 +146,8 @@ private void addGraphs()
         if (graphType == Graph.TRACE_GRAPH){
 
             graphs[i] = new TraceGraph(chartGroupNum, chartNum, i,
-                               graphWidth, graphHeight, chartInfo, configFile);
+                                        graphWidth, graphHeight, chartInfo,
+                                        configFile, sharedSettings);
             graphs[i].init();
             graphs[i].addMouseMotionListener(this);
             add(graphs[i]);
@@ -151,7 +156,8 @@ private void addGraphs()
         } else if (graphType == Graph.ZOOM_GRAPH){
 
             graphs[i] = new ZoomGraph(chartGroupNum, chartNum, i,
-                               graphWidth, graphHeight, chartInfo, configFile);
+                               graphWidth, graphHeight, chartInfo,
+                               configFile, sharedSettings);
             graphs[i].init();
             add(graphs[i]);
             addSeparatorPanelSpecifiedInConfigFile(i);
@@ -161,7 +167,8 @@ private void addGraphs()
         } else if (graphType == Graph.MAP3D_GRAPH){
 
             graphs[i] = new Map3DGraph(chartGroupNum, chartNum, i,
-                               graphWidth, graphHeight, chartInfo, configFile);
+                                        graphWidth, graphHeight,
+                                        chartInfo, configFile, sharedSettings);
             graphs[i].init();
             add(graphs[i]);
             addSeparatorPanelSpecifiedInConfigFile(i);

@@ -37,7 +37,10 @@ public class PeakBufferInt
 {
 
     int peak;
+    int flag;
+
     int peakReset;
+    int flagReset = 0;
 
     final int peakBufferNum;
 
@@ -65,7 +68,7 @@ public PeakBufferInt(int pPeakBufferNum)
 // lowest value, closest to a target value, etc.
 //
 
-public void catchPeak(int pNewData)
+public void catchPeak(int pNewData, int pNewFlag)
 {
 
     // This method must be overridden by subclasses.
@@ -79,10 +82,11 @@ public void catchPeak(int pNewData)
 // Forces peak to pValue.
 //
 
-public void setPeak(int pValue)
+public void setPeak(int pValue, int pFlag)
 {
 
     peak = pValue;
+    flag = pFlag;
 
 }// end of PeakBufferInt::setPeak
 //-----------------------------------------------------------------------------
@@ -97,6 +101,7 @@ public void reset()
 {
 
     peak = peakReset;
+    peak = flagReset;
 
     peakUpdated = false;
 
@@ -110,10 +115,11 @@ public void reset()
 // has been retrieved and a new peak is to be found.
 //
 
-public void setResetValue(int pValue)
+public void setResetValue(int pValue, int pFlag)
 {
 
     peakReset = pValue;
+    flagReset = pFlag;
 
 }// end of PeakBufferInt::setResetValue
 //-----------------------------------------------------------------------------
@@ -124,10 +130,11 @@ public void setResetValue(int pValue)
 // Retrieves the current value of the peak without resetting it.
 //
 
-public void getPeak(MKSInteger pPeakData)
+public void getPeak(MKSInteger pPeakData, MKSInteger pFlagData)
 {
 
     pPeakData.x = peak;
+    pFlagData.x = flag;
 
 }// end of PeakBufferInt::getPeak
 //-----------------------------------------------------------------------------
@@ -142,12 +149,13 @@ public void getPeak(MKSInteger pPeakData)
 // or false otherwise.
 //
 
-public boolean getPeakAndReset(MKSInteger pPeakData)
+public boolean getPeakAndReset(MKSInteger pPeakData, MKSInteger pFlagData)
 {
 
     boolean lPeakUpdated = peakUpdated;
 
     pPeakData.x = peak;
+    pFlagData.x = flag;
 
     reset();
 

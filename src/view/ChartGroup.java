@@ -44,6 +44,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -53,6 +54,7 @@ import model.IniFile;
 class ChartGroup extends JPanel{
 
     private final IniFile configFile;
+    private final SharedSettings sharedSettings;
 
     private String title, shortTitle, objectType;
     private final int chartGroupNum;
@@ -70,10 +72,13 @@ class ChartGroup extends JPanel{
 //
 
 public ChartGroup(int pChartGroupNum, IniFile pConfigFile,
-             Dimension pUsableScreenSize, ActionListener pParentActionListener)
+                    SharedSettings pSettings, Dimension pUsableScreenSize,
+                    ActionListener pParentActionListener)
 {
 
-    chartGroupNum = pChartGroupNum; configFile = pConfigFile;
+    chartGroupNum = pChartGroupNum;
+
+    configFile = pConfigFile; sharedSettings = pSettings;
 
     usableScreenSize = pUsableScreenSize;
 
@@ -132,7 +137,7 @@ private void createCharts()
 
     for (int i = 0; i<charts.length; i++){
         charts[i] = new Chart(chartGroupNum, i, graphWidth, graphHeight,
-                                            parentActionListener, configFile);
+                            parentActionListener, configFile, sharedSettings);
         charts[i].init();
         add(charts[i]);
     }

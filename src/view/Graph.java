@@ -23,6 +23,7 @@ import javax.swing.*;
 import model.DataTransferIntMultiDimBuffer;
 import model.DataTransferSnapshotBuffer;
 import model.IniFile;
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -36,6 +37,8 @@ public class Graph extends JPanel{
 
     ChartInfo chartInfo;
     public GraphInfo graphInfo = new GraphInfo();
+
+    SharedSettings sharedSettings;
 
     String title, shortTitle, objectType;
     int chartGroupNum;
@@ -87,13 +90,14 @@ public class Graph extends JPanel{
 //
 
 public Graph(int pChartGroupNum, int pChartNum, int pGraphNum,
-            int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile)
+            int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile,
+            SharedSettings pSettings)
 {
 
     chartGroupNum = pChartGroupNum;
     chartNum = pChartNum; graphNum = pGraphNum;
     width = pWidth; height = pHeight;
-    chartInfo = pChartInfo; configFile = pConfigFile;
+    chartInfo = pChartInfo; configFile = pConfigFile; sharedSettings=pSettings;
 
 }//end of Chart::Graph (constructor)
 //-----------------------------------------------------------------------------

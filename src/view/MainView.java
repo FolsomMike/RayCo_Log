@@ -408,7 +408,8 @@ private void createChartGroups()
     chartGroups = new ChartGroup[numChartGroups];
 
     for (int i = 0; i<numChartGroups; i++){
-        chartGroups[i] = new ChartGroup(i, configFile, usableScreenSize, this);
+        chartGroups[i] = new ChartGroup(i, configFile, sharedSettings,
+                                                    usableScreenSize, this);
         chartGroups[i].init();
         mainPanel.add(chartGroups[i]);
     }

@@ -71,6 +71,7 @@ public class Channel
     PeakBufferInt peakBuffer;
 
     MKSInteger data = new MKSInteger(0);
+    MKSInteger flag = new MKSInteger(0);
 
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
@@ -123,17 +124,17 @@ public void setUpPeakBuffer()
 
         case CATCH_HIGHEST:
             peakBuffer = new HighPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE);
+            peakBuffer.setResetValue(Integer.MIN_VALUE, 0); //DEBUG HSS// 0 should not be hard set
             break;
 
         case CATCH_LOWEST:
             peakBuffer = new LowPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MAX_VALUE);
+            peakBuffer.setResetValue(Integer.MAX_VALUE, 0); //DEBUG HSS// 0 should not be hard set
             break;
 
         default:
             peakBuffer = new HighPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE);
+            peakBuffer.setResetValue(Integer.MIN_VALUE, 0); //DEBUG HSS// 0 should not be hard set
             break;
 
     }
@@ -243,7 +244,9 @@ private void parseDataType(String pValue)
 public void catchPeak(int pPeakValue)
 {
 
-    peakBuffer.catchPeak(pPeakValue);
+    int thresFlag = 0; //DEBUG HSS//
+
+    peakBuffer.catchPeak(pPeakValue, thresFlag);
 
 }// end of Channel::catchPeak
 //-----------------------------------------------------------------------------
@@ -257,10 +260,10 @@ public void catchPeak(int pPeakValue)
 // This method returns an object as the peak may be of various data types.
 //
 
-public void getPeakAndReset(MKSInteger pPeakValue)
+public void getPeakAndReset(MKSInteger pPeakValue, MKSInteger pFlagValue)
 {
 
-    peakBuffer.getPeakAndReset(pPeakValue);
+    peakBuffer.getPeakAndReset(pPeakValue, pFlagValue);
 
 }// end of Channel::getPeakAndReset
 //-----------------------------------------------------------------------------
@@ -282,9 +285,10 @@ public boolean getPeakDataAndReset(PeakData pPeakData)
 
     pPeakData.metaArray[meta.channelNum] = meta; //channel/buffer/trace etc. info
 
-    boolean peakUpdated = peakBuffer.getPeakAndReset(data);
+    boolean peakUpdated = peakBuffer.getPeakAndReset(data, flag);
 
     pPeakData.peakArray[meta.channelNum] = data.x;
+    pPeakData.peakArray[meta.channelNum] = flag.x;
 
     return(peakUpdated);
 

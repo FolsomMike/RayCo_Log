@@ -27,6 +27,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import model.DataSetIntMultiDim;
 import model.IniFile;
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -85,11 +86,12 @@ public class Map3DGraph extends Graph{
 //
 
 public Map3DGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
-            int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile)
+                    int pWidth, int pHeight, ChartInfo pChartInfo,
+                    IniFile pConfigFile, SharedSettings pSettings)
 {
 
-    super(pChartGroupNum, pChartNum, pGraphNum,
-                                     pWidth, pHeight, pChartInfo, pConfigFile);
+    super(pChartGroupNum, pChartNum, pGraphNum, pWidth, pHeight, pChartInfo,
+            pConfigFile, pSettings);
 
 }//end of Chart::Map3DGraph (constructor)
 //-----------------------------------------------------------------------------

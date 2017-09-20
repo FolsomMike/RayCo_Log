@@ -56,6 +56,8 @@ class ControlPanelBasic extends ControlPanel
     LinkedHashSet<String> groupTitles;
     ArrayList<ChannelInfo> channelList;
 
+    Threshold[] thresholds;
+
     private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
     private MFloatSpinnerPanel viewAngle;
@@ -139,8 +141,9 @@ public void setupGUI()
     tabPane.addTab("Gain", null, gainTab, "Gain & Centering");
     setupGainTab(gainTab);
 
-    JPanel offsetTab = new JPanel();
-    tabPane.addTab("Chart", null, offsetTab, "Offsets");
+    JPanel chartTab = new JPanel();
+    tabPane.addTab("Chart", null, chartTab, "Chart settings & thresholds.");
+    setupChartTab(chartTab);
 
     JPanel processingTab = new JPanel();
     tabPane.addTab("Processing", null, processingTab, "Processing");
@@ -291,6 +294,32 @@ public void addGainOffsetPanel(JPanel pPanel)
     pPanel.add(panel);
 
 }// end of ControlPanelBasic::addGainOffsetPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelBasic::setupChartTab
+//
+// Adds threshold levels to chart tab.
+//
+
+public void setupChartTab(JPanel pPanel)
+{
+
+    //DEBUG HSS//addThresholdsPanel();
+
+}// end of ControlPanelBasic::setupChartTab
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelBasic::addThresholdsPanel
+//
+// Adds Thresholds panel to pPanel.
+//
+
+public void addThresholdsPanel(JPanel pPanel)
+{
+
+}// end of ControlPanelBasic::addThresholdsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

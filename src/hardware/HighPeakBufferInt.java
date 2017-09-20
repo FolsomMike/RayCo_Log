@@ -48,10 +48,10 @@ public HighPeakBufferInt(int pIndex)
 //
 
 @Override
-public void catchPeak(int pNewData)
+public void catchPeak(int pNewData, int pNewFlag)
 {
 
-    if(pNewData > peak) { peak = pNewData; peakUpdated = true; }
+    if(pNewData > peak) { peak = pNewData; flag = pNewFlag; peakUpdated = true; }
 
 }// end of HighPeakBufferInt::catchPeak
 //-----------------------------------------------------------------------------

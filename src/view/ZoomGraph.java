@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 import model.DataSetSnapshot;
 import model.IniFile;
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -64,11 +65,12 @@ public class ZoomGraph extends Graph{
 //
 
 public ZoomGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
-            int pWidth, int pHeight, ChartInfo pChartInfo, IniFile pConfigFile)
+                    int pWidth, int pHeight, ChartInfo pChartInfo,
+                    IniFile pConfigFile, SharedSettings pSettings)
 {
 
-    super(pChartGroupNum, pChartNum, pGraphNum,
-                                     pWidth, pHeight, pChartInfo, pConfigFile);
+    super(pChartGroupNum, pChartNum, pGraphNum, pWidth, pHeight,
+                    pChartInfo, pConfigFile, pSettings);
 
 }//end of Chart::ZoomGraph (constructor)
 //-----------------------------------------------------------------------------

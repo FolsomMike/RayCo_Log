@@ -35,6 +35,7 @@ public SampleMetaData meta;
 
 //the arrays allow us to store info for multiple channels
 public int[] peakArray;
+public int[] flagArray;
 public SampleMetaData[] metaArray;
 
 //-----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /******************************************************************************
 * Title: Threshold.java
-* Author: Hunter Schoonover & Mike Schoonover
+* Author: Hunter Schoonover
 * Date: 09/19/2017
 *
 * Purpose:
@@ -20,7 +20,9 @@ package view;
 
 import java.awt.*;
 import java.io.*;
+import java.util.ArrayList;
 import model.IniFile;
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -31,37 +33,39 @@ import model.IniFile;
 
 public class Threshold extends Object{
 
-    IniFile configFile;
+    private final SharedSettings sharedSettings;
+
+    private String title;
+    private String shortTitle;
+    private boolean doNotFlag, flagOnOver;
+    private Color thresholdColor;
+    private final IniFile configFile;
+    private GraphInfo graphInfo;
     private final String section;
-    public int chartGroupNum, chartNum, graphNum, thresholdNum;
-    private int width, height;
-    private int xMax, yMax;
+    private final int chartGroupNum, chartNum, graphNum, thresholdNum;
+    private boolean visible = true;
     private Color backgroundColor;
+    private int width, height;
+    private int flagWidth, flagHeight;
+
+    private int xMax, yMax;
+    private int prevX = -1, prevY = Integer.MAX_VALUE;
 
     private double xScale = 1.0, yScale = 1.0;
     private int offset = 0;
     private int baseLine = 0;
 
-    public static int flagWidth = 5;
-    public static int flagHeight = 7;
+    private boolean okToMark = true;
 
-    public boolean okToMark = true;
-
-    public String title;
-    String shortTitle;
-    boolean doNotFlag, flagOnOver;
-    public Color thresholdColor;
-
-    public int thresholdLevel;
-    int plotThresholdLevel;
-    public int alarmChannel;
-    boolean invert;
+    private int plotThresholdLevel;
+    private int alarmChannel;
+    private boolean invert;
 
     // references to point at the controls used to adjust the values - these
     // references are set up by the object which handles the adjusters and are
     // only used temporarily
 
-    public Object levelAdjuster;
+    private Object levelAdjuster;
 
 
 //-----------------------------------------------------------------------------
@@ -71,12 +75,15 @@ public class Threshold extends Object{
 // should already be opened and ready to access.
 //
 
-public Threshold(IniFile pConfigFile, int pChartGroupNum, int pChartNum,
-                    int pGraphNum, int pThresholdNum, int pWidth, int pHeight,
-                    Color pBackgroundColor)
+public Threshold(SharedSettings pSettings, IniFile pConfigFile,
+                    GraphInfo pGraphInfo, int pChartGroupNum,
+                    int pChartNum, int pGraphNum, int pThresholdNum, int pWidth,
+                    int pHeight, Color pBackgroundColor)
 {
 
+    sharedSettings = pSettings;
     configFile = pConfigFile;
+    graphInfo = pGraphInfo;
     chartGroupNum = pChartGroupNum;
     chartNum = pChartNum;
     graphNum = pGraphNum;
@@ -118,29 +125,31 @@ public void init()
 private void configure(IniFile pConfigFile)
 {
 
-    title = pConfigFile.readString(section, "Title", "*");
+    title = pConfigFile.readString(section, "title", "*");
 
-    shortTitle = pConfigFile.readString(section, "Short Title", "*");
+    shortTitle = pConfigFile.readString(section, "short title", "*");
 
     doNotFlag = pConfigFile.readBoolean(
-                            section, "Do Not Flag - For Reference Only", false);
+                            section, "do not flag - for reference only", false);
 
-    flagOnOver = pConfigFile.readBoolean(section, "Flag On Over", true);
+    thresholdColor = pConfigFile.readColor(section, "color", Color.RED);
 
-    thresholdColor = pConfigFile.readColor(section, "Color", Color.RED);
+    invert = pConfigFile.readBoolean(section, "invert threshold", true);
 
-    invert = pConfigFile.readBoolean(section, "Invert Threshold", true);
+    int thres = pConfigFile.readInt(section, "default level", 50);
+    sharedSettings.setThresholdLevel(section, thres);
+    setThresholdLevel(thres);
 
-    thresholdLevel = pConfigFile.readInt(section, "Default Level", 50);
+    alarmChannel = pConfigFile.readInt(section, "alarm channel", 0);
 
-    alarmChannel = pConfigFile.readInt(section, "Alarm Channel", 0);
+    flagOnOver = pConfigFile.readBoolean(section, "flag on over", true);
+    flagWidth = pConfigFile.readInt(section, "flag width", 5);
+    flagHeight = pConfigFile.readInt(section, "flag height", 7);
 
     offset = configFile.readInt(section, "offset", 0);
     xScale = configFile.readDouble(section, "x scale", 1.0);
     yScale = configFile.readDouble(section, "y scale", 1.0);
     baseLine = configFile.readInt(section, "baseline", 0);
-
-    setThresholdLevel(thresholdLevel);
 
 }//end of Threshold::configure
 //-----------------------------------------------------------------------------
@@ -158,8 +167,6 @@ private void configure(IniFile pConfigFile)
 public void loadCalFile(IniFile pCalFile)
 {
 
-    thresholdLevel = pCalFile.readInt(section, "Threshold Level", thresholdLevel);
-
 }//end of Threshold::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -175,8 +182,6 @@ public void loadCalFile(IniFile pCalFile)
 
 public void saveCalFile(IniFile pCalFile)
 {
-
-    pCalFile.writeInt(section, "Threshold Level", thresholdLevel);
 
 }//end of Threshold::saveCalFile
 //-----------------------------------------------------------------------------
@@ -196,107 +201,12 @@ private int calculateY(int pY)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Threshold::setThresholdLevel
-//
-// Sets the level for the threshold indexed by pWhich.
-//
-
-public void setThresholdLevel(int pLevel)
-{
-
-    thresholdLevel = pLevel;
-
-    plotThresholdLevel = calculateY(thresholdLevel);
-    if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
-    if(plotThresholdLevel > height) {plotThresholdLevel = height;}
-
-    //invert the y position if specified
-    if (invert){ plotThresholdLevel = height - plotThresholdLevel; }
-
-}//end of Threshold::setThresholdLevel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Threshold::paintThresholdLine
-//
-// Draws the threshold from pixel pStart to pixel pEnd.
-//
-
-public void paintThresholdLine(Graphics2D pG2)
-
-{
-
-    pG2.setColor(thresholdColor);
-    pG2.drawLine(0, plotThresholdLevel, xMax, plotThresholdLevel);
-
-}//end of Threshold::paintThresholdLine
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Threshold::drawSlice
-//
-// Draws one dot of the threshold.
-//
-
-public void drawSlice(Graphics2D pG2, int xPos)
-
-{
-
-    pG2.setColor(thresholdColor);
-    //draw a dot to make the threshold
-    pG2.drawRect(xPos, plotThresholdLevel, 0, 0);
-
-}//end of Threshold::drawSlice
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Threshold::checkViolation
-//
-// Returns true signal exceeds the threshold level.  Whether this is above or
-// below the threshold is determined by flagOnOver.
-//
-// The threshold with the lowest (0) thresholdIndex is the highest severity
-// threshold, highest index is lowest.  This function should be called for the
-// thresholds in order of their index which happens automatically if they are
-// stored in an array in this order.  If called in this order, no more
-// thresholds should be checked after one returns true because lower severity
-// thresholds should not override higher ones.
-//
-// If doNotFlag is true, the threshold is for reference purposes only and no
-// violations will ever be recorded.
-//
-// NOTE: For this function, the threshold is not inverted and the pSigHeight
-// should not be inverted as well.
-//
-
-public boolean checkViolation(int pSigHeight)
-
-{
-
-    //if the threshold is non-flagging, return without action
-    if (doNotFlag) {return(false);}
-
-    //if the signal level exceeds the threshold, draw a flag - if flagOnOver is
-    //true check for signal above, if false check for signal below
-    if (flagOnOver){
-        if (pSigHeight >= thresholdLevel) {return(true);}
-    }
-    else{
-        if (pSigHeight <= thresholdLevel) {return(true);}
-    }
-
-    return(false); //no flag set
-
-}//end of Threshold::checkViolation
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Threshold::drawFlag
 //
 // Draws a flag with the threshold color at location xPos,pSigHeight.
 //
 
-public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
+private void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 {
 
     //if flag would be drawn above or below the screen, force on screen
@@ -312,6 +222,47 @@ public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Threshold::paintSingleDataPoint
+//
+// Draws the threshold line, and if necessary the flag.
+//
+
+public void paintSingleDataPoint(Graphics2D pG2, int pDataIndex)
+{
+
+    if(!visible) { return; }
+
+    //calculate the x position in pixels
+    int x = (int)Math.round(pDataIndex * xScale);
+
+    //adjust for any scrolling that has occurred before plotting
+    int xAdj = x - graphInfo.scrollOffset;
+    int prevXAdj = prevX - graphInfo.scrollOffset;
+
+    //draw threshold line
+    pG2.setColor(thresholdColor);
+    pG2.drawLine(xAdj, plotThresholdLevel, xAdj, plotThresholdLevel);
+
+}// end of Threshold::paintSingleDataPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Threshold::paintThresholdLine
+//
+// Draws the threshold line all the way across the graph.
+//
+
+public void paintThresholdLine(Graphics2D pG2)
+
+{
+
+    pG2.setColor(thresholdColor);
+    pG2.drawLine(0, plotThresholdLevel, xMax, plotThresholdLevel);
+
+}//end of Threshold::paintThresholdLine
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Threshold::saveSegment
 //
 // Saves the thresholds settings to the open file pOut.
@@ -320,16 +271,35 @@ public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-    pOut.write("[Threshold]"); pOut.newLine();
+    /*//DEBUG HSS//pOut.write("[Threshold]"); pOut.newLine();
     pOut.write("Threshold Index=" + thresholdNum); pOut.newLine();
     pOut.write("Threshold Title=" + title); pOut.newLine();
     pOut.write("Threshold Short Title=" + shortTitle); pOut.newLine();
     pOut.newLine();
 
     pOut.write("Threshold Level=" + thresholdLevel); //save the threshold level
-    pOut.newLine(); pOut.newLine();
+    pOut.newLine(); pOut.newLine();*/
 
 }//end of Threshold::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Threshold::setThresholdLevel
+//
+// Sets the level for the threshold indexed by pWhich.
+//
+
+public void setThresholdLevel(int pLevel)
+{
+
+    plotThresholdLevel = calculateY(pLevel);
+    if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
+    if(plotThresholdLevel > height) {plotThresholdLevel = height;}
+
+    //invert the y position if specified
+    if (invert){ plotThresholdLevel = height - plotThresholdLevel; }
+
+}//end of Threshold::setThresholdLevel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -349,7 +319,7 @@ public void updateDimensions(int pNewWidth, int pNewHeight)
     xMax = width - 1; yMax = height - 1;
 
 }// end of Threshold::updateDimensions
-//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------\
 
 }//end of class Threshold
 //-----------------------------------------------------------------------------

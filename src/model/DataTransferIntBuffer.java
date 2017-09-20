@@ -56,28 +56,50 @@ int getPointer;
 
 int bufLength;
 int dataBuf[];
-int flags[];
+
+int flags[];                 //stores various flags for plotting
+                             //0000 0000 0000 0000 | 0000 000 | 0 0000 0000
+                             //           ||| |||| | threshold| clock position
+                             //           ||| |||> min or max was flagged
+                             //           ||| ||> segment start separator
+                             //           ||| |> segment end separator
+                             //           ||| > end mask marks
+                             //           ||> data is valid for use
+                             //           |> data has been erased
+                             //           > data in process
 
 int peakType;
 
 int defaultData = 0;
 synchronized public void setDefaultData(int pValue){ defaultData = pValue; }
 
-//simple getters & setters
-
 //constants
-
 public static final int CATCH_HIGHEST = 0;
 public static final int CATCH_LOWEST = 1;
 
 private static int DATA_RESET_VALUE = 0;
 
+// flags and constants to store meta data for each datapoint
 private static final int FLAG_RESET_VALUE = 0x0000000000000000;
 public final static int DATA_VALID =        0x0000000000000001;
 public final static int DATA_READY =        0x0000000000000002;
 public final static int DATA_ERASED =       0x0000000000000004;
 public static final int VERTICAL_BAR =      0x0000000000000008;
 public static final int CIRCLE =            0x0000000000000010;
+static final int CLEAR_ALL_FLAGS = 0;
+static final int MIN_MAX_FLAGGED =         0x10000;
+static final int SEGMENT_START_SEPARATOR = 0x20000;
+static final int SEGMENT_END_SEPARATOR =   0x40000;
+static final int END_MASK_MARK =           0x80000;
+static final int IN_PROCESS =             0x400000;
+static final int MARKER_SQUARE =          0x800000;
+
+static final int CLEAR_CLOCK_MASK = 0xfffffe00;
+static final int THRESHOLD_MASK = 0x0000fe00;
+static final int TRIM_CLOCK_MASK = 0x1ff;
+static final int CLEAR_THRESHOLD_MASK = 0xffff01ff;
+static final int TRIM_THRESHOLD_MASK = 0x7f;
+static final int CLEAR_DATA_ERASED = ~DATA_ERASED;
 
 
 //-----------------------------------------------------------------------------
@@ -154,7 +176,7 @@ synchronized public void reset()
 // data is a peak).
 //
 
-synchronized public boolean putData(int pData)
+synchronized public boolean putData(int pData, int pDataFlag)
 {
 
     boolean stored = false;

@@ -26,6 +26,8 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -40,6 +42,7 @@ import javax.swing.JOptionPane;
 
 public class SharedSettings{
 
+    private final Object lock1 = new Object();
 
     JFrame mainFrame;
 
@@ -61,6 +64,12 @@ public class SharedSettings{
 
     public int lastPieceNumber;
     public int lastCalPieceNumber;
+
+    Map<String, Integer> thresholdLevels = new HashMap<>();
+    synchronized public void setThresholdLevel(String pKey, int pL)
+        { thresholdLevels.put(pKey, pL); }
+    synchronized public int getThresholdLevel(String pKey)
+        { return thresholdLevels.get(pKey); }
 
     public String mainFileFormat = "UTF-8";
 
