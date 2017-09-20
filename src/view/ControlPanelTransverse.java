@@ -38,14 +38,15 @@ class ControlPanelTransverse extends ControlPanelBasic
 
 public ControlPanelTransverse(int pChartGroupNum, int pChartNum,
     String pPanelTitle, LinkedHashSet<String> pGroupTitles,
-     ArrayList<ChannelInfo> pChannelList, ActionListener pParentActionListener)
+     ArrayList<ChannelInfo> pChannelList,
+     ArrayList<Threshold[]> pThresholds, ActionListener pParentActionListener)
 {
 
-    super(pChartGroupNum, pChartNum, pPanelTitle, pGroupTitles, 
-                                          pChannelList, pParentActionListener);
-  
+    super(pChartGroupNum, pChartNum, pPanelTitle, pGroupTitles,
+                            pChannelList, pThresholds, pParentActionListener);
+
     panelTitle = "Transverse Controls";
-    
+
 }//end of ControlPanelTransverse::ControlPanelTransverse (constructor)
 //-----------------------------------------------------------------------------
 
@@ -61,7 +62,7 @@ public void init()
 
     super.init();
 
-    
+
 }// end of ControlPanelTransverse::init
 //-----------------------------------------------------------------------------
 

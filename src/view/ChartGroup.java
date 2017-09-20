@@ -244,6 +244,20 @@ public Chart getChart(int pChart)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::getThresholdsForChart
+//
+// Returns an array of thresholds for pChartNum.
+//
+
+public ArrayList<Threshold[]> getThresholdsForChart(int pChartNum)
+{
+
+    return charts[pChartNum].getThresholds();
+
+}//end of ChartGroup::getThresholdsForChart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::scanForGUIObjectsOfAType
 //
 // Scans recursively all children, grandchildren, and so on for all objects

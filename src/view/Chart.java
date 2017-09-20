@@ -777,6 +777,26 @@ public void updateChild(int pGraphNum, int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::getThresholds
+//
+// Returns an array of thresholds.
+//
+
+public ArrayList<Threshold[]> getThresholds()
+{
+
+    ArrayList<Threshold[]> thresholds = new ArrayList<>();
+
+    for (Graph g : graphs) {
+        if (g instanceof TraceGraph) { thresholds.add(g.getThresholds()); }
+    }
+
+    return thresholds;
+
+}//end of Chart::getThresholds
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::loadCalFile
 //
 // This loads the file used for storing calibration information pertinent to a

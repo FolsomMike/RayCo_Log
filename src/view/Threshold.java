@@ -20,7 +20,6 @@ package view;
 
 import java.awt.*;
 import java.io.*;
-import java.util.ArrayList;
 import model.IniFile;
 import model.SharedSettings;
 
@@ -34,13 +33,18 @@ import model.SharedSettings;
 public class Threshold extends Object{
 
     private final SharedSettings sharedSettings;
+    public int getLevel() { return sharedSettings.getThresholdLevel(section); }
 
     private String title;
+    public String getTitle() { return title; }
     private String shortTitle;
+    public String getShortTitle() { return shortTitle; }
     private boolean doNotFlag, flagOnOver;
     private Color thresholdColor;
+    public Color getColor() { return thresholdColor; }
     private final IniFile configFile;
     private GraphInfo graphInfo;
+    public GraphInfo getGraphInfo() { return graphInfo; }
     private final String section;
     private final int chartGroupNum, chartNum, graphNum, thresholdNum;
     private boolean visible = true;

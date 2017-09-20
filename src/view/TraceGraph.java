@@ -34,9 +34,6 @@ public class TraceGraph extends Graph{
     private int numTraces;
     private Trace[] traces;
 
-    private int numThresholds;
-    private Threshold[] thresholds;
-
     Color gridColor;
     int gridXSpacing = 10;
     int gridYSpacing = 10;

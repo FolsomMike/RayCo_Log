@@ -20,11 +20,14 @@ package view;
 //
 
 public class GraphInfo{
-    
+
+    public String title;
+    public String shortTitle;
+
     //tracks number of pixels the chart (and all graphs in the chart) has been
     //scrolled since last reset
-    public int scrollOffset;    
-    
+    public int scrollOffset;
+
     //specifies amount graph was scrolled for the last scroll operation
     public int lastScrollAmount;
 

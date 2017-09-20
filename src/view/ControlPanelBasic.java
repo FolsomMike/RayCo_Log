@@ -18,26 +18,36 @@
 
 package view;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
+import static javax.swing.SwingConstants.CENTER;
+import static javax.swing.SwingConstants.LEFT;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
@@ -56,7 +66,7 @@ class ControlPanelBasic extends ControlPanel
     LinkedHashSet<String> groupTitles;
     ArrayList<ChannelInfo> channelList;
 
-    Threshold[] thresholds;
+    ArrayList<Threshold[]> thresholds;
 
     private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
@@ -89,13 +99,17 @@ class ControlPanelBasic extends ControlPanel
 //
 
 public ControlPanelBasic(int pChartGroupNum, int pChartNum, String pPanelTitle,
-      LinkedHashSet<String> pGroupTitles, ArrayList<ChannelInfo> pChannelList,
-                                          ActionListener pParentActionListener)
+                            LinkedHashSet<String> pGroupTitles,
+                            ArrayList<ChannelInfo> pChannelList,
+                            ArrayList<Threshold[]> pThresholds,
+                            ActionListener pParentActionListener)
 {
 
     super(pChartGroupNum, pChartNum, pParentActionListener);
 
     groupTitles = pGroupTitles; channelList = pChannelList;
+
+    thresholds = pThresholds;
 
     panelTitle = pPanelTitle;
 
@@ -305,7 +319,7 @@ public void addGainOffsetPanel(JPanel pPanel)
 public void setupChartTab(JPanel pPanel)
 {
 
-    //DEBUG HSS//addThresholdsPanel();
+    addThresholdsPanel(pPanel);
 
 }// end of ControlPanelBasic::setupChartTab
 //-----------------------------------------------------------------------------
@@ -318,6 +332,38 @@ public void setupChartTab(JPanel pPanel)
 
 public void addThresholdsPanel(JPanel pPanel)
 {
+
+    JPanel panel = new JPanel();
+
+    //number of rows needed to hold the titles/labels/controls
+    //start with 1 row for top labels and first group title
+    int numRows = 1;
+
+    panel.add(new JLabel("Graph"));
+    panel.add(new JLabel("Threshold"));
+    panel.add(new JLabel("Color", CENTER));
+    panel.add(new JLabel("Level"));
+
+    for (Threshold[] thresholdsArray : thresholds) {
+        for (Threshold threshold : thresholdsArray) {
+            //fill in group title row for each group after the first one
+            panel.add(new JLabel(threshold.getGraphInfo().title, LEFT));
+            panel.add(new JLabel(threshold.getTitle(), LEFT));
+            //add a color swatch to the color column
+            panel.add(
+               new JLabel(createColorSwatch(threshold.getColor()), CENTER));
+
+            MFloatSpinner lvl = new MFloatSpinner(
+                                        threshold.getLevel(),0,
+                                        255.0,1,"##0",60,-1);
+            panel.add(lvl);
+            numRows++;
+        }
+    }
+
+    panel.setLayout(new GridLayout(numRows, 4, 3, 3));
+
+    pPanel.add(panel);
 
 }// end of ControlPanelBasic::addThresholdsPanel
 //-----------------------------------------------------------------------------
@@ -647,6 +693,50 @@ public void createChartControlsPanel()
     add(panel);
 
 }// end of ControlPanelBasic::createChartControlsPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::createColorSwatch
+//
+// Creates a color swatch for use in displaying colors.
+//
+
+public ImageIcon createColorSwatch(Color pColor)
+{
+
+    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gs = ge.getDefaultScreenDevice();
+    GraphicsConfiguration gc = gs.getDefaultConfiguration();
+
+    //Java tutorial suggests checking the following cast with "instanceof", to
+    //avoid runtime errors but this seems pointless as the cast MUST work for
+    //the program to work so it will crash regardless if the cast is bad
+
+    //define the points for a polygon shaped like a paint splotch
+    int[] xPoints = {0,  7, 8, 11, 14, 16, 19, 19, 20, 18, 17, 14, 13, 11,
+                                                   7,  7,  4,  4,  0,  2, 3, 0};
+    int[] yPoints = {5,  4, 0,  3,  0,  4,  2,  8,  9, 12, 16, 14, 17, 19,
+                                                  17, 15, 16, 14, 12, 10, 9, 5};
+
+
+    // have to create a new image buffer for each icon because the icon continues
+    // to use the image
+    //create an image to store the plot on so it can be copied to the screen
+    //during repaint
+
+    BufferedImage imageBuffer;
+
+    imageBuffer = (gc.createCompatibleImage(20, 20, Transparency.OPAQUE));
+    Graphics2D g2 = (Graphics2D)imageBuffer.getGraphics();
+    //fill the image with same color as menu background
+    g2.setColor(new Color(238, 238, 238));
+    g2.fillRect(0, 0, imageBuffer.getWidth(), imageBuffer.getHeight());
+    g2.setColor(pColor);
+    g2.fillPolygon(xPoints, yPoints, 22);
+
+    return new ImageIcon(imageBuffer);
+
+}//end of UTControls::createColorSwatch
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

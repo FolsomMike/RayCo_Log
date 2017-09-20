@@ -68,6 +68,10 @@ public class Graph extends JPanel{
     int animationDirection = 0;
     int animationCount = 0;
 
+    int numThresholds;
+    Threshold[] thresholds;
+    public Threshold[] getThresholds() { return thresholds; }
+
     //peakType is not used for all Graph types, some child classes such as
     //Trace load their own peakType setting from config file
 
@@ -551,9 +555,11 @@ void loadConfigSettings()
 
     title = configFile.readString(
              configFileSection, "title", "Graph " + (graphNum + 1));
+    graphInfo.title = title;
 
     shortTitle = configFile.readString(
                configFileSection, "short title", "graph" + (graphNum + 1));
+    graphInfo.shortTitle = shortTitle;
 
     objectType = configFile.readString(
                                     configFileSection, "object type", "graph");

@@ -1230,9 +1230,12 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
     int mapGraphNumber = 0; //graph of 3D map always expected to be first
 
     LinkedHashSet<String> groupTitles = getListOfGroups(pChannelList);
+    ArrayList<Threshold[]> thresholds = getThresholdsForChart(pChartGroupNum,
+                                                                    pChartNum);
 
     ControlPanelBasic transCalPanel = new ControlPanelBasic(pChartGroupNum,
-                pChartNum, pPanelTitle, groupTitles, pChannelList, this);
+                                            pChartNum, pPanelTitle, groupTitles,
+                                            pChannelList, thresholds, this);
     transCalPanel.init();
     controlsGroupPanel.add(transCalPanel);
     transCalPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1293,6 +1296,21 @@ private LinkedHashSet<String> getListOfGroups(
     return(groups);
 
 }//end of MainView::getListOfGroups
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::getThresholdsForChart
+//
+// Returns an array of thresholds for pChartNum found in pChartGroupNu.
+//
+
+private ArrayList<Threshold[]> getThresholdsForChart(int pChartGroupNum,
+                                                                int pChartNum)
+{
+
+    return chartGroups[pChartGroupNum].getThresholdsForChart(pChartNum);
+
+}//end of MainView::getThresholdsForChart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
