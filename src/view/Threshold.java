@@ -34,6 +34,7 @@ public class Threshold extends Object{
 
     private final SharedSettings sharedSettings;
     public int getLevel() { return sharedSettings.getThresholdLevel(section); }
+    public void setLevel(int pLvl) { sharedSettings.setThresholdLevel(section, pLvl); }
 
     private String title;
     public String getTitle() { return title; }
@@ -173,6 +174,8 @@ private void configure(IniFile pConfigFile)
 public void loadCalFile(IniFile pCalFile)
 {
 
+    setLevel(pCalFile.readInt(section, "threshold level", getLevel()));
+
 }//end of Threshold::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -188,6 +191,8 @@ public void loadCalFile(IniFile pCalFile)
 
 public void saveCalFile(IniFile pCalFile)
 {
+
+    pCalFile.writeInt(section, "threshold level", getLevel());
 
 }//end of Threshold::saveCalFile
 //-----------------------------------------------------------------------------
@@ -241,7 +246,7 @@ private void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 public int getPlotThresholdLevel()
 {
 
-    int plotThresholdLevel = calculateY(sharedSettings.getThresholdLevel(section));
+    int plotThresholdLevel = calculateY(getLevel());
     if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
     if(plotThresholdLevel > height) {plotThresholdLevel = height;}
 

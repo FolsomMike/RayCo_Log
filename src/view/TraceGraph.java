@@ -130,7 +130,45 @@ void loadConfigSettings()
 
     gridYSpacing = height / numVerGridDivisions;
 
-}// end of Chart::loadConfigSettings
+}// end of TraceGraph::loadConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// TraceGraph::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+@Override
+public void loadCalFile(IniFile pCalFile)
+{
+
+    for (Threshold t : thresholds) { t.loadCalFile(pCalFile); }
+
+}//end of TraceGraph::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// TraceGraph::saveCalFile
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+@Override
+public void saveCalFile(IniFile pCalFile)
+{
+
+    for (Threshold t : thresholds) { t.saveCalFile(pCalFile); }
+
+}//end of TraceGraph::saveCalFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
