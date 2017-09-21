@@ -655,6 +655,40 @@ private ArrayList<PeakData> getChannelList()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::displayCalibrationPanel
+//
+// Updates the threshold value in sharedSettings and then invokes view to
+// redraw the graph containing that threshold.
+//
+
+private void updateThreshold(String pInfo)
+{
+
+    // [0] = Action command
+    // [1] = Spinner title
+    // [2] = Threshold section
+    // [3] = Chart group num
+    // [4] = Chart num
+    // [5] = Graph num
+    // [6] = Threshold level
+
+    String[] infoSplits = pInfo.split(",");
+
+    //update threshold value in shared settings
+    String thresSection = infoSplits[2];
+    int thresValue = Integer.parseInt(infoSplits[6]);
+    sharedSettings.setThresholdLevel(thresSection, thresValue);
+
+    //invoke MainView to repaint the graph containing this threshold
+    int chartGroup = Integer.parseInt(infoSplits[3]);
+    int chart = Integer.parseInt(infoSplits[4]);
+    int graph = Integer.parseInt(infoSplits[5]);
+    mainView.repaintChild(chartGroup, chart, graph);
+
+}// end of MainController::updateThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::setDeviceSnapshotDataBuffers
 //
 // Scans through all devices and links each to the DataTransferIntBuffer
@@ -817,6 +851,11 @@ public void actionPerformed(ActionEvent e)
 
     if (e.getActionCommand().startsWith("Update Channel")) {
         mainHandler.updateChannelParameters(e.getActionCommand(), true);
+        return;
+    }
+
+    if (e.getActionCommand().startsWith("Update Threshold")) {
+        updateThreshold(e.getActionCommand());
         return;
     }
 

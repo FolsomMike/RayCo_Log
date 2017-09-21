@@ -346,16 +346,26 @@ public void addThresholdsPanel(JPanel pPanel)
 
     for (Threshold[] thresholdsArray : thresholds) {
         for (Threshold threshold : thresholdsArray) {
-            //fill in group title row for each group after the first one
-            panel.add(new JLabel(threshold.getGraphInfo().title, LEFT));
-            panel.add(new JLabel(threshold.getTitle(), LEFT));
-            //add a color swatch to the color column
-            panel.add(
-               new JLabel(createColorSwatch(threshold.getColor()), CENTER));
 
-            MFloatSpinner lvl = new MFloatSpinner(
-                                        threshold.getLevel(),0,
-                                        255.0,1,"##0",60,-1);
+            //graph title
+            panel.add(new JLabel(threshold.getGraphInfo().title, LEFT));
+
+            //threshold title
+            panel.add(new JLabel(threshold.getTitle(), LEFT));
+
+            //add a color swatch to the color column
+            panel.add(new JLabel(createColorSwatch(threshold.getColor()),CENTER));
+
+            //threshold level spinner
+            MFloatSpinner lvl = new MFloatSpinner(threshold.getLevel(),0,
+                    255.0,1,"##0",60,-1);
+            lvl.addChangeListener(this);
+            lvl.setName("Threshold Spinner,"
+                        + threshold.getSection() + "," //lvl stored using section
+                        + threshold.getChartGroupNum() + ","
+                        + threshold.getChartNum() + ","
+                        + threshold.getGraphNum());
+            setSpinnerNameAndMouseListener(lvl, lvl.getName(), this);
             panel.add(lvl);
             numRows++;
         }
@@ -1037,6 +1047,13 @@ private void handleSpinnerChange(MFloatSpinner pSpinner)
         //pass the name along with the value back to the parent listener
         parentActionListener.actionPerformed(new ActionEvent(
                 this, 1, "Update Channel," + name + "," + pSpinner.getText()));
+        return;
+    }
+
+    if (name.startsWith("Threshold Spinner")){
+        //pass the name along with the value back to the parent listener
+        parentActionListener.actionPerformed(new ActionEvent(
+                this, 1, "Update Threshold," + name + "," + pSpinner.getText()));
         return;
     }
 

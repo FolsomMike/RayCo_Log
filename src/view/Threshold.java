@@ -46,7 +46,12 @@ public class Threshold extends Object{
     private GraphInfo graphInfo;
     public GraphInfo getGraphInfo() { return graphInfo; }
     private final String section;
+    public String getSection() { return section; }
     private final int chartGroupNum, chartNum, graphNum, thresholdNum;
+    public int getChartGroupNum() { return chartGroupNum; }
+    public int getChartNum() { return chartNum; }
+    public int getGraphNum() { return graphNum; }
+    public int getThresholdNum() { return thresholdNum; }
     private boolean visible = true;
     private Color backgroundColor;
     private int width, height;
@@ -60,8 +65,6 @@ public class Threshold extends Object{
     private int baseLine = 0;
 
     private boolean okToMark = true;
-
-    private int plotThresholdLevel;
     private int alarmChannel;
     private boolean invert;
 
@@ -142,7 +145,6 @@ private void configure(IniFile pConfigFile)
 
     int thres = pConfigFile.readInt(section, "default level", 50);
     sharedSettings.setThresholdLevel(section, thres);
-    setThresholdLevel(thres);
 
     alarmChannel = pConfigFile.readInt(section, "alarm channel", 0);
 
@@ -226,6 +228,32 @@ private void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Threshold::getPlotThresholdLevel
+//
+// Calculates and returns the plot threshold level using the threshold level
+// found in sharedSettings.
+
+// This is not done once and stored in a class variable because sharedSettings
+// is shared with multiple threads and objects; the threshold level can change
+// at any time.
+//
+
+public int getPlotThresholdLevel()
+{
+
+    int plotThresholdLevel = calculateY(sharedSettings.getThresholdLevel(section));
+    if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
+    if(plotThresholdLevel > height) {plotThresholdLevel = height;}
+
+    //invert the y position if specified
+    if (invert){ plotThresholdLevel = height - plotThresholdLevel; }
+
+    return plotThresholdLevel;
+
+}//end of Threshold::getPlotThresholdLevel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Threshold::paintSingleDataPoint
 //
 // Draws the threshold line, and if necessary the flag.
@@ -244,8 +272,9 @@ public void paintSingleDataPoint(Graphics2D pG2, int pDataIndex)
     int prevXAdj = prevX - graphInfo.scrollOffset;
 
     //draw threshold line
+    int lvl = getPlotThresholdLevel();
     pG2.setColor(thresholdColor);
-    pG2.drawLine(xAdj, plotThresholdLevel, xAdj, plotThresholdLevel);
+    pG2.drawLine(prevXAdj, lvl, xAdj, lvl);
 
 }// end of Threshold::paintSingleDataPoint
 //-----------------------------------------------------------------------------
@@ -260,8 +289,9 @@ public void paintThresholdLine(Graphics2D pG2)
 
 {
 
+    int lvl = getPlotThresholdLevel();
     pG2.setColor(thresholdColor);
-    pG2.drawLine(0, plotThresholdLevel, xMax, plotThresholdLevel);
+    pG2.drawLine(0, lvl, xMax, lvl);
 
 }//end of Threshold::paintThresholdLine
 //-----------------------------------------------------------------------------
@@ -285,25 +315,6 @@ public void saveSegment(BufferedWriter pOut) throws IOException
     pOut.newLine(); pOut.newLine();*/
 
 }//end of Threshold::saveSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Threshold::setThresholdLevel
-//
-// Sets the level for the threshold indexed by pWhich.
-//
-
-public void setThresholdLevel(int pLevel)
-{
-
-    plotThresholdLevel = calculateY(pLevel);
-    if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
-    if(plotThresholdLevel > height) {plotThresholdLevel = height;}
-
-    //invert the y position if specified
-    if (invert){ plotThresholdLevel = height - plotThresholdLevel; }
-
-}//end of Threshold::setThresholdLevel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
