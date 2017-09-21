@@ -16,8 +16,12 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.util.ArrayList;
 import model.DataTransferIntBuffer;
 import model.IniFile;
+import model.SharedSettings;
+import model.ThresholdInfo;
+import toolkit.MKSBoolean;
 import toolkit.MKSInteger;
 
 //-----------------------------------------------------------------------------
@@ -28,6 +32,7 @@ import toolkit.MKSInteger;
 public class Channel
 {
 
+    private final SharedSettings sharedSettings;
     IniFile configFile;
 
     SampleMetaData meta = new SampleMetaData(0);
@@ -71,7 +76,9 @@ public class Channel
     PeakBufferInt peakBuffer;
 
     MKSInteger data = new MKSInteger(0);
-    MKSInteger flag = new MKSInteger(0);
+    MKSBoolean violatesThreshold = new MKSBoolean(false);
+
+    ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
 
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
@@ -83,11 +90,12 @@ public class Channel
 // Channel::Channel (constructor)
 //
 
-public Channel(int pDeviceNum, int pChannelNum, IniFile pConfigFile)
+public Channel(int pDeviceNum, int pChannelNum, IniFile pConfigFile,
+                SharedSettings pSettings)
 {
 
     meta.deviceNum = pDeviceNum; meta.channelNum = pChannelNum;
-    configFile = pConfigFile;
+    configFile = pConfigFile; sharedSettings = pSettings;
 
 }//end of Channel::Channel (constructor)
 //-----------------------------------------------------------------------------
@@ -107,6 +115,10 @@ public void init()
 
     setUpPeakBuffer();
 
+    //get the thresholds that are on the same graph as this channel
+    thresholdInfos = sharedSettings.getThresholdInfosForGraph(
+                                    meta.chartGroup, meta.chart, meta.graph);
+
 }// end of Channel::init
 //-----------------------------------------------------------------------------
 
@@ -124,17 +136,17 @@ public void setUpPeakBuffer()
 
         case CATCH_HIGHEST:
             peakBuffer = new HighPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE, 0); //DEBUG HSS// 0 should not be hard set
+            peakBuffer.setResetValue(Integer.MIN_VALUE, false); //DEBUG HSS// 0 should not be hard set
             break;
 
         case CATCH_LOWEST:
             peakBuffer = new LowPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MAX_VALUE, 0); //DEBUG HSS// 0 should not be hard set
+            peakBuffer.setResetValue(Integer.MAX_VALUE, false); //DEBUG HSS// 0 should not be hard set
             break;
 
         default:
             peakBuffer = new HighPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE, 0); //DEBUG HSS// 0 should not be hard set
+            peakBuffer.setResetValue(Integer.MIN_VALUE, false); //DEBUG HSS// 0 should not be hard set
             break;
 
     }
@@ -244,11 +256,48 @@ private void parseDataType(String pValue)
 public void catchPeak(int pPeakValue)
 {
 
-    int thresFlag = 0; //DEBUG HSS//
-
-    peakBuffer.catchPeak(pPeakValue, thresFlag);
+    peakBuffer.catchPeak(pPeakValue, checkThresholdViolation(pPeakValue));
 
 }// end of Channel::catchPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::checkThresholdViolation
+//
+// Returns true signal exceeds any threshold levels.  Whether this is above or
+// below the threshold is determined by flagOnOver.
+//
+// The threshold with the lowest (0) thresholdIndex is the highest severity
+// threshold, highest index is lowest.  This function should be called for the
+// thresholds in order of their index which happens automatically if they are
+// stored in an array in this order.  If called in this order, no more
+// thresholds should be checked after one returns true because lower severity
+// thresholds should not override higher ones.
+//
+// If doNotFlag is true, the threshold is for reference purposes only and no
+// violations will ever be recorded.
+//
+// NOTE: For this function, the threshold is not inverted and the pSigHeight
+// should not be inverted as well.
+//
+
+private boolean checkThresholdViolation(int pSig)
+
+{
+
+    for (ThresholdInfo info : thresholdInfos) {
+
+        int lvl = info.getLevel();
+
+        //true check for signal above, if false check for signal below
+        if (info.getFlagOnOver()){ if (pSig >= lvl) { return true; } }
+        else{ if (pSig <= lvl) { return true; } }
+
+    }
+
+    return false; //no violation
+
+}//end of Channel::checkThresholdViolation
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -260,10 +309,10 @@ public void catchPeak(int pPeakValue)
 // This method returns an object as the peak may be of various data types.
 //
 
-public void getPeakAndReset(MKSInteger pPeakValue, MKSInteger pFlagValue)
+public void getPeakAndReset(MKSInteger pPeakValue, MKSBoolean pViolatesThres)
 {
 
-    peakBuffer.getPeakAndReset(pPeakValue, pFlagValue);
+    peakBuffer.getPeakAndReset(pPeakValue, pViolatesThres);
 
 }// end of Channel::getPeakAndReset
 //-----------------------------------------------------------------------------
@@ -285,10 +334,10 @@ public boolean getPeakDataAndReset(PeakData pPeakData)
 
     pPeakData.metaArray[meta.channelNum] = meta; //channel/buffer/trace etc. info
 
-    boolean peakUpdated = peakBuffer.getPeakAndReset(data, flag);
+    boolean peakUpdated = peakBuffer.getPeakAndReset(data, violatesThreshold);
 
     pPeakData.peakArray[meta.channelNum] = data.x;
-    pPeakData.peakArray[meta.channelNum] = flag.x;
+    pPeakData.violatesThresholdArray[meta.channelNum] = violatesThreshold.bool;
 
     return(peakUpdated);
 

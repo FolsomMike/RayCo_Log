@@ -39,6 +39,8 @@ import java.util.logging.Logger;
 import model.DataTransferIntMultiDimBuffer;
 import model.DataTransferSnapshotBuffer;
 import model.IniFile;
+import model.SharedSettings;
+import toolkit.MKSBoolean;
 import toolkit.MKSInteger;
 import view.LogPanel;
 
@@ -52,6 +54,8 @@ public class Device implements Runnable
     boolean shutDown = false;
 
     final IniFile configFile;
+    final SharedSettings sharedSettings;
+
     private final int deviceNum;
     public int getDeviceNum(){ return(deviceNum); }
     String title = "", shortTitle = "";
@@ -176,11 +180,11 @@ public class Device implements Runnable
 //
 
 public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
-                                                              boolean pSimMode)
+                SharedSettings pSettings, boolean pSimMode)
 {
 
     deviceNum = pDeviceNum; configFile = pConfigFile; logPanel = pLogPanel;
-    simMode = pSimMode;
+    sharedSettings = pSettings; simMode = pSimMode;
 
     mapMeta.deviceNum = deviceNum;
     snapshotMeta.deviceNum = deviceNum;
@@ -655,7 +659,7 @@ void setUpChannels()
     int lastBoardChannel = -1; BoardChannelParameters params = null;
     for(int i=0; i<numChannels; i++){
 
-        channels[i] = new Channel(deviceNum, i, configFile);
+        channels[i] = new Channel(deviceNum, i, configFile, sharedSettings);
         channels[i].init();
 
         if (channels[i].getBoardChannel()==lastBoardChannel&&params!=null)
@@ -898,10 +902,11 @@ public boolean getDeviceDataAndReset(PeakData pPeakData,
 // This class returns an object as the peak may be of various data types.
 //
 
-public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue)
+public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue,
+                                        MKSBoolean pViolatesThreshold)
 {
 
-    channels[pChannel].getPeakAndReset(pPeakValue, new MKSInteger(0));
+    channels[pChannel].getPeakAndReset(pPeakValue, pViolatesThreshold);
 
 }// end of Device::getPeakForChannelAndReset
 //-----------------------------------------------------------------------------

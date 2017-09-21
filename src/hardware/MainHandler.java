@@ -176,7 +176,8 @@ private void setUpDevices(ArrayList<LogPanel> pLogPanels)
         else { logIter = null; }
 
         devices[index] = createDevice((String) iDevType.next(), index,
-                     logIter, configFile, (boolean)deviceSimModes.get(index));
+                                        logIter, configFile, sharedSettings,
+                                       (boolean)deviceSimModes.get(index));
         devices[index].init();
         index++;
     }
@@ -198,21 +199,24 @@ private void setUpDevices(ArrayList<LogPanel> pLogPanels)
 // The pSimMode value will be passed on to the device.
 //
 
-private Device createDevice(
-        String pDeviceType, int pIndex, LogPanel pLogPanel, IniFile pConfigFile,
-                                                               boolean pSimMode)
+private Device createDevice(String pDeviceType, int pIndex, LogPanel pLogPanel,
+                            IniFile pConfigFile, SharedSettings pSettings,
+                            boolean pSimMode)
 {
 
     switch(pDeviceType){
 
         case "Longitudinal ~ RayCo Log ~ A" : return (new
-            Multi_IO_A_Longitudinal(pIndex, pLogPanel, pConfigFile, pSimMode));
+            Multi_IO_A_Longitudinal(pIndex, pLogPanel, pConfigFile,
+                                            pSettings, pSimMode));
 
         case "Transverse ~ RayCo Log ~ A" : return (new
-              Multi_IO_A_Transverse(pIndex, pLogPanel, pConfigFile, pSimMode));
+              Multi_IO_A_Transverse(pIndex, pLogPanel, pConfigFile,
+                                            pSettings, pSimMode));
 
         case "Wall ~ RayCo Log ~ A" : return (new
-                    Multi_IO_A_Wall(pIndex, pLogPanel, pConfigFile, pSimMode));
+                    Multi_IO_A_Wall(pIndex, pLogPanel, pConfigFile,
+                                            pSettings, pSimMode));
 
         default: return(null);
 

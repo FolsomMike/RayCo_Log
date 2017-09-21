@@ -351,20 +351,21 @@ public void addThresholdsPanel(JPanel pPanel)
             panel.add(new JLabel(threshold.getGraphInfo().title, LEFT));
 
             //threshold title
-            panel.add(new JLabel(threshold.getTitle(), LEFT));
+            panel.add(new JLabel(threshold.getThresholdInfo().getTitle(), LEFT));
 
             //add a color swatch to the color column
-            panel.add(new JLabel(createColorSwatch(threshold.getColor()),CENTER));
+            Color thresColor = threshold.getThresholdInfo().getThresholdColor();
+            panel.add(new JLabel(createColorSwatch(thresColor),CENTER));
 
             //threshold level spinner
             MFloatSpinner lvl = new MFloatSpinner(threshold.getLevel(),0,
                     255.0,1,"##0",60,-1);
             lvl.addChangeListener(this);
             lvl.setName("Threshold Spinner,"
-                        + threshold.getSection() + "," //lvl stored using section
-                        + threshold.getChartGroupNum() + ","
-                        + threshold.getChartNum() + ","
-                        + threshold.getGraphNum());
+                        + threshold.getThresholdInfo().getChartGroupNum() + ","
+                        + threshold.getThresholdInfo().getChartNum() + ","
+                        + threshold.getThresholdInfo().getGraphNum() + ","
+                        + threshold.getThresholdInfo().getThresholdNum());
             setSpinnerNameAndMouseListener(lvl, lvl.getName(), this);
             panel.add(lvl);
             numRows++;

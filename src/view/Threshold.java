@@ -22,6 +22,7 @@ import java.awt.*;
 import java.io.*;
 import model.IniFile;
 import model.SharedSettings;
+import model.ThresholdInfo;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -33,28 +34,18 @@ import model.SharedSettings;
 public class Threshold extends Object{
 
     private final SharedSettings sharedSettings;
-    public int getLevel() { return sharedSettings.getThresholdLevel(section); }
-    public void setLevel(int pLvl) { sharedSettings.setThresholdLevel(section, pLvl); }
+    public int getLevel() { return thresholdInfo.getLevel(); }
+    public void setLevel(int pLvl) { thresholdInfo.setLevel(pLvl); }
 
-    private String title;
-    public String getTitle() { return title; }
-    private String shortTitle;
-    public String getShortTitle() { return shortTitle; }
-    private boolean doNotFlag, flagOnOver;
-    private Color thresholdColor;
-    public Color getColor() { return thresholdColor; }
+    private final ThresholdInfo thresholdInfo;
+    public ThresholdInfo getThresholdInfo() { return thresholdInfo; }
+
     private final IniFile configFile;
     private GraphInfo graphInfo;
     public GraphInfo getGraphInfo() { return graphInfo; }
     private final String section;
     public String getSection() { return section; }
-    private final int chartGroupNum, chartNum, graphNum, thresholdNum;
-    public int getChartGroupNum() { return chartGroupNum; }
-    public int getChartNum() { return chartNum; }
-    public int getGraphNum() { return graphNum; }
-    public int getThresholdNum() { return thresholdNum; }
-    private boolean visible = true;
-    private Color backgroundColor;
+
     private int width, height;
     private int flagWidth, flagHeight;
 
@@ -65,9 +56,9 @@ public class Threshold extends Object{
     private int offset = 0;
     private int baseLine = 0;
 
+    private Color backgroundColor;
+
     private boolean okToMark = true;
-    private int alarmChannel;
-    private boolean invert;
 
     // references to point at the controls used to adjust the values - these
     // references are set up by the object which handles the adjusters and are
@@ -92,16 +83,21 @@ public Threshold(SharedSettings pSettings, IniFile pConfigFile,
     sharedSettings = pSettings;
     configFile = pConfigFile;
     graphInfo = pGraphInfo;
-    chartGroupNum = pChartGroupNum;
-    chartNum = pChartNum;
-    graphNum = pGraphNum;
-    thresholdNum = pThresholdNum;
+
+    thresholdInfo = new ThresholdInfo();
+    thresholdInfo.setChartGroupNum(pChartGroupNum);
+    thresholdInfo.setChartNum(pChartNum);
+    thresholdInfo.setGraphNum(pGraphNum);
+    thresholdInfo.setThresholdNum(pThresholdNum);
+
     width = pWidth; height = pHeight;
     xMax = width - 1; yMax = height - 1;
     backgroundColor = pBackgroundColor;
 
-    section = "Chart Group " + chartGroupNum + " Chart " + chartNum
-                + " Graph " + graphNum + " Threshold " + thresholdNum;
+    section = "Chart Group " + thresholdInfo.getChartGroupNum()
+                + " Chart " + thresholdInfo.getChartNum()
+                + " Graph " + thresholdInfo.getGraphNum()
+                + " Threshold " + thresholdInfo.getThresholdNum();
 
 }//end of Threshold::Threshold (constructor)
 //-----------------------------------------------------------------------------
@@ -121,6 +117,9 @@ public void init()
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
+    //add this threshold's ThresholdInfo to the list in SharedSettings
+    sharedSettings.addThresholdInfo(thresholdInfo);
+
 }// end of Threshold::init
 //-----------------------------------------------------------------------------
 
@@ -133,26 +132,32 @@ public void init()
 private void configure(IniFile pConfigFile)
 {
 
-    title = pConfigFile.readString(section, "title", "*");
+    thresholdInfo.setTitle(pConfigFile.readString(section, "title", "*"));
 
-    shortTitle = pConfigFile.readString(section, "short title", "*");
+    thresholdInfo.setShortTitle(pConfigFile.readString(section, "short title",
+                                                                        "*"));
 
-    doNotFlag = pConfigFile.readBoolean(
-                            section, "do not flag - for reference only", false);
+    thresholdInfo.setDoNotFlag(pConfigFile.readBoolean(section,
+                                    "do not flag - for reference only", false));
 
-    thresholdColor = pConfigFile.readColor(section, "color", Color.RED);
+    thresholdInfo.setThresholdColor(pConfigFile.readColor(section, "color",
+                                                                    Color.RED));
 
-    invert = pConfigFile.readBoolean(section, "invert threshold", true);
+    thresholdInfo.setInvert(pConfigFile.readBoolean(section, "invert threshold",
+                                                                        true));
 
-    int thres = pConfigFile.readInt(section, "default level", 50);
-    sharedSettings.setThresholdLevel(section, thres);
+    int lvl = pConfigFile.readInt(section, "default level", 50);
+    thresholdInfo.setLevel(lvl);
 
-    alarmChannel = pConfigFile.readInt(section, "alarm channel", 0);
+    thresholdInfo.setAlarmChannel(pConfigFile.readInt(section, "alarm channel",
+                                                        0));
 
-    flagOnOver = pConfigFile.readBoolean(section, "flag on over", true);
+    thresholdInfo.setFlagOnOver(pConfigFile.readBoolean(section, "flag on over",
+                                                        true));
+
+    //stuff that is only used for gui
     flagWidth = pConfigFile.readInt(section, "flag width", 5);
     flagHeight = pConfigFile.readInt(section, "flag height", 7);
-
     offset = configFile.readInt(section, "offset", 0);
     xScale = configFile.readDouble(section, "x scale", 1.0);
     yScale = configFile.readDouble(section, "y scale", 1.0);
@@ -226,7 +231,7 @@ private void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 
     //add 1 to xPos so flag is drawn to the right of the peak
 
-    pPG2.setColor(thresholdColor);
+    pPG2.setColor(thresholdInfo.getThresholdColor());
     pPG2.fillRect(pXPos+1, pYPos, flagWidth, flagHeight);
 
 }//end of Threshold::drawFlag
@@ -251,7 +256,9 @@ public int getPlotThresholdLevel()
     if(plotThresholdLevel > height) {plotThresholdLevel = height;}
 
     //invert the y position if specified
-    if (invert){ plotThresholdLevel = height - plotThresholdLevel; }
+    if (thresholdInfo.getInvert()){
+        plotThresholdLevel = height - plotThresholdLevel;
+    }
 
     return plotThresholdLevel;
 
@@ -267,8 +274,6 @@ public int getPlotThresholdLevel()
 public void paintSingleDataPoint(Graphics2D pG2, int pDataIndex)
 {
 
-    if(!visible) { return; }
-
     //calculate the x position in pixels
     int x = (int)Math.round(pDataIndex * xScale);
 
@@ -278,7 +283,7 @@ public void paintSingleDataPoint(Graphics2D pG2, int pDataIndex)
 
     //draw threshold line
     int lvl = getPlotThresholdLevel();
-    pG2.setColor(thresholdColor);
+    pG2.setColor(thresholdInfo.getThresholdColor());
     pG2.drawLine(prevXAdj, lvl, xAdj, lvl);
 
 }// end of Threshold::paintSingleDataPoint
@@ -295,7 +300,7 @@ public void paintThresholdLine(Graphics2D pG2)
 {
 
     int lvl = getPlotThresholdLevel();
-    pG2.setColor(thresholdColor);
+    pG2.setColor(thresholdInfo.getThresholdColor());
     pG2.drawLine(0, lvl, xMax, lvl);
 
 }//end of Threshold::paintThresholdLine

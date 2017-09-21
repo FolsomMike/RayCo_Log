@@ -27,6 +27,7 @@
 
 package hardware;
 
+import toolkit.MKSBoolean;
 import toolkit.MKSInteger;
 
 //-----------------------------------------------------------------------------
@@ -37,10 +38,10 @@ public class PeakBufferInt
 {
 
     int peak;
-    int flag;
+    boolean violatesThreshold;
 
     int peakReset;
-    int flagReset = 0;
+    boolean violatesThresholdReset = false;
 
     final int peakBufferNum;
 
@@ -68,7 +69,7 @@ public PeakBufferInt(int pPeakBufferNum)
 // lowest value, closest to a target value, etc.
 //
 
-public void catchPeak(int pNewData, int pNewFlag)
+public void catchPeak(int pNewData, boolean pViolatesThreshold)
 {
 
     // This method must be overridden by subclasses.
@@ -82,11 +83,11 @@ public void catchPeak(int pNewData, int pNewFlag)
 // Forces peak to pValue.
 //
 
-public void setPeak(int pValue, int pFlag)
+public void setPeak(int pValue, boolean pViolatesThreshold)
 {
 
     peak = pValue;
-    flag = pFlag;
+    violatesThreshold = pViolatesThreshold;
 
 }// end of PeakBufferInt::setPeak
 //-----------------------------------------------------------------------------
@@ -101,7 +102,7 @@ public void reset()
 {
 
     peak = peakReset;
-    peak = flagReset;
+    violatesThreshold = violatesThresholdReset;
 
     peakUpdated = false;
 
@@ -115,11 +116,11 @@ public void reset()
 // has been retrieved and a new peak is to be found.
 //
 
-public void setResetValue(int pValue, int pFlag)
+public void setResetValue(int pValue, boolean pViolatesThreshold)
 {
 
     peakReset = pValue;
-    flagReset = pFlag;
+    violatesThreshold = pViolatesThreshold;
 
 }// end of PeakBufferInt::setResetValue
 //-----------------------------------------------------------------------------
@@ -130,11 +131,11 @@ public void setResetValue(int pValue, int pFlag)
 // Retrieves the current value of the peak without resetting it.
 //
 
-public void getPeak(MKSInteger pPeakData, MKSInteger pFlagData)
+public void getPeak(MKSInteger pPeakData, MKSBoolean pViolatesThreshold)
 {
 
     pPeakData.x = peak;
-    pFlagData.x = flag;
+    pViolatesThreshold.bool = violatesThreshold;
 
 }// end of PeakBufferInt::getPeak
 //-----------------------------------------------------------------------------
@@ -149,13 +150,14 @@ public void getPeak(MKSInteger pPeakData, MKSInteger pFlagData)
 // or false otherwise.
 //
 
-public boolean getPeakAndReset(MKSInteger pPeakData, MKSInteger pFlagData)
+public boolean getPeakAndReset(MKSInteger pPeakData,
+                                    MKSBoolean pViolatesThreshold)
 {
 
     boolean lPeakUpdated = peakUpdated;
 
     pPeakData.x = peak;
-    pFlagData.x = flag;
+    pViolatesThreshold.bool = violatesThreshold;
 
     reset();
 

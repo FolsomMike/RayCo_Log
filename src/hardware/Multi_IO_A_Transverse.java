@@ -18,6 +18,7 @@ package hardware;
 
 import java.net.SocketException;
 import model.IniFile;
+import model.SharedSettings;
 import view.LogPanel;
 
 //-----------------------------------------------------------------------------
@@ -32,10 +33,11 @@ public class Multi_IO_A_Transverse extends MultiIODevice
 //
 
 public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel,
-                                         IniFile pConfigFile, boolean pSimMode)
+                                IniFile pConfigFile, SharedSettings pSettings,
+                                boolean pSimMode)
 {
 
-    super(pIndex, pLogPanel, pConfigFile, pSimMode);
+    super(pIndex, pLogPanel, pConfigFile, pSettings, pSimMode);
 
 //debug remove this -- superseded by Socket Simulator      if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
 

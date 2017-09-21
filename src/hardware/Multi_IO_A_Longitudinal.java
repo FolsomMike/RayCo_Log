@@ -18,6 +18,7 @@ package hardware;
 
 import java.net.SocketException;
 import model.IniFile;
+import model.SharedSettings;
 import view.LogPanel;
 
 //-----------------------------------------------------------------------------
@@ -26,19 +27,20 @@ import view.LogPanel;
 
 public class Multi_IO_A_Longitudinal extends MultiIODevice
 {
-        
+
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //
 
-public Multi_IO_A_Longitudinal(int pIndex, LogPanel pLogPanel, 
-                                         IniFile pConfigFile, boolean pSimMode)
+public Multi_IO_A_Longitudinal(int pIndex, LogPanel pLogPanel,
+                                IniFile pConfigFile, SharedSettings pSettings,
+                                boolean pSimMode)
 {
 
-    super(pIndex, pLogPanel, pConfigFile, pSimMode);
-    
+    super(pIndex, pLogPanel, pConfigFile, pSettings, pSimMode);
+
 //debug remove this -- superseded by Socket Simulator  if(simMode){ simulator = new SimulatorLongitudinal(0); simulator.init(); }
-    
+
 }//end of Multi_IO_A_Longitudinal::Multi_IO_A_Longitudinal (constructor)
 //-----------------------------------------------------------------------------
 
@@ -51,11 +53,11 @@ public Multi_IO_A_Longitudinal(int pIndex, LogPanel pLogPanel,
 @Override
 public void init()
 {
-    
+
     super.init();
 
     loadConfigSettings();
-    
+
     initAfterLoadingConfig();
 
 }// end of Multi_IO_A_Longitudinal::init
@@ -73,7 +75,7 @@ public void init()
 void initAfterConnect(){
 
     super.initAfterConnect();
-     
+
 }//end of Multi_IO_A_Longitudinal::initAfterConnect
 //-----------------------------------------------------------------------------
 
@@ -89,7 +91,7 @@ public void driveSimulation()
 {
 
     super.driveSimulation();
-    
+
 }//end of Multi_IO_A_Longitudinal::driveSimulation
 //-----------------------------------------------------------------------------
 
@@ -107,10 +109,10 @@ public void driveSimulation()
 void createSimulatedSocket() throws SocketException
 {
 
-    
+
     /* debug mks -- remove this
     super.createSimulatedSocket();
-    
+
     SimCh2 simCh2 = new SimCh2(getIPAddr(), 23, "", "");
 
     simCh2.init(0);
@@ -119,16 +121,16 @@ void createSimulatedSocket() throws SocketException
     */
 
     super.createSimulatedSocket();
-    
+
     SimulatorLongitudinal longSimulator = new SimulatorLongitudinal(
                                                    getIPAddr(), 23, title, "");
 
     longSimulator.init(0);
 
     socket = longSimulator;
-     
+
 }//end of Multi_IO_A_Longitudinal::createSimulatedSocket
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Multi_IO_A_Longitudinal::collectData
@@ -143,9 +145,9 @@ void createSimulatedSocket() throws SocketException
 @Override
 public void collectData()
 {
-    
+
     super.collectData();
-    
+
 }// end of Multi_IO_A_Longitudinal::collectData
 //-----------------------------------------------------------------------------
 
@@ -158,9 +160,9 @@ public void collectData()
 @Override
 void loadConfigSettings()
 {
-    
+
     super.loadConfigSettings();
-    
+
     String section = "Device " + getDeviceNum() + " Settings";
 
 }// end of Multi_IO_A_Longitudinal::loadConfigSettings

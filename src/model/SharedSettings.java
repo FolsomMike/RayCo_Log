@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.FileHandler;
@@ -65,11 +66,8 @@ public class SharedSettings{
     public int lastPieceNumber;
     public int lastCalPieceNumber;
 
-    Map<String, Integer> thresholdLevels = new HashMap<>();
-    synchronized public void setThresholdLevel(String pKey, int pL)
-        { thresholdLevels.put(pKey, pL); }
-    synchronized public int getThresholdLevel(String pKey)
-        { return thresholdLevels.get(pKey); }
+    private ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
+    public void addThresholdInfo(ThresholdInfo pInfo) { thresholdInfos.add(pInfo); }
 
     public String mainFileFormat = "UTF-8";
 
@@ -196,6 +194,54 @@ private void loadMainSettings()
              "Main Settings", "number of last calibration piece processed", 0);
 
 }// end of SharedSettings::loadMainSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::getThresholdInfo
+//
+// Returns the ThresholdInfo object whose info matches the parameters.
+//
+
+public ThresholdInfo getThresholdInfo(int pChartGroup, int pChart, int pGraph,
+                                        int pThreshold)
+{
+
+    for (ThresholdInfo info : thresholdInfos) {
+        if (pChartGroup==info.getChartGroupNum()
+                && pChart==info.getChartNum()
+                && pGraph==info.getGraphNum()
+                && pThreshold==info.getThresholdNum())
+        { return info; }
+    }
+
+    return null;
+
+}// end of SharedSettings::getThresholdInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::getThresholdInfosForGraph
+//
+// Returns a list of ThresholdInfo objects for pGraph of pChart of pChartGroup.
+//
+
+public ArrayList<ThresholdInfo> getThresholdInfosForGraph(int pChartGroup,
+                                                            int pChart,
+                                                            int pGraph)
+{
+
+    ArrayList<ThresholdInfo> infos = new ArrayList<>(thresholdInfos.size());
+
+    for (ThresholdInfo info : thresholdInfos) {
+        if (pChartGroup==info.getChartGroupNum()
+                && pChart==info.getChartNum()
+                && pGraph==info.getGraphNum())
+        { infos.add(info); }
+    }
+
+    return infos;
+
+}// end of SharedSettings::getThresholdInfosForGraph
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

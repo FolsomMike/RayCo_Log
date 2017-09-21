@@ -176,7 +176,7 @@ synchronized public void reset()
 // data is a peak).
 //
 
-synchronized public boolean putData(int pData, int pDataFlag)
+synchronized public boolean putData(int pData)
 {
 
     boolean stored = false;
@@ -207,6 +207,32 @@ synchronized public boolean putData(int pData, int pDataFlag)
     return stored;
 
 }// end of DataTransferIntBuffer::putData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DataTransferIntBuffer::storeThresholdAtInsertionPoint
+//
+// Stores the number of the threshold violated by the datapoint at the current
+// insertion point.
+//
+// The threshold number is increased by a value of 2 for storage -- a zero
+// indicates no threshold was violated, a value of 1 indicates a manual user
+// flag, any other value represents the threshold number plus 2.
+//
+// After adding 2, only the lower 7 bits are stored.
+//
+
+synchronized public void storeThresholdAtInsertionPoint(int pThreshold)
+{
+
+    flags[putPointer] &= CLEAR_THRESHOLD_MASK; //erase old value
+    //shift up by value of 2 (see notes above)
+    pThreshold += 2;
+    //mask top bits to protect against invalid value
+    pThreshold &= TRIM_THRESHOLD_MASK;
+    flags[putPointer] += pThreshold << 9; //store new flag
+
+}//end of DataTransferIntBuffer::storeThresholdAtInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

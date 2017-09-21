@@ -666,23 +666,25 @@ private void updateThreshold(String pInfo)
 
     // [0] = Action command
     // [1] = Spinner title
-    // [2] = Threshold section
-    // [3] = Chart group num
-    // [4] = Chart num
-    // [5] = Graph num
+    // [2] = Chart group num
+    // [3] = Chart num
+    // [4] = Graph num
+    // [5] = Threshold num
     // [6] = Threshold level
 
     String[] infoSplits = pInfo.split(",");
 
-    //update threshold value in shared settings
-    String thresSection = infoSplits[2];
-    int thresValue = Integer.parseInt(infoSplits[6]);
-    sharedSettings.setThresholdLevel(thresSection, thresValue);
+    int chartGroup = Integer.parseInt(infoSplits[2]);
+    int chart = Integer.parseInt(infoSplits[3]);
+    int graph = Integer.parseInt(infoSplits[4]);
+    int thres = Integer.parseInt(infoSplits[5]);
+
+    //update threshold level in shared settings
+    int lvl = Integer.parseInt(infoSplits[6]);
+    sharedSettings.getThresholdInfo(chartGroup, chart, graph, thres)
+                                                                .setLevel(lvl);
 
     //invoke MainView to repaint the graph containing this threshold
-    int chartGroup = Integer.parseInt(infoSplits[3]);
-    int chart = Integer.parseInt(infoSplits[4]);
-    int graph = Integer.parseInt(infoSplits[5]);
     mainView.repaintChild(chartGroup, chart, graph);
 
 }// end of MainController::updateThreshold
@@ -1166,8 +1168,16 @@ private void displayDataFromDevices()
         //put data in channel buffers
         Channel[] channels = device.getChannels();
         for (int i=0; i<channels.length; i++){
-            peakData.metaArray[i].dataBuffer.putData(peakData.peakArray[i],
-                                                        peakData.flagArray[i]);
+
+            DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
+
+            buf.putData(peakData.peakArray[i]);
+
+            //only store threshold if it is violated
+            if (peakData.violatesThresholdArray[i]) {
+                buf.storeThresholdAtInsertionPoint(peakData.peakArray[i]);
+            }
+
         }
     }
 

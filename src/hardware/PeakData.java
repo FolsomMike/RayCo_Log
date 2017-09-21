@@ -35,7 +35,7 @@ public SampleMetaData meta;
 
 //the arrays allow us to store info for multiple channels
 public int[] peakArray;
-public int[] flagArray;
+public boolean[] violatesThresholdArray;
 public SampleMetaData[] metaArray;
 
 //-----------------------------------------------------------------------------
@@ -47,6 +47,7 @@ public PeakData(int pPeakDataNum, int pNumChannels)
 
     peakDataNum = pPeakDataNum;
     peakArray = new int[pNumChannels];
+    violatesThresholdArray = new boolean[pNumChannels];
     metaArray = new SampleMetaData[pNumChannels];
 
 }//end of PeakData::PeakData (constructor)
