@@ -34,6 +34,8 @@ public class Trace{
 
     private GraphInfo graphInfo;
 
+    private Threshold[] thresholds;
+
     DataSetInt dataSet = new DataSetInt();
 
     DataTransferIntBuffer dataBuffer;
@@ -73,6 +75,8 @@ public class Trace{
     int gridXSpacing = 10;
     int gridYSpacing;
     int gridY1;
+
+    int flagThreshold;
 
     private int lastRequestedPeak = -1;
     private int lastRequestedPeakX = -1;
@@ -120,7 +124,8 @@ public Trace()
 public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
               int pTraceNum, int pWidth, int pHeight, Color pBackgroundColor,
               boolean pDrawGridBaseline, Color pGridColor, int pGridXSpacing,
-              int pGridYSpacing, GraphInfo pGraphInfo, IniFile pConfigFile)
+              int pGridYSpacing, GraphInfo pGraphInfo, IniFile pConfigFile,
+              Threshold[] pThresholds)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
@@ -130,6 +135,7 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     drawGridBaseline = pDrawGridBaseline; gridColor = pGridColor;
     gridXSpacing = pGridXSpacing; gridYSpacing = pGridYSpacing;
     graphInfo = pGraphInfo; configFile = pConfigFile;
+    thresholds = pThresholds;
 
     gridY1 = gridYSpacing-1; //do math once for repeated use
 
@@ -521,6 +527,12 @@ public void paintSingleTraceDataPoint(
     }
 
     prevX = x; prevY = y;
+
+    //if there is a flag set for this data point then draw it - threshold
+
+    //indices are shifted by two as 0 = no flag and 1 = user flag
+    flagThreshold = ((pFlags & DataTransferIntBuffer.THRESHOLD_MASK) >> 9)-2;
+    if (flagThreshold>=0) { thresholds[flagThreshold].drawFlag(pG2, xAdj, y); }
 
     //draw a circle on the datapoint if the CIRCLE flag is set
     if ((pFlags & DataTransferIntBuffer.CIRCLE) != 0){

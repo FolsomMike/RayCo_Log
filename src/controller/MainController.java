@@ -1174,8 +1174,9 @@ private void displayDataFromDevices()
             buf.putData(peakData.peakArray[i]);
 
             //only store threshold if it is violated
-            if (peakData.violatesThresholdArray[i]) {
-                buf.storeThresholdAtInsertionPoint(peakData.peakArray[i]);
+            int thresholdNum = peakData.thresholdViolationArray[i];
+            if (thresholdNum!=-1) {
+                buf.storeThresholdAtInsertionPoint(thresholdNum);
             }
 
         }

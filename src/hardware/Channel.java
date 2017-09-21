@@ -76,7 +76,7 @@ public class Channel
     PeakBufferInt peakBuffer;
 
     MKSInteger data = new MKSInteger(0);
-    MKSBoolean violatesThreshold = new MKSBoolean(false);
+    MKSInteger thresholdViolation = new MKSInteger(-1);
 
     ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
 
@@ -136,17 +136,17 @@ public void setUpPeakBuffer()
 
         case CATCH_HIGHEST:
             peakBuffer = new HighPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE, false); //DEBUG HSS// 0 should not be hard set
+            peakBuffer.setResetValue(Integer.MIN_VALUE, -1);
             break;
 
         case CATCH_LOWEST:
             peakBuffer = new LowPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MAX_VALUE, false); //DEBUG HSS// 0 should not be hard set
+            peakBuffer.setResetValue(Integer.MAX_VALUE, -1);
             break;
 
         default:
             peakBuffer = new HighPeakBufferInt(0);
-            peakBuffer.setResetValue(Integer.MIN_VALUE, false); //DEBUG HSS// 0 should not be hard set
+            peakBuffer.setResetValue(Integer.MIN_VALUE, -1);
             break;
 
     }
@@ -264,8 +264,9 @@ public void catchPeak(int pPeakValue)
 //-----------------------------------------------------------------------------
 // Channel::checkThresholdViolation
 //
-// Returns true signal exceeds any threshold levels.  Whether this is above or
-// below the threshold is determined by flagOnOver.
+// Returns -1 if no thresholds were violated. If a threshold was violated, that
+// threshold's number is returned. Whether this is above or below the threshold
+// is determined by flagOnOver.
 //
 // The threshold with the lowest (0) thresholdIndex is the highest severity
 // threshold, highest index is lowest.  This function should be called for the
@@ -274,28 +275,25 @@ public void catchPeak(int pPeakValue)
 // thresholds should be checked after one returns true because lower severity
 // thresholds should not override higher ones.
 //
-// If doNotFlag is true, the threshold is for reference purposes only and no
-// violations will ever be recorded.
-//
-// NOTE: For this function, the threshold is not inverted and the pSigHeight
-// should not be inverted as well.
-//
 
-private boolean checkThresholdViolation(int pSig)
+private int checkThresholdViolation(int pSig)
 
 {
 
     for (ThresholdInfo info : thresholdInfos) {
 
         int lvl = info.getLevel();
+        int num = info.getThresholdNum();
 
         //true check for signal above, if false check for signal below
-        if (info.getFlagOnOver()){ if (pSig >= lvl) { return true; } }
-        else{ if (pSig <= lvl) { return true; } }
+        if (info.getFlagOnOver()){
+            if (pSig >= lvl) { return info.getThresholdNum(); }
+        }
+        else{ if (pSig <= lvl) { return info.getThresholdNum(); } }
 
     }
 
-    return false; //no violation
+    return -1; //-1 because no threshold violated
 
 }//end of Channel::checkThresholdViolation
 //-----------------------------------------------------------------------------
@@ -309,10 +307,10 @@ private boolean checkThresholdViolation(int pSig)
 // This method returns an object as the peak may be of various data types.
 //
 
-public void getPeakAndReset(MKSInteger pPeakValue, MKSBoolean pViolatesThres)
+public void getPeakAndReset(MKSInteger pPeakValue, MKSInteger pThresViolation)
 {
 
-    peakBuffer.getPeakAndReset(pPeakValue, pViolatesThres);
+    peakBuffer.getPeakAndReset(pPeakValue, pThresViolation);
 
 }// end of Channel::getPeakAndReset
 //-----------------------------------------------------------------------------
@@ -334,10 +332,10 @@ public boolean getPeakDataAndReset(PeakData pPeakData)
 
     pPeakData.metaArray[meta.channelNum] = meta; //channel/buffer/trace etc. info
 
-    boolean peakUpdated = peakBuffer.getPeakAndReset(data, violatesThreshold);
+    boolean peakUpdated = peakBuffer.getPeakAndReset(data, thresholdViolation);
 
     pPeakData.peakArray[meta.channelNum] = data.x;
-    pPeakData.violatesThresholdArray[meta.channelNum] = violatesThreshold.bool;
+    pPeakData.thresholdViolationArray[meta.channelNum] = thresholdViolation.x;
 
     return(peakUpdated);
 

@@ -222,7 +222,7 @@ private int calculateY(int pY)
 // Draws a flag with the threshold color at location xPos,pSigHeight.
 //
 
-private void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
+public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 {
 
     //if flag would be drawn above or below the screen, force on screen

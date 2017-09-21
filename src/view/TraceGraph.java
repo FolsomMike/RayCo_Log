@@ -68,8 +68,8 @@ public void init()
 
     setOpaque(true);
     setBackground(backgroundColor);
-    addTraces();
     addThresholds();
+    addTraces();
 
 }// end of TraceGraph::init
 //-----------------------------------------------------------------------------
@@ -187,7 +187,7 @@ private void addTraces()
         traces[i] = new Trace();
         traces[i].init(chartGroupNum, chartNum, graphNum, i, width, height,
             backgroundColor, drawGridBaseline, gridColor, gridXSpacing,
-            gridYSpacing, graphInfo, configFile);
+            gridYSpacing, graphInfo, configFile, thresholds);
     }
 
 }//end of TraceGraph::addTraces

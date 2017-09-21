@@ -903,10 +903,10 @@ public boolean getDeviceDataAndReset(PeakData pPeakData,
 //
 
 public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue,
-                                        MKSBoolean pViolatesThreshold)
+                                        MKSInteger pThresholdViolation)
 {
 
-    channels[pChannel].getPeakAndReset(pPeakValue, pViolatesThreshold);
+    channels[pChannel].getPeakAndReset(pPeakValue, pThresholdViolation);
 
 }// end of Device::getPeakForChannelAndReset
 //-----------------------------------------------------------------------------
