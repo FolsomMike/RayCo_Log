@@ -283,7 +283,6 @@ private int checkThresholdViolation(int pSig)
     for (ThresholdInfo info : thresholdInfos) {
 
         int lvl = info.getLevel();
-        int num = info.getThresholdNum();
 
         //true check for signal above, if false check for signal below
         if (info.getFlagOnOver()){

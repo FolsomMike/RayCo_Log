@@ -251,6 +251,8 @@ public void paintChildren(Graphics2D pG2)
 {
 
     for (Trace trace : traces) { trace.paintTrace(pG2); }
+
+    //tell threshold to paint line all the way across
     for (Threshold t : thresholds) { t.paintThresholdLine(pG2); }
 
 }// end of TraceGraph::paintChildren
