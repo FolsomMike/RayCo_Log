@@ -473,7 +473,7 @@ public void loadCalFile(IniFile pCalFile)
     String section = "Chart Group " + chartGroupNum;
 
     // call each chart to load its data
-    for (Chart c : charts) { c.saveCalFile(pCalFile); }
+    for (Chart c : charts) { c.loadCalFile(pCalFile); }
 
 }//end of ChartGroup::loadCalFile
 //-----------------------------------------------------------------------------
