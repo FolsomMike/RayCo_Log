@@ -474,6 +474,9 @@ public void handleLeadPlotterActions (Graphics2D pG2, int pX)
 
     drawGrid(pG2, pX);
 
+    //tell thresholds to draw their lines to the x
+    for (Threshold t : thresholds) { t.drawNextSlice(pG2, pX); }
+
 }// end of Trace::handleLeadPlotterActions
 //-----------------------------------------------------------------------------
 

@@ -221,34 +221,59 @@ private int calculateY(int pY)
 //
 // Draws a flag with the threshold color at location xPos,pSigHeight.
 //
+// Note that pX and pY should already be scaled and the scroll offset should
+// have already been calculated.
+//
 
-public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
+public void drawFlag(Graphics2D pPG2, int pX, int pY)
 {
 
     //if flag would be drawn above or below the screen, force on screen
-    if (pYPos < 0) {pYPos = 0;}
-    if (pYPos > height) {pYPos = height - flagHeight;}
-
-    //add 1 to xPos so flag is drawn to the right of the peak
+    if (pY < 0) {pY = 0;}
+    if (pY+flagHeight > height) {pY = height - flagHeight;}
 
     pPG2.setColor(thresholdInfo.getThresholdColor());
-    pPG2.fillRect(pXPos+1, pYPos, flagWidth, flagHeight);
+
+    //add 1 to xPos so flag is drawn to the right of the peak
+    pPG2.fillRect(pX-1-flagWidth, pY, flagWidth, flagHeight);
 
 }//end of Threshold::drawFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Threshold::drawNextSlice
+//
+// Draws the threshold line up to pX. Note that pX should already be scaled
+// before it is passed to this function. However, scroll offset should not have
+// been calculated yet.
+//
+
+public void drawNextSlice(Graphics2D pG2, int pX)
+{
+
+    //adjust for any scrolling that has occurred before plotting
+    int xAdj = pX - graphInfo.scrollOffset;
+    int prevXAdj = prevX - graphInfo.scrollOffset;
+
+    //draw threshold line
+    int lvl = getPlotThresholdLevel();
+    pG2.setColor(thresholdInfo.getThresholdColor());
+    pG2.drawLine(prevXAdj, lvl, xAdj, lvl);
+
+}// end of Threshold::drawNextSlice
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Threshold::getPlotThresholdLevel
 //
-// Calculates and returns the plot threshold level using the threshold level
-// found in sharedSettings.
-
+// Calculates and returns the y point at which to plot the threshold level.
+//
 // This is not done once and stored in a class variable because sharedSettings
 // is shared with multiple threads and objects; the threshold level can change
 // at any time.
 //
 
-public int getPlotThresholdLevel()
+private int getPlotThresholdLevel()
 {
 
     int plotThresholdLevel = calculateY(getLevel());
@@ -263,30 +288,6 @@ public int getPlotThresholdLevel()
     return plotThresholdLevel;
 
 }//end of Threshold::getPlotThresholdLevel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Threshold::paintSingleDataPoint
-//
-// Draws the threshold line, and if necessary the flag.
-//
-
-public void paintSingleDataPoint(Graphics2D pG2, int pDataIndex)
-{
-
-    //calculate the x position in pixels
-    int x = (int)Math.round(pDataIndex * xScale);
-
-    //adjust for any scrolling that has occurred before plotting
-    int xAdj = x - graphInfo.scrollOffset;
-    int prevXAdj = prevX - graphInfo.scrollOffset;
-
-    //draw threshold line
-    int lvl = getPlotThresholdLevel();
-    pG2.setColor(thresholdInfo.getThresholdColor());
-    pG2.drawLine(prevXAdj, lvl, xAdj, lvl);
-
-}// end of Threshold::paintSingleDataPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
