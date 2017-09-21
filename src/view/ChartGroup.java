@@ -341,6 +341,20 @@ public void updateChild(int pChart, int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::repaintChild
+//
+// Repaints pGraph of pChart.
+//
+
+public void repaintChild(int pChart, int pGraph)
+{
+
+    charts[pChart].repaintChild(pGraph);
+
+}// end of ChartGroup::repaintChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::expandChartHeight
 //
 // Expands the height of the chart pChart while minimizing the height of all

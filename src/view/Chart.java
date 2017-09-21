@@ -433,6 +433,20 @@ public void addGraphSeparatorPanel(int pHeight, Color pLineColor,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::repaintChild
+//
+// Repaints pGraph of pChart.
+//
+
+public void repaintChild(int pGraph)
+{
+
+    graphs[pGraph].repaint();
+
+}// end of Chart::repaintChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::repaintGraph
 //
 // Forces the graph to be repainted.

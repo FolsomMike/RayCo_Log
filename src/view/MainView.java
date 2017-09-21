@@ -590,6 +590,20 @@ public void updateChild(int pChartGroup, int pChart, int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::repaintChild
+//
+// Repaints pGraph of pChart of pChartGroup.
+//
+
+public void repaintChild(int pChartGroup, int pChart, int pGraph)
+{
+
+    chartGroups[pChartGroup].repaintChild(pChart, pGraph);
+
+}// end of MainView::repaintChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::setAllUserInputData
 //
 // Sets the values for all of the user input GUI controls to values in pList.
