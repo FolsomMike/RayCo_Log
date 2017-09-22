@@ -65,6 +65,7 @@ public class SharedSettings{
 
     public int lastPieceNumber;
     public int lastCalPieceNumber;
+    public boolean startNewPieceAtLeftEdge = true;
 
     private ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
     public void addThresholdInfo(ThresholdInfo pInfo) { thresholdInfos.add(pInfo); }
