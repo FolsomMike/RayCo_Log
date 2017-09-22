@@ -547,7 +547,9 @@ public void paintSingleTraceDataPoint(
     }
 
     //if segment start flag set, draw a vertical separator bar
-    if ((pFlags & DataTransferIntBuffer.SEGMENT_START_SEPARATOR) != 0){
+    if ((pFlags & DataTransferIntBuffer.SEGMENT_START_SEPARATOR) != 0
+        || (pFlags & DataTransferIntBuffer.SEGMENT_END_SEPARATOR) != 0)
+    {
         pG2.setColor(gridColor);
         pG2.drawLine(xAdj, yMax, xAdj, 0);
     }
