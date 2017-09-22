@@ -582,6 +582,26 @@ private void markSegmentStart()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::markSegmentEnd
+//
+// Marks the buffer location of the end of the current segment.
+//
+// This function should be called whenever a new segment is to end - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+// This function should be called before saving the data so the end points
+// of the data to be saved are known.
+//
+
+public void markSegmentEnd()
+{
+
+    for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentEnd(); }
+
+}//end of MainController::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::displayCalibrationPanel
 //
 // Invokes MainView to display a calibration panel, providing it with the
@@ -1193,6 +1213,7 @@ private void updateGUIPeriodically()
 // numeric displays, graphs, etc.
 //
 
+int debugHss = 0; //DEBUG HSS//
 private void displayDataFromDevices()
 {
 
@@ -1209,6 +1230,8 @@ private void displayDataFromDevices()
                                                         peakSnapshotData,
                                                         peakMapData);
         if (results != true) { continue; }
+
+        if (debugHss++==500) { debugHss = 0; markSegmentEnd(); } //DEBUG HSS// temp test code
 
         //put data in snapshot buffer
         peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
