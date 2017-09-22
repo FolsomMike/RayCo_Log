@@ -1213,7 +1213,6 @@ private void updateGUIPeriodically()
 // numeric displays, graphs, etc.
 //
 
-int debugHss = 0; //DEBUG HSS//
 private void displayDataFromDevices()
 {
 
@@ -1230,8 +1229,6 @@ private void displayDataFromDevices()
                                                         peakSnapshotData,
                                                         peakMapData);
         if (results != true) { continue; }
-
-        if (debugHss++==500) { debugHss = 0; markSegmentEnd(); } //DEBUG HSS// temp test code
 
         //put data in snapshot buffer
         peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
