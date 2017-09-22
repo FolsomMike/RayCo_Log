@@ -73,6 +73,10 @@ int peakType;
 int defaultData = 0;
 synchronized public void setDefaultData(int pValue){ defaultData = pValue; }
 
+private int segmentLength;
+private int lastSegmentStartIndex;
+private int lastSegmentEndIndex;
+
 //constants
 public static final int CATCH_HIGHEST = 0;
 public static final int CATCH_LOWEST = 1;
@@ -233,6 +237,29 @@ synchronized public void storeThresholdAtInsertionPoint(int pThreshold)
     flags[putPointer] += pThreshold << 9; //store new flag
 
 }//end of DataTransferIntBuffer::storeThresholdAtInsertionPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DataTransferIntBuffer::markSegmentStart
+//
+// Resets the segmentLength variable and records the current buffer location.
+//
+// This function should be called whenever a new segment is to start - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+
+synchronized public void markSegmentStart()
+{
+
+    segmentLength = 0;
+
+    //set flag to display a separator bar at the start of the segment
+    flags[putPointer] |= SEGMENT_START_SEPARATOR;
+
+    //record the buffer start position of the last segment
+    lastSegmentStartIndex = putPointer;
+
+}//end of DataTransferIntBuffer::markSegmentStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
