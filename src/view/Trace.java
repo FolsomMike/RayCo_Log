@@ -546,6 +546,12 @@ public void paintSingleTraceDataPoint(
         pG2.draw(new Ellipse2D.Double(xAdj-3, y-3, 6, 6));
     }
 
+    //if segment start flag set, draw a vertical separator bar
+    if ((pFlags & DataTransferIntBuffer.SEGMENT_START_SEPARATOR) != 0){
+        pG2.setColor(gridColor);
+        pG2.drawLine(xAdj, yMax, xAdj, 0);
+    }
+
 }// end of Trace::paintSingleTraceDataPoint
 //-----------------------------------------------------------------------------
 
