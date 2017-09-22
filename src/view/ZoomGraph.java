@@ -212,6 +212,10 @@ public void resetAll()
 
     annoX = 0; //adding anno objects starts over at left edge
 
+    snapshotBuffer.reset();
+
+    data = new ArrayList<>(10000); //DEBUG HSS// shouln't even exist
+
 }// end of ZoomGraph::resetAll
 //-----------------------------------------------------------------------------
 

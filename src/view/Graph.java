@@ -157,6 +157,8 @@ public void resetAll()
     graphInfo.scrollOffset = 0;
     graphInfo.lastScrollAmount = 0;
 
+    repaint();
+
 }// end of Graph::resetAll
 //-----------------------------------------------------------------------------
 

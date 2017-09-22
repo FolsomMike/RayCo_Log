@@ -529,6 +529,28 @@ private boolean channelGraphingEnabled()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::startInspectMode
+//
+// Starts the inspection mode by resetting all buffers and telling view to
+// erase all traces and start back at the left of the screen.
+//
+
+private void startInspectMode()
+
+{
+
+    mode = INSPECT_MODE;
+
+    //tell view to reset everything he has as well
+    mainView.resetAll();
+
+    //mark the starting point of a new piece in the data buffers
+    //DEBUG HSS//markSegmentStart();
+
+}//end of MainController::startInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::displayCalibrationPanel
 //
 // Invokes MainView to display a calibration panel, providing it with the
@@ -655,7 +677,7 @@ private ArrayList<PeakData> getChannelList()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainController::displayCalibrationPanel
+// MainController::updateThreshold
 //
 // Updates the threshold value in sharedSettings and then invokes view to
 // redraw the graph containing that threshold.
@@ -837,7 +859,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     if ("Start Inspect Mode".equals(e.getActionCommand())) {
-        mode = INSPECT_MODE;
+        startInspectMode();
         return;
     }
 

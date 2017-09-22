@@ -326,6 +326,9 @@ public void resetData()
     dataIndex = 0; gridTrack = 0;
     prevX = -1; prevY = Integer.MAX_VALUE;
 
+    //DEBUG HSS// these shouldn't even exist
+    data = new ArrayList<>(10000); dataFlags = new ArrayList<>(10000);
+
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
 
