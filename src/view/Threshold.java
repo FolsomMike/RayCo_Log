@@ -217,25 +217,47 @@ private int calculateY(int pY)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Threshold::calculateFlagY
+//
+// Calculates and returns what the y position of the flag should be.
+//
+
+private int calculateFlagY(int pY)
+{
+
+    int y = pY;
+
+    //move so that the flag extends towards graph center
+    if (!thresholdInfo.getInvert()){ y -= flagHeight-1; }
+
+    //if flag would be drawn above or below the screen, force on screen
+    if (y < 0) {y = 0;} if (y+flagHeight > yMax) {y = yMax-flagHeight;}
+
+    return y;
+
+}//end of Threshold::calculateFlagY
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Threshold::drawFlag
 //
 // Draws a flag with the threshold color at location xPos,pSigHeight.
 //
-// Note that pX and pY should already be scaled and the scroll offset should
-// have already been calculated.
+// Note that pX and pY should already be scaled, the scroll offset for pX
+// should have already been calculated, and the inversion for pY should have
+// already been done.
 //
 
 public void drawFlag(Graphics2D pPG2, int pX, int pY)
 {
 
     //if flag would be drawn above or below the screen, force on screen
-    if (pY < 0) {pY = 0;}
-    if (pY+flagHeight > height) {pY = height - flagHeight;}
+    int y = calculateFlagY(pY);
 
     pPG2.setColor(thresholdInfo.getThresholdColor());
 
     //add 1 to xPos so flag is drawn to the right of the peak
-    pPG2.fillRect(pX-1-flagWidth, pY, flagWidth, flagHeight);
+    pPG2.fillRect(pX-1-flagWidth, y, flagWidth, flagHeight);
 
 }//end of Threshold::drawFlag
 //-----------------------------------------------------------------------------
@@ -278,11 +300,11 @@ private int getPlotThresholdLevel()
 
     int plotThresholdLevel = calculateY(getLevel());
     if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
-    if(plotThresholdLevel > height) {plotThresholdLevel = height;}
+    if(plotThresholdLevel > yMax) {plotThresholdLevel = yMax;}
 
     //invert the y position if specified
     if (thresholdInfo.getInvert()){
-        plotThresholdLevel = height - plotThresholdLevel;
+        plotThresholdLevel = yMax - plotThresholdLevel;
     }
 
     return plotThresholdLevel;
