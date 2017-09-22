@@ -263,6 +263,35 @@ synchronized public void markSegmentStart()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// DataTransferIntBuffer::markSegmentEnd
+//
+// Records the current buffer position as the point where the current segment
+// ends.  If the segment is to be saved, the save should occur after this
+// function is called and before markSegmentStart is called for the next
+// segment so the endpoints of the segment to be saved will still be valid.
+//
+// A separator bar is drawn for cases where the data might be free running
+// between segments, thus leaving a gap.  In that case, a bar at the start and
+// end points is necessary to delineate between segment data and useless data
+// in the gap.
+//
+// This function should be called whenever a new segment is to end - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+
+synchronized public void markSegmentEnd()
+{
+
+    //set flag to display a separator bar at the end of the segment
+    flags[putPointer] |= SEGMENT_END_SEPARATOR;
+
+    //record the buffer end position of the last segment
+    lastSegmentEndIndex = putPointer;
+
+}//end of DataTransferIntBuffer::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // DataTransferIntBuffer::setFlags
 //
 // OR's pFlags with flags[pIndex] to set one or more flag bits in the flags
