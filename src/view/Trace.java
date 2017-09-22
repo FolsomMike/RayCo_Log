@@ -600,7 +600,7 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 private int calculateY(int pY)
 {
 
-    return (int)((pY - baseLine) * yScale) + offset;
+    return (int)Math.round(((pY - baseLine) * yScale) + offset);
 
 }// end of Trace::calculateY
 //-----------------------------------------------------------------------------

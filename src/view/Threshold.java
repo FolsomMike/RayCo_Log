@@ -211,7 +211,7 @@ public void saveCalFile(IniFile pCalFile)
 private int calculateY(int pY)
 {
 
-    return (int)((pY - baseLine) * yScale) + offset;
+    return (int)Math.round(((pY - baseLine) * yScale) + offset);
 
 }// end of Threshold::calculateY
 //-----------------------------------------------------------------------------
