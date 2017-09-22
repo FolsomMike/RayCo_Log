@@ -536,18 +536,49 @@ private boolean channelGraphingEnabled()
 //
 
 private void startInspectMode()
-
 {
 
     mode = INSPECT_MODE;
 
-    //tell view to reset everything he has as well
+    //force view to reset everything he has
     mainView.resetAll();
 
-    //mark the starting point of a new piece in the data buffers
-    //DEBUG HSS//markSegmentStart();
+    prepareForNextPiece();
 
 }//end of MainController::startInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::prepareForNextPiece
+//
+// Prepares for the start of a new piece by telling view to reset everything
+// if necessary and by marking the start of a new segment.
+//
+
+private void prepareForNextPiece()
+{
+
+    //tell view to reset everything to left edge if setting say so
+    if (sharedSettings.startNewPieceAtLeftEdge) { mainView.resetAll();  }
+
+    //mark the starting point of a new segment
+    markSegmentStart();
+
+}// end of MainController::prepareForNextPiece
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::markSegmentStart
+//
+// Marks a segment start in all Channel transfer buffers.
+//
+
+private void markSegmentStart()
+{
+
+    for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentStart(); }
+
+}//end of MainController::markSegmentStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
