@@ -39,6 +39,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1522,6 +1524,17 @@ public void saveCalFile(IniFile pCalFile) {
     for (ChartGroup c : chartGroups) { c.saveCalFile(pCalFile); }
 
 }//end of MainView::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::saveSegment
+//
+
+public void saveSegment(BufferedWriter pOut) throws IOException {
+
+    for (ChartGroup c : chartGroups) { c.saveSegment(pOut); }
+
+}//end of MainView::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
