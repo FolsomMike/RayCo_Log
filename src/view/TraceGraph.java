@@ -19,6 +19,8 @@ package view;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import model.DataTransferIntBuffer;
 import model.IniFile;
@@ -169,6 +171,21 @@ public void saveCalFile(IniFile pCalFile)
     for (Threshold t : thresholds) { t.saveCalFile(pCalFile); }
 
 }//end of TraceGraph::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// TraceGraph::saveSegment
+//
+// Tells each trace to save the current segment to file.
+//
+
+@Override
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    for (Trace t : traces) { t.saveSegment(pOut); }
+
+}//end of TraceGraph::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
