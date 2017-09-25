@@ -46,7 +46,10 @@ import hardware.SampleMetaData;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.ListIterator;
@@ -1143,6 +1146,53 @@ private void saveCalFile()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::saveSegment
+//
+// Saves the current segment data to file.
+//
+
+private void saveSegment()
+{
+
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter out = null;
+
+    try{
+
+        //DEBUG HSS//
+        int segmentNumber = 1;
+        String filename = "30 - " + segmentNumber + ".cal";
+        String primaryPath = sharedSettings.jobPathPrimary + filename;
+        String secondaryPath = sharedSettings.jobPathSecondary + filename;
+        //DEBUG HSS//
+
+        fileOutputStream = new FileOutputStream(primaryPath);
+        outputStreamWriter = new OutputStreamWriter(fileOutputStream,
+                                                sharedSettings.mainFileFormat);
+        out = new BufferedWriter(outputStreamWriter);
+
+        //tell view to save data to file
+        mainView.saveSegment(out);
+
+    }
+    catch(IOException e){
+        MKSTools.logSevere(getClass().getName(), e.getMessage()
+                                                    + " - Error: 1175");
+    }
+    finally{
+        try{if (out != null) {out.close();}}
+        catch(IOException e){}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
+        catch(IOException e){}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
+        catch(IOException e){}
+    }
+
+}//end of MainController::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::doTimerActions
 //
 // Performs actions driven by the timer.
@@ -1213,6 +1263,7 @@ private void updateGUIPeriodically()
 // numeric displays, graphs, etc.
 //
 
+int debugHss = 0; //DEBUG HSS//
 private void displayDataFromDevices()
 {
 
@@ -1229,6 +1280,10 @@ private void displayDataFromDevices()
                                                         peakSnapshotData,
                                                         peakMapData);
         if (results != true) { continue; }
+
+        if (debugHss++==500) {
+            markSegmentEnd();
+        } //DEBUG HSS// temp test code
 
         //put data in snapshot buffer
         peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
@@ -1271,6 +1326,8 @@ private void displayDataFromDevices()
         //update trace with all data changes
         mainView.updateAnnotationGraphs(snapBuffer.chartGroupNum);
     }
+
+    if (debugHss==501) { saveSegment();} //DEBUG HSS// temp test code
 
     //update clockmap display objects from transfer buffers
     if (mapUpdateRateTrigger++ < 9){ return; } else{ mapUpdateRateTrigger = 0;}
