@@ -31,6 +31,8 @@ import model.SharedSettings;
 public class ZoomGraph extends Graph{
 
     private final ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
+    private int lastUpdatedZoomBoxDataIndex = 0;
+    private ZoomBox lastUpdatedZoomBox = null;
 
     private int annoX = 0;
     public int getNextBoxStartX() { return annoX; }
@@ -189,6 +191,13 @@ void updateZoomBox(int pX)
     for (ZoomBox b : zoomBoxes) {
         if ((b.getX())<=pX && pX<=(b.getXEnd())){
 
+            //store this zoombox info so data can be reset later
+            if (lastUpdatedZoomBox != b) {
+                resetLastUpdatedZoomBox();
+                lastUpdatedZoomBoxDataIndex = b.getArrowX();
+                lastUpdatedZoomBox = b;
+            }
+
             b.setData(data.get(pX), pX);
             b.paint((Graphics2D)getGraphics());
 
@@ -196,6 +205,25 @@ void updateZoomBox(int pX)
     }
 
 }// end of ZoomGraph::updateZoomBox
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::resetLastUpdatedZoomBox
+//
+// Resets the last updated ZoomBox back its original data.
+//
+
+void resetLastUpdatedZoomBox()
+{
+
+    if (lastUpdatedZoomBox!=null) {
+        lastUpdatedZoomBox.setData(data.get(lastUpdatedZoomBoxDataIndex),
+                                    lastUpdatedZoomBoxDataIndex);
+        lastUpdatedZoomBox.paint((Graphics2D)getGraphics());
+        lastUpdatedZoomBox = null;
+    }
+
+}// end of ZoomGraph::resetLastUpdatedZoomBox
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
