@@ -21,6 +21,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,7 +34,7 @@ import model.SharedSettings;
 // class Chart
 //
 
-class Chart extends JPanel implements MouseMotionListener {
+class Chart extends JPanel implements MouseListener, MouseMotionListener {
 
     private final IniFile configFile;
     private final SharedSettings sharedSettings;
@@ -107,6 +108,7 @@ public void init()
 
     setGraphsVisible(graphsVisible);
 
+    addMouseListener(this);
     addMouseMotionListener(this);
 
 }// end of Chart::init
@@ -876,9 +878,42 @@ public void mouseMoved(MouseEvent pEvent) {
 }// end of Chart::mouseMoved
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Chart::mouseExited
+//
+// Called when the mouse has exited any object that this class has been
+// assigned as a listener.
+//
+
+@Override
+public void mouseExited(MouseEvent pEvent) {
+
+    //only take action if there is a zoomgraph
+    if (zoomGraph!=null) { zoomGraph.resetLastUpdatedZoomBox(); }
+
+}// end of Chart::mouseExited
+//-----------------------------------------------------------------------------
+
 //Required to be overriden for interface MouseMotionListener
 @Override
 public void mouseDragged(MouseEvent me) {}
+
+//Required to be overriden for interface MouseListener
+@Override
+public void mouseClicked(MouseEvent me) {
+}
+
+@Override
+public void mousePressed(MouseEvent me) {
+}
+
+@Override
+public void mouseReleased(MouseEvent me) {
+}
+
+@Override
+public void mouseEntered(MouseEvent me) {
+}
 
 
 }//end of class Chart
