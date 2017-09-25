@@ -23,6 +23,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
@@ -852,6 +854,19 @@ public void saveCalFile(IniFile pCalFile)
     for (Graph g : graphs) { g.saveCalFile(pCalFile); }
 
 }//end of Chart::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::saveSegment
+//
+
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    // tell each graph to save its data
+    for (Graph g : graphs) { g.saveSegment(pOut); }
+
+}//end of Chart::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
