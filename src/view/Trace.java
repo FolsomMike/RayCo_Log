@@ -18,6 +18,8 @@ package view;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import model.DataSetInt;
 import model.DataTransferIntBuffer;
@@ -44,6 +46,9 @@ public class Trace{
 
     ArrayList<Integer> data = new ArrayList<>(10000);
     ArrayList<Integer> dataFlags = new ArrayList<>(10000);
+
+    private int lastSegmentStartIndex = -1;
+    private int lastSegmentEndIndex = -1;
 
     private String title, shortTitle, objectType;
     public Color traceColor;
@@ -556,10 +561,14 @@ public void paintSingleTraceDataPoint(
         pG2.draw(new Ellipse2D.Double(xAdj-3, y-3, 6, 6));
     }
 
-    //if segment start flag set, draw a vertical separator bar
-    if ((pFlags & DataTransferIntBuffer.SEGMENT_START_SEPARATOR) != 0
-        || (pFlags & DataTransferIntBuffer.SEGMENT_END_SEPARATOR) != 0)
-    {
+    //if segment start/end flag set, draw a vertical separator bar, store index
+    if ((pFlags & DataTransferIntBuffer.SEGMENT_START_SEPARATOR) != 0) {
+        lastSegmentStartIndex = pDataIndex;
+        pG2.setColor(gridColor);
+        pG2.drawLine(xAdj, yMax, xAdj, 0);
+    }
+    if ((pFlags & DataTransferIntBuffer.SEGMENT_END_SEPARATOR) != 0) {
+        lastSegmentEndIndex = pDataIndex;
         pG2.setColor(gridColor);
         pG2.drawLine(xAdj, yMax, xAdj, 0);
     }
@@ -670,6 +679,39 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
     return peak;
 
 }// end of Trace::getPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::saveSegment
+//
+// Saves data for the current segment to file.
+//
+
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("[Trace]"); pOut.newLine();
+    pOut.write("Trace Index=" + traceNum); pOut.newLine();
+    pOut.write("Trace Title=" + title); pOut.newLine();
+    pOut.write("Trace Short Title=" + shortTitle); pOut.newLine();
+
+    //catch unexpected case where start/stop are invalid and bail
+    if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0){
+        pOut.write("Segment start and/or start invalid - no data saved.");
+        pOut.newLine(); pOut.newLine();
+        return;
+    }
+
+    pOut.write("[Data Set 1]"); pOut.newLine(); //save data set
+
+    for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
+        pOut.write(Integer.toString(data.get(i))); //save the data
+        pOut.newLine();
+    }
+
+    pOut.write("[End of Set]"); pOut.newLine();
+
+}//end of Trace::saveSegment
 //-----------------------------------------------------------------------------
 
 }//end of class Trace
