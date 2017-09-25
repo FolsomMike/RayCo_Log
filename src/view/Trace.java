@@ -379,19 +379,29 @@ public void paintTrace(Graphics2D pG2)
 
     if(!visible) { return; }
 
-    int realX = prevX; prevX=0; //store prev x for use after repaint
-    int realY = prevY; prevY=0; //store prev x for use after repaint
+    int realX = prevX; prevX=-1; //store prev x for use after repaint
+    int realY = prevY; prevY=0; //store prev y for use after repaint
     int realGridTrack = gridTrack; gridTrack=0; //store for use after repaint
-    for(int i=0; i<width-1; i++){
 
-        if (i>=data.size()) { break; }
+    //start index at offset point
+    int index = graphInfo.scrollOffset;
 
-        paintSingleTraceDataPoint(pG2, i, data.get(i), dataFlags.get(i));
+    //stop short of the end of the screen to avoid triggering chart scroll
+    //in the plotPoint function
+    for(int i=0; i<xMax; i++){
+
+        //quit if index beyond data size
+        if (index>=data.size()) { break; }
+
+        //snag data and flags and inc pointer
+        int d = data.get(index); int f = dataFlags.get(index); index++;
+
+        paintSingleTraceDataPoint(pG2, index, d, f);
 
     }
+
     //restore so next data drawn in proper pos
     prevX = realX; prevY = realY; gridTrack = realGridTrack;
-
 
 }// end of Trace::paintTrace
 //-----------------------------------------------------------------------------
