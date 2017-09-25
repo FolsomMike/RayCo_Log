@@ -18,6 +18,8 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.DataTransferIntMultiDimBuffer;
@@ -633,6 +635,18 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeString(configFileSection, "Graph Test Value", "Test");
 
 }//end of Graph::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::saveSegment
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void saveSegment(BufferedWriter pOut)  throws IOException
+{
+
+}//end of Graph::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
