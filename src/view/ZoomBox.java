@@ -48,6 +48,7 @@ class ZoomBox{
 
     private final boolean hasArrow;
     private int arrowX;
+    public int getArrowX() { return arrowX; }
     private final int arrowY;
     private final int arrowWidth;
     private final int arrowHeight;
