@@ -41,6 +41,8 @@ package view;
 
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
@@ -501,6 +503,18 @@ public void saveCalFile(IniFile pCalFile)
 }//end of ChartGroup::saveCalFile
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ChartGroup::saveSegment
+//
+
+public void saveSegment(BufferedWriter pOut)  throws IOException
+{
+
+    // call each chart to save its data
+    for (Chart c : charts) { c.saveSegment(pOut); }
+
+}//end of ChartGroup::saveSegment
+//-----------------------------------------------------------------------------
 
 }//end of class ChartGroup
 //-----------------------------------------------------------------------------
