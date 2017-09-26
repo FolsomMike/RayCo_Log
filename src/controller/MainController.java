@@ -576,13 +576,15 @@ private void prepareForNextPiece()
 //-----------------------------------------------------------------------------
 // MainController::markSegmentStart
 //
-// Marks a segment start in all Channel transfer buffers.
+// Marks a segment start in all transfer buffers.
 //
 
 private void markSegmentStart()
 {
 
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentStart(); }
+    for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentStart(); }
+    for(DataTransferIntMultiDimBuffer buf: mapBuffers){ buf.markSegmentStart(); }
 
 }//end of MainController::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -603,6 +605,8 @@ public void markSegmentEnd()
 {
 
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentEnd(); }
+    for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentEnd(); }
+    for(DataTransferIntMultiDimBuffer buf: mapBuffers){ buf.markSegmentEnd(); }
 
 }//end of MainController::markSegmentEnd
 //-----------------------------------------------------------------------------
