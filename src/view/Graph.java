@@ -638,6 +638,18 @@ public void saveCalFile(IniFile pCalFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::loadSegment
+//
+// Loads segments' data from pFile.
+//
+
+public void loadSegment(IniFile pFile)
+{
+
+}//end of Graph::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::saveSegment
 //
 // Generally overridden by subclasses to provide appropriate processing.
