@@ -68,7 +68,9 @@ int peakType;
 int defaultData = 0;
 synchronized public void setDefaultData(int pValue){ defaultData = pValue; }
 
-//simple getters & setters
+private int segmentLength;
+private int lastSegmentStartIndex;
+private int lastSegmentEndIndex;
 
 //constants
 
@@ -185,6 +187,58 @@ synchronized public void putData(int pPeak, int[] pData)
     }
 
 }// end of DataTransferSnapshotBuffer::putData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DataTransferSnapshotBuffer::markSegmentStart
+//
+// Resets the segmentLength variable and records the current buffer location.
+//
+// This function should be called whenever a new segment is to start - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+
+synchronized public void markSegmentStart()
+{
+
+    segmentLength = 0;
+
+    //set flag to display a separator bar at the start of the segment
+    flags[putPointer] |= DataFlags.SEGMENT_START_SEPARATOR;
+
+    //record the buffer start position of the last segment
+    lastSegmentStartIndex = putPointer;
+
+}//end of DataTransferSnapshotBuffer::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DataTransferIntBuffer::markSegmentEnd
+//
+// Records the current buffer position as the point where the current segment
+// ends.  If the segment is to be saved, the save should occur after this
+// function is called and before markSegmentStart is called for the next
+// segment so the endpoints of the segment to be saved will still be valid.
+//
+// A separator bar is drawn for cases where the data might be free running
+// between segments, thus leaving a gap.  In that case, a bar at the start and
+// end points is necessary to delineate between segment data and useless data
+// in the gap.
+//
+// This function should be called whenever a new segment is to end - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+
+synchronized public void markSegmentEnd()
+{
+
+    //set flag to display a separator bar at the end of the segment
+    flags[putPointer] |= DataFlags.SEGMENT_END_SEPARATOR;
+
+    //record the buffer end position of the last segment
+    lastSegmentEndIndex = putPointer;
+
+}//end of DataTransferIntBuffer::markSegmentEnd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
