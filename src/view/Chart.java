@@ -857,6 +857,21 @@ public void saveCalFile(IniFile pCalFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::loadSegment
+//
+// Loads segments' data from pFile.
+//
+
+public void loadSegment(IniFile pFile)
+{
+
+    // tell each graph to load data
+    for (Graph g : graphs) { g.loadSegment(pFile); }
+
+}//end of Chart::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::saveSegment
 //
 
