@@ -174,6 +174,23 @@ public void saveCalFile(IniFile pCalFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// TraceGraph::loadSegment
+//
+// Tells each trace to load the segment he was in pFile.
+//
+
+@Override
+public void loadSegment(IniFile pFile)
+{
+
+    super.loadSegment(pFile);
+
+    for (Trace t : traces) { t.loadSegment(pFile); }
+
+}//end of TraceGraph::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // TraceGraph::saveSegment
 //
 // Tells each trace to save the current segment to file.
