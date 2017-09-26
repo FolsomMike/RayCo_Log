@@ -1527,6 +1527,17 @@ public void saveCalFile(IniFile pCalFile) {
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::loadSegment
+//
+
+public void loadSegment(IniFile pFile) {
+
+    for (ChartGroup c : chartGroups) { c.loadSegment(pFile); }
+
+}//end of MainView::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::saveSegment
 //
 
