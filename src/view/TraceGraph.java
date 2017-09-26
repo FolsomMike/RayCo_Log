@@ -22,6 +22,7 @@ import java.awt.Graphics2D;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import model.DataFlags;
 import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.SharedSettings;
@@ -449,7 +450,7 @@ public void setVerticalBarAllChildren()
 
     for (Trace trace : traces) {
         trace.getDataBuffer().setFlagsAtCurrentInsertionPoint(
-                                           DataTransferIntBuffer.VERTICAL_BAR);
+                                           DataFlags.VERTICAL_BAR);
     }
 
 }// end of TraceGraph::setVerticalBarAllChildren

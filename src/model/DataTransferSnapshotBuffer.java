@@ -78,14 +78,6 @@ public static final int CATCH_LOWEST = 1;
 private static int DATA_RESET_VALUE = 0;
 private static final int META_RESET_VALUE = 0;
 
-private static final int FLAG_RESET_VALUE = 0x0000000000000000;
-public final static int DATA_VALID =        0x0000000000000001;
-public final static int DATA_READY =        0x0000000000000002;
-public final static int DATA_ERASED =       0x0000000000000004;
-public static final int VERTICAL_BAR =      0x0000000000000008;
-public static final int CIRCLE =            0x0000000000000010;
-
-
 //-----------------------------------------------------------------------------
 // DataTransferSnapshotBuffer::DataTransferSnapshotBuffer (constructor)
 //
@@ -139,7 +131,7 @@ synchronized public void reset()
 {
 
     for(int i=0; i<dataBuf.length; i++){
-        flags[i] = FLAG_RESET_VALUE;
+        flags[i] = DataFlags.FLAG_RESET_VALUE;
 
         dataPeakBuf[i] = DATA_RESET_VALUE;
 
@@ -169,12 +161,12 @@ synchronized public void reset()
 synchronized public void putData(int pPeak, int[] pData)
 {
 
-    if ((flags[putPointer] & DATA_VALID) == 0){
+    if ((flags[putPointer] & DataFlags.DATA_VALID) == 0){
 
         //no data previously stored, so store new data
         dataPeakBuf[putPointer] = pPeak;
         System.arraycopy(pData,0, dataBuf[putPointer], 0, pData.length);
-        flags[putPointer] |= DATA_VALID;
+        flags[putPointer] |= DataFlags.DATA_VALID;
 
     }else{
         //only store if new data is a new peak
@@ -244,7 +236,7 @@ synchronized public boolean getData(DataSetSnapshot pDataSet)
 
     pDataSet.flags = flags[getPointer];
 
-    return( (flags[getPointer] & DATA_VALID) != 0 );
+    return( (flags[getPointer] & DataFlags.DATA_VALID) != 0 );
 
 }// end of DataTransferSnapshotBuffer::getData
 //-----------------------------------------------------------------------------
@@ -277,8 +269,8 @@ synchronized public int getDataChange(DataSetSnapshot pDataSet)
     //if data at current location has been marked erased, return that data and
     //move pointer to previous location
 
-    if ((flags[getPointer] & DATA_ERASED) != 0){
-        flags[getPointer] &= ~DATA_ERASED; //remove ERASED flag
+    if ((flags[getPointer] & DataFlags.DATA_ERASED) != 0){
+        flags[getPointer] &= ~DataFlags.DATA_ERASED; //remove ERASED flag
         pDataSet.p = dataPeakBuf[putPointer];
         System.arraycopy(dataBuf[getPointer],0, pDataSet.d,0, pDataSet.length);
         pDataSet.flags = flags[getPointer];
@@ -290,7 +282,7 @@ synchronized public int getDataChange(DataSetSnapshot pDataSet)
     //if data at current location has been marked ready, return that data and
     //move pointer to next location
 
-    if ((flags[getPointer] & DATA_READY) != 0){
+    if ((flags[getPointer] & DataFlags.DATA_READY) != 0){
         pDataSet.p = dataPeakBuf[putPointer];
         System.arraycopy(dataBuf[getPointer],0, pDataSet.d,0, pDataSet.length);
         pDataSet.flags = flags[getPointer];
@@ -325,7 +317,7 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
 
     //if valid data present in current slot, mark ready and inc pointer
 
-    if ((flags[putPointer] & DATA_VALID) != 0){ //flag set if result != 0
+    if ((flags[putPointer] & DataFlags.DATA_VALID) != 0){ //flag set if result != 0
         incrementPutPointerAndSetReadyFlag();
         return;
     }
@@ -336,7 +328,7 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
     int prevSlotPtr = putPointer-1;
     if(prevSlotPtr < 0) prevSlotPtr = bufLength-1;
 
-    if ((flags[prevSlotPtr] & DATA_VALID) != 0){ //flag set if result != 0
+    if ((flags[prevSlotPtr] & DataFlags.DATA_VALID) != 0){ //flag set if result != 0
         dataPeakBuf[putPointer] = dataPeakBuf[prevSlotPtr];
         System.arraycopy(dataBuf[prevSlotPtr],0,dataBuf[putPointer],0,bufWidth);
         incrementPutPointerAndSetReadyFlag();
@@ -376,7 +368,7 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
 private void incrementPutPointerAndSetReadyFlag()
 {
 
-    flags[putPointer] |= DATA_READY;
+    flags[putPointer] |= DataFlags.DATA_READY;
 
     putPointer++;
     if(putPointer >= bufLength) putPointer = 0;
@@ -384,7 +376,7 @@ private void incrementPutPointerAndSetReadyFlag()
     dataPeakBuf[putPointer] = DATA_RESET_VALUE;
     for (int i=0; i<bufWidth; i++){ dataBuf[putPointer][i] = DATA_RESET_VALUE; }
 
-    flags[putPointer] = FLAG_RESET_VALUE;
+    flags[putPointer] = DataFlags.FLAG_RESET_VALUE;
 
 }// end of DataTransferSnapshotBuffer::incrementPutPointerAndSetReadyFlag
 //-----------------------------------------------------------------------------
@@ -415,7 +407,7 @@ private void incrementPutPointer()
     dataPeakBuf[putPointer] = DATA_RESET_VALUE;
     for (int i=0; i<bufWidth; i++){ dataBuf[putPointer][i] = DATA_RESET_VALUE; }
 
-    flags[putPointer] = FLAG_RESET_VALUE;
+    flags[putPointer] = DataFlags.FLAG_RESET_VALUE;
 
 }// end of DataTransferSnapshotBuffer::incrementPutPointer
 //-----------------------------------------------------------------------------
@@ -448,7 +440,7 @@ synchronized public void decrementPutPointer()
 synchronized public void decrementPutPointerAndSetErasedFlag()
 {
 
-    flags[putPointer] |= DATA_ERASED;
+    flags[putPointer] |= DataFlags.DATA_ERASED;
     putPointer--;
     if(putPointer < 0) putPointer = bufLength-1;
 

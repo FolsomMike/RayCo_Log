@@ -21,6 +21,7 @@ import java.awt.geom.Ellipse2D;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import model.DataFlags;
 import model.DataSetInt;
 import model.DataTransferIntBuffer;
 import model.IniFile;
@@ -526,7 +527,7 @@ public void paintSingleTraceDataPoint(
     int prevXAdj = prevX - graphInfo.scrollOffset;
 
     //draw a vertical line if the flag is set
-    if ((pFlags & DataTransferIntBuffer.VERTICAL_BAR) != 0){
+    if ((pFlags & DataFlags.VERTICAL_BAR) != 0){
         pG2.setColor(VERTICAL_BAR_COLOR);
         pG2.drawLine(xAdj, 0, xAdj, yMax);
     }
@@ -555,22 +556,22 @@ public void paintSingleTraceDataPoint(
     //if there is a flag set for this data point then draw it - threshold
 
     //indices are shifted by two as 0 = no flag and 1 = user flag
-    flagThreshold = ((pFlags & DataTransferIntBuffer.THRESHOLD_MASK) >> 9)-2;
+    flagThreshold = ((pFlags & DataFlags.THRESHOLD_MASK) >> 9)-2;
     if (flagThreshold>=0) { thresholds[flagThreshold].drawFlag(pG2, xAdj, y); }
 
     //draw a circle on the datapoint if the CIRCLE flag is set
-    if ((pFlags & DataTransferIntBuffer.CIRCLE) != 0){
+    if ((pFlags & DataFlags.CIRCLE) != 0){
         pG2.setColor(circleColor);
         pG2.draw(new Ellipse2D.Double(xAdj-3, y-3, 6, 6));
     }
 
     //if segment start/end flag set, draw a vertical separator bar, store index
-    if ((pFlags & DataTransferIntBuffer.SEGMENT_START_SEPARATOR) != 0) {
+    if ((pFlags & DataFlags.SEGMENT_START_SEPARATOR) != 0) {
         lastSegmentStartIndex = pDataIndex;
         pG2.setColor(gridColor);
         pG2.drawLine(xAdj, yMax, xAdj, 0);
     }
-    if ((pFlags & DataTransferIntBuffer.SEGMENT_END_SEPARATOR) != 0) {
+    if ((pFlags & DataFlags.SEGMENT_END_SEPARATOR) != 0) {
         lastSegmentEndIndex = pDataIndex;
         pG2.setColor(gridColor);
         pG2.drawLine(xAdj, yMax, xAdj, 0);

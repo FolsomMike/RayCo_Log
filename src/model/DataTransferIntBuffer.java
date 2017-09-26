@@ -83,29 +83,6 @@ public static final int CATCH_LOWEST = 1;
 
 private static int DATA_RESET_VALUE = 0;
 
-// flags and constants to store meta data for each datapoint
-private static final int FLAG_RESET_VALUE = 0x0000000000000000;
-public final static int DATA_VALID =        0x0000000000000001;
-public final static int DATA_READY =        0x0000000000000002;
-public final static int DATA_ERASED =       0x0000000000000004;
-public static final int VERTICAL_BAR =      0x0000000000000008;
-public static final int CIRCLE =            0x0000000000000010;
-public static final int CLEAR_ALL_FLAGS = 0;
-public static final int MIN_MAX_FLAGGED =         0x10000;
-public static final int SEGMENT_START_SEPARATOR = 0x20000;
-public static final int SEGMENT_END_SEPARATOR =   0x40000;
-public static final int END_MASK_MARK =           0x80000;
-public static final int IN_PROCESS =             0x400000;
-public static final int MARKER_SQUARE =          0x800000;
-
-public static final int CLEAR_CLOCK_MASK = 0xfffffe00;
-public static final int THRESHOLD_MASK = 0x0000fe00;
-public static final int TRIM_CLOCK_MASK = 0x1ff;
-public static final int CLEAR_THRESHOLD_MASK = 0xffff01ff;
-public static final int TRIM_THRESHOLD_MASK = 0x7f;
-public static final int CLEAR_DATA_ERASED = ~DATA_ERASED;
-
-
 //-----------------------------------------------------------------------------
 // DataTransferIntBuffer::DataTransferIntBuffer (constructor)
 //
@@ -160,7 +137,7 @@ synchronized public void reset()
     }
 
     for(int k=0; k<dataBuf.length; k++){
-        flags[k] = FLAG_RESET_VALUE;
+        flags[k] = DataFlags.FLAG_RESET_VALUE;
     }
 
     putPointer = 0;
@@ -185,11 +162,11 @@ synchronized public boolean putData(int pData)
 
     boolean stored = false;
 
-    if ((flags[putPointer] & DATA_VALID) == 0){
+    if ((flags[putPointer] & DataFlags.DATA_VALID) == 0){
 
         //no data previously stored, so store new data
         dataBuf[putPointer] = pData;
-        flags[putPointer] |= DATA_VALID;
+        flags[putPointer] |= DataFlags.DATA_VALID;
         stored = true;
 
     }else{
@@ -229,11 +206,11 @@ synchronized public boolean putData(int pData)
 synchronized public void storeThresholdAtInsertionPoint(int pThreshold)
 {
 
-    flags[putPointer] &= CLEAR_THRESHOLD_MASK; //erase old value
+    flags[putPointer] &= DataFlags.CLEAR_THRESHOLD_MASK; //erase old value
     //shift up by value of 2 (see notes above)
     pThreshold += 2;
     //mask top bits to protect against invalid value
-    pThreshold &= TRIM_THRESHOLD_MASK;
+    pThreshold &= DataFlags.TRIM_THRESHOLD_MASK;
     flags[putPointer] += pThreshold << 9; //store new flag
 
 }//end of DataTransferIntBuffer::storeThresholdAtInsertionPoint
@@ -254,7 +231,7 @@ synchronized public void markSegmentStart()
     segmentLength = 0;
 
     //set flag to display a separator bar at the start of the segment
-    flags[putPointer] |= SEGMENT_START_SEPARATOR;
+    flags[putPointer] |= DataFlags.SEGMENT_START_SEPARATOR;
 
     //record the buffer start position of the last segment
     lastSegmentStartIndex = putPointer;
@@ -283,7 +260,7 @@ synchronized public void markSegmentEnd()
 {
 
     //set flag to display a separator bar at the end of the segment
-    flags[putPointer] |= SEGMENT_END_SEPARATOR;
+    flags[putPointer] |= DataFlags.SEGMENT_END_SEPARATOR;
 
     //record the buffer end position of the last segment
     lastSegmentEndIndex = putPointer;
@@ -338,7 +315,7 @@ synchronized public boolean getData(DataSetInt pDataSet)
     pDataSet.d = dataBuf[getPointer];
     pDataSet.flags = flags[getPointer];
 
-    return( (flags[getPointer] & DATA_VALID) != 0 );
+    return( (flags[getPointer] & DataFlags.DATA_VALID) != 0 );
 
 }// end of DataTransferIntBuffer::getData
 //-----------------------------------------------------------------------------
@@ -371,8 +348,8 @@ synchronized public int getDataChange(DataSetInt pDataSet)
     //if data at current location has been marked erased, return that data and
     //move pointer to previous location
 
-    if ((flags[getPointer] & DATA_ERASED) != 0){
-        flags[getPointer] &= ~DATA_ERASED; //remove ERASED flag
+    if ((flags[getPointer] & DataFlags.DATA_ERASED) != 0){
+        flags[getPointer] &= ~DataFlags.DATA_ERASED; //remove ERASED flag
         pDataSet.d = dataBuf[getPointer];
         pDataSet.flags = flags[getPointer];
         getPointer--;
@@ -383,7 +360,7 @@ synchronized public int getDataChange(DataSetInt pDataSet)
     //if data at current location has been marked ready, return that data and
     //move pointer to next location
 
-    if ((flags[getPointer] & DATA_READY) != 0){
+    if ((flags[getPointer] & DataFlags.DATA_READY) != 0){
         pDataSet.d = dataBuf[getPointer];
         pDataSet.flags = flags[getPointer];
         getPointer++;
@@ -417,7 +394,7 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
 
     //if valid data present in current slot, mark ready and inc pointer
 
-    if ((flags[putPointer] & DATA_VALID) != 0){ //flag set if result != 0
+    if ((flags[putPointer] & DataFlags.DATA_VALID) != 0){ //flag set if result != 0
         incrementPutPointerAndSetReadyFlag();
         return;
     }
@@ -428,7 +405,7 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
     int prevSlotPtr = putPointer-1;
     if(prevSlotPtr < 0) prevSlotPtr = bufLength-1;
 
-    if ((flags[prevSlotPtr] & DATA_VALID) != 0){ //flag set if result != 0
+    if ((flags[prevSlotPtr] & DataFlags.DATA_VALID) != 0){ //flag set if result != 0
         dataBuf[putPointer] = dataBuf[prevSlotPtr];
         incrementPutPointerAndSetReadyFlag();
         return;
@@ -467,14 +444,14 @@ synchronized public void incPutPtrAndSetReadyAfterDataFill()
 private void incrementPutPointerAndSetReadyFlag()
 {
 
-    flags[putPointer] |= DATA_READY;
+    flags[putPointer] |= DataFlags.DATA_READY;
 
     putPointer++;
     if(putPointer >= bufLength) putPointer = 0;
 
     dataBuf[putPointer] = DATA_RESET_VALUE;
 
-    flags[putPointer] = FLAG_RESET_VALUE;
+    flags[putPointer] = DataFlags.FLAG_RESET_VALUE;
 
 }// end of DataTransferIntBuffer::incrementPutPointerAndSetReadyFlag
 //-----------------------------------------------------------------------------
@@ -506,7 +483,7 @@ private void incrementPutPointer()
         dataBuf[putPointer] = DATA_RESET_VALUE;
     }
 
-    flags[putPointer] = FLAG_RESET_VALUE;
+    flags[putPointer] = DataFlags.FLAG_RESET_VALUE;
 
 }// end of DataTransferIntBuffer::incrementPutPointer
 //-----------------------------------------------------------------------------
@@ -539,7 +516,7 @@ synchronized public void decrementPutPointer()
 synchronized public void decrementPutPointerAndSetErasedFlag()
 {
 
-    flags[putPointer] |= DATA_ERASED;
+    flags[putPointer] |= DataFlags.DATA_ERASED;
     putPointer--;
     if(putPointer < 0) putPointer = bufLength-1;
 
