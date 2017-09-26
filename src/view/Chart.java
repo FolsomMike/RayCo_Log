@@ -868,6 +868,20 @@ public void loadSegment(IniFile pFile)
     // tell each graph to load data
     for (Graph g : graphs) { g.loadSegment(pFile); }
 
+    // draw all necessary zoomboxes if a zoomgraph is there
+    if (zoomGraph==null) { return; }
+    int xStop = zoomGraph.getDataSize();
+    for (int i=0; i<=xStop; i++) {
+
+        //continue if not time to add new zoom box
+        if (i%zoomGraph.getNextBoxEndX() != 0) { continue; }
+
+        int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartX(),
+                                                zoomGraph.getNextBoxEndX());
+        zoomGraph.addZoomBox(peakIndex);
+
+    }
+
 }//end of Chart::loadSegment
 //-----------------------------------------------------------------------------
 
