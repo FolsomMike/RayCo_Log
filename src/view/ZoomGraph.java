@@ -17,8 +17,11 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ListIterator;
+import model.DataFlags;
 import model.DataSetSnapshot;
 import model.IniFile;
 import model.SharedSettings;
@@ -43,6 +46,7 @@ public class ZoomGraph extends Graph{
     private int maxNumZoomBoxes;
 
     ArrayList<int[]> data = new ArrayList<>(10000);
+    public int getDataSize() { return data.size(); }
     ArrayList<Integer> dataFlags = new ArrayList<>(10000);
     DataSetSnapshot dataSet;
 
@@ -53,6 +57,9 @@ public class ZoomGraph extends Graph{
     public int getWidthInDataPoints(){return(widthInDataPoints);}
     private int bufferLengthInDataPoints;
     public int getBufferLengthInDataPoints(){return(bufferLengthInDataPoints);}
+
+    private int lastSegmentStartIndex = -1;
+    private int lastSegmentEndIndex = -1;
 
     //WIP HSS// all of these should be read from inifile (except x&y)
     private boolean hasArrows = true;
@@ -126,7 +133,16 @@ public void retrieveDataChanges()
 
         //store for future use
         data.add(dataSet.d.clone());
+        dataFlags.add(dataSet.flags);
 
+        //if segment start/end flag set, draw a vertical separator bar, store index
+        int index = data.size()-1;
+        if ((dataSet.flags & DataFlags.SEGMENT_START_SEPARATOR) != 0) {
+            lastSegmentStartIndex = index;
+        }
+        if ((dataSet.flags & DataFlags.SEGMENT_END_SEPARATOR) != 0) {
+            lastSegmentEndIndex = index;
+        }
     }
 
 }// end of ZoomGraph::retrieveDataChanges
@@ -245,6 +261,68 @@ public void resetAll()
     data = new ArrayList<>(10000); //DEBUG HSS// shouln't even exist
 
 }// end of ZoomGraph::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::loadSegment
+//
+// Saves all of the zoom data.
+//
+
+@Override
+public void loadSegment(IniFile pFile)
+{
+
+    data.clear();
+
+    ArrayList<String> fileLines = new ArrayList<>(5000);
+    pFile.getSection(configFileSection+" Data Set", fileLines);
+
+    for (String line : fileLines) {
+
+        String[] pointStrings = line.split(",");
+        int[] dataPoints = new int[pointStrings.length];
+        for (int i=0; i<pointStrings.length; i++) {
+
+            //try to convert to an integer, do nothing on failure
+            try{ dataPoints[i] = Integer.parseInt(pointStrings[i]); }
+            catch(NumberFormatException e){ }
+
+        }
+
+        data.add(dataPoints);
+
+    }
+
+}//end of ZoomGraph::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::saveSegment
+//
+// Saves all of the zoom data.
+//
+
+@Override
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("["+configFileSection+"]"); pOut.newLine();
+    pOut.write("Zoom Title=" + title); pOut.newLine();
+    pOut.write("Zoom Short Title=" + shortTitle); pOut.newLine();
+
+    pOut.write("["+configFileSection+" Data Set]"); pOut.newLine(); //save data set
+
+    //save the data
+    for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
+        for (int d : data.get(i)) { pOut.write(Integer.toString(d)+","); }
+
+        pOut.newLine();
+    }
+
+    pOut.write("[/"+configFileSection+" Data Set]"); pOut.newLine();
+
+}//end of ZoomGraph::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
