@@ -504,6 +504,23 @@ public void saveCalFile(IniFile pCalFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::loadSegment
+//
+// Loads segments' data from pFile.
+//
+
+public void loadSegment(IniFile pFile)
+{
+
+    // call each chart to load its data
+    for (Chart c : charts) { c.loadSegment(pFile); }
+
+    repaint();
+
+}//end of ChartGroup::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::saveSegment
 //
 
