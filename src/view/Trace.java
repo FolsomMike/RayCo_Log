@@ -401,7 +401,7 @@ public void paintTrace(Graphics2D pG2)
 
         //snag data and flags and inc pointer
         int d = data.get(index);
-        int f = 0;//DEBUG HSS//int f = dataFlags.get(index);
+        int f = dataFlags.get(index);
         index++;
 
         paintSingleTraceDataPoint(pG2, index, d, f);
@@ -713,6 +713,15 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 
     pOut.write("[/"+section+" Data Set]"); pOut.newLine();
 
+    pOut.write("["+section+" Data Flags]"); pOut.newLine(); //save flags
+
+    for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
+        pOut.write(Integer.toString(dataFlags.get(i))); //save the data
+        pOut.newLine();
+    }
+
+    pOut.write("[/"+section+" Data Flags]"); pOut.newLine();
+
 }//end of Trace::saveSegment
 //-----------------------------------------------------------------------------
 
@@ -728,6 +737,8 @@ public void loadSegment(IniFile pFile)
     data.clear();
 
     pFile.getSectionAsIntegers(section+" Data Set", data);
+    pFile.getSectionAsIntegers(section+" Data Flags", dataFlags);
+
 
 }//end of Trace::loadSegment
 //-----------------------------------------------------------------------------
