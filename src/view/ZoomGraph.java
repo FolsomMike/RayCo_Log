@@ -258,7 +258,9 @@ public void resetAll()
 
     snapshotBuffer.reset();
 
-    data = new ArrayList<>(10000); //DEBUG HSS// shouln't even exist
+    zoomBoxes.clear(); data.clear(); dataFlags.clear();
+
+    repaint();
 
 }// end of ZoomGraph::resetAll
 //-----------------------------------------------------------------------------

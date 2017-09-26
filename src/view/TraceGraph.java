@@ -419,6 +419,8 @@ public void resetAll()
 
     for (Trace trace : traces) { trace.resetData(); }
 
+    repaint();
+
 }// end of TraceGraph::resetAll
 //-----------------------------------------------------------------------------
 
