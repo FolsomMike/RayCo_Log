@@ -33,6 +33,7 @@ import model.IniFile;
 public class Trace{
 
     private IniFile configFile;
+    private String section;
 
     private GraphInfo graphInfo;
 
@@ -144,6 +145,9 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
 
     gridY1 = gridYSpacing-1; //do math once for repeated use
 
+    section = "Chart Group " + chartGroupNum + " Chart " + chartNum
+                                + " Graph " + graphNum + " Trace " + traceNum;
+
     loadConfigSettings();
 
     xMax = width - 1; yMax = height - 1;
@@ -178,9 +182,6 @@ public void updateDimensions(int pNewWidth, int pNewHeight)
 
 private void loadConfigSettings()
 {
-
-    String section = "Chart Group " + chartGroupNum + " Chart " + chartNum
-                                + " Graph " + graphNum + " Trace " + traceNum;
 
     title = configFile.readString(
                         section, "title", "Trace " + (traceNum + 1));
@@ -399,7 +400,9 @@ public void paintTrace(Graphics2D pG2)
         if (index>=data.size()) { break; }
 
         //snag data and flags and inc pointer
-        int d = data.get(index); int f = dataFlags.get(index); index++;
+        int d = data.get(index);
+        int f = 0;//DEBUG HSS//int f = dataFlags.get(index);
+        index++;
 
         paintSingleTraceDataPoint(pG2, index, d, f);
 
@@ -690,8 +693,7 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-    pOut.write("[Trace]"); pOut.newLine();
-    pOut.write("Trace Index=" + traceNum); pOut.newLine();
+    pOut.write("["+section+"]"); pOut.newLine();
     pOut.write("Trace Title=" + title); pOut.newLine();
     pOut.write("Trace Short Title=" + shortTitle); pOut.newLine();
 
@@ -702,16 +704,32 @@ public void saveSegment(BufferedWriter pOut) throws IOException
         return;
     }
 
-    pOut.write("[Data Set 1]"); pOut.newLine(); //save data set
+    pOut.write("["+section+" Data Set]"); pOut.newLine(); //save data set
 
     for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
         pOut.write(Integer.toString(data.get(i))); //save the data
         pOut.newLine();
     }
 
-    pOut.write("[End of Set]"); pOut.newLine();
+    pOut.write("[/"+section+" Data Set]"); pOut.newLine();
 
 }//end of Trace::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::loadSegment
+//
+// Loads segment from the IniFile.
+//
+
+public void loadSegment(IniFile pFile)
+{
+
+    data.clear();
+
+    pFile.getSectionAsIntegers(section+" Data Set", data);
+
+}//end of Trace::loadSegment
 //-----------------------------------------------------------------------------
 
 }//end of class Trace
