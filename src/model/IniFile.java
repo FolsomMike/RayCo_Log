@@ -510,6 +510,122 @@ public void removeAllLinesWhichStartsWith(String pPrefix)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// IniFile::getSection
+//
+// Extracts all of the lines from pSection, and puts them into pSectionLines.
+//
+
+public void getSection(String pSection, ArrayList pSectionLines)
+{
+
+    //create the section by concatenating brackets around the parameter
+    String sectionStart = "[" + pSection + "]";
+
+    ListIterator i;
+
+    //search the buffer for the section name
+
+    //NOTE: searching each line using startsWith and not worrying about case
+    // sped the search for section up tremendously.  This does mean that the section
+    // name is case-sensitive and there can be no whitespace at the beginning of
+    // a section name.  A 4000 line file was taking more than 10 seconds to process
+    // and now takes a second or less.
+
+    int sectionIndex = -1;
+    for (i = buffer.listIterator(); i.hasNext();) {
+
+        //stop if line found containing the section name
+        if ((((String)i.next()).startsWith(sectionStart))) {
+
+            //set the index of the line containing the section name
+            sectionIndex = i.previousIndex();
+
+            break;
+
+        }
+    }
+
+    //if match not found, section not found so return empty string - both
+    //pParams.keyIndex and pParams.sectionIndex will be -1
+    if (sectionIndex == -1) {return;}
+
+    //search until the end of the section,start of the next, or end of file
+    while(i.hasNext()) {
+
+        String line = (String)i.next();
+
+        //if a new section name is found, quit
+        try { if (line.charAt(0) == '['){ break; } }
+        catch(IndexOutOfBoundsException e){} //ignore this error
+
+        pSectionLines.add(line);
+
+    }
+
+}//end of IniFile::getSection
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// IniFile::getSectionAsIntegers
+//
+// Extracts all of the lines from pSection, converts them to integers and puts
+// them into pSectionLines.
+//
+
+public void getSectionAsIntegers(String pSection,
+                                    ArrayList<Integer> pSectionLines)
+{
+
+    //create the section by concatenating brackets around the parameter
+    String sectionStart = "[" + pSection + "]";
+
+    ListIterator i;
+
+    //search the buffer for the section name
+
+    //NOTE: searching each line using startsWith and not worrying about case
+    // sped the search for section up tremendously.  This does mean that the section
+    // name is case-sensitive and there can be no whitespace at the beginning of
+    // a section name.  A 4000 line file was taking more than 10 seconds to process
+    // and now takes a second or less.
+
+    int sectionIndex = -1;
+    for (i = buffer.listIterator(); i.hasNext();) {
+
+        //stop if line found containing the section name
+        if ((((String)i.next()).startsWith(sectionStart))) {
+
+            //set the index of the line containing the section name
+            sectionIndex = i.previousIndex();
+
+            break;
+
+        }
+    }
+
+    //if match not found, section not found so return empty string - both
+    //pParams.keyIndex and pParams.sectionIndex will be -1
+    if (sectionIndex == -1) {return;}
+
+    //search until the end of the section,start of the next, or end of file
+    while(i.hasNext()) {
+
+        String line = (String)i.next();
+
+        //if a new section name is found, quit
+        try { if (line.charAt(0) == '['){ break; } }
+        catch(IndexOutOfBoundsException e){} //ignore this error
+
+        //try to convert to an integer, do nothing on failure
+        try{ pSectionLines.add(Integer.parseInt(line)); }
+        catch(NumberFormatException e){ }
+
+    }
+
+}//end of IniFile::getSectionAsIntegers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // IniFile::getValue
 //
 // Returns a string containing the value for pSection and pKey.
