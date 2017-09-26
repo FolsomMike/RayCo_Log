@@ -189,6 +189,9 @@ public void init()
     //load the cal file
     loadCalFile();
 
+    //load the segment file
+    loadSegment(); //DEBUG HSS// temp code for testing
+
     //force garbage collection before beginning any time sensitive tasks
     System.gc();
 
@@ -1146,6 +1149,39 @@ private void saveCalFile()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::loadSegment
+//
+// Loads the segment.
+//
+
+private void loadSegment()
+{
+
+    //DEBUG HSS//
+    int segmentNumber = 1;
+    String filename = "30 - " + segmentNumber + ".cal";
+    String primaryPath = sharedSettings.jobPathPrimary + filename;
+    String secondaryPath = sharedSettings.jobPathSecondary + filename;
+    //DEBUG HSS//
+
+    try{
+
+        IniFile file = new IniFile(primaryPath, sharedSettings.mainFileFormat);
+        file.init();
+
+        //tell view to load data from file
+        mainView.loadSegment(file);
+
+    }
+    catch(IOException e){
+        MKSTools.logSevere(getClass().getName(), e.getMessage()
+                                                    + " - Error: 1191");
+    }
+
+}//end of MainController::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::saveSegment
 //
 // Saves the current segment data to file.
@@ -1281,9 +1317,7 @@ private void displayDataFromDevices()
                                                         peakMapData);
         if (results != true) { continue; }
 
-        if (debugHss++==500) {
-            markSegmentEnd();
-        } //DEBUG HSS// temp test code
+        if (debugHss++==500) { markSegmentEnd(); } //DEBUG HSS// temp test code
 
         //put data in snapshot buffer
         peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
