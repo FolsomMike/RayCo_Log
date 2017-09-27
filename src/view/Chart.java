@@ -874,7 +874,7 @@ public void loadSegment(IniFile pFile)
     for (int i=0; i<=xStop; i++) {
 
         //continue if not time to add new zoom box
-        if (i%zoomGraph.getNextBoxEndX() != 0) { continue; }
+        if (i%zoomGraph.getNextBoxEndX() != 0||i==0) { continue; }
 
         int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartX(),
                                                 zoomGraph.getNextBoxEndX());
