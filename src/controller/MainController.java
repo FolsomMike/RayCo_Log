@@ -1368,7 +1368,7 @@ private void displayDataFromDevices()
     if (debugHss==501) { saveSegment();} //DEBUG HSS// temp test code
 
     //update clockmap display objects from transfer buffers
-    if (mapUpdateRateTrigger++ < 9){ return; } else{ mapUpdateRateTrigger = 0;}
+    //DEBUG HSS//if (mapUpdateRateTrigger++ < 9){ return; } else{ mapUpdateRateTrigger = 0;}
 
     for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
         //pace this with timer to control scan speed

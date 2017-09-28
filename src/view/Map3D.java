@@ -150,6 +150,13 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import model.DataFlags;
+import model.DataSetIntMultiDim;
+import model.DataTransferIntMultiDimBuffer;
+import model.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -170,6 +177,17 @@ import java.awt.*;
 
 public class Map3D{
 
+    DataTransferIntMultiDimBuffer mapBuffer; //see notes at top of file
+    public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer) { mapBuffer = pMapBuffer; }
+    DataSetIntMultiDim mapDataSet;
+
+    private int lastSegmentStartIndex = -1;
+    private int lastSegmentEndIndex = -1;
+
+    //graph info of the graph that this guy tracks for scrolling
+    GraphInfo scrollTrackGraphInfo;
+    public void setScrollTrackGraphInfo(GraphInfo pG) { scrollTrackGraphInfo = pG; }
+
     //user controlled mapping parameters
     int   xPos, yPos;             // x,y position of the 2D view on the screen
     int viewAngle;                // view angle, equates to zoom in/out
@@ -189,6 +207,8 @@ public class Map3D{
     int normalValue;
 
     int currentInsertionRow;
+    public int getCurrentInsertionRow() { return currentInsertionRow; }
+    int currentDrawRow;
     int colorMappingStyle;
 
     //grid parameters
@@ -350,6 +370,7 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
 public void init()
 {
 
+    mapDataSet = new DataSetIntMultiDim(dataYMax);
 
 }// end of Map3D::init
 //-----------------------------------------------------------------------------
@@ -388,6 +409,7 @@ public void resetAll()
 {
 
     currentInsertionRow = 0;
+    currentDrawRow = 0;
     fillDataBuf(0);
     fillMetaBuf(NO_SYSTEM);
 
@@ -505,6 +527,111 @@ public void setDataRow(int pLengthPos, int[] pDataRow, int[] pMetaRow)
     System.arraycopy(pMetaRow, 0, metaBuf[pLengthPos + 1], 1, pMetaRow.length);
 
 }// end of Map3D::setDataRow
+//---------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::update
+//
+// Retrieves all new data from the transfer buffer, stores it, and draws until
+// our last drawn x matches the last drawn x of the graph we are tracking for
+// scrolling.
+//
+// Since the data is stored in an array that is actually two elements larger
+// in both the x and y directions, the XPos and YPos are offset by one before
+// storing. The extra elements are used to form a border around the map which
+// is always at level 0.
+//
+
+//DEBUG HSS//
+int debugHssLastPeak = -1;
+int debugHssLastPeakIndex = -1;
+//DEBUG HSS//
+public void update(Graphics2D pG2)
+{
+
+    int r;
+    while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
+
+        //DEBUG HSS//
+        for(int i=0; i<mapDataSet.d.length; i++){
+            if (mapDataSet.d[i] > dataBuf[currentInsertionRow+1][i]){
+                dataBuf[currentInsertionRow+1][i] = mapDataSet.d[i];
+                metaBuf[currentInsertionRow+1][i] = mapDataSet.m[i];
+            }
+        }
+        //DEBUG HSS//
+
+        //DEBUG HSS//
+        if (lastDrawnX >= scrollTrackGraphInfo.lastDrawnX-10) { continue; }
+        //DEBUG HSS//
+
+        //store data in dataBuf
+        /*System.arraycopy(mapDataSet.d, 0, dataBuf[currentInsertionRow + 1],
+                            1, mapDataSet.d.length);
+
+        //store data in metaBuf
+        System.arraycopy(mapDataSet.m, 0, metaBuf[currentInsertionRow + 1],
+                            1, mapDataSet.m.length);*/ //DEBUG HSS//
+
+
+        //DEBUG HSS//
+        quickDrawLastRow(pG2);
+        //DEBUG HSS//
+
+
+        //if segment start/end flag set, draw a vertical separator bar,
+        //store index
+        int index = currentInsertionRow;
+        if ((mapDataSet.flags & DataFlags.SEGMENT_START_SEPARATOR) != 0) {
+            lastSegmentStartIndex = index;
+        }
+        if ((mapDataSet.flags & DataFlags.SEGMENT_END_SEPARATOR) != 0) {
+            lastSegmentEndIndex = index;
+        }
+
+        currentInsertionRow++;
+        if (currentInsertionRow >= dataXMax){
+            currentInsertionRow = dataXMax-1;
+            shiftDataDownOneRow();
+        }
+
+    }
+
+    //draw all data rows that need to be drawn
+    //DEBUG HSS//drawDataRows(pG2);
+
+}// end of Map3D::update
+//-----------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// TopographicalMapper::drawDataRows
+//
+// This function is used to set a single row of data in the points array. That
+// row is then drawn on the display. The row is determined by the
+// currentInsertionRow variable.
+//
+// The data points in pDataRow are copied to row pLengthPos in dataBuf. The
+// data points in pMetaRow are copied to row pLengthPos in metaBuf.
+//
+// pDataRow should point to an array having the same number of elements as is
+// present in one row of the points array.
+//
+// Since the data is stored in an array that is actually two elements larger
+// in both the x and y directions, the XPos and YPos are offset by one before
+// storing. The extra elements are used to form a border around the map which
+// is always at level 0.
+//
+
+private void drawDataRows(Graphics2D pG2)
+{
+
+    //draw until caught up with graph that is being tracked to scroll
+    if (lastDrawnX < scrollTrackGraphInfo.lastDrawnX) {
+        quickDrawRow(pG2, debugHssLastPeakIndex);
+        debugHssLastPeak = -1;
+    }
+
+}// end of Map3D::drawDataRows
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -1079,7 +1206,8 @@ private void drawPolygons(
             quadPoly.ypoints[2] = 0;
 
             quadPoly.xpoints[3] = s[i][j + _YPolyDirection].x;
-            this.lastDrawnX = quadPoly.xpoints[3];//DEBUG HSS// is this really the best place for this?
+            //snag this point as the last drawn x
+            lastDrawnX = quadPoly.xpoints[3];
             quadPoly.ypoints[3] = 0;
 
             quadPoly.invalidate(); //force use of new data
@@ -1231,6 +1359,78 @@ private Color assignColorBySystem(
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
+// Map3D::quickDrawRow
+//
+// Draws a single row of polygons for the row specified by the passed in row.
+// If that row is < 0, then nothing is drawn.
+//
+// Default values used which assume the grid is being viewed directly from
+// the side and data is being added to the right hand end.
+//
+// When the grid is viewed perpendicularly from the side (rotation = 180 deg),
+// new data can be drawn on the end without redrawing the grid as the last
+// row does not overlap any other row in that view angle.
+//
+// Thus, typical view parameters for modes where data is to be continually
+// added to the end of the grid (right hand end in this case):
+//
+// Screen Position XYZ: 0, -37          (adjusts final image to fit in panel)
+// View From Position XYZ: 0, 10, 13    (location of viewer's eye)
+// View At Position XYZ: 0,0,0          (location of target)
+// Rotation Angle: 180 degrees          (rotation of the target)
+// View Angle: 12                       (amount of target in view...zoom in/out)
+//
+// Placing a breakpoint at the beginning of drawPolygons for these settings
+// shows the following values fed to that function by the paint() method:
+//
+// xStart: 118 xStop: -1 xDirection: -1 xPolyDirection: 1
+//
+// yStart:  24 yStop: -1 xDirection: -1 yPolyDirection: 1
+//
+// The grid size is 118,24. Normally, the highest usable values would thus be
+// 117,23 but the array is actually created with size of 120,26 to create a
+// one point buffer around the data so the edges of the grid are always at 0.
+// Thus, the data is all shifted up one in each direction so 118,24 is actually
+// the last data point.
+//
+// For this view x,y of 0,0 is in the bottom left corner. Thus the polygons
+// are drawn from the top to bottom and right to left.
+//
+// Note that *Stop is set 1 less than the actual stopping point due to
+// ideosyncrasies of the drawPolygons() method.
+//
+// For clarity, the x drawing direction (along the length of the grid) is
+// reversed as that matches the typical drawing direction of traces.
+//
+// To make the polygons draw properly in this direction, the xPolyDirection also
+// had to be reversed (thus -1 is used in this method).
+//
+// The row pointer is zero based, but it is always shifted up by one before
+// inserting data into the array to skip the buffer points. Thus, when passing
+// it into drawPolygons, it must also be shifted up by one when used as a
+// starting point; the stopping point must also be shifted up by one.
+//
+
+void quickDrawRow(Graphics2D pG2, int pDrawRow)
+{
+
+    //perform 3D-2D coordinate transformation so any new data points are
+    //processed using the previously set viewing parameters
+
+    worldToScreen(rotation, stretchX, stretchY);
+
+    if (pDrawRow < 0){ return; }
+
+    //draw the polygons for the specified row
+    drawPolygons(pG2,
+                pDrawRow+1, pDrawRow+2,  1,  -1,
+                dataYMax,             -1, -1,   1,
+                true);
+
+}//end of Map3D::quickDrawRow
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
 // Map3D::quickDrawSingleRow
 //
 // Draws a single row of polygons for the points in the data grid row specified
@@ -1351,6 +1551,93 @@ void quickDrawLastRow(Graphics2D pG2)
 
 }//end of Map3D::quickDrawLastRow
 //---------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::loadSegment
+//
+// Loads all of the map data.
+//
+
+public void loadSegment(IniFile pFile, String pSection)
+{
+
+    fillDataBuf(0); //reset data buf
+    fillMetaBuf(NO_SYSTEM); //reset meta buf
+
+    //load data set
+    ArrayList<String> dataLines = new ArrayList<>(5000);
+    pFile.getSection(pSection+" Data Set", dataLines);
+
+    //load meta data set
+    ArrayList<String> metaLines = new ArrayList<>(5000);
+    pFile.getSection(pSection+" Meta Data", metaLines);
+
+    for (int i=0; i<dataLines.size(); i++) {
+
+        String[] dataVals = dataLines.get(i).split(",");
+        String[] metaVals = metaLines.get(i).split(",");
+
+        int[] dataInts = new int[dataVals.length];
+        int[] metaInts = new int[dataVals.length];
+
+        for (int j=0; j<dataVals.length; j++) {
+
+            //try to convert to integers, do nothing on failure
+            try{
+                dataInts[j] = Integer.parseInt(dataVals[j]);
+                metaInts[j] = Integer.parseInt(metaVals[j]);
+            }
+            catch(NumberFormatException e){ }
+
+        }
+
+        //quit if extended beyond data buf or meta buf length
+        if (i>=dataBuf.length||i>=metaBuf.length) { break; }
+
+        dataBuf[i] = dataInts;
+        metaBuf[i] = metaInts;
+
+    }
+
+}//end of Map3D::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::saveSegment
+//
+// Saves all of the zoom data.
+//
+
+public void saveSegment(BufferedWriter pOut, String pSection,
+                            int pSegmentStart, int pSegmentEnd)
+    throws IOException
+{
+
+    //catch unexpected case where start/stop are invalid and bail
+    if (pSegmentStart < 0 || pSegmentEnd < 0){
+        pOut.write("Segment start and/or start invalid - no data saved.");
+        pOut.newLine(); pOut.newLine();
+        return;
+    }
+
+    //save data set
+    pOut.write("["+pSection+" Data Set]"); pOut.newLine();
+    for (int i=pSegmentStart; i<=pSegmentEnd; i++) {
+        for (int d : dataBuf[i]) { pOut.write(Integer.toString(d)+","); }
+        pOut.newLine();
+    }
+    pOut.write("[/"+pSection+" Data Set]"); pOut.newLine();
+
+    //save meta data
+    pOut.write("["+pSection+" Meta Data]"); pOut.newLine();
+    for (int i=pSegmentStart; i<=pSegmentEnd; i++) {
+        for (int d : metaBuf[i]) { pOut.write(Integer.toString(d)+","); }
+        pOut.newLine();
+    }
+    pOut.write("[/"+pSection+" Meta Data]"); pOut.newLine();
+
+}//end of Map3D::saveSegment
+//-----------------------------------------------------------------------------
 
 }//end of class Map3D
 //-----------------------------------------------------------------------------

@@ -24,8 +24,12 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import model.DataFlags;
 import model.DataSetIntMultiDim;
+import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import model.SharedSettings;
 
@@ -35,6 +39,16 @@ import model.SharedSettings;
 //
 
 public class Map3DGraph extends Graph{
+
+    //override to pass on to Map3D
+    @Override
+    public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer)
+        { super.setMapBuffer(pMapBuffer); map3D.setMapBuffer(pMapBuffer); }
+
+    //override to pass on to Map3D
+    @Override
+    public void setScrollTrackGraphInfo(GraphInfo pG)
+        { super.setScrollTrackGraphInfo(pG); map3D.setScrollTrackGraphInfo(pG); }
 
     private Map3D map3D;
 
@@ -109,7 +123,6 @@ public void init()
     super.init();
 
     mapDataSet = new DataSetIntMultiDim(mapWidthInDataPoints);
-
     addMaps();
 
 }// end of Map3DGraph::init
@@ -232,13 +245,15 @@ public ArrayList<Object> getParameters()
 public void updateChild(int pChildNum)
 {
 
-    int r;
+    map3D.update((Graphics2D)getGraphics());
+
+    /*int r;
     while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
 
         map3D.setAndDrawDataRow(
                         (Graphics2D)getGraphics(), mapDataSet.d, mapDataSet.m);
 
-    }
+    }*/ //DEBUG HSS
 
 }// end of Map3DGraph::updateChild
 //-----------------------------------------------------------------------------
@@ -321,6 +336,8 @@ public void resetAll()
 
     currentMapInsertionRow = 0;
 
+    repaint();
+
 }// end of Map3DGraph::resetAll
 //-----------------------------------------------------------------------------
 
@@ -333,6 +350,8 @@ public void resetAll()
 
 public void resetData()
 {
+
+    super.resetAll();
 
     map3D.resetAll();
 
@@ -435,6 +454,43 @@ private void parseColorMappingStyle(String pValue)
     }
 
 }// end of Channel::parseColorMappingStyle
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::loadSegment
+//
+// Loads all of the map data.
+//
+
+@Override
+public void loadSegment(IniFile pFile)
+{
+
+    super.loadSegment(pFile);
+
+    /*map3D.loadSegment(pFile, configFileSection); */
+
+}//end of Map3DGraph::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::saveSegment
+//
+// Saves all of the zoom data.
+//
+
+@Override
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    /*//DEBUG HSS//pOut.write("["+configFileSection+"]"); pOut.newLine();
+    pOut.write("Map Title=" + title); pOut.newLine();
+    pOut.write("Map Short Title=" + shortTitle); pOut.newLine();
+
+    map3D.saveSegment(pOut, configFileSection,
+                        lastSegmentStartIndex, lastSegmentEndIndex);*/
+
+}//end of Map3DGraph::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
