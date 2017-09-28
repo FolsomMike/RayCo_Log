@@ -23,7 +23,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import model.DataFlags;
-import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.SharedSettings;
 
