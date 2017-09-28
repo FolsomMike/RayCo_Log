@@ -499,6 +499,8 @@ public void handleLeadPlotterActions (Graphics2D pG2, int pX)
     //tell thresholds to draw their lines to the x
     for (Threshold t : thresholds) { t.drawNextSlice(pG2, pX); }
 
+    graphInfo.lastDrawnX = pX - graphInfo.scrollOffset;
+
 }// end of Trace::handleLeadPlotterActions
 //-----------------------------------------------------------------------------
 

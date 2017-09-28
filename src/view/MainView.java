@@ -1044,8 +1044,10 @@ private void linkGraphsWhichTrackOtherGraphsScolling()
         if(gds == null) {
             continue;
         }else{
-            chartGroups[gds.chartGroupNum].getGraph(gds.chartNum, gds.graphNum).
-                    addGraphTrackingThisGraphsScrolling(graph);
+            Graph trackedGraph = chartGroups[gds.chartGroupNum]
+                                        .getGraph(gds.chartNum, gds.graphNum);
+            trackedGraph.addGraphTrackingThisGraphsScrolling(graph);
+            graph.setScrollTrackGraphInfo(trackedGraph.getGraphInfo());
         }
 
     }

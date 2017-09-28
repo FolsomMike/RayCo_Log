@@ -39,6 +39,7 @@ public class Graph extends JPanel{
 
     ChartInfo chartInfo;
     public GraphInfo graphInfo = new GraphInfo();
+    public GraphInfo getGraphInfo() { return graphInfo; }
 
     SharedSettings sharedSettings;
 
@@ -66,6 +67,10 @@ public class Graph extends JPanel{
     ArrayList<Graph> graphsTrackingThisGraphsScrolling;
     ArrayList<Graph> getGraphsTrackingThisGraphsScrolling(){
                                 return (graphsTrackingThisGraphsScrolling); }
+
+    //graph info of the graph that this guy tracks for scrolling
+    GraphInfo scrollTrackGraphInfo;
+    public void setScrollTrackGraphInfo(GraphInfo pG) { scrollTrackGraphInfo = pG; }
 
     int animationDirection = 0;
     int animationCount = 0;

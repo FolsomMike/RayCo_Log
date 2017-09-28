@@ -31,6 +31,9 @@ public class GraphInfo{
     //specifies amount graph was scrolled for the last scroll operation
     public int lastScrollAmount;
 
+    //specifies the last drawn x. useful for keeping graphs aligned
+    public int lastDrawnX;
+
 }//end of class GraphInfo
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
