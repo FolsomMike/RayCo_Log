@@ -275,11 +275,18 @@ public void resetAll()
 public void loadSegment(IniFile pFile)
 {
 
-    data.clear();
+    super.loadSegment(pFile);
 
+    //clear previous data & flags
+    zoomBoxes.clear(); data.clear(); dataFlags.clear();
+
+    //list to temporarily store file lines for processsing
     ArrayList<String> fileLines = new ArrayList<>(5000);
+
+    //get data from file and put it into list
     pFile.getSection(configFileSection+" Data Set", fileLines);
 
+    //process file lines and put them into the data buf
     for (String line : fileLines) {
 
         String[] pointStrings = line.split(",");
@@ -295,6 +302,9 @@ public void loadSegment(IniFile pFile)
         data.add(dataPoints);
 
     }
+
+    //get data flags
+    pFile.getSectionAsIntegers(configFileSection+" Data Flags", dataFlags);
 
 }//end of ZoomGraph::loadSegment
 //-----------------------------------------------------------------------------
@@ -313,6 +323,13 @@ public void saveSegment(BufferedWriter pOut) throws IOException
     pOut.write("Zoom Title=" + title); pOut.newLine();
     pOut.write("Zoom Short Title=" + shortTitle); pOut.newLine();
 
+    //catch unexpected case where start/stop are invalid and bail
+    if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0){
+        pOut.write("Segment start and/or start invalid - no data saved.");
+        pOut.newLine(); pOut.newLine();
+        return;
+    }
+
     pOut.write("["+configFileSection+" Data Set]"); pOut.newLine(); //save data set
 
     //save the data
@@ -323,6 +340,16 @@ public void saveSegment(BufferedWriter pOut) throws IOException
     }
 
     pOut.write("[/"+configFileSection+" Data Set]"); pOut.newLine();
+
+    //save flags
+    pOut.write("["+configFileSection+" Data Flags]"); pOut.newLine();
+
+    for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
+        pOut.write(Integer.toString(dataFlags.get(i))); //save the data
+        pOut.newLine();
+    }
+
+    pOut.write("[/"+configFileSection+" Data Flags]"); pOut.newLine();
 
 }//end of ZoomGraph::saveSegment
 //-----------------------------------------------------------------------------
