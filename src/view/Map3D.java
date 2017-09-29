@@ -178,8 +178,9 @@ import model.IniFile;
 
 public class Map3D{
 
-    DataTransferIntMultiDimBuffer mapBuffer; //see notes at top of file
-    public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer) { mapBuffer = pMapBuffer; }
+    private final MapDataBuffer mapDataBuffer;
+    public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer)
+        { mapDataBuffer.setTransferBuffer(pMapBuffer); }
     DataSetIntMultiDim mapDataSet;
 
     private int lastScrollUpdate = 0;
@@ -320,6 +321,8 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     numSystems = pNumSystems;
     systemNames = new String[numSystems];
     systemColors = new Color[numSystems];
+
+    mapDataBuffer = new MapDataBuffer(dataYMax);
 
     setCanvasSize(pWidth, pHeight);
 
@@ -506,6 +509,29 @@ public void fillMetaBuf(int pValue)
 }//end of Map3D::fillMetaBuf
 //---------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Map3D::isReadyToDrawNextRow
+//
+// Returns true if the graph is ready to draw the next row, false if not.
+//
+// Doesn't draw if drawing will put this graph ahead of the graph it's tracking
+// for scrolling or if the graph has not scrolled far enough to make room at the
+// far right.
+//
+
+private boolean isReadyToDrawNextRow()
+{
+
+    if (lastDrawnX >= scrollTrackGraphInfo.lastDrawnX-10
+        || (drawingAtFarRightRow
+            && scrollTrackGraphInfo.scrollOffset-lastScrollUpdate<10))
+    {
+        return false;
+    } else { return true; }
+
+}// end of Map3D::isReadyToDrawNextRow
+//-----------------------------------------------------------------------------
+
 //---------------------------------------------------------------------------
 // TopographicalMapper::setDataRow
 //
@@ -552,81 +578,45 @@ public void setDataRow(int pLengthPos, int[] pDataRow, int[] pMetaRow)
 public void update(Graphics2D pG2)
 {
 
-    int r;
-    while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
+    //tell map data buffer to retrieve and store changes
+    mapDataBuffer.retrieveDataChanges();
 
-        //WIP HSS// all data should be stored
-        for(int i=0; i<mapDataSet.d.length; i++){
-            if (mapDataSet.d[i] > dataBuf[currentInsertionRow+1][i]){
-                dataBuf[currentInsertionRow+1][i] = mapDataSet.d[i];
-                metaBuf[currentInsertionRow+1][i] = mapDataSet.m[i];
-            }
-        }//WIP HSS//
+    //don't draw next if not ready
+    if (!isReadyToDrawNextRow()) { return; }
 
-        //don't draw if drawing will put this graph ahead of the graph its
-        //tracking for scrolling or if the graph has not scrolled far enough to
-        //make room at the far right for the next column
-        if (lastDrawnX >= scrollTrackGraphInfo.lastDrawnX-10
-            || (drawingAtFarRightRow
-                && scrollTrackGraphInfo.scrollOffset-lastScrollUpdate<10))
-        {
-            continue;
-        }
+    //made it past the check above, so current offset is last scroll update
+    lastScrollUpdate = scrollTrackGraphInfo.scrollOffset;
 
-        //made it past the check above, so set the last scroll update
-        lastScrollUpdate = scrollTrackGraphInfo.scrollOffset;
+    //get the next peak from the map data buffer and draw the next row
+    mapDataBuffer.getPeakDataSetAndReset(mapDataSet);
+    setAndDrawDataRow(pG2, mapDataSet.d, mapDataSet.m);
 
-        //draw the next row
-        quickDrawLastRow(pG2);
-
-        //if segment start/end flag set, draw a vertical separator bar,
-        //store index
-        int index = currentInsertionRow;
-        if ((mapDataSet.flags & DataFlags.SEGMENT_START_SEPARATOR) != 0) {
-            lastSegmentStartIndex = index;
-        }
-        if ((mapDataSet.flags & DataFlags.SEGMENT_END_SEPARATOR) != 0) {
-            lastSegmentEndIndex = index;
-        }
-
-        //prevent from extending beyond dataBuf array size
-        currentInsertionRow++;
-        if (currentInsertionRow >= dataXMax){
-            currentInsertionRow = dataXMax-1;
-            shiftDataDownOneRow();
-            Arrays.fill(dataBuf[currentInsertionRow+1], -1); // reset final row
-            drawingAtFarRightRow = true;
-        }
-
-    }
+    //process set flags
+    handleDataFlags(mapDataSet.flags);
 
 }// end of Map3D::update
 //-----------------------------------------------------------------------------
 
-//---------------------------------------------------------------------------
-// TopographicalMapper::drawDataRows
+//-----------------------------------------------------------------------------
+// Map3D::handleDataFlags
 //
-// This function is used to set a single row of data in the points array. That
-// row is then drawn on the display. The row is determined by the
-// currentInsertionRow variable.
-//
-// The data points in pDataRow are copied to row pLengthPos in dataBuf. The
-// data points in pMetaRow are copied to row pLengthPos in metaBuf.
-//
-// pDataRow should point to an array having the same number of elements as is
-// present in one row of the points array.
-//
-// Since the data is stored in an array that is actually two elements larger
-// in both the x and y directions, the XPos and YPos are offset by one before
-// storing. The extra elements are used to form a border around the map which
-// is always at level 0.
+// Takes different actions depending on the flags set in pFlags.
 //
 
-private void drawDataRows(Graphics2D pG2)
+private void handleDataFlags(int pFlags)
 {
 
-}// end of Map3D::drawDataRows
-//---------------------------------------------------------------------------
+    //if segment start/end flag set, draw a vertical separator bar, store index
+    int index = currentInsertionRow;
+    if ((pFlags & DataFlags.SEGMENT_START_SEPARATOR) != 0) {
+        lastSegmentStartIndex = index;
+    }
+    if ((pFlags & DataFlags.SEGMENT_END_SEPARATOR) != 0) {
+        lastSegmentEndIndex = index;
+    }
+
+}// end of Map3D::update
+//-----------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 // TopographicalMapper::setAndDrawDataRow
@@ -662,6 +652,8 @@ public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
     if (currentInsertionRow >= dataXMax){
         currentInsertionRow = dataXMax-1;
         shiftDataDownOneRow();
+        Arrays.fill(dataBuf[currentInsertionRow+1], -1); // reset final row
+        drawingAtFarRightRow = true;
     }
 
 }// end of Map3D::setAndDrawDataRow
@@ -1634,6 +1626,138 @@ public void saveSegment(BufferedWriter pOut, String pSection,
 //-----------------------------------------------------------------------------
 
 }//end of class Map3D
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// class MapDataBuffer
+//
+
+class MapDataBuffer{
+
+    private DataTransferIntMultiDimBuffer transferBuffer;
+    public void setTransferBuffer(DataTransferIntMultiDimBuffer pBuf)
+        { transferBuffer = pBuf; }
+
+    private final DataSetIntMultiDim dataSet;
+    private final DataSetIntMultiDim peakDataSet;
+
+    private final ArrayList<int[]> data;
+    private final ArrayList<int[]> metaData;
+    private final ArrayList<Integer> flags;
+
+//-----------------------------------------------------------------------------
+// MapDataBuffer::MapDataBuffer (constructor)
+//
+
+public MapDataBuffer(int pMapWidth)
+{
+
+    data = new ArrayList<>(10000);
+    metaData = new ArrayList<>(10000);
+    flags = new ArrayList<>(10000);
+
+    dataSet = new DataSetIntMultiDim(pMapWidth);
+    peakDataSet = new DataSetIntMultiDim(pMapWidth);
+
+}//end of MapDataBuffer::MapDataBuffer (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MapDataBuffer::getPeakDataSetAndReset
+//
+// Puts all of the data found in the peak data set into pDataSet and then resets
+// the peak data set.
+//
+
+public void getPeakDataSetAndReset(DataSetIntMultiDim pDataSet)
+{
+
+    //put peak data into pDataSet
+    System.arraycopy(peakDataSet.d, 0, pDataSet.d, 0, pDataSet.d.length);
+    System.arraycopy(peakDataSet.m, 0, pDataSet.m, 0, pDataSet.m.length);
+    pDataSet.flags = peakDataSet.flags;
+
+    //reset peak data
+    Arrays.fill(peakDataSet.d, 0);
+    Arrays.fill(peakDataSet.m, 0);
+    peakDataSet.flags = DataFlags.FLAG_RESET_VALUE;
+
+}//end of MapDataBuffer::getPeakDataSetAndReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MapDataBuffer::reset
+//
+// Resets all peak buffers and data sets.
+//
+
+public void reset()
+{
+
+    data.clear();
+    metaData.clear();
+    flags.clear();
+
+    Arrays.fill(peakDataSet.d, 0);
+    Arrays.fill(peakDataSet.m, 0);
+
+}//end of MapDataBuffer::reset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MapDataBuffer::retrieveDataChanges
+//
+// Retrieves and stores all of the new data from the transfer buffer.
+//
+// As the data is retrieved, the peaks for each clock map position are compared.
+// If the new peak is greater than or less than (depending on peak type) the
+// old peak for that clock position, the new data is stored.
+//
+
+public void retrieveDataChanges()
+{
+
+    //quit if transfer buffer not set yet
+    if (transferBuffer==null) { return; }
+
+    int r;
+    while((r = transferBuffer.getDataChange(dataSet)) != 0){
+
+        //store data in local buffers
+        data.add(dataSet.d);
+        metaData.add(dataSet.m);
+        flags.add(dataSet.flags);
+
+        //store peak data if any new peaks found
+        if (transferBuffer.getPeakType()==DataFlags.CATCH_HIGHEST) {
+            //replace values in peak data set if greater than
+            for(int i=0; i<peakDataSet.d.length; i++){
+                if (dataSet.d[i] > peakDataSet.d[i]) {
+                    peakDataSet.d[i] = dataSet.d[i];
+                    peakDataSet.m[i] = dataSet.m[i];
+                    peakDataSet.flags = dataSet.flags;
+                }
+            }
+        }
+        else {
+            //replace values in peak data set if less than
+            for(int i=0; i<peakDataSet.d.length; i++){
+                if (dataSet.d[i] < peakDataSet.d[i]) {
+                    peakDataSet.d[i] = dataSet.d[i];
+                    peakDataSet.m[i] = dataSet.m[i];
+                    peakDataSet.flags = dataSet.flags;
+                }
+            }
+        }
+
+    }
+
+}//end of MapDataBuffer::retrieveDataChanges
+//-----------------------------------------------------------------------------
+
+}//end of class MapDataBuffer
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
