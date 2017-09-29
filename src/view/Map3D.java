@@ -264,6 +264,8 @@ public class Map3D{
     //map arrays
     int[][] dataBuf;         // input data array
     int[][] metaBuf;
+    private ArrayList<int []> drawnData;    //used to store all drawn data
+    private ArrayList<int []> drawnMetaData;
     ScreenPlane[][] s;       // screen points array, corresponding to points[][]
     ScreenPlane[][] orthoS;  // screen points array,
                              // the points value equals to zero ??? meaning?
@@ -328,6 +330,9 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
 
     dataBuf = new int[xMax][yMax];
     metaBuf = new int[xMax][yMax];
+
+    drawnData = new ArrayList<>(xMax);
+    drawnMetaData = new ArrayList<>(xMax);
 
     s = new ScreenPlane[xMax][yMax];
     orthoS = new ScreenPlane[xMax][yMax];
@@ -422,6 +427,9 @@ public void resetAll()
     lastScrollUpdate = 0;
     fillDataBuf(0);
     fillMetaBuf(NO_SYSTEM);
+
+    drawnData.clear();
+    drawnMetaData.clear();
 
 }// end of Map3D::resetAll
 //-----------------------------------------------------------------------------
@@ -645,6 +653,8 @@ public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
 
     System.arraycopy(
             pMetaRow, 0, metaBuf[currentInsertionRow + 1], 1, pMetaRow.length);
+
+    drawnData.add(pDataRow); drawnMetaData.add(pMetaRow);
 
     quickDrawLastRow(pG2);
 
