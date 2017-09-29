@@ -336,6 +336,9 @@ public void resetData()
     //reset local data buffers
     data.clear(); dataFlags.clear();
 
+    //reset segment starts and ends
+    lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
+
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
 

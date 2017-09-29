@@ -260,6 +260,9 @@ public void resetAll()
 
     zoomBoxes.clear(); data.clear(); dataFlags.clear();
 
+    //reset segment starts and ends
+    lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
+
     repaint();
 
 }// end of ZoomGraph::resetAll
@@ -334,7 +337,10 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 
     //save the data
     for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
-        for (int d : data.get(i)) { pOut.write(Integer.toString(d)+","); }
+        for (int j=0; j<data.get(i).length; j++) {
+            if (j>0) { pOut.write(","); }
+            pOut.write(Integer.toString(data.get(i)[j]));
+        }
 
         pOut.newLine();
     }
