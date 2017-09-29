@@ -182,6 +182,9 @@ public class Map3D{
     public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer) { mapBuffer = pMapBuffer; }
     DataSetIntMultiDim mapDataSet;
 
+    private int lastScrollUpdate = 0;
+    private boolean drawingAtFarRightRow = false;
+
     private int lastSegmentStartIndex = -1;
     private int lastSegmentEndIndex = -1;
 
@@ -410,7 +413,10 @@ public void resetAll()
 {
 
     currentInsertionRow = 0;
+    lastDrawnX = 0;
     currentDrawRow = 0;
+    drawingAtFarRightRow = false;
+    lastScrollUpdate = 0;
     fillDataBuf(0);
     fillMetaBuf(NO_SYSTEM);
 
@@ -543,52 +549,35 @@ public void setDataRow(int pLengthPos, int[] pDataRow, int[] pMetaRow)
 // is always at level 0.
 //
 
-//DEBUG HSS//
-int debugHssLastPeak = -1;
-int debugHssLastPeakIndex = -1;
-int debugHssLastScrollUpdate = 0;
-boolean debugHssFinalInsertionRow = false;
-//DEBUG HSS//
 public void update(Graphics2D pG2)
 {
 
     int r;
     while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
 
-        //DEBUG HSS//
+        //WIP HSS// all data should be stored
         for(int i=0; i<mapDataSet.d.length; i++){
             if (mapDataSet.d[i] > dataBuf[currentInsertionRow+1][i]){
                 dataBuf[currentInsertionRow+1][i] = mapDataSet.d[i];
                 metaBuf[currentInsertionRow+1][i] = mapDataSet.m[i];
             }
+        }//WIP HSS//
+
+        //don't draw if drawing will put this graph ahead of the graph its
+        //tracking for scrolling or if the graph has not scrolled far enough to
+        //make room at the far right for the next column
+        if (lastDrawnX >= scrollTrackGraphInfo.lastDrawnX-10
+            || (drawingAtFarRightRow
+                && scrollTrackGraphInfo.scrollOffset-lastScrollUpdate<10))
+        {
+            continue;
         }
-        //DEBUG HSS//
 
+        //made it past the check above, so set the last scroll update
+        lastScrollUpdate = scrollTrackGraphInfo.scrollOffset;
 
-        //DEBUG HSS//
-        if ((scrollTrackGraphInfo.scrollOffset==0
-                && lastDrawnX >= scrollTrackGraphInfo.lastDrawnX-10)
-            || (debugHssFinalInsertionRow
-                && scrollTrackGraphInfo.scrollOffset-debugHssLastScrollUpdate<10))
-            {
-                continue;
-            }
-        //DEBUG HSS//
-
-        //store data in dataBuf
-        /*System.arraycopy(mapDataSet.d, 0, dataBuf[currentInsertionRow + 1],
-                            1, mapDataSet.d.length);
-
-        //store data in metaBuf
-        System.arraycopy(mapDataSet.m, 0, metaBuf[currentInsertionRow + 1],
-                            1, mapDataSet.m.length);*/ //DEBUG HSS//
-
-
-        //DEBUG HSS//
-        debugHssLastScrollUpdate = scrollTrackGraphInfo.scrollOffset;
+        //draw the next row
         quickDrawLastRow(pG2);
-        //DEBUG HSS//
-
 
         //if segment start/end flag set, draw a vertical separator bar,
         //store index
@@ -600,18 +589,16 @@ public void update(Graphics2D pG2)
             lastSegmentEndIndex = index;
         }
 
+        //prevent from extending beyond dataBuf array size
         currentInsertionRow++;
         if (currentInsertionRow >= dataXMax){
             currentInsertionRow = dataXMax-1;
             shiftDataDownOneRow();
-            Arrays.fill(dataBuf[currentInsertionRow+1], -1);
-            debugHssFinalInsertionRow = true;
+            Arrays.fill(dataBuf[currentInsertionRow+1], -1); // reset final row
+            drawingAtFarRightRow = true;
         }
 
     }
-
-    //draw all data rows that need to be drawn
-    //DEBUG HSS//drawDataRows(pG2);
 
 }// end of Map3D::update
 //-----------------------------------------------------------------------------
@@ -637,12 +624,6 @@ public void update(Graphics2D pG2)
 
 private void drawDataRows(Graphics2D pG2)
 {
-
-    //draw until caught up with graph that is being tracked to scroll
-    if (lastDrawnX < scrollTrackGraphInfo.lastDrawnX) {
-        quickDrawRow(pG2, debugHssLastPeakIndex);
-        debugHssLastPeak = -1;
-    }
 
 }// end of Map3D::drawDataRows
 //---------------------------------------------------------------------------
