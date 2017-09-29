@@ -44,6 +44,9 @@ public static final int CLEAR_THRESHOLD_MASK = 0xffff01ff;
 public static final int TRIM_THRESHOLD_MASK = 0x7f;
 public static final int CLEAR_DATA_ERASED = ~DATA_ERASED;
 
+public static final int CATCH_HIGHEST = 0;
+public static final int CATCH_LOWEST = 1;
+
 }//end of class DataFlags
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

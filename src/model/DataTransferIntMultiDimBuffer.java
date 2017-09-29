@@ -68,6 +68,7 @@ int metaBuf[][];
 int flags[];
 
 int peakType;
+public int getPeakType() { return peakType; }
 
 int defaultData = 0;
 synchronized public void setDefaultData(int pValue){ defaultData = pValue; }
@@ -77,11 +78,6 @@ synchronized public void setDefaultMeta(int pValue){ defaultMeta = pValue; }
 private int segmentLength;
 private int lastSegmentStartIndex;
 private int lastSegmentEndIndex;
-
-//constants
-
-public static final int CATCH_HIGHEST = 0;
-public static final int CATCH_LOWEST = 1;
 
 private static int DATA_RESET_VALUE = 0;
 private static final int META_RESET_VALUE = 0;
@@ -115,7 +111,7 @@ public void init(int pDefaultDataValue, int pDefaultMetaValue)
 
     defaultData = pDefaultDataValue; defaultMeta = pDefaultMetaValue;
 
-    if (peakType == CATCH_HIGHEST){
+    if (peakType == DataFlags.CATCH_HIGHEST){
         DATA_RESET_VALUE = Integer.MIN_VALUE;
     }
     else{
@@ -182,7 +178,7 @@ synchronized public void putData(int[] pData, int[] pMetaData)
 
     }else{
         //only store if new data is a new peak
-        if(peakType == CATCH_HIGHEST){
+        if(peakType == DataFlags.CATCH_HIGHEST){
             for(int i=0; i<pData.length; i++){
                 if (pData[i] > dataBuf[putPointer][i]){
                     dataBuf[putPointer][i] = pData[i];

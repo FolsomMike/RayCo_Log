@@ -77,10 +77,6 @@ private int segmentLength;
 private int lastSegmentStartIndex;
 private int lastSegmentEndIndex;
 
-//constants
-public static final int CATCH_HIGHEST = 0;
-public static final int CATCH_LOWEST = 1;
-
 private static int DATA_RESET_VALUE = 0;
 
 //-----------------------------------------------------------------------------
@@ -110,7 +106,7 @@ public void init(int pDefaultDataValue)
 
     defaultData = pDefaultDataValue;
 
-    if (peakType == CATCH_HIGHEST){
+    if (peakType == DataFlags.CATCH_HIGHEST){
         DATA_RESET_VALUE = Integer.MIN_VALUE;
     }
     else{
@@ -171,7 +167,7 @@ synchronized public boolean putData(int pData)
 
     }else{
         //only store if new data is a new peak
-        if(peakType == CATCH_HIGHEST){
+        if(peakType == DataFlags.CATCH_HIGHEST){
             if (pData > dataBuf[putPointer]){
                 dataBuf[putPointer] = pData;
                 stored = true;
