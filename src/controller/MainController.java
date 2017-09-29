@@ -1365,8 +1365,6 @@ private void displayDataFromDevices()
         mainView.updateAnnotationGraphs(snapBuffer.chartGroupNum);
     }
 
-    if (debugHss==501) { saveSegment();} //DEBUG HSS// temp test code
-
     //update clockmap display objects from transfer buffers
     //DEBUG HSS//if (mapUpdateRateTrigger++ < 9){ return; } else{ mapUpdateRateTrigger = 0;}
 
@@ -1377,6 +1375,8 @@ private void displayDataFromDevices()
         mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
                                        mapBuffer.graphNum, mapBuffer.traceNum);
     }
+
+    if (debugHss==501) { saveSegment();} //DEBUG HSS// temp test code
 
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------

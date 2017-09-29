@@ -188,6 +188,8 @@ public class Map3D{
 
     private int lastSegmentStartIndex = -1;
     private int lastSegmentEndIndex = -1;
+    private int lastSegmentDrawnDataStartIndex = -1;
+    private int lastSegmentDrawnDataEndIndex = -1;
 
     //graph info of the graph that this guy tracks for scrolling
     GraphInfo scrollTrackGraphInfo;
@@ -431,6 +433,10 @@ public void resetAll()
     drawnData.clear();
     drawnMetaData.clear();
 
+    //reset segment starts and ends
+    lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
+    lastSegmentDrawnDataStartIndex = -1; lastSegmentDrawnDataEndIndex = -1;
+
 }// end of Map3D::resetAll
 //-----------------------------------------------------------------------------
 
@@ -589,6 +595,9 @@ public void update(Graphics2D pG2)
     //tell map data buffer to retrieve and store changes
     mapDataBuffer.retrieveDataChanges();
 
+    //get newest peak data so we can process set flags
+    handleDataFlags(mapDataBuffer.getMostRecentFlags());
+
     //don't draw next if not ready
     if (!isReadyToDrawNextRow()) { return; }
 
@@ -598,9 +607,6 @@ public void update(Graphics2D pG2)
     //get the next peak from the map data buffer and draw the next row
     mapDataBuffer.getPeakDataSetAndReset(mapDataSet);
     setAndDrawDataRow(pG2, mapDataSet.d, mapDataSet.m);
-
-    //process set flags
-    handleDataFlags(mapDataSet.flags);
 
 }// end of Map3D::update
 //-----------------------------------------------------------------------------
@@ -615,15 +621,21 @@ private void handleDataFlags(int pFlags)
 {
 
     //if segment start/end flag set, draw a vertical separator bar, store index
-    int index = currentInsertionRow;
+    int index = mapDataBuffer.getCurrentIndex();
+
+    //next added row will contain flag
+    int drawnDataIndex = drawnData.size();
+
     if ((pFlags & DataFlags.SEGMENT_START_SEPARATOR) != 0) {
         lastSegmentStartIndex = index;
+        lastSegmentDrawnDataStartIndex = drawnDataIndex;
     }
     if ((pFlags & DataFlags.SEGMENT_END_SEPARATOR) != 0) {
         lastSegmentEndIndex = index;
+        lastSegmentDrawnDataEndIndex = drawnDataIndex;
     }
 
-}// end of Map3D::update
+}// end of Map3D::handleDataFlags
 //-----------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -654,7 +666,7 @@ public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
     System.arraycopy(
             pMetaRow, 0, metaBuf[currentInsertionRow + 1], 1, pMetaRow.length);
 
-    drawnData.add(pDataRow); drawnMetaData.add(pMetaRow);
+    drawnData.add(pDataRow.clone()); drawnMetaData.add(pMetaRow.clone());
 
     quickDrawLastRow(pG2);
 
@@ -1557,41 +1569,58 @@ void quickDrawLastRow(Graphics2D pG2)
 public void loadSegment(IniFile pFile, String pSection)
 {
 
-    fillDataBuf(0); //reset data buf
-    fillMetaBuf(NO_SYSTEM); //reset meta buf
+    resetAll(); //reset old data
 
-    //load data set
+    mapDataBuffer.loadData(pFile, pSection); //tell buffer to load data
+
+    //lists to temporarily store file lines for processsing
     ArrayList<String> dataLines = new ArrayList<>(5000);
-    pFile.getSection(pSection+" Data Set", dataLines);
+    ArrayList<String> metaDataLines = new ArrayList<>(5000);
 
-    //load meta data set
-    ArrayList<String> metaLines = new ArrayList<>(5000);
-    pFile.getSection(pSection+" Meta Data", metaLines);
+    //get lines from file
+    pFile.getSection(pSection+" Drawn Data", dataLines);
+    pFile.getSection(pSection+" Drawn Meta Data", metaDataLines);
 
-    for (int i=0; i<dataLines.size(); i++) {
+    //process file lines and put them into the data buf
+    for (int i=0; i<dataLines.size()&&i<metaDataLines.size(); i++) {
 
-        String[] dataVals = dataLines.get(i).split(",");
-        String[] metaVals = metaLines.get(i).split(",");
+        //data points are serarated by commas
+        String[] dataSplit = dataLines.get(i).split(",");
+        String [] metaDataSplit = metaDataLines.get(i).split(",");
 
-        int[] dataInts = new int[dataVals.length];
-        int[] metaInts = new int[dataVals.length];
+        //arrays to hold integers after conversion
+        int[] dataPoints = new int[dataSplit.length];
+        int[] metaDataPoints = new int[metaDataSplit.length];
 
-        for (int j=0; j<dataVals.length; j++) {
+        //convert and store all data and meta data to integers
+        for (int j=0; j<dataSplit.length&&j<metaDataSplit.length; j++) {
 
-            //try to convert to integers, do nothing on failure
             try{
-                dataInts[j] = Integer.parseInt(dataVals[j]);
-                metaInts[j] = Integer.parseInt(metaVals[j]);
-            }
-            catch(NumberFormatException e){ }
+                dataPoints[j] = Integer.parseInt(dataSplit[j]);
+                metaDataPoints[j] = Integer.parseInt(metaDataSplit[j]);
+            } catch(NumberFormatException e){ }
 
         }
 
-        //quit if extended beyond data buf or meta buf length
-        if (i>=dataBuf.length||i>=metaBuf.length) { break; }
+        //store in buffers
+        drawnData.add(dataPoints); drawnMetaData.add(metaDataPoints);
 
-        dataBuf[i] = dataInts;
-        metaBuf[i] = metaInts;
+    }
+
+    //set data in the active drawing buffers
+    int drawnIndex= drawnData.size()>dataBuf.length
+                            ? drawnData.size()-dataBuf.length : 0;
+    for (int i=1;
+            i<dataBuf.length && i<metaBuf.length
+            && drawnIndex<drawnData.size() && drawnIndex<drawnMetaData.size();
+            i++, drawnIndex++)
+    {
+
+        System.arraycopy(drawnData.get(drawnIndex), 0, dataBuf[i],
+                            1, drawnData.get(drawnIndex).length);
+
+        System.arraycopy(drawnMetaData.get(drawnIndex), 0, metaBuf[i],
+                            1, drawnMetaData.get(drawnIndex).length);
 
     }
 
@@ -1604,33 +1633,52 @@ public void loadSegment(IniFile pFile, String pSection)
 // Saves all of the zoom data.
 //
 
-public void saveSegment(BufferedWriter pOut, String pSection,
-                            int pSegmentStart, int pSegmentEnd)
+public void saveSegment(BufferedWriter pOut, String pSection)
     throws IOException
 {
 
     //catch unexpected case where start/stop are invalid and bail
-    if (pSegmentStart < 0 || pSegmentEnd < 0){
+    if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0
+            || lastSegmentDrawnDataStartIndex < 0
+            || lastSegmentDrawnDataEndIndex < 0)
+    {
         pOut.write("Segment start and/or start invalid - no data saved.");
         pOut.newLine(); pOut.newLine();
         return;
     }
 
-    //save data set
-    pOut.write("["+pSection+" Data Set]"); pOut.newLine();
-    for (int i=pSegmentStart; i<=pSegmentEnd; i++) {
-        for (int d : dataBuf[i]) { pOut.write(Integer.toString(d)+","); }
-        pOut.newLine();
-    }
-    pOut.write("[/"+pSection+" Data Set]"); pOut.newLine();
+    mapDataBuffer.saveData(pOut, pSection,
+                            lastSegmentStartIndex, lastSegmentEndIndex);
 
-    //save meta data
-    pOut.write("["+pSection+" Meta Data]"); pOut.newLine();
-    for (int i=pSegmentStart; i<=pSegmentEnd; i++) {
-        for (int d : metaBuf[i]) { pOut.write(Integer.toString(d)+","); }
+    //get peak data that hasn't been drawn yet and put it in drawnData. Will
+    //need to be removed after this function is done outputting the data
+    boolean extraPeakData = mapDataBuffer.getPeakData(mapDataSet);
+    if (extraPeakData) {
+        drawnData.add(mapDataSet.d);
+        drawnMetaData.add(mapDataSet.m);
+    }
+
+    //save drawn data set
+    pOut.write("["+pSection+" Drawn Data]"); pOut.newLine();
+    for (int i=lastSegmentDrawnDataStartIndex; i<=lastSegmentDrawnDataEndIndex; i++) {
+        for (int d : drawnData.get(i)) { pOut.write(Integer.toString(d)+","); }
         pOut.newLine();
     }
-    pOut.write("[/"+pSection+" Meta Data]"); pOut.newLine();
+    pOut.write("[/"+pSection+" Drawn Data]"); pOut.newLine();
+
+    //save drawn meta data
+    pOut.write("["+pSection+" Drawn Meta Data]"); pOut.newLine();
+    for (int i=lastSegmentDrawnDataStartIndex; i<=lastSegmentDrawnDataEndIndex; i++) {
+        for (int d : drawnMetaData.get(i)) { pOut.write(Integer.toString(d)+","); }
+        pOut.newLine();
+    }
+    pOut.write("[/"+pSection+" Drawn Meta Data]"); pOut.newLine();
+
+    //remove extra peak data
+    if (extraPeakData) {
+        drawnData.remove(drawnData.size()-1);
+        drawnMetaData.remove(drawnMetaData.size()-1);
+    }
 
 }//end of Map3D::saveSegment
 //-----------------------------------------------------------------------------
@@ -1657,6 +1705,12 @@ class MapDataBuffer{
     private final ArrayList<int[]> metaData;
     private final ArrayList<Integer> flags;
 
+    private boolean updated;
+
+    public int getCurrentIndex() { return data.size()-1; }
+    public int getMostRecentFlags()
+     { return (flags.size()-1)>=0?flags.get(flags.size()-1):DataFlags.FLAG_RESET_VALUE; }
+
 //-----------------------------------------------------------------------------
 // MapDataBuffer::MapDataBuffer (constructor)
 //
@@ -1671,7 +1725,29 @@ public MapDataBuffer(int pMapWidth)
     dataSet = new DataSetIntMultiDim(pMapWidth);
     peakDataSet = new DataSetIntMultiDim(pMapWidth);
 
+    updated = false;
+
 }//end of MapDataBuffer::MapDataBuffer (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MapDataBuffer::getPeakData
+//
+// Puts all of the data found in the peak data set into pDataSet without
+// resetting.
+//
+
+public boolean getPeakData(DataSetIntMultiDim pDataSet)
+{
+
+    //put peak data into pDataSet
+    System.arraycopy(peakDataSet.d, 0, pDataSet.d, 0, pDataSet.d.length);
+    System.arraycopy(peakDataSet.m, 0, pDataSet.m, 0, pDataSet.m.length);
+    pDataSet.flags = peakDataSet.flags;
+
+    return updated;
+
+}//end of MapDataBuffer::getPeakData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1681,7 +1757,7 @@ public MapDataBuffer(int pMapWidth)
 // the peak data set.
 //
 
-public void getPeakDataSetAndReset(DataSetIntMultiDim pDataSet)
+public boolean getPeakDataSetAndReset(DataSetIntMultiDim pDataSet)
 {
 
     //put peak data into pDataSet
@@ -1693,6 +1769,9 @@ public void getPeakDataSetAndReset(DataSetIntMultiDim pDataSet)
     Arrays.fill(peakDataSet.d, 0);
     Arrays.fill(peakDataSet.m, 0);
     peakDataSet.flags = DataFlags.FLAG_RESET_VALUE;
+
+    boolean wasUpdated = updated; updated = false;
+    return wasUpdated;
 
 }//end of MapDataBuffer::getPeakDataSetAndReset
 //-----------------------------------------------------------------------------
@@ -1712,6 +1791,8 @@ public void reset()
 
     Arrays.fill(peakDataSet.d, 0);
     Arrays.fill(peakDataSet.m, 0);
+
+    updated = false;
 
 }//end of MapDataBuffer::reset
 //-----------------------------------------------------------------------------
@@ -1735,9 +1816,11 @@ public void retrieveDataChanges()
     int r;
     while((r = transferBuffer.getDataChange(dataSet)) != 0){
 
+        updated = true;
+
         //store data in local buffers
-        data.add(dataSet.d);
-        metaData.add(dataSet.m);
+        data.add(dataSet.d.clone());
+        metaData.add(dataSet.m.clone());
         flags.add(dataSet.flags);
 
         //store peak data if any new peaks found
@@ -1765,6 +1848,90 @@ public void retrieveDataChanges()
     }
 
 }//end of MapDataBuffer::retrieveDataChanges
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MapDataBuffer::loadData
+//
+// Loads the data and meta data from pFile.
+//
+
+public void loadData(IniFile pFile, String pSection)
+{
+
+    reset(); //clear any old data
+
+    //lists to temporarily store file lines for processsing
+    ArrayList<String> dataLines = new ArrayList<>(5000);
+    ArrayList<String> metaDataLines = new ArrayList<>(5000);
+
+    //get lines from file
+    pFile.getSection(pSection+" Data Set", dataLines);
+    pFile.getSection(pSection+" Meta Data", metaDataLines);
+
+    //process file lines and put them into the data buf
+    for (int i=0; i<dataLines.size()&&i<metaDataLines.size(); i++) {
+
+        //data points are serarated by commas
+        String[] dataSplit = dataLines.get(i).split(",");
+        String [] metaDataSplit = metaDataLines.get(i).split(",");
+
+        //arrays to hold integers after conversion
+        int[] dataPoints = new int[dataSplit.length];
+        int[] metaDataPoints = new int[metaDataSplit.length];
+
+        //convert and store all data and meta data to integers
+        for (int j=0; j<dataSplit.length&&j<metaDataSplit.length; j++) {
+
+            try{
+                dataPoints[j] = Integer.parseInt(dataSplit[j]);
+                metaDataPoints[j] = Integer.parseInt(metaDataSplit[j]);
+            } catch(NumberFormatException e){ }
+
+        }
+
+        //store in buffers
+        data.add(dataPoints); metaData.add(metaDataPoints);
+
+    }
+
+}//end of MapDataBuffer::loadData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MapDataBuffer::saveData
+//
+// Saves the data and meta data at and between the indexes specified.
+//
+
+public void saveData(BufferedWriter pOut, String pSection,
+                            int pStart, int pEnd)
+        throws IOException
+{
+
+    //save data
+    pOut.write("["+pSection+" Data Set]"); pOut.newLine();
+    for (int i=pStart; i<=pEnd; i++) {
+        for (int j=0; j<data.get(i).length; j++) {
+            if (j>0) { pOut.write(","); }
+            pOut.write(Integer.toString(data.get(i)[j]));
+        }
+        pOut.newLine();
+    }
+    pOut.write("[/"+pSection+" Data Set]"); pOut.newLine();
+
+    //save meta data
+    pOut.write("["+pSection+" Meta Data]"); pOut.newLine();
+    for (int i=pStart; i<=pEnd; i++) {
+        for (int j=0; j<metaData.get(i).length; j++) {
+            if (j>0) { pOut.write(","); }
+            pOut.write(Integer.toString(metaData.get(i)[j]));
+        }
+        pOut.newLine();
+    }
+    pOut.write("[/"+pSection+" Meta Data]"); pOut.newLine();
+
+}//end of MapDataBuffer::saveData
 //-----------------------------------------------------------------------------
 
 }//end of class MapDataBuffer

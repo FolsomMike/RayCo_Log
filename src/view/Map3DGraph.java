@@ -60,8 +60,6 @@ public class Map3DGraph extends Graph{
     int mapBaselineThreshold;
     Color mapBaselineColor;
 
-    int currentMapInsertionRow;
-
     // view parameters used when scanning/inspecting
     // this view must be directly from the side
 
@@ -334,8 +332,6 @@ public void resetAll()
 
     resetData();
 
-    currentMapInsertionRow = 0;
-
     repaint();
 
 }// end of Map3DGraph::resetAll
@@ -468,7 +464,9 @@ public void loadSegment(IniFile pFile)
 
     super.loadSegment(pFile);
 
-    /*map3D.loadSegment(pFile, configFileSection); */
+    map3D.loadSegment(pFile, configFileSection);
+
+    repaint();
 
 }//end of Map3DGraph::loadSegment
 //-----------------------------------------------------------------------------
@@ -483,12 +481,11 @@ public void loadSegment(IniFile pFile)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-    /*//DEBUG HSS//pOut.write("["+configFileSection+"]"); pOut.newLine();
+    pOut.write("["+configFileSection+"]"); pOut.newLine();
     pOut.write("Map Title=" + title); pOut.newLine();
     pOut.write("Map Short Title=" + shortTitle); pOut.newLine();
 
-    map3D.saveSegment(pOut, configFileSection,
-                        lastSegmentStartIndex, lastSegmentEndIndex);*/
+    map3D.saveSegment(pOut, configFileSection);
 
 }//end of Map3DGraph::saveSegment
 //-----------------------------------------------------------------------------
