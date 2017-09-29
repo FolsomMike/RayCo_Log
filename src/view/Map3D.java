@@ -547,7 +547,7 @@ public void setDataRow(int pLengthPos, int[] pDataRow, int[] pMetaRow)
 int debugHssLastPeak = -1;
 int debugHssLastPeakIndex = -1;
 int debugHssLastScrollUpdate = 0;
-boolean debugHssForceUpdate = false;
+boolean debugHssFinalInsertionRow = false;
 //DEBUG HSS//
 public void update(Graphics2D pG2)
 {
@@ -566,10 +566,13 @@ public void update(Graphics2D pG2)
 
 
         //DEBUG HSS//
-        if (lastDrawnX >= scrollTrackGraphInfo.lastDrawnX-10
-            || (debugHssLastScrollUpdate !=0
-                && (scrollTrackGraphInfo.scrollOffset-debugHssLastScrollUpdate<10)))
-            { continue; }
+        if ((scrollTrackGraphInfo.scrollOffset==0
+                && lastDrawnX >= scrollTrackGraphInfo.lastDrawnX-10)
+            || (debugHssFinalInsertionRow
+                && scrollTrackGraphInfo.scrollOffset-debugHssLastScrollUpdate<10))
+            {
+                continue;
+            }
         //DEBUG HSS//
 
         //store data in dataBuf
@@ -602,7 +605,7 @@ public void update(Graphics2D pG2)
             currentInsertionRow = dataXMax-1;
             shiftDataDownOneRow();
             Arrays.fill(dataBuf[currentInsertionRow+1], -1);
-            debugHssForceUpdate = true;
+            debugHssFinalInsertionRow = true;
         }
 
     }
