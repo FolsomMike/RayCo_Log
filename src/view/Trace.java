@@ -408,9 +408,9 @@ public void paintTrace(Graphics2D pG2)
         //snag data and flags and inc pointer
         int d = data.get(index);
         int f = dataFlags.get(index);
-        index++;
 
         paintSingleTraceDataPoint(pG2, index, d, f);
+        index++;
 
     }
 

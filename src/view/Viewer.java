@@ -145,6 +145,7 @@ public void init()
     //let's have a look, shall we?
     mainFrame.setVisible(true);
 
+
 }//end of Viewer::init
 //-----------------------------------------------------------------------------
 
@@ -181,24 +182,6 @@ public void resetMainFrameAndSetUp()
     //main window to pack around the scroll pane
     mainFrame.pack();
 
-    //if a size has been specified for the window, then use that size
-    //this is useful for preventing the viewer window from filling the screen
-
-    double w = mainFrame.getWidth();
-    double h = mainFrame.getHeight();
-
-    if(chartGroups[0].getGraphWidth() != -1) {
-        w = chartGroups[0].getGraphWidth();
-    }
-
-    if(chartGroups[0].getGraphHeight() != -1) {
-        //DEBUG HSS//h = chartGroups[0].getGraphHeight();
-        h = 600;
-    }
-
-    Tools.setSizes(mainFrame, (int)w, (int)h);
-    mainFrame.pack();
-
     //At this point, the main window will be sized large enough to view the
     //graphs vertically with only a horizontal scroll bar displayed
     //automatically.
@@ -206,10 +189,10 @@ public void resetMainFrameAndSetUp()
     //fit with a vertical scroll bar then being displayed automatically.
 
     //get the actual screen size
-    /*Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    w = mainFrame.getWidth();
-    h = mainFrame.getHeight();
+    double w = mainFrame.getWidth();
+    double h = mainFrame.getHeight();
 
     double adjustedWAmount = 0;
     double adjustedHAmount = 0;
@@ -235,7 +218,7 @@ public void resetMainFrameAndSetUp()
     //set the new size for the main window
     Tools.setSizes(mainFrame, (int)w, (int)h);
 
-    mainFrame.pack();*/
+    mainFrame.pack();
 
     //allow all objects to update values dependent on display sizes
     //must do this before loading data as this resets the buffers
