@@ -243,6 +243,67 @@ static public void displayErrorMessage(String pMessage, JFrame pMainFrame)
 }//end of Tools::displayErrorMessage
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Tools::escapeIllegalFilenameChars
+//
+// Checks pString for characters which are not allowed for file or folder names
+// and converts them to ASCII.
+//
+// Returns the validated file name.
+//
+
+static public String escapeIllegalFilenameChars(String pString)
+{
+
+    //the matches function for the String class could not be used since it
+    //compares the entire string - Internet search suggest using a Whitelist
+    //rather than a Blacklist
+    String[] whiteList = new String[] { "%", //this must be FIRST
+                                        "<", ">", "/", "?",
+                                        ":", "\"", "\\", "|", "*"
+                                        };
+
+    String newName = pString;
+    for (String ch : whiteList) {
+        newName = newName.replace(ch, "%"+(byte)ch.charAt(0));
+    }
+
+    return newName;
+
+}//end of Tools::escapeIllegalFilenameChars
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Tools::convertFilenameAsciiToReadable
+//
+// Checks pString for ASCII characters of the characters found in the white
+// list following the % sign, such as "%01" and converts them back to their
+// readable values/normal characters.
+//
+// Returns the validated file name.
+//
+
+static public String convertFilenameAsciiToReadable(String pString)
+{
+
+    //the matches function for the String class could not be used since it
+    //compares the entire string - Internet search suggest using a Whitelist
+    //rather than a Blacklist
+    String[] whiteList = new String[] { "%", //this must be FIRST
+                                        "<", ">", "/", "?",
+                                        ":", "\"", "\\", "|", "*"
+                                        };
+
+    String newName = pString;
+    for (String ch : whiteList) {
+        newName = newName.replace("%"+(byte)ch.charAt(0), ch);
+    }
+
+    return newName;
+
+}//end of Tools::convertFilenameAsciiToReadable
+//-----------------------------------------------------------------------------
+
 
 }//end of class Tools
 //-----------------------------------------------------------------------------

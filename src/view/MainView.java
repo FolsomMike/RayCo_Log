@@ -759,7 +759,9 @@ public void displayJobInfo()
 
     jobInfo = new JobInfo(mainFrame, sharedSettings.jobPathPrimary,
                             sharedSettings.jobPathSecondary,
-                            sharedSettings.currentJobName, this,
+                            sharedSettings.currentJobName,
+                            sharedSettings.currentJobNamePathFriendly,
+                            this,
                             sharedSettings.mainFileFormat);
     jobInfo.init();
     jobInfo = null;  //window will be released on close, so point should be null
@@ -875,7 +877,8 @@ public void displayViewer()
     viewer = new Viewer(sharedSettings, jobInfo,
                             sharedSettings.jobPathPrimary,
                             sharedSettings.jobPathSecondary,
-                            sharedSettings.currentJobName);
+                            sharedSettings.currentJobName,
+                            sharedSettings.currentJobNamePathFriendly);
     viewer.init();
 
 }//end of MainView::displayAbout

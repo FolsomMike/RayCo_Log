@@ -63,6 +63,7 @@ import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 import model.Options;
 import model.SharedSettings;
+import toolkit.Tools;
 import view.ChannelInfo;
 import view.GUITools;
 import view.LogPanel;
@@ -268,7 +269,8 @@ public void loadConfigSettings()
 {
 
     String filename = sharedSettings.jobPathPrimary + "01 - " +
-                sharedSettings.currentJobName + " Main Configuration.ini";
+                            sharedSettings.currentJobNamePathFriendly
+                            + " Main Configuration.ini";
 
     try {
         configFile = new IniFile(filename, sharedSettings.mainFileFormat);
@@ -1089,7 +1091,7 @@ private void loadCalFile()
 {
 
     String fileName = sharedSettings.jobPathPrimary + "00 - "
-                            + sharedSettings.currentJobName
+                            + sharedSettings.currentJobNamePathFriendly
                             + " Calibration File.ini";
 
     try {
@@ -1389,15 +1391,12 @@ public void createNewJob(String pInfo)
 
     String[] split = pInfo.split(",");
 
-    sharedSettings.currentJobName = split[1]; //use the new job name
+    //use the new job name
+    sharedSettings.currentJobName = split[1];
+    sharedSettings.currentJobNamePathFriendly
+            = Tools.escapeIllegalFilenameChars(sharedSettings.currentJobName);
     sharedSettings.save(); //save the new current job name so it will be loaded
-
-    //update the data paths
-    sharedSettings.jobPathPrimary = sharedSettings.dataPathPrimary
-                                        + sharedSettings.currentJobName + "/";
-    sharedSettings.jobPathSecondary = sharedSettings.dataPathSecondary
-                                        + sharedSettings.currentJobName + "/";
-
+    
     //exit the program, passing true to instantiate a new program which will
     //load the new work order on startup - it is required to create a new
     //program and kill the old one so that all of the configuration data for
@@ -1438,8 +1437,12 @@ public void changeJob(String pInfo)
 
     String[] split = pInfo.split(",");
 
-    sharedSettings.currentJobName = split[1]; //use the new job name
+    sharedSettings.currentJobName = split[1];
+    sharedSettings.currentJobNamePathFriendly
+            = Tools.escapeIllegalFilenameChars(sharedSettings.currentJobName);
     sharedSettings.save(); //save the new current job name so it will be loaded
+
+    //job paths remain the same for saving the cal file
 
     //exit the program, passing true to instantiate a new program which will
     //load the new work order on startup - it is required to create a new

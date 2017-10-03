@@ -78,11 +78,12 @@ public class Viewer extends ViewerReporter implements WindowListener,
 //
 
 public Viewer(SharedSettings pSettings, JobInfo pJobInfo, String pJobPrimaryPath,
-                            String pJobBackupPath, String pCurrentJobName)
+                    String pJobBackupPath, String pCurrentJobName,
+                    String pCurrentJobNamePathFriendly)
 {
 
-    super(
-         pSettings, pJobInfo, pJobPrimaryPath, pJobBackupPath, pCurrentJobName);
+    super(pSettings, pJobInfo, pJobPrimaryPath, pJobBackupPath,
+            pCurrentJobName, pCurrentJobNamePathFriendly);
 
 }//end of Viewer::Viewer (constructor)
 //-----------------------------------------------------------------------------

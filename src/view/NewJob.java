@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -249,6 +250,10 @@ void createJob()
 {
 
     String newJobName = jobName.getText();
+    //if the user has entered an illegal character, display an error
+    //illegal characters    <>/?:"\|*
+    //these cannot be used to create filename or folders in Windows
+    String newJobNamePathFriendly = Tools.escapeIllegalFilenameChars(newJobName);
     String configName = (String)configSelect.getSelectedItem();
     String presetName = (String)presetSelect.getSelectedItem();
 
@@ -256,17 +261,6 @@ void createJob()
     if (newJobName.equals("")){
         JOptionPane.showMessageDialog(frame,
         "The Job Name cannot be blank.",
-        "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    //if the user has entered an illegal character, display an error
-    //illegal characters    <>/?:"\|*
-    //these cannot be used to create filename or folders in Windows
-
-    if (!validateFilename(newJobName)){
-        JOptionPane.showMessageDialog(frame,
-        "The Job Name cannot contain:  <>/?:\"\\|*",
         "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
@@ -279,8 +273,8 @@ void createJob()
         return;
     }
 
-    File primaryFolder = new File (primaryDataPath + newJobName);
-    File backupFolder  = new File (backupDataPath + newJobName);
+    File primaryFolder = new File (primaryDataPath + newJobNamePathFriendly);
+    File backupFolder  = new File (backupDataPath + newJobNamePathFriendly);
 
     //display error if a folder with the job name already exists in either
     //directory
@@ -308,11 +302,11 @@ void createJob()
     //explorer window when the files are alphabetized to make it easier to find
 
     if (!copyFile("Configuration - Job Info Window.ini",
-                    primaryFolder + "/04 - " + newJobName
+                    primaryFolder + "/04 - " + newJobNamePathFriendly
                     + " Configuration - Job Info Window.ini")
      ||
         !copyFile("Configuration - Job Info Window.ini",
-                    backupFolder + "/04 - " + newJobName
+                    backupFolder + "/04 - " + newJobNamePathFriendly
                     + " Configuration - Job Info Window.ini")){
 
             JOptionPane.showMessageDialog(frame,
@@ -328,11 +322,11 @@ void createJob()
     //explorer window when the files are alphabetized to make it easier to find
 
     if (!copyFile("Configuration - Piece Info Window.ini",
-                    primaryFolder + "/05 - " + newJobName
+                    primaryFolder + "/05 - " + newJobNamePathFriendly
                     + " Configuration - Piece Info Window.ini")
      ||
         !copyFile("Configuration - Piece Info Window.ini",
-                    backupFolder + "/05 - " + newJobName
+                    backupFolder + "/05 - " + newJobNamePathFriendly
                     + " Configuration - Piece Info Window.ini")){
 
             JOptionPane.showMessageDialog(frame,
@@ -348,10 +342,12 @@ void createJob()
     //explorer window when the files are alphabetized to make it easier to find
 
     if (!copyFile("configurations" + "/" + configName,
-                  primaryFolder + "/01 - " + newJobName + " Main Configuration.ini")
+                  primaryFolder + "/01 - " + newJobNamePathFriendly
+                        + " Main Configuration.ini")
      ||
         !copyFile("configurations" + "/" + configName,
-                 backupFolder + "/01 - " + newJobName + " Main Configuration.ini")){
+                 backupFolder + "/01 - " + newJobNamePathFriendly
+                         + " Main Configuration.ini")){
 
             JOptionPane.showMessageDialog(frame,
             "The configuration file could not be copied " +
@@ -370,10 +366,12 @@ void createJob()
 
     if (presetSelected){
        if( (!copyFile("presets" + "/" + presetName,
-               primaryFolder + "/00 - " + newJobName + " Calibration File.ini")
+               primaryFolder + "/00 - " + newJobNamePathFriendly
+                       + " Calibration File.ini")
      ||
         !copyFile("presets" + "/" + presetName,
-              backupFolder + "/00 - " + newJobName + " Calibration File.ini"))){
+              backupFolder + "/00 - " + newJobNamePathFriendly
+                      + " Calibration File.ini"))){
 
             JOptionPane.showMessageDialog(frame,
             "The preset file could not be copied " +
@@ -385,9 +383,11 @@ void createJob()
         //if no preset selected for copying, then create a blank place holder
         //file so error won't be generated the first time the job is opened
         createPlaceHolderCalFile(
-               primaryFolder + "/00 - " + newJobName + " Calibration File.ini");
+               primaryFolder + "/00 - " + newJobNamePathFriendly
+                       + " Calibration File.ini");
         createPlaceHolderCalFile(
-               backupFolder + "/00 - " + newJobName + " Calibration File.ini");
+               backupFolder + "/00 - " + newJobNamePathFriendly
+                       + " Calibration File.ini");
     }
 
     //signal the class which invoked this window that a new job or jobs have
@@ -397,31 +397,6 @@ void createJob()
     xfer.rString1 = newJobName; //pass back the last job name created
 
 }//end of NewJob::createJob
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// NewJob::validateFilename
-//
-// Checks pString for characters which are not allowed for file or folder names.
-//
-// Returns true if the string is valid for use, false otherwise.
-//
-
-boolean validateFilename(String pString)
-{
-
-//the matches function for the String class could not be used since it
-//compares the entire string - Internet search suggest using a Whitelist
-//rather than a Blacklist
-
-        return (
-           !pString.contains("<") && !pString.contains(">") &&
-           !pString.contains("/") && !pString.contains("?") &&
-           !pString.contains(":") && !pString.contains("\"") &&
-           !pString.contains("\\") && !pString.contains("|") &&
-           !pString.contains("*"));
-
-}//end of NewJob::validateFilename
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

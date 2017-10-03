@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -135,7 +136,11 @@ private void loadJobList()
 
     //create a list to hold the file/folder names
     jobList = new ArrayList<>(1000);
-    jobList.addAll(Arrays.asList(configs));
+
+    //convert special chars from ascii and add names to list
+    for (String c : configs) {
+        jobList.add(Tools.convertFilenameAsciiToReadable(c));
+    }
     //sort the items alphabetically
     Collections.sort(jobList);
 

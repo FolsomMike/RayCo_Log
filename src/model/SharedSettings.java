@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 // class SharedSettings
@@ -50,6 +51,8 @@ public class SharedSettings{
     public String appTitle;
 
     public String currentJobName = "";
+    //illegal windows file chars escaped
+    public String currentJobNamePathFriendly = "";
     public String jobPathPrimary = "";
     public String jobPathSecondary = "";
     public String dataPathPrimary = "", dataPathSecondary = "";
@@ -113,7 +116,7 @@ public void init(JFrame pMainFrame)
 
     createJobPaths();
 
-    calFileName = "00 - " + currentJobName + " Calibration File.ini";
+    calFileName = "00 - " + currentJobNamePathFriendly + " Calibration File.ini";
 
 }// end of SharedSettings::init
 //-----------------------------------------------------------------------------
@@ -127,10 +130,10 @@ public void init(JFrame pMainFrame)
 private void createJobPaths()
 {
 
-    jobPathPrimary = dataPathPrimary + currentJobName;
+    jobPathPrimary = dataPathPrimary + currentJobNamePathFriendly;
     jobPathPrimary = trimAndAppendFileSeparatorIfMissing(jobPathPrimary);
 
-    jobPathSecondary = dataPathSecondary + currentJobName;
+    jobPathSecondary = dataPathSecondary + currentJobNamePathFriendly;
     jobPathSecondary = trimAndAppendFileSeparatorIfMissing(jobPathSecondary);
 
 }// end of SharedSettings::createJobPaths
@@ -192,6 +195,7 @@ private void loadMainSettings()
 
     currentJobName = configFile.readString(
                                      "Main Settings", "current job name", "");
+    currentJobNamePathFriendly = Tools.escapeIllegalFilenameChars(currentJobName);
 
     lastPieceNumber = configFile.readInt(
                  "Main Settings", "number of last piece processed", 0);

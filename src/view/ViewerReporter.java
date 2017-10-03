@@ -53,7 +53,8 @@ public class ViewerReporter implements ActionListener {
 
     SharedSettings settings;
     JobInfo jobInfo;
-    String jobPrimaryPath, jobBackupPath, currentJobName;
+    String jobPrimaryPath, jobBackupPath;
+    String currentJobName, currentJobNamePathFriendly;
     JScrollPane scrollPane;
     JPanel chartGroupPanel;
 
@@ -280,12 +281,14 @@ public synchronized void enablePrintButtonsThreadSafe()
 
 public ViewerReporter(SharedSettings pSettings, JobInfo pJobInfo,
                         String pJobPrimaryPath, String pJobBackupPath,
-                        String pCurrentJobName)
+                        String pCurrentJobName,
+                        String pCurrentJobNamePathFriendly)
 {
 
     settings = pSettings; jobInfo = pJobInfo;
     jobPrimaryPath = pJobPrimaryPath; jobBackupPath = pJobBackupPath;
     currentJobName = pCurrentJobName;
+    currentJobNamePathFriendly = pCurrentJobNamePathFriendly;
 
     //create various decimal formats
     decimalFormats = new DecimalFormat[4];
@@ -599,7 +602,8 @@ public void loadCalFile()
     try {
 
         calFile = new IniFile(jobPrimaryPath + "00 - "
-            + currentJobName + " Calibration File.ini", settings.mainFileFormat);
+                            + currentJobNamePathFriendly
+                            + " Calibration File.ini", settings.mainFileFormat);
         calFile.init();
     }
     catch(IOException e){
@@ -672,8 +676,10 @@ public void configure()
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
-        configFile = new IniFile(jobPrimaryPath + "01 - " + currentJobName
-                                + " Main Configuration.ini", settings.mainFileFormat);
+        configFile = new IniFile(jobPrimaryPath + "01 - "
+                                + currentJobNamePathFriendly
+                                + " Main Configuration.ini",
+                                settings.mainFileFormat);
         configFile.init();
         }
         catch(IOException e){

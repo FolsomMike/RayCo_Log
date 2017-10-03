@@ -87,6 +87,7 @@ public class JobInfo extends JDialog implements ActionListener, WindowListener {
     String configFilename;
     String primaryDataPath, backupDataPath;
     String currentWorkOrder;
+    String currentWorkOrderPathFriendly;
     ActionListener actionListener;
     String fileFormat;
 
@@ -98,14 +99,18 @@ public class JobInfo extends JDialog implements ActionListener, WindowListener {
 //
 
 public JobInfo(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
-                      String pCurrentWorkOrder, ActionListener pActionListener,
+                      String pCurrentWorkOrder,
+                      String pCurrentWorkOrderPathFriendly,
+                      ActionListener pActionListener,
                       String pFileFormat)
 {
 
     super(pFrame, "Job Info");
 
     primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-    currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
+    currentWorkOrder = pCurrentWorkOrder;
+    currentWorkOrderPathFriendly = pCurrentWorkOrderPathFriendly;
+    actionListener = pActionListener;
     fileFormat = pFileFormat;
 
 }//end of JobInfo::JobInfo (constructor)
@@ -124,7 +129,7 @@ public void init()
     addWindowListener(this);
 
     //load the configuration from the primary data folder
-    configFilename = primaryDataPath + "04 - " + currentWorkOrder
+    configFilename = primaryDataPath + "04 - " + currentWorkOrderPathFriendly
                                       + " Configuration - Job Info Window.ini";
 
     //create and array to hold 100 items - each item is an data entry object
@@ -273,11 +278,13 @@ private void configure(String pConfigFilename)
 //
 
 public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
-                                                      String pCurrentWorkOrder)
+                                String pCurrentWorkOrder,
+                                String pCurrentWorkOrderPathFriendly)
 {
 
     primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
     currentWorkOrder = pCurrentWorkOrder;
+    currentWorkOrderPathFriendly = pCurrentWorkOrderPathFriendly;
 
     //clear all items which have been defined and specified for clearing for a
     //new job
@@ -333,7 +340,8 @@ public String getValue(String pKey)
 public void loadData()
 {
 
-    String jobInfoFilename = primaryDataPath + "03 - " + currentWorkOrder
+    String jobInfoFilename = primaryDataPath + "03 - "
+                                + currentWorkOrderPathFriendly
                                                              + " Job Info.ini";
 
     IniFile jobInfoFile;
@@ -374,7 +382,7 @@ public void loadData()
 public void saveData(String pDataPath)
 {
 
-    String jobInfoFilename = pDataPath + "03 - " + currentWorkOrder
+    String jobInfoFilename = pDataPath + "03 - " + currentWorkOrderPathFriendly
                                                               + " Job Info.ini";
 
     IniFile jobInfoFile;
