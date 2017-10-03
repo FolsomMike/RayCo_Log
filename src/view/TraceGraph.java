@@ -19,6 +19,7 @@ package view;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,6 +55,8 @@ public TraceGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
 
     super(pChartGroupNum, pChartNum, pGraphNum, pWidth, pHeight, pChartInfo,
                 pConfigFile, pSettings);
+
+    metaDataSectionName = "Trace Graph";
 
 }//end of TraceGraph::TraceGraph (constructor)
 //-----------------------------------------------------------------------------
@@ -108,27 +111,27 @@ public void updateDimensions()
 void loadConfigSettings()
 {
 
-    configFileSection = "Chart Group " + chartGroupNum + " Chart " + chartNum
+    fileSection = "Chart Group " + chartGroupNum + " Chart " + chartNum
                                                         + " Graph " + graphNum;
 
     super.loadConfigSettings();
 
-    numTraces = configFile.readInt(configFileSection, "number of traces", 0);
+    numTraces = configFile.readInt(fileSection, "number of traces", 0);
 
-    numThresholds = configFile.readInt(configFileSection,
+    numThresholds = configFile.readInt(fileSection,
                                             "number of thresholds", 0);
 
     gridColor = configFile.readColor(
-                                 configFileSection, "grid color", Color.BLACK);
+                                 fileSection, "grid color", Color.BLACK);
 
     drawGridBaseline = configFile.readBoolean(
-                               configFileSection, "draw grid baseline", false);
+                               fileSection, "draw grid baseline", false);
 
     invertGraph = configFile.readBoolean(
-                                      configFileSection, "invert graph", true);
+                                      fileSection, "invert graph", true);
 
     int numVerGridDivisions = configFile.readInt(
-                   configFileSection, "number of vertical grid divisions", 10);
+                   fileSection, "number of vertical grid divisions", 10);
 
     gridYSpacing = height / numVerGridDivisions;
 
@@ -180,12 +183,18 @@ public void saveCalFile(IniFile pCalFile)
 //
 
 @Override
-public void loadSegment(IniFile pFile)
+public String loadSegment(BufferedReader pIn, String pLastLine)
+        throws IOException
 {
 
-    super.loadSegment(pFile);
+    //does not call super because we don't want to throw error if index does
+    //not match, legacy files from UT chart may not have indexes for each Graph
+    //because they rely on StripChart, which is considered the graph
+    String line = processMetaData(pIn, pLastLine, false);
 
-    for (Trace t : traces) { t.loadSegment(pFile); }
+    for (Trace t : traces) { line = t.loadSegment(pIn, line); }
+
+    return line;
 
 }//end of TraceGraph::loadSegment
 //-----------------------------------------------------------------------------
@@ -199,6 +208,8 @@ public void loadSegment(IniFile pFile)
 @Override
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
+
+    super.saveSegment(pOut);
 
     for (Trace t : traces) { t.saveSegment(pOut); }
 

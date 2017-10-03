@@ -78,6 +78,11 @@ public class SharedSettings{
     static final String DEFAULT_PRIMARY_DATA_PATH = "Data Folder - Primary";
     static final String DEFAULT_SECONDARY_DATA_PATH = "Data Folder - Secondary";
 
+    //This is the version of the format used to save the data for a segment which
+    //holds data for an inspected piece.
+    //version 1.0 saved with the "Threshold" tag misspelled as "Theshold"
+    public static String SEGMENT_DATA_VERSION = "1.1";
+
     private static final int ERROR_LOG_MAX_SIZE = 10000;
 
 //-----------------------------------------------------------------------------

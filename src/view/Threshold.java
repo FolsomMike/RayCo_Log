@@ -23,6 +23,7 @@ import java.io.*;
 import model.IniFile;
 import model.SharedSettings;
 import model.ThresholdInfo;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -338,16 +339,156 @@ public void paintThresholdLine(Graphics2D pG2)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-    /*//DEBUG HSS//pOut.write("[Threshold]"); pOut.newLine();
-    pOut.write("Threshold Index=" + thresholdNum); pOut.newLine();
-    pOut.write("Threshold Title=" + title); pOut.newLine();
-    pOut.write("Threshold Short Title=" + shortTitle); pOut.newLine();
+    pOut.write("[Threshold]"); pOut.newLine();
+    pOut.write("Threshold Index=" + thresholdInfo.getThresholdNum());
     pOut.newLine();
+    pOut.write("Threshold Title=" + thresholdInfo.getTitle());
+    pOut.newLine();
+    pOut.write("Threshold Short Title=" + thresholdInfo.getShortTitle());
+    pOut.newLine(); pOut.newLine();
 
-    pOut.write("Threshold Level=" + thresholdLevel); //save the threshold level
-    pOut.newLine(); pOut.newLine();*/
+    //save the threshold level
+    pOut.write("Threshold Level=" + thresholdInfo.getLevel());
+    pOut.newLine(); pOut.newLine();
 
 }//end of Threshold::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Threshold::loadSegment
+//
+// Loads the data for a segment from pIn.  It is expected that the Threshold
+// section is next in the file.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For the Threshold section, the [Threshold] tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+
+public String loadSegment(BufferedReader pIn, String pLastLine)
+                                                             throws IOException
+{
+
+    //handle entries for the threshold itself
+    String line = processThresholdEntries(pIn, pLastLine);
+
+    return(line);
+
+}//end of Threshold::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Threshold::processThresholdEntries
+//
+// Processes the entries for the threshold itself via pIn.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For the Threshold section, the [Threshold] tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+
+private String processThresholdEntries(BufferedReader pIn, String pLastLine)
+                                                             throws IOException
+
+{
+
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    //if pLastLine contains the [Threshold] tag, then skip ahead else read until
+    // end of file reached or "[Threshold]" section tag reached
+
+    if (Tools.matchAndParseString(pLastLine, "[Threshold]", "",  matchSet)) {
+        success = true; //tag already found
+    }
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(line, "[Threshold]", "",  matchSet)){
+                success = true; break;
+            }
+        }//while
+    }
+
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - section not found for " + section);
+    }
+
+    //set defaults
+    int thresholdIndexRead = -1;
+    String titleRead = "", shortTitleRead = "";
+    int levelRead = 100;
+
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
+
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        //read the "Threshold Index" entry - if not found, default to -1
+        if (Tools.matchAndParseInt(line, "Threshold Index", -1, matchSet)) {
+            thresholdIndexRead = matchSet.rInt1;
+        }
+
+        //NOTE: this match is due to a bug in segments saved under
+        // Segment Data Version 1.0 - the tag was misspelled - can be removed
+        // eventually - only one job run with that version
+        //read the "Theshold Index" entry - if not found, default to -1
+        if (Tools.matchAndParseInt(line, "Theshold Index", -1, matchSet)) {
+            thresholdIndexRead = matchSet.rInt1;
+        }
+
+        //read the "Threshold Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(line, "Threshold Title", "", matchSet)){
+            titleRead = matchSet.rString1;
+        }
+
+        //read the "Threshold Short Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(
+                                line, "Threshold Short Title", "", matchSet)) {
+            shortTitleRead = matchSet.rString1;
+        }
+
+        //read the "Threshold Level" entry - if not found, default to 100
+        if (Tools.matchAndParseInt(line, "Threshold Level", 100, matchSet)) {
+            levelRead = matchSet.rInt1;
+        }
+
+    }//while ((line = pIn.readLine()) != null)
+
+    //apply settings
+    thresholdInfo.setTitle(titleRead);
+    thresholdInfo.setShortTitle(shortTitleRead);
+    thresholdInfo.setLevel(levelRead);
+
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - missing end of section for " + section);
+    }
+
+    //if the index number in the file does not match the index number for this
+    //threshold, abort the file read
+
+    if (thresholdIndexRead != thresholdInfo.getThresholdNum()) {
+        throw new IOException(
+        "The file could not be read - section not found for  " + section);
+    }
+
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of Threshold::processThresholdEntries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

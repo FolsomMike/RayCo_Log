@@ -18,6 +18,7 @@ package view;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import model.DataFlags;
 import model.DataSetInt;
 import model.DataTransferIntBuffer;
 import model.IniFile;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -699,34 +701,37 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-    pOut.write("["+section+"]"); pOut.newLine();
+    //save trace meta data
+    pOut.write("[Trace]"); pOut.newLine();
+    pOut.write("Trace Index=" + traceNum); pOut.newLine();
     pOut.write("Trace Title=" + title); pOut.newLine();
     pOut.write("Trace Short Title=" + shortTitle); pOut.newLine();
+    pOut.newLine();
 
     //catch unexpected case where start/stop are invalid and bail
-    if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0){
+    if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0) {
         pOut.write("Segment start and/or start invalid - no data saved.");
         pOut.newLine(); pOut.newLine();
         return;
     }
 
-    pOut.write("["+section+" Data Set]"); pOut.newLine(); //save data set
-
+    //save trace data points
+    pOut.write("[Data Set 1]"); pOut.newLine();
     for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
-        pOut.write(Integer.toString(data.get(i))); //save the data
+        pOut.write(Integer.toString(data.get(i))); //write to file
         pOut.newLine();
     }
+    pOut.write("[End of Set]"); pOut.newLine();
 
-    pOut.write("[/"+section+" Data Set]"); pOut.newLine();
-
-    pOut.write("["+section+" Data Flags]"); pOut.newLine(); //save flags
-
+    //save trace flags
+    pOut.write("[Flags]"); pOut.newLine();
     for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
-        pOut.write(Integer.toString(dataFlags.get(i))); //save the data
+        pOut.write(Integer.toString(dataFlags.get(i))); //write to file
         pOut.newLine();
     }
+    pOut.write("[End of Set]"); pOut.newLine();
 
-    pOut.write("[/"+section+" Data Flags]"); pOut.newLine();
+    pOut.newLine(); //blank line
 
 }//end of Trace::saveSegment
 //-----------------------------------------------------------------------------
@@ -737,16 +742,222 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 // Loads segment from the IniFile.
 //
 
-public void loadSegment(IniFile pFile)
+public String loadSegment(BufferedReader pIn, String pLastLine)
+        throws IOException
 {
 
-    data.clear();
+    data.clear(); dataFlags.clear(); //make sure clear
 
-    pFile.getSectionAsIntegers(section+" Data Set", data);
-    pFile.getSectionAsIntegers(section+" Data Flags", dataFlags);
+    String line = processTraceMetaData(pIn, pLastLine);
 
+    try{
+        //read in trace data points
+        line = loadDataSeries(pIn, line, "[Data Set 1]", data, 0);
+
+        //read in trace flags
+        line = loadDataSeries(pIn, line, "[Flags]", dataFlags,
+                                DataFlags.DATA_VALID);
+    }
+    catch(IOException e){
+
+        //add identifying details to the error message and pass it on
+        throw new IOException(e.getMessage() + " of " + section);
+    }
+
+    return line;
 
 }//end of Trace::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::processTraceMetaData
+//
+// Processes file entries for the trace such as the title via pIn.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For the Trace section, the [Trace] tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+
+private String processTraceMetaData(BufferedReader pIn, String pLastLine)
+                                                             throws IOException
+
+{
+
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    //if pLastLine contains the [Trace] tag, then start loading section
+    //immediately else read until "[Trace]" section tag reached
+
+    if (Tools.matchAndParseString(pLastLine, "[Trace]", "",  matchSet)) {
+        success = true; //tag already found
+    }
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(line, "[Trace]", "",  matchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        throw new IOException(
+            "The file could not be read - section not found for " + section);
+    }
+
+    //set defaults
+    int traceNumRead = -1;
+    String titleRead = "", shortTitleRead = "";
+
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
+
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        //read the "Trace Index" entry - if not found, default to -1
+        if (Tools.matchAndParseInt(line, "Trace Index", -1, matchSet)) {
+            traceNumRead = matchSet.rInt1;
+        }
+
+        //read the "Trace Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(line, "Trace Title", "", matchSet)) {
+            titleRead = matchSet.rString1;
+        }
+
+        //read the "Trace Short Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(
+                                    line, "Trace Short Title", "", matchSet)) {
+            shortTitleRead = matchSet.rString1;
+        }
+
+    }
+
+    //apply settings
+    title = titleRead; shortTitle = shortTitleRead;
+
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - missing end of section for " + section);
+    }
+
+    //if the index number in the file does not match the index number for this
+    //trace, abort the file read
+
+    if (traceNumRead != traceNum) {
+        throw new IOException(
+            "The file could not be read - section not found for " + section);
+    }
+
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of Trace::processTraceMetaData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::loadDataSeries
+//
+// Loads a data series into a one dimensional array from pIn.  The series could
+// be "Data Set 1", "Data Set 2", or "Flags", etc. depending on the parameters
+// passed in.
+//
+// The pStartTag string specifies the section start tag for the type of data
+// expected and could be: "[Data Set 1]", "[Data Set 2]", or "[Flags]".  The
+// pBuffer pointer should be set to the buffer associated with the data type.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For these sections, the [xxx] section start tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+// Value pDataModifier1 will be ORed with each data point as it is stored in
+// the buffer. This allows any bit(s) to be forced to 1 if they are used as
+// flag bits. If no bits are to be forced, pDataModifier1 should be 0.
+//
+
+public String loadDataSeries(BufferedReader pIn, String pLastLine,
+                            String pStartTag, ArrayList<Integer> pBuffer,
+                            int pDataModifier1) throws IOException
+{
+
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    //if pLastLine contains the [xxx] tag, then skip ahead else read until
+    // end of file reached or "[xxx]" section tag reached
+
+    if (Tools.matchAndParseString(pLastLine, pStartTag, "",  matchSet)) {
+        success = true;  //tag already found
+    }
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(line, pStartTag, "",  matchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        throw new IOException(
+           "The file could not be read - section not found for " + pStartTag);
+    }
+
+    //scan the first part of the section and parse its entries
+
+    int i = 0;
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section end tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        try{
+
+            //convert the text to an integer and save in the buffer
+            int dataInt = Integer.parseInt(line);
+            pBuffer.add(dataInt | pDataModifier1);
+
+            //catch buffer overflow
+            if (i == pBuffer.size()) {
+                throw new IOException(
+                 "The file could not be read - too much data for " + pStartTag
+                                                       + " at data point " + i);
+            }
+
+        }
+        catch(NumberFormatException e){
+            //catch error translating the text to an integer
+            throw new IOException(
+             "The file could not be read - corrupt data for " + pStartTag
+                                                       + " at data point " + i);
+        }
+
+    }//while ((line = pIn.readLine()) != null)
+
+    if (!success) {
+        throw new IOException(
+         "The file could not be read - missing end of section for "
+                                                                + pStartTag);
+    }
+
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of Trace::loadDataSeries
 //-----------------------------------------------------------------------------
 
 }//end of class Trace

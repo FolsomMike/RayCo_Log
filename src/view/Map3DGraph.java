@@ -24,6 +24,7 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import model.DataSetIntMultiDim;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
 import model.SharedSettings;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -104,6 +106,8 @@ public Map3DGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
 
     super(pChartGroupNum, pChartNum, pGraphNum, pWidth, pHeight, pChartInfo,
             pConfigFile, pSettings);
+
+    metaDataSectionName = "Map 3D Graph";
 
 }//end of Chart::Map3DGraph (constructor)
 //-----------------------------------------------------------------------------
@@ -453,25 +457,6 @@ private void parseColorMappingStyle(String pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map3DGraph::loadSegment
-//
-// Loads all of the map data.
-//
-
-@Override
-public void loadSegment(IniFile pFile)
-{
-
-    super.loadSegment(pFile);
-
-    map3D.loadSegment(pFile, configFileSection);
-
-    repaint();
-
-}//end of Map3DGraph::loadSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Map3DGraph::saveSegment
 //
 // Saves all of the zoom data.
@@ -481,13 +466,33 @@ public void loadSegment(IniFile pFile)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-    pOut.write("["+configFileSection+"]"); pOut.newLine();
-    pOut.write("Map Title=" + title); pOut.newLine();
-    pOut.write("Map Short Title=" + shortTitle); pOut.newLine();
+    super.saveSegment(pOut);
 
-    map3D.saveSegment(pOut, configFileSection);
+    map3D.saveSegment(pOut);
 
 }//end of Map3DGraph::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::loadSegment
+//
+// Loads all of the map data.
+//
+
+@Override
+public String loadSegment(BufferedReader pIn, String pLastLine)
+        throws IOException
+{
+
+    String line = super.loadSegment(pIn, pLastLine);
+
+    line = map3D.loadSegment(pIn, line, fileSection);
+
+    repaint();
+
+    return line;
+
+}//end of Map3DGraph::loadSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -500,7 +505,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 void loadConfigSettings()
 {
 
-    configFileSection =
+    fileSection =
             "Chart Group " + chartGroupNum + " Chart " + chartNum
                                             + " Graph " + graphNum;
 
@@ -509,11 +514,11 @@ void loadConfigSettings()
     double pixelWidthOfGridBlockInRuntimeLayout;
 
     pixelWidthOfGridBlockInRuntimeLayout = configFile.readDouble(
-            configFileSection,
+            fileSection,
             "pixel width of each grid block in runtime layout", 9.5);
 
     mapLengthInDataPoints =
-      configFile.readInt(configFileSection, "length of map in data points", 12);
+      configFile.readInt(fileSection, "length of map in data points", 12);
 
     //if value in config file is -1, set such that the graph is filled
     if (mapLengthInDataPoints == -1){
@@ -522,20 +527,20 @@ void loadConfigSettings()
     }
 
     mapWidthInDataPoints =
-       configFile.readInt(configFileSection, "width of map in data points", -1);
+       configFile.readInt(fileSection, "width of map in data points", -1);
 
-    bufferLengthInDataPoints = configFile.readInt(configFileSection,
+    bufferLengthInDataPoints = configFile.readInt(fileSection,
                 "length of data buffer in data points", mapLengthInDataPoints);
 
     //3D map view parameters for runtime layout
 
     normalViewParams.loadConfigSettings(
-                                    configFile, configFileSection, "runtime");
+                                    configFile, fileSection, "runtime");
 
     //3D map view parameters for when graph is expanded for better viewing
 
     expandedViewParams.loadConfigSettings(
-                                    configFile, configFileSection, "expanded");
+                                    configFile, fileSection, "expanded");
 
     //if xPos is MAX_VALUE, adjust to set left edge of grid to left graph edge
     //this is only done for the runtime view...adjustments to expanded view
@@ -548,21 +553,21 @@ void loadConfigSettings()
     }
 
 
-     String s = configFile.readString(configFileSection,
+     String s = configFile.readString(fileSection,
                                     "color mapping style", "assign by system");
 
     parseColorMappingStyle(s);
 
-    mapBaselineThreshold = configFile.readInt(configFileSection,
+    mapBaselineThreshold = configFile.readInt(fileSection,
                                                  "map baseline threshold", 4);
 
-    mapBaselineColor = configFile.readColor(configFileSection,
+    mapBaselineColor = configFile.readColor(fileSection,
                                        "map baseline color", Color.LIGHT_GRAY);
 
     //start out using the runtime view parameters
     currentViewParams.setValues(normalViewParams);
 
-    loadSystemsConfigSettings(configFileSection);
+    loadSystemsConfigSettings(fileSection);
 
 }// end of Map3DGraph::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -573,11 +578,11 @@ void loadConfigSettings()
 // Loads settings for the map systems from configFile.
 //
 
-void loadSystemsConfigSettings(String configFileSection)
+void loadSystemsConfigSettings(String fileSection)
 {
 
     numSystems  =
-       configFile.readInt(configFileSection, "number of systems on map", 0);
+       configFile.readInt(fileSection, "number of systems on map", 0);
 
     if (numSystems <= 0) { return; }
 
@@ -587,10 +592,10 @@ void loadSystemsConfigSettings(String configFileSection)
     for(int i=0; i<numSystems; i++){
 
         systemNames[i] = configFile.readString(
-                      configFileSection, "system " + i + " name", "undefined");
+                      fileSection, "system " + i + " name", "undefined");
 
         systemColors[i] = configFile.readColor(
-                           configFileSection, "system " + i + " color", null);
+                           fileSection, "system " + i + " color", null);
 
     }
 

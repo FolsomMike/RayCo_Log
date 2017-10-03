@@ -104,6 +104,7 @@ public class MainController implements EventHandler, Runnable
     private SwingWorker workerThread;
 
     private final DecimalFormat decimalFormat1 = new DecimalFormat("#.0");
+    private final DecimalFormat fileNameFormat = new DecimalFormat("0000000");
 
     private Font tSafeFont;
     private String tSafeText;
@@ -188,9 +189,6 @@ public void init()
 
     //load the cal file
     loadCalFile();
-
-    //load the segment file
-    loadSegment(); //DEBUG HSS// temp code for testing
 
     //force garbage collection before beginning any time sensitive tasks
     System.gc();
@@ -892,6 +890,10 @@ public void actionPerformed(ActionEvent e)
 
     if ("Display About".equals(e.getActionCommand())) {displayAbout(); return;}
 
+    if (e.getActionCommand().startsWith("View Completed")) {
+        displayViewer(e.getActionCommand());
+    }
+
     if ("New File".equals(e.getActionCommand())) {doSomething1(); return;}
 
     if ("Open File".equals(e.getActionCommand())) {
@@ -1153,39 +1155,6 @@ private void saveCalFile()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainController::loadSegment
-//
-// Loads the segment.
-//
-
-private void loadSegment()
-{
-
-    //DEBUG HSS//
-    int segmentNumber = 1;
-    String filename = "30 - " + segmentNumber + ".cal";
-    String primaryPath = sharedSettings.jobPathPrimary + filename;
-    String secondaryPath = sharedSettings.jobPathSecondary + filename;
-    //DEBUG HSS//
-
-    try{
-
-        IniFile file = new IniFile(primaryPath, sharedSettings.mainFileFormat);
-        file.init();
-
-        //tell view to load data from file
-        mainView.loadSegment(file);
-
-    }
-    catch(IOException e){
-        MKSTools.logSevere(getClass().getName(), e.getMessage()
-                                                    + " - Error: 1191");
-    }
-
-}//end of MainController::loadSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // MainController::saveSegment
 //
 // Saves the current segment data to file.
@@ -1201,8 +1170,8 @@ private void saveSegment()
     try{
 
         //DEBUG HSS//
-        int segmentNumber = 1;
-        String filename = "30 - " + segmentNumber + ".cal";
+        String segmentNumber = fileNameFormat.format(1);
+        String filename = "20 - " + segmentNumber + ".dat";
         String primaryPath = sharedSettings.jobPathPrimary + filename;
         String secondaryPath = sharedSettings.jobPathSecondary + filename;
         //DEBUG HSS//
@@ -1520,6 +1489,20 @@ private void displayAbout()
 {
 
     mainView.displayAbout();
+
+}//end of MainController::displayAbout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayViewer
+//
+// Opens a viewer window for viewing saved segments.
+//
+
+private void displayViewer(String pActionCommand)
+{
+
+    mainView.displayViewer();
 
 }//end of MainController::displayAbout
 //-----------------------------------------------------------------------------

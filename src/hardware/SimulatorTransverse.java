@@ -67,7 +67,7 @@ public void init(int pBoardNumber)
 
     numClockPositions = 48;
 
-    spikeOdds = 500;
+    spikeOdds = 50;
 
 }// end of SimulatorTransverse::init
 //-----------------------------------------------------------------------------

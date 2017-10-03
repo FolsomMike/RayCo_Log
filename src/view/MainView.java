@@ -862,6 +862,26 @@ public void displayAbout()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::displayViewer
+//
+// Opens a viewer window for viewing saved segments.
+//
+
+public void displayViewer()
+{
+
+    //this part opens a viewer window for viewing saved segments
+    Viewer viewer;
+    viewer = new Viewer(sharedSettings, jobInfo,
+                            sharedSettings.jobPathPrimary,
+                            sharedSettings.jobPathSecondary,
+                            sharedSettings.currentJobName);
+    viewer.init();
+
+}//end of MainView::displayAbout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::displayErrorMessage
 //
 // Displays an error dialog with message pMessage.
@@ -1529,21 +1549,26 @@ public void saveCalFile(IniFile pCalFile) {
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::loadSegment
-//
-
-public void loadSegment(IniFile pFile) {
-
-    for (ChartGroup c : chartGroups) { c.loadSegment(pFile); }
-
-}//end of MainView::loadSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // MainView::saveSegment
 //
 
 public void saveSegment(BufferedWriter pOut) throws IOException {
+
+    //write the header information - this portion can be read by the iniFile
+        //class which will only read up to the "[Header End]" tag - this allows
+        //simple parsing of the header information while ignoring the data
+        //stream which  follows the header
+
+        pOut.write("[Header Start]"); pOut.newLine();
+        pOut.newLine();
+        pOut.write("Segment Data Version=" + SharedSettings.SEGMENT_DATA_VERSION);
+        pOut.newLine();
+        /*pOut.write("Measured Length=" + hardware.hdwVs.measuredLength);
+        pOut.newLine();
+        pOut.write("Inspection Direction="
+                                     + settings.inspectionDirectionDescription);
+        pOut.newLine();*/ //WIP HSS// write these at a future date
+        pOut.write("[Header End]"); pOut.newLine(); pOut.newLine();
 
     for (ChartGroup c : chartGroups) { c.saveSegment(pOut); }
 

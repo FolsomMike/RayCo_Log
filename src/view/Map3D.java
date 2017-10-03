@@ -150,6 +150,7 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -158,6 +159,7 @@ import model.DataFlags;
 import model.DataSetIntMultiDim;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -177,6 +179,13 @@ import model.IniFile;
 //
 
 public class Map3D{
+
+    int chartGroupNum;
+    public int getChartGroupNum(){ return(chartGroupNum); }
+    int chartNum;
+    public int getChartNum(){ return(chartNum); }
+    int graphNum;
+    public int getGraphNum(){ return(graphNum); }
 
     private final MapDataBuffer mapDataBuffer;
     public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer)
@@ -314,6 +323,10 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
             int pNumSystems, int pColorMappingStyle, int pBaselineThreshold,
             Color pBaselineColor)
 {
+
+    chartGroupNum = pChartGroupNum;
+    chartNum = pChartNum;
+    graphNum = pGraphNum;
 
     dataXMax = pDataXMax; dataYMax = pDataYMax;
     xMax = dataXMax + 2; yMax = dataYMax + 2;
@@ -1561,50 +1574,90 @@ void quickDrawLastRow(Graphics2D pG2)
 //---------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3D::saveSegment
+//
+// Saves all of the zoom data.
+//
+
+public void saveSegment(BufferedWriter pOut)
+    throws IOException
+{
+
+    //catch unexpected case where start/stop are invalid and bail
+    if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0
+            || lastSegmentDrawnDataStartIndex < 0
+            || lastSegmentDrawnDataEndIndex < 0)
+    {
+        pOut.write("Segment start and/or start invalid - no data saved.");
+        pOut.newLine(); pOut.newLine();
+        return;
+    }
+
+    //get peak data that hasn't been drawn yet and put it in drawnData. Will
+    //need to be removed after this function is done outputting the data
+    boolean extraPeakData = mapDataBuffer.getPeakData(mapDataSet);
+    if (extraPeakData) {
+        drawnData.add(mapDataSet.d);
+        drawnMetaData.add(mapDataSet.m);
+    }
+
+    //save data points
+    pOut.write("[Drawn Data Set 1]"); pOut.newLine();
+    for (int i=lastSegmentDrawnDataStartIndex;
+            i<=lastSegmentDrawnDataEndIndex;
+            i++)
+    {
+        for (int d : drawnData.get(i)) { pOut.write(Integer.toString(d)+","); }
+        pOut.newLine();
+    }
+    pOut.write("[End of Set]"); pOut.newLine();
+
+    //save meta data
+    pOut.write("[Drawn Meta Data Set 1]"); pOut.newLine();
+    for (int i=lastSegmentDrawnDataStartIndex;
+            i<=lastSegmentDrawnDataEndIndex;
+            i++)
+    {
+        for (int d : drawnMetaData.get(i)) { pOut.write(Integer.toString(d)+","); }
+        pOut.newLine();
+    }
+    pOut.write("[End of Set]"); pOut.newLine();
+
+    //remove extra peak data
+    if (extraPeakData) {
+        drawnData.remove(drawnData.size()-1);
+        drawnMetaData.remove(drawnMetaData.size()-1);
+    }
+
+}//end of Map3D::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3D::loadSegment
 //
 // Loads all of the map data.
 //
 
-public void loadSegment(IniFile pFile, String pSection)
+public String loadSegment(BufferedReader pIn, String pLastLine,
+                            String pErrorSection)
+        throws IOException
 {
 
     resetAll(); //reset old data
 
-    mapDataBuffer.loadData(pFile, pSection); //tell buffer to load data
+    String line = pLastLine;
+    try{
+        //read in data points
+        line = loadDataSeries(pIn, pLastLine, "[Drawn Data Set 1]",
+                                drawnData, 0);
 
-    //lists to temporarily store file lines for processsing
-    ArrayList<String> dataLines = new ArrayList<>(5000);
-    ArrayList<String> metaDataLines = new ArrayList<>(5000);
-
-    //get lines from file
-    pFile.getSection(pSection+" Drawn Data", dataLines);
-    pFile.getSection(pSection+" Drawn Meta Data", metaDataLines);
-
-    //process file lines and put them into the data buf
-    for (int i=0; i<dataLines.size()&&i<metaDataLines.size(); i++) {
-
-        //data points are serarated by commas
-        String[] dataSplit = dataLines.get(i).split(",");
-        String [] metaDataSplit = metaDataLines.get(i).split(",");
-
-        //arrays to hold integers after conversion
-        int[] dataPoints = new int[dataSplit.length];
-        int[] metaDataPoints = new int[metaDataSplit.length];
-
-        //convert and store all data and meta data to integers
-        for (int j=0; j<dataSplit.length&&j<metaDataSplit.length; j++) {
-
-            try{
-                dataPoints[j] = Integer.parseInt(dataSplit[j]);
-                metaDataPoints[j] = Integer.parseInt(metaDataSplit[j]);
-            } catch(NumberFormatException e){ }
-
-        }
-
-        //store in buffers
-        drawnData.add(dataPoints); drawnMetaData.add(metaDataPoints);
-
+        //read in meta data
+        line = loadDataSeries(pIn, pLastLine, "[Drawn Meta Data Set 1]",
+                                drawnMetaData, 0);
+    }
+    catch(IOException e){
+        //add identifying details to the error message and pass it on
+        throw new IOException(e.getMessage() + " of " + pErrorSection);
     }
 
     //set data in the active drawing buffers
@@ -1624,63 +1677,110 @@ public void loadSegment(IniFile pFile, String pSection)
 
     }
 
+    return line;
+
 }//end of Map3D::loadSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map3D::saveSegment
+// Map3D::loadDataSeries
 //
-// Saves all of the zoom data.
+// Loads a data series into a one dimensional array from pIn.  The series could
+// be "Data Set 1", "Data Set 2", or "Flags", etc. depending on the parameters
+// passed in.
+//
+// The pStartTag string specifies the section start tag for the type of data
+// expected and could be: "[Data Set 1]", "[Data Set 2]", or "[Flags]".  The
+// pBuffer pointer should be set to the buffer associated with the data type.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For these sections, the [xxx] section start tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+// Value pDataModifier1 will be ORed with each data point as it is stored in
+// the buffer. This allows any bit(s) to be forced to 1 if they are used as
+// flag bits. If no bits are to be forced, pDataModifier1 should be 0.
 //
 
-public void saveSegment(BufferedWriter pOut, String pSection)
-    throws IOException
+public String loadDataSeries(BufferedReader pIn, String pLastLine,
+                            String pStartTag, ArrayList<int[]> pBuffer,
+                            int pDataModifier1) throws IOException
 {
 
-    //catch unexpected case where start/stop are invalid and bail
-    if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0
-            || lastSegmentDrawnDataStartIndex < 0
-            || lastSegmentDrawnDataEndIndex < 0)
-    {
-        pOut.write("Segment start and/or start invalid - no data saved.");
-        pOut.newLine(); pOut.newLine();
-        return;
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    //if pLastLine contains the [xxx] tag, then skip ahead else read until
+    // end of file reached or "[xxx]" section tag reached
+
+    if (Tools.matchAndParseString(pLastLine, pStartTag, "",  matchSet)) {
+        success = true;  //tag already found
+    }
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(line, pStartTag, "",  matchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        throw new IOException(
+           "The file could not be read - section not found for " + pStartTag);
     }
 
-    mapDataBuffer.saveData(pOut, pSection,
-                            lastSegmentStartIndex, lastSegmentEndIndex);
+    //scan the first part of the section and parse its entries
 
-    //get peak data that hasn't been drawn yet and put it in drawnData. Will
-    //need to be removed after this function is done outputting the data
-    boolean extraPeakData = mapDataBuffer.getPeakData(mapDataSet);
-    if (extraPeakData) {
-        drawnData.add(mapDataSet.d);
-        drawnMetaData.add(mapDataSet.m);
+    int i = 0;
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section end tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        try{
+
+            //data is serarated by commas
+            String[] dataSplit = line.split(",");
+
+            //arrays to hold integers after conversion
+            int[] dataPoints = new int[dataSplit.length];
+
+            //convert and store all data as integers
+            for (int j=0; j<dataSplit.length; j++) {
+
+                dataPoints[j] = Integer.parseInt(dataSplit[j]) | pDataModifier1;
+
+            }
+
+            //store in buffer
+            pBuffer.add(dataPoints);
+
+        } catch(NumberFormatException e){
+            //catch error translating the text to an integer
+            throw new IOException(
+             "The file could not be read - corrupt data for " + pStartTag
+                                                       + " at data point " + i);
+        }
+
+
+    }//while ((line = pIn.readLine()) != null)
+
+    if (!success) {
+        throw new IOException(
+         "The file could not be read - missing end of section for "
+                                                                + pStartTag);
     }
 
-    //save drawn data set
-    pOut.write("["+pSection+" Drawn Data]"); pOut.newLine();
-    for (int i=lastSegmentDrawnDataStartIndex; i<=lastSegmentDrawnDataEndIndex; i++) {
-        for (int d : drawnData.get(i)) { pOut.write(Integer.toString(d)+","); }
-        pOut.newLine();
-    }
-    pOut.write("[/"+pSection+" Drawn Data]"); pOut.newLine();
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
 
-    //save drawn meta data
-    pOut.write("["+pSection+" Drawn Meta Data]"); pOut.newLine();
-    for (int i=lastSegmentDrawnDataStartIndex; i<=lastSegmentDrawnDataEndIndex; i++) {
-        for (int d : drawnMetaData.get(i)) { pOut.write(Integer.toString(d)+","); }
-        pOut.newLine();
-    }
-    pOut.write("[/"+pSection+" Drawn Meta Data]"); pOut.newLine();
-
-    //remove extra peak data
-    if (extraPeakData) {
-        drawnData.remove(drawnData.size()-1);
-        drawnMetaData.remove(drawnMetaData.size()-1);
-    }
-
-}//end of Map3D::saveSegment
+}//end of Map3D::loadDataSeries
 //-----------------------------------------------------------------------------
 
 }//end of class Map3D

@@ -41,12 +41,14 @@ package view;
 
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 import model.IniFile;
 import model.SharedSettings;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -61,6 +63,8 @@ class ChartGroup extends JPanel{
     private String title, shortTitle, objectType;
     private final int chartGroupNum;
     private int graphWidth, graphHeight;
+    public int getGraphWidth() { return graphWidth; }
+    public int getGraphHeight() { return graphHeight; }
     private int numCharts;
     private Chart charts[];
 
@@ -504,33 +508,127 @@ public void saveCalFile(IniFile pCalFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChartGroup::loadSegment
-//
-// Loads segments' data from pFile.
-//
-
-public void loadSegment(IniFile pFile)
-{
-
-    // call each chart to load its data
-    for (Chart c : charts) { c.loadSegment(pFile); }
-
-    repaint();
-
-}//end of ChartGroup::loadSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // ChartGroup::saveSegment
 //
 
 public void saveSegment(BufferedWriter pOut)  throws IOException
 {
 
+    pOut.write("[Chart Group]"); pOut.newLine();
+    pOut.write("Chart Group Index=" + chartGroupNum); pOut.newLine();
+    pOut.newLine();
+
     // call each chart to save its data
     for (Chart c : charts) { c.saveSegment(pOut); }
 
 }//end of ChartGroup::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::loadSegment
+//
+// Loads segments' data from pFile.
+//
+
+public String loadSegment(BufferedReader pIn, String pLastLine)
+                                                            throws IOException
+{
+
+    //handle entries for the chart group itself
+    String line = processChartGroupEntries(pIn, pLastLine);
+
+    // call each chart to load its data
+    for (Chart c : charts) { line = c.loadSegment(pIn, line); }
+
+    repaint();
+
+    return line;
+
+}//end of ChartGroup::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::processChartGroupEntries
+//
+// Processes the entries for the chart group itself via pIn.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// The [ChartGroup] tag may or may not have already been read from the file by
+// the code handling the previous section.  If it has been read, the line
+// containing the tag should be passed in via pLastLine.
+//
+
+private String processChartGroupEntries(BufferedReader pIn, String pLastLine)
+                                                            throws IOException
+
+{
+
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    //if pLastLine contains the [Chart Group] tag, then section found else read
+    //until end of file reached or next "[Chart Group]" section tag reached
+
+    if (Tools.matchAndParseString(pLastLine, "[Chart Group]", "", matchSet)) {
+        success = true;
+    } //tag already found
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(
+                                        line, "[Chart Group]", "", matchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+                                                            + chartGroupNum);
+    }
+
+    //set defaults
+    int chartGroupIndexRead = -1;
+
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
+
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        //catch the "Chart Group Index" entry - if not found, default to -1
+        if (Tools.matchAndParseInt(line, "Chart Group Index", -1,  matchSet)) {
+            chartGroupIndexRead = matchSet.rInt1;
+        }
+
+    }// while ((line = pIn.readLine()) != null)
+
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - missing end of section for Chart Group "
+                                                           + chartGroupNum);
+    }
+
+    //if the index number in the file does not match the index number for this
+    //chart group, abort the file read
+
+    if (chartGroupIndexRead != chartGroupNum) {
+        throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+                                                             + chartGroupNum);
+    }
+
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of Viewer::processChartGroupEntries
 //-----------------------------------------------------------------------------
 
 }//end of class ChartGroup

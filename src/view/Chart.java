@@ -23,6 +23,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.Iterator;
 import javax.swing.*;
 import model.IniFile;
 import model.SharedSettings;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -857,19 +859,55 @@ public void saveCalFile(IniFile pCalFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::saveSegment
+//
+
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("[Chart]"); pOut.newLine();
+    pOut.write("Chart Index=" + chartNum); pOut.newLine();
+    pOut.write("Chart Title=" + title); pOut.newLine();
+    pOut.write("Chart Short Title=" + shortTitle); pOut.newLine();
+    pOut.newLine();
+    pOut.write(
+            "Note that the Chart Title and Short Title may have been changed");
+    pOut.newLine();
+    pOut.write(
+            "by the user, so the text displayed on the screen may not match");
+    pOut.newLine();
+    pOut.write("the values shown here.");
+    pOut.newLine(); pOut.newLine();
+
+    pOut.write("Chart is Visible=" + isVisible()); //save visibility flag
+    pOut.newLine(); pOut.newLine();
+
+    // tell each graph to save its data
+    for (Graph g : graphs) { g.saveSegment(pOut); }
+
+}//end of Chart::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::loadSegment
 //
 // Loads segments' data from pFile.
 //
 
-public void loadSegment(IniFile pFile)
+public String loadSegment(BufferedReader pIn, String pLastLine)
+        throws IOException
 {
 
+    //handle entries for the chart itself
+    String line = processChartEntries(pIn, pLastLine);
+
+    if(line.startsWith("Alert")) { return line; }
+
     // tell each graph to load data
-    for (Graph g : graphs) { g.loadSegment(pFile); }
+    for (Graph g : graphs) { line = g.loadSegment(pIn, line); }
 
     // draw all necessary zoomboxes if a zoomgraph is there
-    if (zoomGraph==null) { return; }
+    if (zoomGraph==null) { return line; }
     int xStop = zoomGraph.getDataSize();
     for (int i=0; i<=xStop; i++) {
 
@@ -882,20 +920,115 @@ public void loadSegment(IniFile pFile)
 
     }
 
+    return line;
+
 }//end of Chart::loadSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Chart::saveSegment
+// StripChart::processChartEntries
+//
+// Processes the entries for the chart itself via pIn.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For the StripChart section, the [Chart] tag may or may not have already been
+// read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
 //
 
-public void saveSegment(BufferedWriter pOut) throws IOException
+private String processChartEntries(BufferedReader pIn, String pLastLine)
+        throws IOException
 {
 
-    // tell each graph to save its data
-    for (Graph g : graphs) { g.saveSegment(pOut); }
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
 
-}//end of Chart::saveSegment
+    //if pLastLine contains the [Chart] tag, then skip ahead else read until
+    //end of file reached or "[Chart]" section tag reached
+
+    if (Tools.matchAndParseString(pLastLine, "[Chart]", "",  matchSet)) {
+        success = true;
+    } //tag already found
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(line, "[Chart]", "",  matchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        return(
+            "Alert: Section not found for Chart Group "
+                                       + chartGroupNum + " Chart " + chartNum);
+    }
+
+    //set defaults
+    int chartIndexRead = -1;
+    String titleRead = "", shortTitleRead = "";
+    boolean visibleRead = true;
+
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
+
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        //read the "Chart Index" entry - if not found, default to -1
+        if (Tools.matchAndParseInt(line, "Chart Index", -1,  matchSet)) {
+            chartIndexRead = matchSet.rInt1;
+        }
+
+        //read the "Chart Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(line, "Chart Title", "",  matchSet)) {
+            titleRead = matchSet.rString1;
+        }
+
+        //read the "Chart Short Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(
+                                   line, "Chart Short Title", "",  matchSet)) {
+            shortTitleRead = matchSet.rString1;
+        }
+
+        //read the "Chart is Visible" entry - if not found, default to true
+        if (Tools.matchAndParseBoolean(
+                                  line, "Chart is Visible", true,  matchSet)) {
+            visibleRead = matchSet.rBoolean1;
+        }
+
+    }// while ((line = pIn.readLine()) != null)
+
+    //apply settings
+    title = titleRead;
+    shortTitle = shortTitleRead;
+    setVisible(visibleRead);
+
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - missing end of section for Chart Group "
+                                         + chartGroupNum + " Chart " + chartNum);
+    }
+
+    //if the index number in the file does not match the index number for this
+    //strip chart, abort the file read
+
+    if (chartIndexRead != chartNum) {
+        throw new IOException(
+            "The file could not be read - section not found or out of order "
+                + "for Chart Group " + chartGroupNum + " Chart " + chartNum);
+    }
+
+    return line; //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of StripChart::processChartEntries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

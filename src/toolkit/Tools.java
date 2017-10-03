@@ -22,6 +22,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import view.Xfer;
 
 //
 
@@ -50,6 +51,165 @@ public void init()
 
 
 }//end of Tools::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Tools::matchAndParseInt
+//
+// Determines if the key in pString matches pKey and parses the value to an
+// integer.  If the value is invalid, pDefault will be returned.
+//
+// The function returns true if the value matches pKey.
+//
+// The value and result flags are returned via pMatchVars.
+//
+
+static public boolean matchAndParseInt(String pString, String pKey,
+                                            int pDefault, Xfer pMatchVars)
+{
+
+    //remove whitespace & force upper case
+    String ucString = pString.trim().toUpperCase();
+
+    //if the string does not start with the key, return default value
+    if (!ucString.startsWith(pKey.toUpperCase())) {
+        pMatchVars.rInt1 = pDefault;
+        return(false); //does not match
+        }
+
+    int indexOfEqual;
+
+    //look for '=' symbol, if not found then return default
+    if ( (indexOfEqual = pString.indexOf("=")) == -1) {
+        pMatchVars.rInt1 = pDefault;
+        return(true); //key matched but parse was invalid
+        }
+
+    //return the part of the line after the '=' sign - on error return default
+    try{
+        pMatchVars.rString1 = pString.substring(indexOfEqual + 1);
+        pMatchVars.rInt1 = Integer.parseInt(pMatchVars.rString1);
+        return(true); //key matched, parse valid
+        }
+    catch(NumberFormatException e){
+        pMatchVars.rInt1 = pDefault;
+        return(true); //key matched but parse was invalid
+        }
+
+}//end of Tools::matchAndParseInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Tools::matchAndParseString
+//
+// Determines if the key in pString matches pKey and parses the value to a
+// string.  If the value is invalid, pDefault will be returned.  If the
+// value is blank, pDefault will be returned.
+//
+// Note: this function can also be used to determine if a string contains
+//  pKey regardless of whether a value exists, thus it can be used to search
+//  for a section tag such as "[section]".
+//
+// The function returns true if the value matches pKey.
+//
+// The value and result flags are returned via pMatchVars.
+//
+
+static public boolean matchAndParseString(String pString, String pKey,
+                                          String pDefault, Xfer pMatchVars)
+{
+
+    //remove whitespace & force upper case
+    String ucString = pString.trim().toUpperCase();
+
+    //if the string does not start with the key, return default value
+    if (!ucString.startsWith(pKey.toUpperCase())) {
+        pMatchVars.rString1 = pDefault;
+        return(false); //does not match
+        }
+
+    int indexOfEqual;
+
+    //look for '=' symbol, if not found then return default
+    if ( (indexOfEqual = pString.indexOf("=")) == -1) {
+        pMatchVars.rString1 = pDefault;
+        return(true); //key matched but parse was invalid
+        }
+
+    //return the part of the line after the '=' sign - on error return default
+    try{
+        pMatchVars.rString1 = pString.substring(indexOfEqual + 1);
+        if (pMatchVars.rString1.equals("")) {pMatchVars.rString1 = pDefault;}
+        return(true); //key matched, parse valid
+        }
+    catch(StringIndexOutOfBoundsException e){
+        pMatchVars.rString1 = pDefault;
+        return(true); //key matched but parse was invalid
+        }
+
+}//end of Tools::matchAndParseString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Tools::matchAndParseString
+//
+// Determines if the key in pString matches pKey and parses the value to a
+// boolean.  If the value is invalid, pDefault will be returned.  If the
+// value is blank, pDefault will be returned.
+//
+// Note: this function can also be used to determine if a string contains
+//  pKey regardless of whether a value exists, thus it can be used to search
+//  for a section tag such as "[section]".
+//
+// The function returns true if the value matches pKey.
+//
+// The value and result flags are returned via pMatchVars.
+//
+
+static public boolean matchAndParseBoolean(String pString, String pKey,
+                                             Boolean pDefault, Xfer pMatchVars)
+{
+
+    //remove whitespace & force upper case
+    String ucString = pString.trim().toUpperCase();
+
+    //if the string does not start with the key, return default value
+    if (!ucString.startsWith(pKey.toUpperCase())) {
+        pMatchVars.rBoolean1 = pDefault;
+        return(false); //does not match
+        }
+
+    int indexOfEqual;
+
+    //look for '=' symbol, if not found then return default
+    if ( (indexOfEqual = pString.indexOf("=")) == -1) {
+        pMatchVars.rBoolean1 = pDefault;
+        return(true); //key matched but parse was invalid
+        }
+
+    //return the part of the line after the '=' sign - on error return default
+    try{
+        pMatchVars.rString1 = pString.substring(indexOfEqual + 1);
+
+        //return boolean value for the value - default for any invalid value
+        if (pMatchVars.rString1.equalsIgnoreCase("true")) {
+            pMatchVars.rBoolean1 = true;
+        }
+        else if (pMatchVars.rString1.equalsIgnoreCase("false")) {
+            pMatchVars.rBoolean1 = false;
+        }
+        else {
+            pMatchVars.rBoolean1 = pDefault;
+        }
+
+        return(true); //key matched, parse valid
+        }
+    catch(StringIndexOutOfBoundsException e){
+        pMatchVars.rBoolean1 = pDefault;
+        return(true); //key matched but parse was invalid
+        }
+
+}//end of Tools::matchAndParseBoolean
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

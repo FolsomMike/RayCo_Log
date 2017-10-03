@@ -17,6 +17,7 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import model.DataFlags;
 import model.DataSetSnapshot;
 import model.IniFile;
 import model.SharedSettings;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -80,6 +82,8 @@ public ZoomGraph(int pChartGroupNum, int pChartNum, int pGraphNum,
 
     super(pChartGroupNum, pChartNum, pGraphNum, pWidth, pHeight,
                     pChartInfo, pConfigFile, pSettings);
+
+    metaDataSectionName = "Zoom Graph";
 
 }//end of Chart::ZoomGraph (constructor)
 //-----------------------------------------------------------------------------
@@ -256,7 +260,7 @@ public void resetAll()
 
     annoX = 0; //adding anno objects starts over at left edge
 
-    snapshotBuffer.reset();
+    if (snapshotBuffer!=null) { snapshotBuffer.reset(); }
 
     zoomBoxes.clear(); data.clear(); dataFlags.clear();
 
@@ -269,50 +273,6 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ZoomGraph::loadSegment
-//
-// Saves all of the zoom data.
-//
-
-@Override
-public void loadSegment(IniFile pFile)
-{
-
-    super.loadSegment(pFile);
-
-    //clear previous data & flags
-    zoomBoxes.clear(); data.clear(); dataFlags.clear();
-
-    //list to temporarily store file lines for processsing
-    ArrayList<String> fileLines = new ArrayList<>(5000);
-
-    //get data from file and put it into list
-    pFile.getSection(configFileSection+" Data Set", fileLines);
-
-    //process file lines and put them into the data buf
-    for (String line : fileLines) {
-
-        String[] pointStrings = line.split(",");
-        int[] dataPoints = new int[pointStrings.length];
-        for (int i=0; i<pointStrings.length; i++) {
-
-            //try to convert to an integer, do nothing on failure
-            try{ dataPoints[i] = Integer.parseInt(pointStrings[i]); }
-            catch(NumberFormatException e){ }
-
-        }
-
-        data.add(dataPoints);
-
-    }
-
-    //get data flags
-    pFile.getSectionAsIntegers(configFileSection+" Data Flags", dataFlags);
-
-}//end of ZoomGraph::loadSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // ZoomGraph::saveSegment
 //
 // Saves all of the zoom data.
@@ -322,9 +282,7 @@ public void loadSegment(IniFile pFile)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-    pOut.write("["+configFileSection+"]"); pOut.newLine();
-    pOut.write("Zoom Title=" + title); pOut.newLine();
-    pOut.write("Zoom Short Title=" + shortTitle); pOut.newLine();
+    super.saveSegment(pOut);
 
     //catch unexpected case where start/stop are invalid and bail
     if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0){
@@ -333,31 +291,183 @@ public void saveSegment(BufferedWriter pOut) throws IOException
         return;
     }
 
-    pOut.write("["+configFileSection+" Data Set]"); pOut.newLine(); //save data set
-
-    //save the data
+    //save data points
+    pOut.write("[Data Set 1]"); pOut.newLine();
     for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
-        for (int j=0; j<data.get(i).length; j++) {
-            if (j>0) { pOut.write(","); }
-            pOut.write(Integer.toString(data.get(i)[j]));
-        }
-
+        for (int d : data.get(i)) { pOut.write(Integer.toString(d)+","); }
         pOut.newLine();
     }
+    pOut.write("[End of Set]"); pOut.newLine();
 
-    pOut.write("[/"+configFileSection+" Data Set]"); pOut.newLine();
-
-    //save flags
-    pOut.write("["+configFileSection+" Data Flags]"); pOut.newLine();
-
+    //save data flags
+    pOut.write("[Flags]"); pOut.newLine();
     for (int i=lastSegmentStartIndex; i<=lastSegmentEndIndex; i++) {
-        pOut.write(Integer.toString(dataFlags.get(i))); //save the data
+        pOut.write(Integer.toString(dataFlags.get(i))); //write to file
         pOut.newLine();
     }
-
-    pOut.write("[/"+configFileSection+" Data Flags]"); pOut.newLine();
+    pOut.write("[End of Set]"); pOut.newLine();
 
 }//end of ZoomGraph::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::loadSegment
+//
+// Saves all of the zoom data.
+//
+
+@Override
+public String loadSegment(BufferedReader pIn, String pLastLine)
+        throws IOException
+{
+
+    String line = super.loadSegment(pIn, pLastLine);
+
+    //clear previous data & flags
+    zoomBoxes.clear(); data.clear(); dataFlags.clear();
+
+    //load data points
+    boolean multipleDataPointsPerLine = true;
+    line = loadDataSeries(pIn, line, "[Data Set 1]",
+                                data, multipleDataPointsPerLine, 0);
+
+    //load flags
+    multipleDataPointsPerLine = false;
+    line = loadDataSeries(pIn, line, "[Flags]",
+                                dataFlags, multipleDataPointsPerLine, 0);
+
+    return line;
+
+}//end of ZoomGraph::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::loadDataSeries
+//
+// Loads a data series into a one dimensional array from pIn.  The series could
+// be "Data Set 1", "Data Set 2", or "Flags", etc. depending on the parameters
+// passed in.
+//
+// The pStartTag string specifies the section start tag for the type of data
+// expected and could be: "[Data Set 1]", "[Data Set 2]", or "[Flags]".  The
+// pBuffer pointer should be set to the buffer associated with the data type.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For these sections, the [xxx] section start tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+// Value pDataModifier1 will be ORed with each data point as it is stored in
+// the buffer. This allows any bit(s) to be forced to 1 if they are used as
+// flag bits. If no bits are to be forced, pDataModifier1 should be 0.
+//
+
+public String loadDataSeries(BufferedReader pIn, String pLastLine,
+                            String pStartTag, ArrayList pBuffer,
+                            boolean pMultiDataPointsPerFileLine,
+                            int pDataModifier1) throws IOException
+{
+
+    String line;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    //attempt to find section start, will throw exception on failure
+    line = findSectionStart(pIn, pLastLine, pStartTag, matchSet);
+
+    //read in the section and store the data
+    int i = 0; boolean success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section end tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        try{
+
+            //true means each file line reps an array of data points
+            if (pMultiDataPointsPerFileLine) {
+                //data is serarated by commas
+                String[] dataSplit = line.split(",");
+
+                //arrays to hold integers after conversion
+                int[] dataPoints = new int[dataSplit.length];
+
+                //convert and store all data as integers
+                for (int j=0; j<dataSplit.length; j++) {
+
+                    dataPoints[j] = Integer.parseInt(dataSplit[j]) | pDataModifier1;
+
+                }
+
+                //store in buffer
+                pBuffer.add(dataPoints);
+            }
+            //false means each file line represents one data point
+            else {
+                int dataInt = Integer.parseInt(line);
+                pBuffer.add(dataInt | pDataModifier1);
+            }
+
+        } catch(NumberFormatException e){
+            //catch error translating the text to an integer
+            throw new IOException(
+                            "The file could not be read - corrupt data for "
+                                    + pStartTag + " at data point " + i++);
+        }
+
+
+    }//while ((line = pIn.readLine()) != null)
+
+    if (!success) {
+        throw new IOException(
+         "The file could not be read - missing end of section for "
+                                                                + pStartTag);
+    }
+
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of ZoomGraph::loadDataSeries
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::loadDataSeries
+//
+// If pLastLine contains the [pStartTag] tag, then skip ahead else read until
+// end of file reached or "[pStrat]" section tag reached.
+//
+// Returns true if pStartTag found, false if not.
+//
+
+public String findSectionStart(BufferedReader pIn, String pLastLine,
+                                String pStartTag, Xfer pMatchSet)
+        throws IOException
+{
+
+    boolean success = false;
+
+    String line = pLastLine;
+    if (Tools.matchAndParseString(pLastLine, pStartTag, "",  pMatchSet)) {
+        success = true;  //tag already found
+    }
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(line, pStartTag, "",  pMatchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        throw new IOException(
+           "The file could not be read - section not found for " + pStartTag);
+    }
+
+    return line;
+
+}//end of ZoomGraph::loadDataSeries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -370,16 +480,16 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 void loadConfigSettings()
 {
 
-    configFileSection =
+    fileSection =
             "Chart Group " + chartGroupNum + " Chart " + chartNum
                                             + " Graph " + graphNum;
 
     super.loadConfigSettings();
 
-    gap = configFile.readInt(configFileSection, "gap between annotations", 4);
+    gap = configFile.readInt(fileSection, "gap between annotations", 4);
 
     maxNumZoomBoxes = configFile.readInt(
-            configFileSection, "maximum number of annotation objects", 20);
+            fileSection, "maximum number of annotation objects", 20);
 
 }// end of ZoomGraph::loadConfigSettings
 //-----------------------------------------------------------------------------

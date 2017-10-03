@@ -42,6 +42,9 @@ public class MainMenu extends JMenuBar{
     JMenuItem saveFile;
     JMenuItem saveFileAs;
 
+    JMenu viewMenu;
+    JMenuItem viewCompleted;
+
     JMenu helpMenu;
     JMenuItem logMenuItem, aboutMenuItem, helpMenuItem, exitMenuItem;
 
@@ -94,6 +97,22 @@ public MainMenu(ActionListener pActionListener)
     exitMenuItem.addActionListener(actionListener);
     fileMenu.add(exitMenuItem);
 
+    //View menu
+    viewMenu = new JMenu("View");
+    viewMenu.setMnemonic(KeyEvent.VK_V);
+    viewMenu.setToolTipText("View");
+    add(viewMenu);
+
+    //View/View Completed
+    //WIP HSS// settings needs to have piece description so this can be changed
+    viewCompleted = new JMenuItem("View Chart of a Completed Joint");
+    viewCompleted.setMnemonic(KeyEvent.VK_X);
+    viewCompleted.setToolTipText("View Chart of a Completed Joint");
+    viewCompleted.setActionCommand("View Completed");
+    viewCompleted.addActionListener(actionListener);
+    viewMenu.add(viewCompleted);
+
+
     //Help menu
     helpMenu = new JMenu("Help");
     helpMenu.setMnemonic(KeyEvent.VK_H);
@@ -102,7 +121,7 @@ public MainMenu(ActionListener pActionListener)
 
     //Help menu items and submenus
 
-    //View menu items and submenus
+    //Log menu items and submenus
     logMenuItem = new JMenuItem("Log");
     logMenuItem.setMnemonic(KeyEvent.VK_L);
     logMenuItem.setToolTipText("Log");

@@ -18,6 +18,7 @@
 package view;
 
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import model.DataTransferIntMultiDimBuffer;
 import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 import model.SharedSettings;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -35,7 +37,8 @@ import model.SharedSettings;
 public class Graph extends JPanel{
 
     IniFile configFile;
-    String configFileSection;
+    String fileSection;
+    String metaDataSectionName;
 
     ChartInfo chartInfo;
     public GraphInfo graphInfo = new GraphInfo();
@@ -561,42 +564,42 @@ void loadConfigSettings()
 {
 
     title = configFile.readString(
-             configFileSection, "title", "Graph " + (graphNum + 1));
+             fileSection, "title", "Graph " + (graphNum + 1));
     graphInfo.title = title;
 
     shortTitle = configFile.readString(
-               configFileSection, "short title", "graph" + (graphNum + 1));
+               fileSection, "short title", "graph" + (graphNum + 1));
     graphInfo.shortTitle = shortTitle;
 
     objectType = configFile.readString(
-                                    configFileSection, "object type", "graph");
+                                    fileSection, "object type", "graph");
 
-    int configWidth = configFile.readInt(configFileSection, "width", 0);
+    int configWidth = configFile.readInt(fileSection, "width", 0);
 
     if (configWidth > 0) width = configWidth; //override if > 0
 
     specifiedWidth = width; //save for restoring to normal size
 
-    int configHeight = configFile.readInt(configFileSection, "height", 0);
+    int configHeight = configFile.readInt(fileSection, "height", 0);
 
     if (configHeight > 0) height = configHeight; //override if > 0
 
     specifiedHeight = height; //save for restoring to normal size
 
     backgroundColor = configFile.readColor(
-                                configFileSection, "background color", null);
+                                fileSection, "background color", null);
 
     if(backgroundColor == null) { backgroundColor = getBackground(); }
 
-    scrollTrackChartGroupNum = configFile.readInt(configFileSection,
+    scrollTrackChartGroupNum = configFile.readInt(fileSection,
                       "chart group number of graph tracked for scrolling", -1);
-    scrollTrackChartNum = configFile.readInt(configFileSection,
+    scrollTrackChartNum = configFile.readInt(fileSection,
                             "chart number of graph tracked for scrolling", -1);
-    scrollTrackGraphNum = configFile.readInt(configFileSection,
+    scrollTrackGraphNum = configFile.readInt(fileSection,
                             "graph number of graph tracked for scrolling", -1);
 
     String peakTypeText = configFile.readString(
-                              configFileSection, "peak type", "catch highest");
+                              fileSection, "peak type", "catch highest");
     parsePeakType(peakTypeText);
 
 }// end of Graph::loadConfigSettings
@@ -635,21 +638,9 @@ public void loadCalFile(IniFile pCalFile)
 public void saveCalFile(IniFile pCalFile)
 {
 
-    pCalFile.writeString(configFileSection, "Graph Test Value", "Test");
+    pCalFile.writeString(fileSection, "Graph Test Value", "Test");
 
 }//end of Graph::saveCalFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Graph::loadSegment
-//
-// Loads segments' data from pFile.
-//
-
-public void loadSegment(IniFile pFile)
-{
-
-}//end of Graph::loadSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -661,7 +652,139 @@ public void loadSegment(IniFile pFile)
 public void saveSegment(BufferedWriter pOut)  throws IOException
 {
 
+    saveMetaData(pOut);
+
 }//end of Graph::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::loadSegment
+//
+// Loads segments' data.
+//
+
+public String loadSegment(BufferedReader pIn, String pLastLine)
+        throws IOException
+{
+
+    String line = processMetaData(pIn, pLastLine, true);
+
+    return line;
+
+}//end of Graph::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::saveMetaData
+//
+// Saves file entries for this graph such as the title via pOut.
+//
+
+protected void saveMetaData(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("["+metaDataSectionName+"]"); pOut.newLine();
+
+    pOut.write("Index=" + graphNum); pOut.newLine();
+    pOut.write("Title=" + title); pOut.newLine();
+    pOut.write("Short Title=" + shortTitle); pOut.newLine();
+
+}//end of Graph::saveMetaData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::processMetaData
+//
+// Processes file entries for this graph such as the title via pIn.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For the section, the [section] tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+
+protected String processMetaData(BufferedReader pIn, String pLastLine,
+                                    boolean pThrowErrorGraphNumNoMatch)
+    throws IOException
+
+{
+
+    String section = "[" + metaDataSectionName + "]";
+
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    //if pLastLine contains the [Trace] tag, then start loading section
+    //immediately else read until "[Trace]" section tag reached
+
+    if (Tools.matchAndParseString(pLastLine, section, "",  matchSet)) {
+        success = true; //tag already found
+    }
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Tools.matchAndParseString(line, section, "",  matchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        throw new IOException(
+            "The file could not be read - section not found for " + fileSection);
+    }
+
+    //set defaults
+    int indexRead = -1;
+    String titleRead = "", shortTitleRead = "";
+
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
+
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section tag reached (will start with [)
+        if (Tools.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        //read the "Trace Index" entry - if not found, default to -1
+        if (Tools.matchAndParseInt(line, "Index", -1, matchSet)) {
+            indexRead = matchSet.rInt1;
+        }
+
+        //read the "Trace Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(line, "Title", "", matchSet)) {
+            titleRead = matchSet.rString1;
+        }
+
+        //read the "Trace Short Title" entry - if not found, default to ""
+        if (Tools.matchAndParseString(line, "Short Title", "", matchSet)) {
+            shortTitleRead = matchSet.rString1;
+        }
+
+    }
+
+    //apply settings
+    title = titleRead; shortTitle = shortTitleRead;
+
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - missing end of section for " + fileSection);
+    }
+
+    //if graph num and index read don't match, throw error if supposed to
+    if (pThrowErrorGraphNumNoMatch && indexRead != graphNum) {
+        throw new IOException(
+            "The file could not be read - section not found for " + fileSection);
+    }
+
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of Graph::processMetaData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
