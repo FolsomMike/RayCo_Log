@@ -61,6 +61,8 @@ public class Device implements Runnable
     String title = "", shortTitle = "";
     String deviceType = "";
     public String getDeviceType(){ return(deviceType); }
+    String deviceSubtype = "";
+    public String getDeviceSubtype(){ return(deviceSubtype); }
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
@@ -143,6 +145,7 @@ public class Device implements Runnable
     LogPanel logPanel;
 
     final static int RUN_DATA_BUFFER_SIZE = 1024;
+    final static int RUNTIME_PACKET_SIZE = 50;
 
     final static int OUT_BUFFER_SIZE = 255;
     final static int IN_BUFFER_SIZE = 255;
@@ -839,7 +842,12 @@ void loadConfigSettings()
     shortTitle = configFile.readString(section, "short title",
                                                         "Device " + deviceNum);
 
-    deviceType = configFile.readString(section, "device type", "unknown");
+    deviceType = configFile.readString(section, "type", "unknown");
+    deviceSubtype = configFile.readString(section, "subtype", "unknown");
+
+    //only override if previously set simMode not true
+    boolean readSimMode = configFile.readBoolean(section, "simulate", false);
+    if (!simMode) { simMode = readSimMode; }
 
     numChannels = configFile.readInt(section, "number of channels", 0);
 

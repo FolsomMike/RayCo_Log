@@ -69,7 +69,6 @@ public class MainHandler
     public Device[] getDevices(){ return(devices); }
     ArrayList<Boolean> deviceSimModes = new ArrayList<>();
     ArrayList<String> deviceTypesSimulated = new ArrayList<>();
-    ArrayList<String> deviceHandlers = new ArrayList<>();
     ArrayList<String> deviceTypes = new ArrayList<>();
 
     private boolean allDevicesSimulatedOverride;
@@ -206,15 +205,15 @@ private Device createDevice(String pDeviceType, int pIndex, LogPanel pLogPanel,
 
     switch(pDeviceType){
 
-        case "Longitudinal ~ RayCo Log ~ A" : return (new
+        case "MultiIO Longitudinal" : return (new
             Multi_IO_A_Longitudinal(pIndex, pLogPanel, pConfigFile,
                                             pSettings, pSimMode));
 
-        case "Transverse ~ RayCo Log ~ A" : return (new
+        case "MultiIO Transverse" : return (new
               Multi_IO_A_Transverse(pIndex, pLogPanel, pConfigFile,
                                             pSettings, pSimMode));
 
-        case "Wall ~ RayCo Log ~ A" : return (new
+        case "MultiIO Wall" : return (new
                     Multi_IO_A_Wall(pIndex, pLogPanel, pConfigFile,
                                             pSettings, pSimMode));
 
@@ -936,11 +935,8 @@ private void loadConfigSettings()
     //read in the device type string for each device
     for(int i=0; i<numDevices; i++){
 
-        String s = configFile.readString(section,"device " +i+ " handler", "");
-        deviceHandlers.add(s);
-
         String t = configFile.readString(section, "device " + i + " type", "");
-        deviceTypes.add(s);
+        deviceTypes.add(t);
 
         boolean sim = configFile.readBoolean(
                            section, "device " + i + " simulation mode", false);
