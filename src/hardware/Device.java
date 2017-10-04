@@ -245,11 +245,9 @@ public void initAfterLoadingConfig()
 
     setUpChannels();
 
-    //WIP HSS//
     deviceData = new DeviceData(this);
     deviceData.init();
     channelPeaks = new int[channels.length];
-    //WIP HSS//
 
     mapMeta.numClockPositions = numClockPositions;
 
