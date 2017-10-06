@@ -217,6 +217,10 @@ private Device createDevice(String pDeviceType, int pIndex, LogPanel pLogPanel,
                     Multi_IO_A_Wall(pIndex, pLogPanel, pConfigFile,
                                             pSettings, pSimMode));
 
+        case "MultiIO Control" : return (new
+                    Multi_IO_A_Control(pIndex, pLogPanel, pConfigFile,
+                                            pSettings, pSimMode));
+
         default: return(null);
 
     }
@@ -717,8 +721,12 @@ public int getNextPeakData(PeakData pPeakData)
     if(peakScanDev == numDevices){ return(-1); }
 
     //move to next device after reaching last channel for the current one
-    //use while loop to skip past devices which have 0 channels
-    while(peakScanCh == devices[peakScanDev].getNumChannels()){
+    //use while loop to skip past devices which have 0 channels. Also skip
+    //over devices that are not Peak Devices
+    while(peakScanCh == devices[peakScanDev].getNumChannels()
+            || !devices[peakScanDev].getDeviceGroup()
+                    .equals(Device.GROUP_PEAK_DEVICES))
+    {
         peakScanDev++;
         if(peakScanDev == numDevices){ return(-1); }
         peakScanCh = 0;

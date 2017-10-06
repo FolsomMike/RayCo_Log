@@ -405,3 +405,24 @@ void loadConfigSettings()
 }//end of class MultiIODevice
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// class InstallFirmwareSettings
+//
+// This class is used to pass in all necessary settings to the
+// installNewRabbitFirmware function.
+//
+
+class InstallFirmwareSettings extends Object{
+
+    public byte loadFirmwareCmd;
+    public byte noAction;
+    public byte error;
+    public byte sendDataCmd;
+    public byte dataCmd;
+    public byte exitCmd;
+
+}//end of class InstallFirmwareSettings
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------

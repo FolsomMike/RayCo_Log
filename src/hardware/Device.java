@@ -54,6 +54,7 @@ public class Device implements Runnable
     boolean shutDown = false;
 
     final IniFile configFile;
+    final String section;
     final SharedSettings sharedSettings;
 
     private final int deviceNum;
@@ -63,6 +64,10 @@ public class Device implements Runnable
     public String getDeviceType(){ return(deviceType); }
     String deviceSubtype = "";
     public String getDeviceSubtype(){ return(deviceSubtype); }
+    static final public String GROUP_PEAK_DEVICES = "Peak Devices";
+    static final public String GROUP_CONTROL_DEVICES = "Control Devices";
+    String deviceGroup = "";
+    public String getDeviceGroup(){ return(deviceGroup); }
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
@@ -98,6 +103,7 @@ public class Device implements Runnable
     private String ipAddrS;
 
     private boolean waitingForRemoteResponse = false;
+    protected void setWaitingForRemoteResponse(boolean pW) { waitingForRemoteResponse = pW; }
 
     int pktID;
     boolean reSynced;
@@ -194,6 +200,8 @@ public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
     outBuffer = new byte[OUT_BUFFER_SIZE];
     inBuffer = new byte[IN_BUFFER_SIZE];
+
+    section = "Device " + deviceNum + " Settings";
 
 }//end of Device::Device (constructor)
 //-----------------------------------------------------------------------------
@@ -835,8 +843,6 @@ void loadClockMappingTranslation(String pSection)
 void loadConfigSettings()
 {
 
-    String section = "Device " + deviceNum + " Settings";
-
     title = configFile.readString(section, "title", "Device " + deviceNum);
 
     shortTitle = configFile.readString(section, "short title",
@@ -844,6 +850,7 @@ void loadConfigSettings()
 
     deviceType = configFile.readString(section, "type", "unknown");
     deviceSubtype = configFile.readString(section, "subtype", "unknown");
+    deviceGroup = configFile.readString(section, "group", "unknown");
 
     //only override if previously set simMode not true
     boolean readSimMode = configFile.readBoolean(section, "simulate", false);
@@ -1405,7 +1412,7 @@ public synchronized void waitForever()
 public synchronized void connectToDevice()
 {
 
-    logPanel.appendTS("Connecting...\n");
+    logPanel.appendTS("Connecting to " + title + "...\n");
 
     try {
 
@@ -1599,17 +1606,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         //store the ID of the packet (the packet type)
         pktID = inBuffer[0];
 
-        if (pktID == GET_ALL_STATUS_CMD) { return handleAllStatusPacket(); }
-        else
-        if (pktID == ACK_CMD){ return handleACKPackets(); }
-        else
-        if (pktID == GET_ALL_LAST_AD_VALUES_CMD){
-            return handleAllLastADValuesPacket();
-        }
-        else
-        if (pktID == GET_RUN_DATA_CMD){
-            return handleRunDataPacket();
-        }
+        return takeActionBasedOnPacketId(pktID);
 
     }
     catch(IOException e){
@@ -1619,6 +1616,33 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
     return 0;
 
 }//end of Device::processOneDataPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::takeActionBasedOnPacketId
+//
+// Takes different actions based on the packet id.
+//
+
+protected int takeActionBasedOnPacketId(int pPktID)
+{
+
+    if (pPktID == GET_ALL_STATUS_CMD) {
+        return handleAllStatusPacket();
+    }
+    else if (pPktID == ACK_CMD){
+        return handleACKPackets();
+    }
+    else if (pPktID == GET_ALL_LAST_AD_VALUES_CMD){
+        return handleAllLastADValuesPacket();
+    }
+    else if (pPktID == GET_RUN_DATA_CMD){
+        return handleRunDataPacket();
+    }
+
+    return 0;
+
+}//end of Device::takeActionBasedOnPacketId
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
