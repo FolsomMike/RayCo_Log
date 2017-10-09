@@ -721,11 +721,8 @@ public int getNextPeakData(PeakData pPeakData)
     if(peakScanDev == numDevices){ return(-1); }
 
     //move to next device after reaching last channel for the current one
-    //use while loop to skip past devices which have 0 channels. Also skip
-    //over devices that are not Peak Devices
-    while(peakScanCh == devices[peakScanDev].getNumChannels()
-            || !devices[peakScanDev].getDeviceGroup()
-                    .equals(Device.GROUP_PEAK_DEVICES))
+    //use while loop to skip past devices which have 0 channels
+    while(peakScanCh == devices[peakScanDev].getNumChannels())
     {
         peakScanDev++;
         if(peakScanDev == numDevices){ return(-1); }

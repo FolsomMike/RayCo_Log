@@ -67,8 +67,6 @@ public class Device implements Runnable
     public String getDeviceSubtype(){ return(deviceSubtype); }
     static final public String GROUP_PEAK_DEVICES = "Peak Devices";
     static final public String GROUP_CONTROL_DEVICES = "Control Devices";
-    String deviceGroup = "";
-    public String getDeviceGroup(){ return(deviceGroup); }
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
@@ -557,7 +555,6 @@ void loadConfigSettings()
 
     deviceType = configFile.readString(section, "type", "unknown");
     deviceSubtype = configFile.readString(section, "subtype", "unknown");
-    deviceGroup = configFile.readString(section, "group", "unknown");
 
     //only override if previously set simMode not true
     boolean readSimMode = configFile.readBoolean(section, "simulate", false);
