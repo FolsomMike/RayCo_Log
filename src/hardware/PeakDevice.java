@@ -18,6 +18,8 @@ package hardware;
 
 import static hardware.Channel.CATCH_HIGHEST;
 import static hardware.Channel.CATCH_LOWEST;
+import model.DataTransferIntMultiDimBuffer;
+import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 import model.SharedSettings;
 import toolkit.MKSInteger;
@@ -37,6 +39,22 @@ public class PeakDevice extends MultiIODevice
 
     private int snapshotPeakType;
 
+    PeakSnapshotBuffer peakSnapshotBuffer;
+    SampleMetaData snapshotMeta = new SampleMetaData(0);
+    public SampleMetaData getSnapshotMeta(){ return(snapshotMeta); }
+    public void setSnapshotDataBuffer(DataTransferSnapshotBuffer pV)
+        { snapshotMeta.dataSnapshotBuffer = pV; }
+    public DataTransferSnapshotBuffer getSnapshotDataBuffer()
+        { return(snapshotMeta.dataSnapshotBuffer); }
+
+    SampleMetaData mapMeta = new SampleMetaData(0);
+    public SampleMetaData getMapMeta(){ return(mapMeta); }
+
+    public void setMapDataBuffer(DataTransferIntMultiDimBuffer pV) {
+                                                   mapMeta.dataMapBuffer = pV;}
+    public DataTransferIntMultiDimBuffer getMapDataBuffer() {
+                                               return(mapMeta.dataMapBuffer); }
+
 //-----------------------------------------------------------------------------
 // PeakDevice::PeakDevice (constructor)
 //
@@ -46,6 +64,10 @@ public PeakDevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 {
 
     super(pDeviceNum, pLogPanel, pConfigFile, pSettings, pSimMode);
+
+    mapMeta.deviceNum = pDeviceNum;
+    snapshotMeta.deviceNum = pDeviceNum;
+
 
 }//end of PeakDevice::PeakDevice (constructor)
 //-----------------------------------------------------------------------------

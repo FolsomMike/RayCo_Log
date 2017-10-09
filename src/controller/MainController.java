@@ -41,6 +41,7 @@ import view.GUIDataSet;
 import hardware.MainHandler;
 import hardware.PeakData;
 import hardware.PeakMapData;
+import hardware.PeakSnapshotBuffer;
 import hardware.PeakSnapshotData;
 import hardware.SampleMetaData;
 import java.awt.*;
@@ -791,6 +792,7 @@ private void setDeviceSnapshotDataBuffers()
     for(Device device : mainHandler.getDevices()){
 
         SampleMetaData snapshotMeta = device.getSnapshotMeta();
+        if (snapshotMeta == null) { continue; }
 
         try{
             device.setSnapshotDataBuffer(mainView.getGraph(
@@ -831,6 +833,7 @@ private void setDeviceMapDataBuffers()
     for(Device device : mainHandler.getDevices()){
 
         SampleMetaData mapMeta = device.getMapMeta();
+        if (mapMeta == null) { continue; }
 
         //skip devices which do not map
         if(mapMeta.numClockPositions <= 0) { continue; }
@@ -1396,7 +1399,7 @@ public void createNewJob(String pInfo)
     sharedSettings.currentJobNamePathFriendly
             = Tools.escapeIllegalFilenameChars(sharedSettings.currentJobName);
     sharedSettings.save(); //save the new current job name so it will be loaded
-    
+
     //exit the program, passing true to instantiate a new program which will
     //load the new work order on startup - it is required to create a new
     //program and kill the old one so that all of the configuration data for

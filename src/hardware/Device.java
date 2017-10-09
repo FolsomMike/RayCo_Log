@@ -125,21 +125,12 @@ public class Device implements Runnable
     protected int[] channelPeaks;
     //WIP HSS//
 
-    PeakSnapshotBuffer peakSnapshotBuffer;
-    SampleMetaData snapshotMeta = new SampleMetaData(0);
-    public SampleMetaData getSnapshotMeta(){ return(snapshotMeta); }
-    public void setSnapshotDataBuffer(DataTransferSnapshotBuffer pV)
-        { snapshotMeta.dataSnapshotBuffer = pV; }
-    public DataTransferSnapshotBuffer getSnapshotDataBuffer()
-        { return(snapshotMeta.dataSnapshotBuffer); }
-
-    SampleMetaData mapMeta = new SampleMetaData(0);
-    public SampleMetaData getMapMeta(){ return(mapMeta); }
-
-    public void setMapDataBuffer(DataTransferIntMultiDimBuffer pV) {
-                                                   mapMeta.dataMapBuffer = pV;}
-    public DataTransferIntMultiDimBuffer getMapDataBuffer() {
-                                               return(mapMeta.dataMapBuffer); }
+    public SampleMetaData getSnapshotMeta(){ return null; }
+    public void setSnapshotDataBuffer(DataTransferSnapshotBuffer pV) {}
+    public DataTransferSnapshotBuffer getSnapshotDataBuffer() { return null; }
+    public SampleMetaData getMapMeta(){ return null; }
+    public void setMapDataBuffer(DataTransferIntMultiDimBuffer pV) {}
+    public DataTransferIntMultiDimBuffer getMapDataBuffer() { return null; }
 
     boolean simMode;
 
@@ -166,9 +157,6 @@ public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
     deviceNum = pDeviceNum; configFile = pConfigFile; logPanel = pLogPanel;
     sharedSettings = pSettings; simMode = pSimMode;
-
-    mapMeta.deviceNum = deviceNum;
-    snapshotMeta.deviceNum = deviceNum;
 
     outBuffer = new byte[OUT_BUFFER_SIZE];
     inBuffer = new byte[IN_BUFFER_SIZE];
