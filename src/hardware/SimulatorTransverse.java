@@ -108,7 +108,7 @@ public int handleGetRunData()
     int numBytesInPkt = 2;  //includes the checksum byte
 
     int result = readBytesAndVerify(
-                       inBuffer, numBytesInPkt, Device.GET_RUN_DATA_CMD);
+                       inBuffer, numBytesInPkt, MultiIODevice.GET_RUN_DATA_CMD);
     if (result != numBytesInPkt){ return(result); }
 
     //transverse devices have a max of 8 pos channels & 8 neg channels
@@ -155,7 +155,7 @@ public int handleGetRunData()
 
     //send run packet -- sendPacket appends Rabbit's checksum
     int p = 0, n = 0, m = 0, s=0;
-    sendPacket(Device.GET_RUN_DATA_CMD,
+    sendPacket(MultiIODevice.GET_RUN_DATA_CMD,
 
         (byte)(rbtRunDataPktCount++ &0xff), //rabbit rundata pkt count
         (byte)(picRunDataPktCount++ &0xff), //pic rundata pkt count

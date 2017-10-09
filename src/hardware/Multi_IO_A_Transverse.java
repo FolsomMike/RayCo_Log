@@ -25,7 +25,7 @@ import view.LogPanel;
 // class Multi_IO_A_Transverse
 //
 
-public class Multi_IO_A_Transverse extends MultiIODevice
+public class Multi_IO_A_Transverse extends PeakDevice
 {
 
 //-----------------------------------------------------------------------------

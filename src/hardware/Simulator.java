@@ -312,14 +312,14 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 public void handlePacket(byte pCommand)
 {
 
-    if (pCommand == Device.GET_ALL_STATUS_CMD) { handleGetAllStatus(); }
+    if (pCommand == MultiIODevice.GET_ALL_STATUS_CMD) { handleGetAllStatus(); }
     else
-    if (pCommand == Device.SET_POT_CMD) { handleSetPot(); }
+    if (pCommand == MultiIODevice.SET_POT_CMD) { handleSetPot(); }
     else
-    if (pCommand == Device.GET_ALL_LAST_AD_VALUES_CMD) {
+    if (pCommand == MultiIODevice.GET_ALL_LAST_AD_VALUES_CMD) {
                                             handleGetAllLastADValuesPacket(); }
     else
-    if (pCommand == Device.GET_RUN_DATA_CMD) { handleGetRunData(); }
+    if (pCommand == MultiIODevice.GET_RUN_DATA_CMD) { handleGetRunData(); }
 
 }//end of Simulator::handlePacket
 //-----------------------------------------------------------------------------
@@ -403,12 +403,12 @@ public int handleGetAllStatus()
     int numBytesInPkt = 2;  //includes the checksum byte
 
     int result = readBytesAndVerify(
-                       inBuffer, numBytesInPkt, Device.GET_ALL_STATUS_CMD);
+                       inBuffer, numBytesInPkt, MultiIODevice.GET_ALL_STATUS_CMD);
     if (result != numBytesInPkt){ return(result); }
 
     //send test data packet -- sendPacket appends Rabbit's checksum
 
-    sendPacket(Device.GET_ALL_STATUS_CMD,
+    sendPacket(MultiIODevice.GET_ALL_STATUS_CMD,
             //Rabbit Status (12 bytes)
             (byte)0x01,(byte)0x02,              // software version
             (byte)0x12,(byte)0x34,              // confrolFlags
@@ -542,13 +542,13 @@ public int handleGetAllLastADValuesPacket()
 
     int numBytesInPkt = 2;  //includes the checksum byte
 
-    int result = readBytesAndVerify(
-                   inBuffer, numBytesInPkt, Device.GET_ALL_LAST_AD_VALUES_CMD);
+    int result = readBytesAndVerify(inBuffer, numBytesInPkt,
+                                    MultiIODevice.GET_ALL_LAST_AD_VALUES_CMD);
     if (result != numBytesInPkt){ return(result); }
 
     //send test data packet -- sendPacket appends Rabbit's checksum
 
-    sendPacket(Device.GET_ALL_LAST_AD_VALUES_CMD,
+    sendPacket(MultiIODevice.GET_ALL_LAST_AD_VALUES_CMD,
     (byte)0x12,(byte)0x34,(byte)0xba,
     (byte)0x56,(byte)0x78,(byte)0x32,
     (byte)0x12,(byte)0x34,(byte)0xba,
@@ -599,7 +599,7 @@ public int handleSetPot()
 
     int numBytesInPkt = 4; //includes the checksum byte
 
-    int result = readBytesAndVerify(inBuffer,numBytesInPkt,Device.SET_POT_CMD);
+    int result = readBytesAndVerify(inBuffer,numBytesInPkt,MultiIODevice.SET_POT_CMD);
     if (result != numBytesInPkt){ return(result); }
 
     //set pot here -- add code to do this later -- needs to affect the sim sig
@@ -626,7 +626,7 @@ public void sendACK()
 
     //sendPacket appends Rabbit's checksum
 
-    sendPacket(Device.ACK_CMD, (byte)0);
+    sendPacket(MultiIODevice.ACK_CMD, (byte)0);
 
 }//end of Simulator::sendACK
 //-----------------------------------------------------------------------------

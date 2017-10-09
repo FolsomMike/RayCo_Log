@@ -225,17 +225,17 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
         byte pktID = inBuffer[0];
 
-        if (pktID == Multi_IO_A_Control.GET_STATUS_CMD)
+        if (pktID == MultiIODevice.GET_ALL_STATUS_CMD)
             {getStatus();}
-        else if (pktID == Multi_IO_A_Control.SET_ENCODERS_DELTA_TRIGGER_CMD)
+        else if (pktID == MultiIODevice.SET_ENCODERS_DELTA_TRIGGER_CMD)
             {setEncodersDeltaTrigger(pktID);}
-        else if (pktID == Multi_IO_A_Control.START_INSPECT_CMD) {startInspect(pktID);}
-        else if (pktID == Multi_IO_A_Control.STOP_INSPECT_CMD) {stopInspect(pktID);}
-        else if (pktID == Multi_IO_A_Control.GET_CHASSIS_SLOT_ADDRESS_CMD)
+        else if (pktID == MultiIODevice.START_INSPECT_CMD) {startInspect(pktID);}
+        else if (pktID == MultiIODevice.STOP_INSPECT_CMD) {stopInspect(pktID);}
+        else if (pktID == MultiIODevice.GET_CHASSIS_SLOT_ADDRESS_CMD)
             {getChassisSlotAddress();}
-        else if (pktID == Multi_IO_A_Control.GET_MONITOR_PACKET_CMD)
+        else if (pktID == MultiIODevice.GET_MONITOR_PACKET_CMD)
             {getMonitorPacket();}
-        else if (pktID == Multi_IO_A_Control.ZERO_ENCODERS_CMD)
+        else if (pktID == MultiIODevice.ZERO_ENCODERS_CMD)
             {zeroEncoderCounts();}
 
         return 0;
@@ -259,7 +259,7 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 void getStatus()
 {
 
-    sendPacket(Multi_IO_A_Control.GET_STATUS_CMD, status, (byte)0);
+    sendPacket(MultiIODevice.GET_ALL_STATUS_CMD, status, (byte)0);
 
 }//end of SimulatorControl::getStatus
 //-----------------------------------------------------------------------------

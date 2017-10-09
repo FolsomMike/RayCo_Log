@@ -25,7 +25,7 @@ import view.LogPanel;
 // class Multi_IO_A_Longitudinal
 //
 
-public class Multi_IO_A_Longitudinal extends MultiIODevice
+public class Multi_IO_A_Longitudinal extends PeakDevice
 {
 
 //-----------------------------------------------------------------------------

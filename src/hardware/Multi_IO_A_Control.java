@@ -89,31 +89,6 @@ public class Multi_IO_A_Control extends MultiIODevice
     // enables sending of track sync pulses (doesn't affect track reset pulses)
     static final int TRACK_PULSES_ENABLED = 0x0004;
 
-    //Commands for Control boards
-    //These should match the values in the code for those boards.
-
-    static byte NO_ACTION = 0;
-    static byte GET_INSPECT_PACKET_CMD = 1;
-    static byte ZERO_ENCODERS_CMD = 2;
-    static byte GET_MONITOR_PACKET_CMD = 3;
-    static byte PULSE_OUTPUT_CMD = 4;
-    static byte TURN_ON_OUTPUT_CMD = 5;
-    static byte TURN_OFF_OUTPUT_CMD = 6;
-    static byte SET_ENCODERS_DELTA_TRIGGER_CMD = 7;
-    static byte START_INSPECT_CMD = 8;
-    static byte STOP_INSPECT_CMD = 9;
-    static byte START_MONITOR_CMD = 10;
-    static byte STOP_MONITOR_CMD = 11;
-    static byte GET_STATUS_CMD = 12;
-    static byte LOAD_FIRMWARE_CMD = 13;
-    static byte SEND_DATA_CMD = 14;
-    static byte DATA_CMD = 15;
-    static byte GET_CHASSIS_SLOT_ADDRESS_CMD = 16;
-    static byte SET_CONTROL_FLAGS_CMD = 17;
-    static byte RESET_TRACK_COUNTERS_CMD = 18;
-    static byte GET_ALL_ENCODER_VALUES_CMD = 19;
-    static byte SET_MODE_CMD = 20;
-
     //Status Codes for Control boards
     //These should match the values in the code for those boards.
 
@@ -1042,7 +1017,7 @@ protected int takeActionBasedOnPacketId(int pPktID)
 
     pktID = pPktID;
 
-    if (pktID == GET_STATUS_CMD) {
+    if (pktID == GET_ALL_STATUS_CMD) {
         return processStatusPacket();
     }
     else if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){
@@ -1110,7 +1085,7 @@ public void installNewRabbitFirmware()
 
     InstallFirmwareSettings settings = new InstallFirmwareSettings();
     settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
-    settings.noAction = NO_ACTION;
+    settings.noAction = NO_ACTION_CMD;
     settings.error = ERROR;
     settings.sendDataCmd = SEND_DATA_CMD;
     settings.dataCmd = DATA_CMD;
