@@ -114,6 +114,23 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MultiIODevice::initAfterLoadingConfig
+//
+// Further initializes the object using data loaded from the config file.
+// Must be called by subclasses after they call loadConfigSettings(), which
+// they must call themselves as they specify the section to be read from.
+//
+
+@Override
+public void initAfterLoadingConfig()
+{
+
+    super.initAfterLoadingConfig();
+
+}// end of MultiIODevice::initAfterLoadingConfig
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MultiIODevice::initAfterConnect
 //
 // Performs initialization of the remote device after it has been connected.
@@ -243,23 +260,6 @@ public void processChannelParameterChanges()
     setHdwParamsDirty(false);
 
 }//end of MultiIODevice::processChannelParameterChanges
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MultiIODevice::initAfterLoadingConfig
-//
-// Further initializes the object using data loaded from the config file.
-// Must be called by subclasses after they call loadConfigSettings(), which
-// they must call themselves as they specify the section to be read from.
-//
-
-@Override
-public void initAfterLoadingConfig()
-{
-
-    super.initAfterLoadingConfig();
-
-}// end of MultiIODevice::initAfterLoadingConfig
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
