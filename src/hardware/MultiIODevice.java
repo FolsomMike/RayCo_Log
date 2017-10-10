@@ -315,12 +315,6 @@ public void processChannelParameterChanges()
 
     if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
 
-    //updates have been applied, so clear dirty flag...since this method and
-    //the method which handels the updates are synchronized, no updates will
-    //have occurred while all this method has processed all the updates
-
-    setHdwParamsDirty(false);
-
 }//end of MultiIODevice::processChannelParameterChanges
 //-----------------------------------------------------------------------------
 
