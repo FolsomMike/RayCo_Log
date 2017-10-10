@@ -30,6 +30,8 @@ public class MultiIODevice extends Device
 
     byte[] packet;
 
+    int packetRequestTimer = 0;
+
     static final int AD_MAX_VALUE = 255;
     static final int AD_MIN_VALUE = 0;
     static final int AD_MAX_SWING = 127;
@@ -144,6 +146,66 @@ void initAfterConnect(){
     super.initAfterConnect();
 
 }//end of MultiIODevice::initAfterConnect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::startInspect
+//
+// Puts device in the inspect mode.
+//
+
+@Override
+public void startInspect()
+{
+
+    sendPacket(START_INSPECT_CMD, (byte) 0);
+
+}//end of MultiIODevice::startInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::stopInspect
+//
+// Takes device out of the inspect mode.
+//
+
+@Override
+public void stopInspect()
+{
+
+    sendPacket(STOP_INSPECT_CMD, (byte) 0);
+
+}//end of MultiIODevice::stopInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::startMonitor
+//
+// Puts device in the monitor mode.
+//
+
+@Override
+public void startMonitor()
+{
+
+    sendPacket(START_MONITOR_CMD, (byte) 0);
+
+}//end of MultiIODevice::startMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::stopMonitor
+//
+// Takes the device out of monitor mode.
+//
+
+@Override
+public void stopMonitor()
+{
+
+    sendPacket(STOP_MONITOR_CMD, (byte) 0);
+
+}//end of MultiIODevice::stopMonitor
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -293,182 +355,12 @@ boolean requestRunDataPacket()
 // method for more details.
 //
 
-@Override
 void requestAllStatusPacket()
 {
-
-    super.requestAllStatusPacket();
 
     sendPacket(GET_ALL_STATUS_CMD, (byte)0);
 
 }//end of MultiIODevice::requestAllStatusPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MultiIODevice::handleAllStatusPacket
-//
-// Extracts from packet and displays in the log panel all status and error
-// information from the Host computer, the Rabbit, Master PIC, and all
-// Slave PICs.
-//
-// The voltage present at the A/D converter input of each Slave PIC is also
-// displayed.
-//
-// Returns the number of bytes this method extracted from the socket or the
-// error code returned by readBytesAndVerify().
-//
-// Packet Format from remote device:
-//
-// Rabbit Status Data
-//
-// 0xaa,0x55,0xbb,0x66,Packet ID        (these already removed from buffer)
-// Rabbit Software Version MSB
-// Rabbit Software Version LSB
-// Rabbit Control Flags (MSB)
-// Rabbit Control Flags (LSB)
-// Rabbit System Status
-// Rabbit Host Com Error Count MSB
-// Rabbit Host Com Error Count LSB
-// Rabbit Master PIC Com Error Count MSB
-// Rabbit Master PIC Com Error Count LSB
-// 0x55,0xaa,0x5a                       (unused)
-//
-// Master PIC Status Data
-//
-// Master PIC Software Version MSB
-// Master PIC Software Version LSB
-// Master PIC Flags
-// Master PIC Status Flags
-// Master PIC Rabbit Com Error Count
-// Master PIC Slave PIC Com Error Count
-// 0x55,0xaa,0x5a                       (unused)
-//
-// Slave PIC 0 Status Data
-//
-// Slave PIC I2C Bus Address (0-7)
-// Slave PIC Software Version MSB
-// Slave PIC Software Version LSB
-// Slave PIC Flags
-// Slave PIC Status Flags
-// Slave PIC Master PIC Com Error Count
-// Slave PIC Last read A/D value
-// 0x55,0xaa,0x5a                       (unused)
-// Slave PIC packet checksum
-//
-// ...packets for remaining Slave PIC packets...
-//
-// Master PIC packet checksum
-//
-// Rabbit's overall packet checksum appended by sendPacket function
-//
-
-@Override
-int handleAllStatusPacket()
-{
-
-    int result = super.handleAllStatusPacket();
-
-    int numBytesInPkt = 111; //includes Rabbit checksum byte
-
-    byte[] buffer = new byte[numBytesInPkt];
-
-    result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
-    if (result != numBytesInPkt){ return(result); }
-
-    int i = 0, v;
-    int errorSum = packetErrorCnt; //number of errors recorded by host
-
-    logPanel.appendTS("\n----------------------------------------------\n");
-    logPanel.appendTS("-- All Status Information --\n\n");
-
-    logPanel.appendTS("Host com errors: " + packetErrorCnt + "\n\n");
-
-    logPanel.appendTS(" - Rabbit Status Data -\n\n");
-
-    //software version
-    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
-
-    //control flags
-    logPanel.appendTS("," + String.format("0x%4x",
-                            getUnsignedShortFromPacket(buffer, i))
-                                                .replace(' ', '0'));
-    i=i+2; //adjust for integer extracted above
-
-    //system status
-    logPanel.appendTS("," + String.format("0x%2x", buffer[i++])
-                                                            .replace(' ', '0'));
-
-    //host com error count
-    v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
-    logPanel.appendTS("," + v);
-
-    //serial com error count
-    v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
-    logPanel.appendTS("," + v);
-
-    //unused values
-    logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
-    logPanel.appendTS("\n\n");
-
-    logPanel.appendTS(" - Master PIC Status Data -\n\n");
-
-    //software version
-    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
-
-    //flags
-    logPanel.appendTS("," + String.format(
-                            "0x%2x", buffer[i++]).replace(' ', '0'));
-
-    //status flags
-    logPanel.appendTS("," + String.format(
-                            "0x%2x", buffer[i++]).replace(' ', '0'));
-
-    //serial com error count
-    v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
-
-    //I2C com error count
-    v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
-
-    //unused values
-    logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
-    logPanel.appendTS("\n\n");
-
-    logPanel.appendTS(" - Slave PIC 0~7 Status Data -\n\n");
-
-    int numSlaves = 8;
-
-    for(int j=0; j<numSlaves; j++){
-
-        logPanel.appendTS(buffer[i++] + "-"); //I2C bus address
-        logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]); //software ver
-        logPanel.appendTS("," + String.format(
-                               "0x%2x", buffer[i++]).replace(' ', '0')); //flags
-        logPanel.appendTS("," + String.format(
-                        "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
-        v = buffer[i++]; errorSum += v;
-        logPanel.appendTS("," + v); //I2C com error count
-        logPanel.appendTS("," + buffer[i++]); //last read A/D value
-        //unused values
-        logPanel.appendTS(","+buffer[i++]+","+buffer[i++]+ "," + buffer[i++]);
-        logPanel.appendTS("," + String.format(
-          "0x%2x", buffer[i++]).replace(' ', '0')); //Slave PIC packet checksum
-        logPanel.appendTS("\n");
-
-    }
-
-    logPanel.appendTS("Master PIC checksum: " + String.format("0x%2x",
-                buffer[i++]).replace(' ', '0')); //Master PIC packet checksum
-    logPanel.appendTS("\n");
-
-    logPanel.appendTS("Rabbit checksum: " + String.format("0x%2x",
-                buffer[i++]).replace(' ', '0')); //Rabbit packet checksum
-    logPanel.appendTS("\n");
-
-    logPanel.appendTS("Total com error count: " + errorSum + "\n\n");
-
-    return(result);
-
-}//end of MultiIODevice::handleAllStatusPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -481,11 +373,8 @@ int handleAllStatusPacket()
 // that method for more details.
 //
 
-@Override
 void requestAllLastADValues()
 {
-
-    super.requestAllLastADValues();
 
     sendPacket(GET_ALL_LAST_AD_VALUES_CMD, (byte)0);
 
@@ -514,17 +403,14 @@ void requestAllLastADValues()
 // Rabbit's overall packet checksum appended by sendPacket function
 //
 
-@Override
 int handleAllLastADValuesPacket()
 {
-
-    int result = super.handleAllLastADValuesPacket();
 
     int numBytesInPkt = 26; //includes Rabbit checksum byte
 
     byte[] buffer = new byte[numBytesInPkt];
 
-    result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
+    int result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
     if (result != numBytesInPkt){ return(result); }
 
     int i = 0, v;
@@ -587,6 +473,117 @@ public int handleACKPackets()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MultiIODevice::handleChassisSlotAddressPacket
+//
+// Transfers chassis slot address packet received from the remote into an array.
+//
+// Returns number of bytes retrieved from the socket.
+//
+// Overridden by children classes for custom handling.
+//
+
+int handleChassisSlotAddressPacket()
+{
+
+    return 0;
+
+}//end of MultiIODevice::handleChassisSlotAddressPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::handleMonitorPacket
+//
+// Transfers debugging data received from the remote into an array.
+//
+// Returns number of bytes retrieved from the socket.
+//
+// Overridden by children classes for custom handling.
+//
+
+int handleMonitorPacket()
+{
+
+    int numBytesInPkt = monitorPacketSize; //includes Rabbit checksum byte
+
+    int result;
+    result = readBytesAndVerify(monitorBuffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }
+
+    return result;
+
+}//end of MultiIODevice::handleMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::getMonitorPacket
+//
+// Returns in a byte array I/O status data which has already been received and
+// stored from the remote.
+// If pRequestPacket is true, then a packet is requested every so often.
+// If false, then packets are only received when the remote computer sends
+// them.
+//
+// NOTE: This function is often called from a different thread than the one
+// transferring the data from the input buffer -- erroneous values for some of
+// the multibyte values may occur due to thread collision but they are for
+// display/debugging only and an occasional glitch in the displayed values
+// should not be of major concern.
+//
+
+@Override
+public byte[] getMonitorPacket(boolean pRequestPacket)
+{
+
+    if (pRequestPacket){
+        //request a packet be sent if the counter has timed out
+        //this packet will arrive in the future and be processed by another
+        //function so it can be retrieved by another call to this function
+        if (packetRequestTimer++ == 50){
+            packetRequestTimer = 0;
+            sendPacket(GET_MONITOR_PACKET_CMD, (byte) 0);
+        }
+    }
+
+    return super.getMonitorPacket(pRequestPacket);
+
+}//end of MultiIODevice::getMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::handleAllEncoderValuesPacket
+//
+// Parses and stores data from a GET_ALL_ENCODER_VALUES_CMD packet.
+//
+// Returns number of bytes retrieved from the socket.
+//
+// Overridden by children classes for custom handling.
+//
+
+int handleAllEncoderValuesPacket()
+{
+
+    return 0;
+
+}//end of MultiIODevice::handleAllEncoderValuesPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::handleAllStatusPacket
+//
+// Handles the all status packet.
+//
+// Overridden by children for custom handling.
+//
+
+int handleAllStatusPacket()
+{
+
+    return 0;
+
+}//end of Device::handleAllStatusPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MultiIODevice::takeActionBasedOnPacketId
 //
 // Takes different actions based on the packet id.
@@ -609,6 +606,15 @@ protected int takeActionBasedOnPacketId(int pPktID)
     }
     else if (pPktID == GET_RUN_DATA_CMD){
         results = handleRunDataPacket();
+    }
+    else if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){
+        return handleChassisSlotAddressPacket();
+    }
+    else if (pktID == GET_MONITOR_PACKET_CMD) {
+        return handleMonitorPacket();
+    }
+    else if (pktID == GET_ALL_ENCODER_VALUES_CMD) {
+        return handleAllEncoderValuesPacket();
     }
 
     return results;

@@ -83,6 +83,11 @@ public class Device implements Runnable
     private boolean newRunData = false;
 
     byte runDataBuffer[] = new byte[RUN_DATA_BUFFER_SIZE];
+    byte[] monitorBuffer;
+    //needs to be set by child classes
+    int runDataPacketSize = 0;
+    //needs to be set by child classes
+    int monitorPacketSize = 0;
 
     private int prevRbtRunDataPktCnt = -1;
     private int rbtRunDataPktCntError = 0;
@@ -173,6 +178,8 @@ public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
 public void init()
 {
+
+    monitorBuffer = new byte[monitorPacketSize];
 
 }// end of Device::init
 //-----------------------------------------------------------------------------
@@ -312,133 +319,7 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 //----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Device::requestAllStatusPacket
-//
-// Sends a request to the device for a packet with all status information.
-// The returned packed will be handled by handleAllStatusPacket(). See that
-// method for more details.
-//
-
-void requestAllStatusPacket()
-{
-
-}//end of Device::requestAllStatusPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Device::handleAllStatusPacket
-//
-// Extracts from packet and displays in the log panel all status and error
-// information from the Host computer, the Rabbit, Master PIC, and all
-// Slave PICs.
-//
-// The voltage present at the A/D converter input of each Slave PIC is also
-// displayed.
-//
-// Returns the number of bytes this method extracted from the socket or the
-// error code returned by readBytesAndVerify().
-//
-// Packet Format from remote device:
-//
-// Rabbit Status Data
-//
-// 0xaa,0x55,0xbb,0x66,Packet ID        (these already removed from buffer)
-// Rabbit Software Version MSB
-// Rabbit Software Version LSB
-// Rabbit Control Flags (MSB)
-// Rabbit Control Flags (LSB)
-// Rabbit System Status
-// Rabbit Host Com Error Count MSB
-// Rabbit Host Com Error Count LSB
-// Rabbit Master PIC Com Error Count MSB
-// Rabbit Master PIC Com Error Count LSB
-// 0x55,0xaa,0x5a                       (unused)
-//
-// Master PIC Status Data
-//
-// Master PIC Software Version MSB
-// Master PIC Software Version LSB
-// Master PIC Flags
-// Master PIC Status Flags
-// Master PIC Rabbit Com Error Count
-// Master PIC Slave PIC Com Error Count
-// 0x55,0xaa,0x5a                       (unused)
-//
-// Slave PIC 0 Status Data
-//
-// Slave PIC I2C Bus Address (0-7)
-// Slave PIC Software Version MSB
-// Slave PIC Software Version LSB
-// Slave PIC Flags
-// Slave PIC Status Flags
-// Slave PIC Master PIC Com Error Count
-// Slave PIC Last read A/D value
-// 0x55,0xaa,0x5a                       (unused)
-// Slave PIC packet checksum
-//
-// ...packets for remaining Slave PIC packets...
-//
-// Master PIC packet checksum
-//
-// Rabbit's overall packet checksum appended by sendPacket function
-//
-
-int handleAllStatusPacket()
-{
-
-    return 0;
-
-}//end of Device::handleAllStatusPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Device::requestAllLastADValues
-//
-// Sends a request to the device for a packet of all of the latest AD values
-// converted and stored by each slave PIC.
-//
-// The returned packed will be handled by handleAllLastADValuesPacket(). See
-// that method for more details.
-//
-
-void requestAllLastADValues()
-{
-
-}//end of Device::requestAllLastADValues
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Device::handleAllLastADValuesPacket
-//
-// Extracts from packet and displays in the log panel all of the latest AD
-// values converted and stored by each slave PIC.
-//
-// Returns the number of bytes this method extracted from the socket or the
-// error code returned by readBytesAndVerify().
-//
-// Packet Format from remote device:
-//
-// first slave PIC Latest AD Value (MSB)
-// first slave PIC Latest AD Value (LSB)
-// first slave PIC packet checksum
-//
-// ...packets for remaining Slave PIC packets...
-//
-// Master PIC packet checksum
-//
-// Rabbit's overall packet checksum appended by sendPacket function
-//
-
-int handleAllLastADValuesPacket()
-{
-
-    return 0;
-
-}//end of Device::handleAllLastADValuesPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Simulator::handleACKPackets
+// Device::handleACKPackets
 //
 // Handles ACK_CMD packets. Increments the numACKsReceive counter.
 //
@@ -454,7 +335,102 @@ public int handleACKPackets()
 
     return 0;
 
-}//end of Simulator::handleACKPackets
+}//end of Device::handleACKPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getMonitorPacket
+//
+// Returns in a byte array I/O status data which has already been received and
+// stored from the remote.
+// If pRequestPacket is true, then a packet is requested every so often.
+// If false, then packets are only received when the remote computer sends
+// them.
+//
+// NOTE: This function is often called from a different thread than the one
+// transferring the data from the input buffer -- erroneous values for some of
+// the multibyte values may occur due to thread collision but they are for
+// display/debugging only and an occasional glitch in the displayed values
+// should not be of major concern.
+//
+
+public byte[] getMonitorPacket(boolean pRequestPacket)
+{
+
+    return monitorBuffer;
+
+}//end of Device::getMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getInspectControlVars
+//
+// Transfers local variables related to inspection control signals and encoder
+// counts.
+//
+// Overridden by children for custom handling.
+//
+
+public void getInspectControlVars(InspectControlVars pICVars)
+{
+
+}//end of Device::getInspectControlVars
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::zeroEncoderCounts
+//
+// Sends command to zero the encoder counts.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void zeroEncoderCounts()
+{
+
+}//end of Device::zeroEncoderCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::pulseOutput
+//
+// Pulses the specified output.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void pulseOutput(int pWhichOutput)
+{
+
+}//end of Device::pulseOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::turnOnOutput
+//
+// Turns on the specified output.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void turnOnOutput(int pWhichOutput)
+{
+
+}//end of Device::turnOnOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::turnOffOutput
+//
+// Turns off the specified output.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void turnOffOutput(int pWhichOutput)
+{
+
+}//end of Device::turnOffOutput
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -673,6 +649,62 @@ public boolean getPeakMapDataAndReset(PeakMapData pPeakMapData)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::startInspect
+//
+// Puts device in the inspect mode.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void startInspect()
+{
+
+}//end of Device::startInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::stopInspect
+//
+// Takes device out of the inspect mode.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void stopInspect()
+{
+
+}//end of Device::stopInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::startMonitor
+//
+// Puts device in the monitor mode.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void startMonitor()
+{
+
+}//end of Device::startMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::stopMonitor
+//
+// Takes the device out of monitor mode.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void stopMonitor()
+{
+
+}//end of Device::stopMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::requestRunDataPacket
 //
 // Sends a request to the device for a packet with runtime data such as signal
@@ -712,7 +744,7 @@ int handleRunDataPacket()
 
     waitingForRemoteResponse = false;
 
-    int numBytesInPkt = 212; //includes Rabbit checksum byte
+    int numBytesInPkt = runDataPacketSize; //includes Rabbit checksum byte
 
     int result;
     result = readBytesAndVerify(runDataBuffer, numBytesInPkt, pktID);

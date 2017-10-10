@@ -35,13 +35,10 @@ public class Multi_IO_A_Control extends MultiIODevice
         implements AudibleAlarmController
 {
 
-    byte[] monitorBuffer;
     byte[] allEncoderValuesBuf;
     String fileFormat;
 
     short rabbitControlFlags = 0;
-
-    int packetRequestTimer = 0;
 
     int runtimePacketSize;
 
@@ -94,9 +91,7 @@ public class Multi_IO_A_Control extends MultiIODevice
 
     static byte NO_STATUS = 0;
 
-    static int MONITOR_PACKET_SIZE = 29;
     static int ALL_ENCODERS_PACKET_SIZE = 32;
-    static int RUNTIME_PACKET_SIZE = 2048;
 
     //Masks for the Control Board inputs
 
@@ -137,6 +132,9 @@ public Multi_IO_A_Control(int pIndex, LogPanel pLogPanel, IniFile pConfigFile,
 
     super(pIndex, pLogPanel, pConfigFile, pSettings, pSimMode);
 
+    runDataPacketSize = 12; //includes Rabbit checksum byte
+    monitorPacketSize = 29; //includes Rabbit checksum byte
+
 }//end of UTBoard::UTBoard (constructor)
 //-----------------------------------------------------------------------------
 
@@ -149,8 +147,6 @@ public Multi_IO_A_Control(int pIndex, LogPanel pLogPanel, IniFile pConfigFile,
 @Override
 public void init()
 {
-
-    monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
     encoderValues = new EncoderValues(); encoderValues.init();
 
@@ -178,105 +174,134 @@ void initAfterConnect(){
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Multi_IO_A_Control::loadCalFile
+// Multi_IO_A_Control::collectData
 //
-// This loads the file used for storing calibration information pertinent to a
-// job, such as gains, offsets, thresholds, etc.
+// Collects data from source(s) -- remote hardware devices, databases,
+// simulations, etc.
 //
-// Each object is passed a pointer to the file so that they may load their
-// own data.
-//
-// Does not call super because Device assumes device has channels.
-//
+// Should be called periodically to allow collection of data buffered in the
+// source.
 //
 
 @Override
-public void loadCalFile(IniFile pCalFile)
+public void collectData()
 {
 
+    super.collectData();
 
+    boolean processPacket = getRunPacketFromDevice(packet);
 
-}//end of Multi_IO_A_Control::loadCalFile
-//-----------------------------------------------------------------------------
+    if (processPacket){
 
-//-----------------------------------------------------------------------------
-// Device::saveCalFile
-//
-// This saves the file used for storing calibration information pertinent to a
-// job, such as gains, offsets, thresholds, etc.
-//
-// Each object is passed a pointer to the file so that they may save their
-// own data.
-//
+        int x = 0;
 
-@Override
-public void saveCalFile(IniFile pCalFile)
-{
+        inspectPacketCount = (int)((inBuffer[x++]<<8) & 0xff00)
+                                                 + (int)(inBuffer[x++] & 0xff);
 
-}//end of Device::saveCalFile
-//-----------------------------------------------------------------------------
+        // combine four bytes each to make the encoder counts
 
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::loadConfigSettings
-//
-// Loads configuration settings from the config file.
-//
-// The various child objects are then created as specified by the config data.
-//
+        int encoder1Count, encoder2Count;
 
-@Override
-void loadConfigSettings()
-{
+        // create integer from four bytes in buffer
+        encoder1Count = ((inBuffer[x++] << 24));
+        encoder1Count |= (inBuffer[x++] << 16) & 0x00ff0000;
+        encoder1Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
+        encoder1Count |= (inBuffer[x++])       & 0x000000ff;
 
-    super.loadConfigSettings();
+        // create integer from four bytes in buffer
+        encoder2Count = ((inBuffer[x++] << 24));
+        encoder2Count |= (inBuffer[x++] << 16) & 0x00ff0000;
+        encoder2Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
+        encoder2Count |= (inBuffer[x++])       & 0x000000ff;
 
-    inBuffer = new byte[RUNTIME_PACKET_SIZE];
-    outBuffer = new byte[RUNTIME_PACKET_SIZE];
+        //transfer to the class variables in one move -- this will be an atomic
+        //copy so it is safe for other threads to access those variables
+        encoder1 = encoder1Count; encoder2 = encoder2Count;
 
-    //debug mks -- calculate this delta to give one packet per pixel????
-    encoder1DeltaTrigger = configFile.readInt(section,
-                            "Encoder 1 Delta Count Trigger", 83);
+        //flag if encoder count was increased or decreased
+        //a no change case should not occur since packets are sent when there
+        //has been a change of encoder count
 
-    encoder2DeltaTrigger = configFile.readInt(section,
-                            "Encoder 2 Delta Count Trigger", 83);
+        if (encoder1 > prevEncoder1) {
+            encoder1Dir = EncoderHandler.INCREASING;
+        }
+        else {
+            encoder1Dir = EncoderHandler.DECREASING;
+        }
 
-    String positionTrackingMode = configFile.readString(section,
-                            "Position Tracking Mode", "Send Clock Markers");
-    parsePositionTrackingMode(positionTrackingMode);
+        //flag if encoder count was increased or decreased
+        if (encoder2 > prevEncoder2) {
+            encoder2Dir = EncoderHandler.INCREASING;
+        }
+        else {
+            encoder2Dir = EncoderHandler.DECREASING;
+        }
 
-    audibleAlarmController = configFile.readBoolean(section,
-                            "Audible Alarm Module", false);
+        //update the previous encoder values for use next time
+        prevEncoder1 = encoder1; prevEncoder2 = encoder2;
 
-    audibleAlarmOutputChannel = configFile.readInt(section,
-                            "Audible Alarm Output Channel", 0);
+        //transfer the status of the Control board input ports
+        processControlFlags = inBuffer[x++];
+        controlPortE = inBuffer[x++];
 
-    audibleAlarmPulseDuration = configFile.readString(section,
-                            "Audible Alarm Pulse Duration", "1");
+        //control flags are active high
 
-}//end of Multi_IO_A_Control::loadConfigSettings
-//-----------------------------------------------------------------------------
+        if ((processControlFlags & ON_PIPE_CTRL) != 0) {
+            onPipeFlag = true;
+        }
+        else {
+            onPipeFlag = false;
+        }
 
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::parsePositionTrackingMode
-//
-// Sets various flags based on the type of angular and linear position tracking
-// specified in the config file.
-//
+        if ((processControlFlags & HEAD1_DOWN_CTRL) != 0) {
+            head1Down = true;
+        } else {
+            head1Down = false;
+        }
 
-void parsePositionTrackingMode(String pValue)
+        if ((processControlFlags & HEAD2_DOWN_CTRL) != 0) {
+            head2Down = true;
+        } else {
+            head2Down = false;
+        }
 
-{
+        if ((processControlFlags & HEAD3_DOWN_CTRL) != 0) {
+            head3Down = true;
+        } else {
+            head3Down = false;
+        }
 
-    switch (pValue) {
-        case "Send Clock Markers":
-            rabbitControlFlags |= RABBIT_SEND_CLOCK_MARKERS;
-            break;
-        case "Send TDC Markers":
-            rabbitControlFlags |= RABBIT_SEND_TDC;
-            break;
+        //port E inputs are active low
+
+        if ((controlPortE & TDC_MASK) == 0) {
+            tdcFlag = true;
+        } else {
+            tdcFlag = false;
+        }
+
+        if ((controlPortA & UNUSED1_MASK) == 0) {
+            unused1Flag = true;
+        } else {
+            unused1Flag = false;
+        }
+
+        if ((controlPortA & UNUSED2_MASK) == 0) {
+            unused2Flag = true;
+        } else {
+            unused2Flag = false;
+        }
+
+        if ((controlPortE & UNUSED3_MASK) == 0) {
+            unused3Flag = true;
+        } else {
+            unused3Flag = false;
+        }
+
+        newInspectPacketReady = true; //signal other objects
+
     }
 
-}//end of Multi_IO_A_Control::parsePositionTrackingMode
+}// end of Multi_IO_A_Control::collectData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -383,14 +408,15 @@ public void requestAllEncoderValues()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Multi_IO_A_Control::processAllEncoderValuesPacket
+// Multi_IO_A_Control::handleAllEncoderValuesPacket
 //
 // Parses and stores data from a GET_ALL_ENCODER_VALUES_CMD packet.
 //
 // Returns number of bytes retrieved from the socket.
 //
 
-public int processAllEncoderValuesPacket()
+@Override
+int handleAllEncoderValuesPacket()
 {
 
     setWaitingForRemoteResponse(false);
@@ -438,7 +464,7 @@ public int processAllEncoderValuesPacket()
 
     return(ALL_ENCODERS_PACKET_SIZE);
 
-}//end of Multi_IO_A_Control::processAllEncoderValuesPacket
+}//end of Multi_IO_A_Control::handleAllEncoderValuesPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -470,286 +496,51 @@ public EncoderValues getEncoderValuesObject()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Multi_IO_A_Control::startMonitor
-//
-// Places the Control board in Monitor status and displays the status of
-// various I/O as sent back from the Control board.
-//
-
-public void startMonitor()
-{
-
-    sendPacket(START_MONITOR_CMD, (byte) 0);
-
-}//end of Multi_IO_A_Control::startMonitor
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::stopMonitor
-//
-// Takes the Control board out of monitor mode.
-//
-
-public void stopMonitor()
-{
-
-    sendPacket(STOP_MONITOR_CMD, (byte) 0);
-
-}//end of Multi_IO_A_Control::stopMonitor
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::processMonitorPacket
-//
-// Transfers I/O status received from the remote into an array.
-//
-// Returns number of bytes retrieved from the socket.
-//
-
-public int processMonitorPacket()
-{
-
-    setWaitingForRemoteResponse(false);
-
-    int numBytesInPkt = MONITOR_PACKET_SIZE; //includes Rabbit checksum byte
-
-    int result;
-    result = readBytesAndVerify(monitorBuffer, numBytesInPkt, pktID);
-    if (result != numBytesInPkt){ return(result); }
-
-    return result;
-
-}//end of Multi_IO_A_Control::processMonitorPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::getMonitorPacket
-//
-// Returns in a byte array I/O status data which has already been received and
-// stored from the remote.
-// If pRequestPacket is true, then a packet is requested every so often.
-// If false, then packets are only received when the remote computer sends
-// them.
-//
-// NOTE: This function is often called from a different thread than the one
-// transferring the data from the input buffer -- erroneous values for some of
-// the multibyte values may occur due to thread collision but they are for
-// display/debugging only and an occasional glitch in the displayed values
-// should not be of major concern.
-//
-
-public byte[] getMonitorPacket(boolean pRequestPacket)
-{
-
-    if (pRequestPacket){
-        //request a packet be sent if the counter has timed out
-        //this packet will arrive in the future and be processed by another
-        //function so it can be retrieved by another call to this function
-        if (packetRequestTimer++ == 50){
-            packetRequestTimer = 0;
-            sendPacket(GET_MONITOR_PACKET_CMD, (byte) 0);
-        }
-    }
-
-    return monitorBuffer;
-
-}//end of Multi_IO_A_Control::getMonitorPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::processStatusPacket
+// Multi_IO_A_Control::handleAllStatusPacket
 //
 // Transfers status packet received from the remote into an array.
 //
 // Returns number of bytes retrieved from the socket.
 //
 
-public int processStatusPacket()
+@Override
+public int handleAllStatusPacket()
 {
 
-    setWaitingForRemoteResponse(false);
+    int result = super.handleAllStatusPacket();
 
     int numBytesInPkt = 2; //includes Rabbit checksum byte
 
-    int result;
     result = readBytesAndVerify(inBuffer, numBytesInPkt, pktID);
     if (result != numBytesInPkt){ return(result); }
 
     return result;
 
-}//end of Multi_IO_A_Control::processStatusPacket
+}//end of Multi_IO_A_Control::handleAllStatusPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Multi_IO_A_Control::processChassisSlotAddressPacket
+// Multi_IO_A_Control::handleChassisSlotAddressPacket
 //
 // Transfers chassis slot address packet received from the remote into an array.
 //
 // Returns number of bytes retrieved from the socket.
 //
 
-public int processChassisSlotAddressPacket()
+@Override
+public int handleChassisSlotAddressPacket()
 {
 
-    setWaitingForRemoteResponse(false);
+    int result = super.handleChassisSlotAddressPacket();
 
     int numBytesInPkt = 2; //includes Rabbit checksum byte
 
-    int result;
     result = readBytesAndVerify(inBuffer, numBytesInPkt, pktID);
     if (result != numBytesInPkt){ return(result); }
 
     return result;
 
-}//end of Multi_IO_A_Control::processChassisSlotAddressPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::requestInspectPacket
-//
-// Normally, the Control board sends Inspect packets as necessary.  This
-// function is used to force the send of an Inspect packet so that all local
-// flags and values will be updated.
-//
-// Returns number of bytes retrieved from the socket.
-//
-
-public void requestInspectPacket()
-{
-
-    sendPacket(GET_INSPECT_PACKET_CMD, (byte) 0);
-
-}//end of Multi_IO_A_Control::requestInspectPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::processInspectPacket
-//
-// Processes an Inspect packet from the remote with flags and encoder values.
-//
-// Returns number of bytes retrieved from the socket.
-//
-
-public int processInspectPacket()
-{
-
-    setWaitingForRemoteResponse(false);
-
-    int numBytesInPkt = 12; //includes Rabbit checksum byte
-
-    int result;
-    result = readBytesAndVerify(inBuffer, numBytesInPkt, pktID);
-    if (result != numBytesInPkt){ return(result); }
-
-    int x = 0;
-
-    inspectPacketCount = (int)((inBuffer[x++]<<8) & 0xff00)
-                                             + (int)(inBuffer[x++] & 0xff);
-
-    // combine four bytes each to make the encoder counts
-
-    int encoder1Count, encoder2Count;
-
-    // create integer from four bytes in buffer
-    encoder1Count = ((inBuffer[x++] << 24));
-    encoder1Count |= (inBuffer[x++] << 16) & 0x00ff0000;
-    encoder1Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
-    encoder1Count |= (inBuffer[x++])       & 0x000000ff;
-
-    // create integer from four bytes in buffer
-    encoder2Count = ((inBuffer[x++] << 24));
-    encoder2Count |= (inBuffer[x++] << 16) & 0x00ff0000;
-    encoder2Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
-    encoder2Count |= (inBuffer[x++])       & 0x000000ff;
-
-    //transfer to the class variables in one move -- this will be an atomic
-    //copy so it is safe for other threads to access those variables
-    encoder1 = encoder1Count; encoder2 = encoder2Count;
-
-    //flag if encoder count was increased or decreased
-    //a no change case should not occur since packets are sent when there
-    //has been a change of encoder count
-
-    if (encoder1 > prevEncoder1) {
-        encoder1Dir = EncoderHandler.INCREASING;
-    }
-    else {
-        encoder1Dir = EncoderHandler.DECREASING;
-    }
-
-    //flag if encoder count was increased or decreased
-    if (encoder2 > prevEncoder2) {
-        encoder2Dir = EncoderHandler.INCREASING;
-    }
-    else {
-        encoder2Dir = EncoderHandler.DECREASING;
-    }
-
-    //update the previous encoder values for use next time
-    prevEncoder1 = encoder1; prevEncoder2 = encoder2;
-
-    //transfer the status of the Control board input ports
-    processControlFlags = inBuffer[x++];
-    controlPortE = inBuffer[x++];
-
-    //control flags are active high
-
-    if ((processControlFlags & ON_PIPE_CTRL) != 0) {
-        onPipeFlag = true;
-    }
-    else {
-        onPipeFlag = false;
-    }
-
-    if ((processControlFlags & HEAD1_DOWN_CTRL) != 0) {
-        head1Down = true;
-    } else {
-        head1Down = false;
-    }
-
-    if ((processControlFlags & HEAD2_DOWN_CTRL) != 0) {
-        head2Down = true;
-    } else {
-        head2Down = false;
-    }
-
-    if ((processControlFlags & HEAD3_DOWN_CTRL) != 0) {
-        head3Down = true;
-    } else {
-        head3Down = false;
-    }
-
-    //port E inputs are active low
-
-    if ((controlPortE & TDC_MASK) == 0) {
-        tdcFlag = true;
-    } else {
-        tdcFlag = false;
-    }
-
-    if ((controlPortA & UNUSED1_MASK) == 0) {
-        unused1Flag = true;
-    } else {
-        unused1Flag = false;
-    }
-
-    if ((controlPortA & UNUSED2_MASK) == 0) {
-        unused2Flag = true;
-    } else {
-        unused2Flag = false;
-    }
-
-    if ((controlPortE & UNUSED3_MASK) == 0) {
-        unused3Flag = true;
-    } else {
-        unused3Flag = false;
-    }
-
-    newInspectPacketReady = true; //signal other objects
-
-    return result;
-
-}//end of Multi_IO_A_Control::processInspectPacket
+}//end of Multi_IO_A_Control::handleChassisSlotAddressPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -758,6 +549,7 @@ public int processInspectPacket()
 // Sends command to zero the encoder counts.
 //
 
+@Override
 public void zeroEncoderCounts()
 {
 
@@ -775,6 +567,7 @@ public void zeroEncoderCounts()
 // be fixed.
 //
 
+@Override
 public void pulseOutput(int pWhichOutput)
 {
 
@@ -789,6 +582,7 @@ public void pulseOutput(int pWhichOutput)
 // Turns on the specified output.
 //
 
+@Override
 public void turnOnOutput(int pWhichOutput)
 {
 
@@ -803,6 +597,7 @@ public void turnOnOutput(int pWhichOutput)
 // Turns off the specified output.
 //
 
+@Override
 public void turnOffOutput(int pWhichOutput)
 {
 
@@ -912,7 +707,7 @@ public void setEncodersDeltaTrigger()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Board::sendRabbitControlFlags
+// Multi_IO_A_Control::sendRabbitControlFlags
 //
 // Sends the rabbitControlFlags value to the remotes. These flags control
 // the functionality of the remotes.
@@ -929,113 +724,7 @@ public void sendRabbitControlFlags()
                 (byte) (rabbitControlFlags & 0xff)
                 );
 
-}//end of Board::sendRabbitControlFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::startInspect
-//
-// Puts Control board in the inspect mode.  In this mode the Control board
-// will monitor encoder and status signals and return position information to
-// the host.
-//
-
-public void startInspect()
-{
-
-    sendPacket(START_INSPECT_CMD, (byte) 0);
-
-}//end of Multi_IO_A_Control::startInspect
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::stopInspect
-//
-// Takes Control board out of the inspect mode.
-//
-
-public void stopInspect()
-{
-
-    sendPacket(STOP_INSPECT_CMD, (byte) 0);
-
-}//end of Multi_IO_A_Control::stopInspect
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::prepareData
-//
-// Retrieves a data packet from the incoming data buffer and distributes it
-// to the newData variables in each gate.
-//
-// Returns true if new data is available, false if not.
-//
-
-public boolean prepareData()
-{
-
-    if (byteIn != null) {
-        try {
-
-            int c = byteIn.available();
-
-            //if a full packet is not ready, return false
-            if (c < runtimePacketSize) {return false;}
-
-            byteIn.read(inBuffer, 0, runtimePacketSize);
-
-            //wip mks - distribute the data to the gate's newData variables here
-
-        }
-        catch(EOFException eof){
-            logPanel.appendTS("End of stream.\n");
-            return false;
-        }
-        catch(IOException e){
-            logSevere(e.getMessage() + " - Error: 672");
-            return false;
-        }
-    }
-
-    return true;
-
-}//end of Multi_IO_A_Control::prepareData
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Multi_IO_A_Control::takeActionBasedOnPacketId
-//
-// Takes different actions based on the packet id.
-//
-// This class does not call the parent function because it uses commands whose
-// values clash with commad values in the parent class.
-//
-
-@Override
-protected int takeActionBasedOnPacketId(int pPktID)
-{
-
-    pktID = pPktID;
-
-    if (pktID == GET_ALL_STATUS_CMD) {
-        return processStatusPacket();
-    }
-    else if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){
-        return processChassisSlotAddressPacket();
-    }
-    else if (pktID == GET_INSPECT_PACKET_CMD) {
-        return processInspectPacket();
-    }
-    else if (pktID == GET_MONITOR_PACKET_CMD) {
-        return processMonitorPacket();
-    }
-    else if (pktID == GET_ALL_ENCODER_VALUES_CMD) {
-        return processAllEncoderValuesPacket();
-    }
-
-    return 0;
-
-}//end of Multi_IO_A_Control::takeActionBasedOnPacketId
+}//end of Multi_IO_A_Control::sendRabbitControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1045,6 +734,7 @@ protected int takeActionBasedOnPacketId(int pPktID)
 // counts.
 //
 
+@Override
 public void getInspectControlVars(InspectControlVars pICVars)
 {
 
@@ -1069,34 +759,103 @@ public void getInspectControlVars(InspectControlVars pICVars)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Multi_IO_A_Control::installNewRabbitFirmware
+// Multi_IO_A_Control::loadCalFile
 //
-// Transmits the Rabbit firmware image to the Control board to replace the
-// existing code.
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
 //
-// See corresponding function in the parent class Board.
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+// Does not call super because Device assumes device has channels.
+//
 //
 
-public void installNewRabbitFirmware()
+@Override
+public void loadCalFile(IniFile pCalFile)
 {
 
-    //create an object to hold codes specific to the UT board for use by the
-    //firmware installer method
+}//end of Multi_IO_A_Control::loadCalFile
+//-----------------------------------------------------------------------------
 
-    InstallFirmwareSettings settings = new InstallFirmwareSettings();
-    settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
-    settings.noAction = NO_ACTION_CMD;
-    settings.error = ERROR;
-    settings.sendDataCmd = SEND_DATA_CMD;
-    settings.dataCmd = DATA_CMD;
-    settings.exitCmd = EXIT_CMD;
+//-----------------------------------------------------------------------------
+// Device::saveCalFile
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
 
-    //WIP HSS//  this should definitely be done later
-    /*super.installNewRabbitFirmware(
-            "Control", "Rabbit\\CAPULIN CONTROL BOARD.bin", settings);*/
+@Override
+public void saveCalFile(IniFile pCalFile)
+{
 
+}//end of Device::saveCalFile
+//-----------------------------------------------------------------------------
 
-}//end of Multi_IO_A_Control::installNewRabbitFirmware
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Control::loadConfigSettings
+//
+// Loads configuration settings from the config file.
+//
+// The various child objects are then created as specified by the config data.
+//
+
+@Override
+void loadConfigSettings()
+{
+
+    super.loadConfigSettings();
+
+    inBuffer = new byte[RUNTIME_PACKET_SIZE];
+    outBuffer = new byte[RUNTIME_PACKET_SIZE];
+
+    //debug mks -- calculate this delta to give one packet per pixel????
+    encoder1DeltaTrigger = configFile.readInt(section,
+                            "Encoder 1 Delta Count Trigger", 83);
+
+    encoder2DeltaTrigger = configFile.readInt(section,
+                            "Encoder 2 Delta Count Trigger", 83);
+
+    String positionTrackingMode = configFile.readString(section,
+                            "Position Tracking Mode", "Send Clock Markers");
+    parsePositionTrackingMode(positionTrackingMode);
+
+    audibleAlarmController = configFile.readBoolean(section,
+                            "Audible Alarm Module", false);
+
+    audibleAlarmOutputChannel = configFile.readInt(section,
+                            "Audible Alarm Output Channel", 0);
+
+    audibleAlarmPulseDuration = configFile.readString(section,
+                            "Audible Alarm Pulse Duration", "1");
+
+}//end of Multi_IO_A_Control::loadConfigSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Multi_IO_A_Control::parsePositionTrackingMode
+//
+// Sets various flags based on the type of angular and linear position tracking
+// specified in the config file.
+//
+
+void parsePositionTrackingMode(String pValue)
+
+{
+
+    switch (pValue) {
+        case "Send Clock Markers":
+            rabbitControlFlags |= RABBIT_SEND_CLOCK_MARKERS;
+            break;
+        case "Send TDC Markers":
+            rabbitControlFlags |= RABBIT_SEND_TDC;
+            break;
+    }
+
+}//end of Multi_IO_A_Control::parsePositionTrackingMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

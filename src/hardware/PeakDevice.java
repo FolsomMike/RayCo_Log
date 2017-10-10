@@ -68,6 +68,7 @@ public PeakDevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
     mapMeta.deviceNum = pDeviceNum;
     snapshotMeta.deviceNum = pDeviceNum;
 
+    runDataPacketSize = 212;
 
 }//end of PeakDevice::PeakDevice (constructor)
 //-----------------------------------------------------------------------------
@@ -518,6 +519,173 @@ void setClockPositionsOfChannels()
     }
 
 }//end of PeakDevice::setClockPositionsOfChannels
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PeakDevice::handleAllStatusPacket
+//
+// Extracts from packet and displays in the log panel all status and error
+// information from the Host computer, the Rabbit, Master PIC, and all
+// Slave PICs.
+//
+// The voltage present at the A/D converter input of each Slave PIC is also
+// displayed.
+//
+// Returns the number of bytes this method extracted from the socket or the
+// error code returned by readBytesAndVerify().
+//
+// Packet Format from remote device:
+//
+// Rabbit Status Data
+//
+// 0xaa,0x55,0xbb,0x66,Packet ID        (these already removed from buffer)
+// Rabbit Software Version MSB
+// Rabbit Software Version LSB
+// Rabbit Control Flags (MSB)
+// Rabbit Control Flags (LSB)
+// Rabbit System Status
+// Rabbit Host Com Error Count MSB
+// Rabbit Host Com Error Count LSB
+// Rabbit Master PIC Com Error Count MSB
+// Rabbit Master PIC Com Error Count LSB
+// 0x55,0xaa,0x5a                       (unused)
+//
+// Master PIC Status Data
+//
+// Master PIC Software Version MSB
+// Master PIC Software Version LSB
+// Master PIC Flags
+// Master PIC Status Flags
+// Master PIC Rabbit Com Error Count
+// Master PIC Slave PIC Com Error Count
+// 0x55,0xaa,0x5a                       (unused)
+//
+// Slave PIC 0 Status Data
+//
+// Slave PIC I2C Bus Address (0-7)
+// Slave PIC Software Version MSB
+// Slave PIC Software Version LSB
+// Slave PIC Flags
+// Slave PIC Status Flags
+// Slave PIC Master PIC Com Error Count
+// Slave PIC Last read A/D value
+// 0x55,0xaa,0x5a                       (unused)
+// Slave PIC packet checksum
+//
+// ...packets for remaining Slave PIC packets...
+//
+// Master PIC packet checksum
+//
+// Rabbit's overall packet checksum appended by sendPacket function
+//
+
+@Override
+int handleAllStatusPacket()
+{
+
+    int result = super.handleAllStatusPacket();
+
+    int numBytesInPkt = 111; //includes Rabbit checksum byte
+
+    byte[] buffer = new byte[numBytesInPkt];
+
+    result = readBytesAndVerify(buffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }
+
+    int i = 0, v;
+    int errorSum = packetErrorCnt; //number of errors recorded by host
+
+    logPanel.appendTS("\n----------------------------------------------\n");
+    logPanel.appendTS("-- All Status Information --\n\n");
+
+    logPanel.appendTS("Host com errors: " + packetErrorCnt + "\n\n");
+
+    logPanel.appendTS(" - Rabbit Status Data -\n\n");
+
+    //software version
+    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
+
+    //control flags
+    logPanel.appendTS("," + String.format("0x%4x",
+                            getUnsignedShortFromPacket(buffer, i))
+                                                .replace(' ', '0'));
+    i=i+2; //adjust for integer extracted above
+
+    //system status
+    logPanel.appendTS("," + String.format("0x%2x", buffer[i++])
+                                                            .replace(' ', '0'));
+
+    //host com error count
+    v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
+    logPanel.appendTS("," + v);
+
+    //serial com error count
+    v = getUnsignedShortFromPacket(buffer, i); i+=2; errorSum += v;
+    logPanel.appendTS("," + v);
+
+    //unused values
+    logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
+    logPanel.appendTS("\n\n");
+
+    logPanel.appendTS(" - Master PIC Status Data -\n\n");
+
+    //software version
+    logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]);
+
+    //flags
+    logPanel.appendTS("," + String.format(
+                            "0x%2x", buffer[i++]).replace(' ', '0'));
+
+    //status flags
+    logPanel.appendTS("," + String.format(
+                            "0x%2x", buffer[i++]).replace(' ', '0'));
+
+    //serial com error count
+    v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
+
+    //I2C com error count
+    v = buffer[i++]; errorSum += v; logPanel.appendTS("," + v);
+
+    //unused values
+    logPanel.appendTS("," + buffer[i++] + "," + buffer[i++]+ "," + buffer[i++]);
+    logPanel.appendTS("\n\n");
+
+    logPanel.appendTS(" - Slave PIC 0~7 Status Data -\n\n");
+
+    int numSlaves = 8;
+
+    for(int j=0; j<numSlaves; j++){
+
+        logPanel.appendTS(buffer[i++] + "-"); //I2C bus address
+        logPanel.appendTS(" " + buffer[i++] + ":" + buffer[i++]); //software ver
+        logPanel.appendTS("," + String.format(
+                               "0x%2x", buffer[i++]).replace(' ', '0')); //flags
+        logPanel.appendTS("," + String.format(
+                        "0x%2x", buffer[i++]).replace(' ', '0')); //status flags
+        v = buffer[i++]; errorSum += v;
+        logPanel.appendTS("," + v); //I2C com error count
+        logPanel.appendTS("," + buffer[i++]); //last read A/D value
+        //unused values
+        logPanel.appendTS(","+buffer[i++]+","+buffer[i++]+ "," + buffer[i++]);
+        logPanel.appendTS("," + String.format(
+          "0x%2x", buffer[i++]).replace(' ', '0')); //Slave PIC packet checksum
+        logPanel.appendTS("\n");
+
+    }
+
+    logPanel.appendTS("Master PIC checksum: " + String.format("0x%2x",
+                buffer[i++]).replace(' ', '0')); //Master PIC packet checksum
+    logPanel.appendTS("\n");
+
+    logPanel.appendTS("Rabbit checksum: " + String.format("0x%2x",
+                buffer[i++]).replace(' ', '0')); //Rabbit packet checksum
+    logPanel.appendTS("\n");
+
+    logPanel.appendTS("Total com error count: " + errorSum + "\n\n");
+
+    return(result);
+
+}//end of PeakDevice::handleAllStatusPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
