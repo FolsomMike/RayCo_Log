@@ -126,7 +126,7 @@ public int handleGetRunData()
     //iterate through all of the active channels and simulate values -- unactive
     //channels will not be simulated
     int snap=127; int abs=0; boolean channelsOn = false;
-    for(int i=0; i<activeChannels.length; i+=2) {
+    for(int i=0; i<activeChannels.length/2; i++) {
 
         //made it through once, so at least one channel is on
         channelsOn = true;
