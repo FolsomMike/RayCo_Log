@@ -1639,7 +1639,7 @@ public void run()
         control();
 
         //sleep for a bit
-        threadSleep(10);
+        //DEBUG HSS//threadSleep(10);
 
     }
 
