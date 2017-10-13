@@ -872,8 +872,6 @@ int simulateNegativeSignal()
 
     if (value < AD_MIN_VALUE) { value = AD_MIN_VALUE; }
 
-    value = AD_ZERO_OFFSET;//DEBUG HSS//
-
     return(value);
 
 }//end of Simulator::simulateNegativeSignal
