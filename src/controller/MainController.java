@@ -1277,7 +1277,6 @@ private void updateGUIPeriodically()
 // numeric displays, graphs, etc.
 //
 
-int debugHss = 0; //DEBUG HSS//
 private void displayDataFromDevices()
 {
 
@@ -1294,8 +1293,6 @@ private void displayDataFromDevices()
                                                         peakSnapshotData,
                                                         peakMapData);
         if (results != true) { continue; }
-
-        if (debugHss++==500) { markSegmentEnd(); } //DEBUG HSS// temp test code
 
         //put data in snapshot buffer
         peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
@@ -1339,9 +1336,6 @@ private void displayDataFromDevices()
         mainView.updateAnnotationGraphs(snapBuffer.chartGroupNum);
     }
 
-    //update clockmap display objects from transfer buffers
-    //DEBUG HSS//if (mapUpdateRateTrigger++ < 9){ return; } else{ mapUpdateRateTrigger = 0;}
-
     for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
         //pace this with timer to control scan speed
         mapBuffer.incPutPtrAndSetReadyAfterDataFill();
@@ -1349,8 +1343,6 @@ private void displayDataFromDevices()
         mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
                                        mapBuffer.graphNum, mapBuffer.traceNum);
     }
-
-    if (debugHss==501) { saveSegment();} //DEBUG HSS// temp test code
 
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
