@@ -109,7 +109,6 @@ void initAfterConnect(){
 
     requestAllStatusPacket();
 
-    setClockPositionsOfChannels();
     setLinearLocationsOfChannels();
 
     waitSleep(300);
@@ -756,9 +755,18 @@ public void collectData()
 private int extractMapData(byte[] pPacket, int pIndex)
 {
 
+    //DEBUG HSS// remove
+    System.out.println();
+    System.out.println("Clock map");
+    //DEBUG HSS// end
+
     for(int i=0; i<numClockPositions; i++){
         mapData[i] = getUnsignedByteFromPacket(pPacket, pIndex)/3; //WIP HSS// -- divisor should be read from config file
         pIndex++;
+
+        //DEBUG HSS// remove
+        System.out.print(mapData[i]+",");
+        //DEBUG HSS// end
     }
 
     return pIndex;
