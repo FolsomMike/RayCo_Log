@@ -755,18 +755,18 @@ public void collectData()
 private int extractMapData(byte[] pPacket, int pIndex)
 {
 
-    //DEBUG HSS// remove
-    System.out.println();
-    System.out.println("Clock map");
-    //DEBUG HSS// end
-
     for(int i=0; i<numClockPositions; i++){
-        mapData[i] = getUnsignedByteFromPacket(pPacket, pIndex)/3; //WIP HSS// -- divisor should be read from config file
+
+        int raw = getUnsignedByteFromPacket(pPacket, pIndex)/3; //WIP HSS// -- divisor should be read from config file
+
+        for (int j=0; j<numClockPositions; j++) {
+
+            if (i == clockTranslations[j]) { mapData[j] = raw;  }
+
+        }
+
         pIndex++;
 
-        //DEBUG HSS// remove
-        System.out.print(mapData[i]+",");
-        //DEBUG HSS// end
     }
 
     return pIndex;
@@ -1059,37 +1059,53 @@ void loadClockMappingTranslation(String pSection)
     numGridsLengthPerSourceClock = configFile.readInt(pSection,
                                 "number of grids length per source clock", 1);
 
-    int numMapTransLines = configFile.readInt(pSection,
-                 "source clock to grid clock translation number of lines", 0);
+    String line = configFile.readString(pSection,
+                                "source clock to grid clock translation", "");
+    if (!line.isEmpty()){
+
+        //before split: "0>0:5,1>6:11,..."
+        String[] translations = line.split(",");
 
 
-    String key = "source clock to grid clock translation line ";
+        //strip out source clock and from/to translations
+        for(String trans : translations){
 
-    for(int i=0; i<numMapTransLines; i++){
+            //before split: "0>0:5", "1>6:11", etc,
+            String[] srcClkAndFromTo = trans.split(">");
 
-        String transLine = configFile.readString(pSection, key + (i+1), "");
+            //do nothing else if missing values
+            if(srcClkAndFromTo.length < 2
+                || srcClkAndFromTo[0].isEmpty()
+                || srcClkAndFromTo[1].isEmpty()) {
+                continue;
+            }
 
-        if (transLine.isEmpty()){ continue; }
+            //before split: "0:5", "6:11", etc.
+            String[] fromTo = srcClkAndFromTo[1].split(":");
 
-        //split line (0>1, 1>1, etc.) to x>y pairs
-        String[] transSplits = transLine.split(",");
+            //do nothing else if missing values
+            if(fromTo.length < 2
+                || fromTo[0].isEmpty()
+                || fromTo[1].isEmpty()) {
+                continue;
+            }
 
-        for(String trans : transSplits){
 
-            //split line (x>y) into x and y lines
-            String []transSplit = trans.split(">");
-
-            if(transSplit.length < 2 ||
-              transSplit[0].isEmpty() || transSplit[1].isEmpty()) { continue; }
-
+            //convert values to integers and store them
             try{
-                //convert x and y into "from clock" and "to clock" values
-                int fromClk = Integer.parseInt(transSplit[0]);
-                int toClk = Integer.parseInt(transSplit[1]);
-                if(fromClk < 0 || fromClk >= clockTranslations.length)
-                    { continue; }
-                //store "to clock" in array at "fromClk" position
-                clockTranslations[fromClk] = toClk;
+
+                int sourceClock = Integer.parseInt(srcClkAndFromTo[0]);
+                int gridClockFrom = Integer.parseInt(fromTo[0]);
+                int gridClockTo = Integer.parseInt(fromTo[1]);
+
+                //store source clock in all grid clock positions that it covers
+                for (int i=gridClockFrom;
+                        i<=gridClockTo && i<clockTranslations.length && i>=0;
+                        i++)
+                {
+                    clockTranslations[i] = sourceClock;
+                }
+
             }
             catch(NumberFormatException e){ }
         }
