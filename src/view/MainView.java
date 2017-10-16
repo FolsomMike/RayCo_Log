@@ -881,7 +881,7 @@ public void displayViewer()
                             sharedSettings.currentJobNamePathFriendly);
     viewer.init();
 
-}//end of MainView::displayAbout
+}//end of MainView::displayViewer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
