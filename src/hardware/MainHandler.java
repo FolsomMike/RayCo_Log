@@ -742,6 +742,62 @@ public int getNextPeakData(PeakData pPeakData)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainHandler::startMonitor
+//
+// Tells all of the devices to start monitoring.
+//
+
+public void startMonitor()
+{
+
+    for (Device d : devices) { d.startMonitor();}
+
+}//end of MainHandler::startMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::stopMonitor
+//
+// Tells all of the devices to stop monitoring.
+//
+
+public void stopMonitor()
+{
+
+    for (Device d : devices) { d.stopMonitor();}
+
+}//end of MainHandler::stopMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::getMonitorPacket
+//
+// Retrieves a data packet containing monitor data.
+//
+// //WIP HSS// NOTE: Please note that this only works with one Control Device at
+//              the moment. If multiple Control Devices are present, only the
+//              packet for the first one will be grabbed. This can/should be
+//              changed in the future. Only this way now because I copied code
+//              over from Chart and wanted to make it work properly before I
+//              started hacking away at it. Right now, if no Control Devices are
+//              present, null returned
+//
+
+public byte[] getMonitorPacket(boolean pRequestPacket)
+{
+
+    for (Device d : devices) {
+        if (d instanceof Multi_IO_A_Control) {
+            return d.getMonitorPacket(pRequestPacket);
+        }
+    }
+
+    return null;
+
+}//end of MainHandler::getMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainHandler::checkIfAnyDevicesSimulated
 //
 // Returns true if any devices in the list are configured for simulation

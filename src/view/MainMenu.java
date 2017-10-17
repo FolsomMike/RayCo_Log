@@ -46,7 +46,7 @@ public class MainMenu extends JMenuBar{
     JMenuItem viewCompleted;
 
     JMenu helpMenu;
-    JMenuItem logMenuItem, aboutMenuItem, helpMenuItem, exitMenuItem;
+    JMenuItem logMenuItem, aboutMenuItem, helpMenuItem, monitor, exitMenuItem;
 
 //-----------------------------------------------------------------------------
 // MainMenu::MainMenu (constructor)
@@ -128,6 +128,14 @@ public MainMenu(ActionListener pActionListener)
     logMenuItem.setActionCommand("Display Log");
     logMenuItem.addActionListener(actionListener);
     helpMenu.add(logMenuItem);
+
+    //Help/Monitor
+    monitor = new JMenuItem("Monitor");
+    monitor.setMnemonic(KeyEvent.VK_M);
+    monitor.setToolTipText("Monitor");
+    monitor.setActionCommand("Start Monitor");
+    monitor.addActionListener(actionListener);
+    helpMenu.add(monitor);
 
     //option to display the "About" window
     aboutMenuItem = new JMenuItem("About");

@@ -895,6 +895,10 @@ public void actionPerformed(ActionEvent e)
 
     if ("Display About".equals(e.getActionCommand())) {displayAbout(); return;}
 
+    if ("Start Monitor".equals(e.getActionCommand())) { startMonitor(); return;}
+
+    if ("Stop Monitor".equals(e.getActionCommand())) { stopMonitor(); return;}
+
     if (e.getActionCommand().startsWith("View Completed")) {
         displayViewer(e.getActionCommand());
     }
@@ -1344,6 +1348,9 @@ private void displayDataFromDevices()
                                        mapBuffer.graphNum, mapBuffer.traceNum);
     }
 
+    //tell View to update monitor window if he is displaying one
+    mainView.updateMonitorStatus(mainHandler.getMonitorPacket(true));
+
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
 
@@ -1489,6 +1496,36 @@ private void displayAbout()
     mainView.displayAbout();
 
 }//end of MainController::displayAbout
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::startMonitor
+//
+// Tells both View and Hardware to start monitor mode.
+//
+
+private void startMonitor()
+{
+
+    mainView.startMonitor();
+    mainHandler.startMonitor();
+
+}//end of MainController::startMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::stopMonitor
+//
+// Tells both View and Hardware to stop monitor mode.
+//
+
+private void stopMonitor()
+{
+
+    mainView.stopMonitor();
+    mainHandler.stopMonitor();
+
+}//end of MainController::stopMonitor
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

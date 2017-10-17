@@ -116,6 +116,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private NewJob newJob;
     private Help help;
     private About about;
+    private Monitor monitor;
 
     private Xfer xfer;
 
@@ -882,6 +883,49 @@ public void displayViewer()
     viewer.init();
 
 }//end of MainView::displayViewer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::startMonitor
+//
+// Displays the monitor window.
+//
+
+public void startMonitor()
+{
+
+    monitor = new Monitor(mainFrame, configFile, this);
+    monitor.init();
+
+}//end of MainView::startMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::stopMonitor
+//
+// Closes the monitor window and sets him to null.
+//
+
+public void stopMonitor()
+{
+
+    monitor.dispose(); monitor = null;
+
+}//end of MainView::stopMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::updateMonitorStatus
+//
+// Updates the monitor status using pStatusBuffer if he's active.
+//
+
+public void updateMonitorStatus(byte[] pStatusBuffer)
+{
+
+    if (monitor!=null) { monitor.updateStatus(pStatusBuffer); }
+
+}//end of MainView::updateMonitorStatus
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
