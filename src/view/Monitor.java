@@ -239,7 +239,6 @@ public void updateStatus(byte[] pMonitorBuffer)
         input10Label.setText(input10Text + " : Off");}
     else {input10Label.setText(input10Text + " : On");}
 
-    deviceNumLabel.setText("Device Number : " + pMonitorBuffer[x++]);
 
     inspectionStatusLabel.setText(
                    "Last Inspection Control Command : " + pMonitorBuffer[x++]);
