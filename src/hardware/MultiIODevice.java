@@ -188,8 +188,9 @@ public void stopInspect()
 public void startMonitor()
 {
 
-    sendPacket(START_MONITOR_CMD, (byte) 0);
-
+    //DEBUG HSS// uncomment later // sendPacket(START_MONITOR_CMD, (byte) 0);
+    sendPacket(GET_MONITOR_PACKET_CMD, (byte)0); //DEBUG HSS// remove later
+    
 }//end of MultiIODevice::startMonitor
 //-----------------------------------------------------------------------------
 
