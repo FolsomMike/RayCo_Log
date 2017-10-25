@@ -113,7 +113,9 @@ void initAfterConnect(){
 
     waitSleep(300);
 
-    requestAllLastADValues();
+    //DEBUG HSS// requestAllLastADValues();
+    
+    startMonitor();//DEBUG HSS// remove later
 
     //DEBUG HSS// requestRunDataPacket(); //DEBUG HSS// -- remove line later
 
@@ -736,7 +738,7 @@ public void collectData()
     }
 
     //send a request to the device for the next packet
-    requestRunDataPacket();
+    //DEBUG HSS// uncomment later //requestRunDataPacket();
 
 }// end of PeakDevice::collectData
 //-----------------------------------------------------------------------------
