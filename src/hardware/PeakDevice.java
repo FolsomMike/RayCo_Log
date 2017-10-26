@@ -114,8 +114,6 @@ void initAfterConnect(){
     waitSleep(300);
 
     //DEBUG HSS// requestAllLastADValues();
-    
-    startMonitor();//DEBUG HSS// remove later
 
     //DEBUG HSS// requestRunDataPacket(); //DEBUG HSS// -- remove line later
 

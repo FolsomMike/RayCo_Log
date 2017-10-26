@@ -133,7 +133,6 @@ public Multi_IO_A_Control(int pIndex, LogPanel pLogPanel, IniFile pConfigFile,
     super(pIndex, pLogPanel, pConfigFile, pSettings, pSimMode);
 
     runDataPacketSize = 12; //includes Rabbit checksum byte
-    monitorPacketSize = 29; //includes Rabbit checksum byte
 
 }//end of UTBoard::UTBoard (constructor)
 //-----------------------------------------------------------------------------

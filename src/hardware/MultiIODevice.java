@@ -92,6 +92,8 @@ public MultiIODevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 {
 
     super(pDeviceNum, pLogPanel, pConfigFile, pSettings, pSimMode);
+    
+    monitorPacketSize = 28; //includes Rabbit checksum byte
 
 }//end of MultiIODevice::MultiIODevice (constructor)
 //-----------------------------------------------------------------------------
@@ -450,6 +452,7 @@ int handleAllLastADValuesPacket()
 //
 
 
+@Override
 public int handleACKPackets()
 {
 
@@ -498,6 +501,8 @@ int handleMonitorPacket()
 {
 
     int numBytesInPkt = monitorPacketSize; //includes Rabbit checksum byte
+    
+    packetRequestTimer = 0; //reset since we got a packet
 
     int result;
     result = readBytesAndVerify(monitorBuffer, numBytesInPkt, pktID);

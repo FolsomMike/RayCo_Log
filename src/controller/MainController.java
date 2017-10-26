@@ -1283,7 +1283,11 @@ private void updateGUIPeriodically()
 
 private void displayDataFromDevices()
 {
+    
+    //tell View to update monitor window if he is displaying one
+    mainView.updateMonitorStatus(mainHandler.getMonitorPacket(true));
 
+    //quit if in stop mode
     if(mode == STOP_MODE) { return; }
 
     //prepares to scan through all channels
@@ -1347,9 +1351,6 @@ private void displayDataFromDevices()
         mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
                                        mapBuffer.graphNum, mapBuffer.traceNum);
     }
-
-    //tell View to update monitor window if he is displaying one
-    mainView.updateMonitorStatus(mainHandler.getMonitorPacket(true));
 
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------

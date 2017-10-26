@@ -74,6 +74,9 @@ public class MainHandler
     private boolean allDevicesSimulatedOverride;
 
     public boolean ready = false;
+    
+    //true means monitor mode active, false means not
+    private boolean monitorStatus = false;
 
     private static final int LONG = 0;  //longitudinal system
     private static final int TRANS = 1; //transverse system
@@ -750,6 +753,8 @@ public int getNextPeakData(PeakData pPeakData)
 public void startMonitor()
 {
 
+    monitorStatus = true;
+    
     for (Device d : devices) { d.startMonitor();}
 
 }//end of MainHandler::startMonitor
@@ -763,6 +768,8 @@ public void startMonitor()
 
 public void stopMonitor()
 {
+    
+    monitorStatus = false;
 
     for (Device d : devices) { d.stopMonitor();}
 
@@ -774,23 +781,21 @@ public void stopMonitor()
 //
 // Retrieves a data packet containing monitor data.
 //
-// //WIP HSS// NOTE: Please note that this only works with one Control Device at
-//              the moment. If multiple Control Devices are present, only the
+// //WIP HSS// NOTE: Please note that this only works with one Device at
+//              the moment. If multiple Devices are present, only the
 //              packet for the first one will be grabbed. This can/should be
 //              changed in the future. Only this way now because I copied code
-//              over from Chart and wanted to make it work properly before I
-//              started hacking away at it. Right now, if no Control Devices are
-//              present, null returned
+//              over from Chart program and wanted to make it work properly
+//              before I started hacking away at it. Right now, if no Devices 
+//              are present, null returned
 //
 
 public byte[] getMonitorPacket(boolean pRequestPacket)
 {
+    
+    if (!monitorStatus || devices == null) { return null; }
 
-    for (Device d : devices) {
-        if (d instanceof Multi_IO_A_Control) {
-            return d.getMonitorPacket(pRequestPacket);
-        }
-    }
+    for (Device d : devices) { return d.getMonitorPacket(pRequestPacket); }
 
     return null;
 
