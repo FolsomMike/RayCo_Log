@@ -322,6 +322,10 @@ private JPanel createControlsPanel()
 
     panel.add(Box.createVerticalGlue());
     
+    panel.add(createInfoPanel());
+    
+    addVerticalSpacer(panel, 10);
+    
     panel.add(createStatusPanel());
     
     addVerticalSpacer(panel, 10);
@@ -357,6 +361,32 @@ public void setAllValuesInCurrentControlPanel(ArrayList<Object> pValues)
     currentControlPanel.setAllValues(pValues);
 
 }// end of MainView::setAllValuesInCurrentControlPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::createInfoPanel
+//
+// Returns a JPanel displaying misc information, such as job #.
+//
+
+private JPanel createInfoPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBorder(BorderFactory.createTitledBorder("Info"));
+    GUITools.setSizes(panel, 202, 50);
+
+    //job #/name
+    JLabel jobLabel = new JLabel(" Job #: ");
+    panel.add(jobLabel);
+    JLabel jobValue = new JLabel(sharedSettings.currentJobName);
+    panel.add(jobValue);
+
+    return(panel);
+
+}// end of MainView::createInfoPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
