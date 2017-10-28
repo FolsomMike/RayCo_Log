@@ -329,6 +329,10 @@ private JPanel createControlsPanel()
     panel.add(createStatusPanel());
     
     addVerticalSpacer(panel, 10);
+    
+    panel.add(createScanSpeedPanel());
+    
+    addVerticalSpacer(panel, 10);
 
     panel.add(createModeButtonPanel());
 
@@ -377,6 +381,8 @@ private JPanel createInfoPanel()
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.setBorder(BorderFactory.createTitledBorder("Info"));
     GUITools.setSizes(panel, 202, 50);
+    
+    addHorizontalSpacer(panel, 10);
 
     //job #/name
     JLabel jobLabel = new JLabel(" Job #: ");
@@ -433,6 +439,33 @@ private JPanel createModeButtonPanel()
     return(panel);
 
 }// end of MainView::createModeButtonPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::createScanSpeedPanel
+//
+// Returns a JPanel allowing adjustment of the chart scan speed.
+//
+
+private JPanel createScanSpeedPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBorder(BorderFactory.createTitledBorder("Scan Speed"));
+    GUITools.setSizes(panel, 202, 50);
+    
+    addHorizontalSpacer(panel, 10);
+    
+    MFloatSpinner scanSpeedEditor = new MFloatSpinner(1, 1, 10, 1, "##0", 60, -1);
+    scanSpeedEditor.addChangeListener(this);
+    scanSpeedEditor.setToolTipText("Scanning & Inspecting Speed");
+    panel.add(scanSpeedEditor);
+
+    return(panel);
+
+}// end of MainView::createScanSpeedPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
