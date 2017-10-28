@@ -107,6 +107,10 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JCheckBox displayFilteredWaveFormInput;
     private JTextArea filterCoeffInput;
     private MFloatSpinner filteredOutputScaling;
+    
+    private MFloatSpinner pieceNumberEditor;
+    private JCheckBox calModeCheckBox;
+    public void setCalModeCBEnabled(boolean pE) { calModeCheckBox.setEnabled(pE); }
 
     private GuiUpdater guiUpdater;
     private Log log;
@@ -317,6 +321,10 @@ private JPanel createControlsPanel()
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     panel.add(Box.createVerticalGlue());
+    
+    panel.add(createStatusPanel());
+    
+    addVerticalSpacer(panel, 10);
 
     panel.add(createModeButtonPanel());
 
@@ -395,6 +403,46 @@ private JPanel createModeButtonPanel()
     return(panel);
 
 }// end of MainView::createModeButtonPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::createStatusPanel
+//
+// Returns a JPanel containing the status info, such as piece number and 
+// cal mode checkbox.
+//
+
+private JPanel createStatusPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBorder(BorderFactory.createTitledBorder("Status"));
+    GUITools.setSizes(panel, 202, 50);
+    
+    addHorizontalSpacer(panel, 10);
+
+    //spinner to change piece number
+    pieceNumberEditor = new MFloatSpinner(1, 1, 100000, 1, "##0", 60, -1);
+    pieceNumberEditor.addChangeListener(this);
+    pieceNumberEditor.setToolTipText("The next piece number."); //DEBUG HSS// change piece type to be read from inifile
+    panel.add(pieceNumberEditor);
+    
+    addHorizontalSpacer(panel, 10);
+
+    //checkbox to indicate whether or not in cal mode
+    calModeCheckBox = new JCheckBox("Cal Mode");
+    calModeCheckBox.setSelected(false);
+    calModeCheckBox.setActionCommand("Calibration Mode");
+    calModeCheckBox.addActionListener(this);
+    calModeCheckBox.setToolTipText(
+                "Check this box to run and save calibration pieces"); //DEBUG HSS// change piece type to be read from inifile
+    panel.add(calModeCheckBox);
+
+    return(panel);
+
+}// end of MainView::createStatusPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
