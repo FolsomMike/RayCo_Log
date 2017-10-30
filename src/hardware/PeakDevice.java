@@ -41,18 +41,18 @@ public class PeakDevice extends MultiIODevice
 
     PeakSnapshotBuffer peakSnapshotBuffer;
     SampleMetaData snapshotMeta = new SampleMetaData(0);
-    public SampleMetaData getSnapshotMeta(){ return(snapshotMeta); }
-    public void setSnapshotDataBuffer(DataTransferSnapshotBuffer pV)
+    @Override public SampleMetaData getSnapshotMeta(){ return(snapshotMeta); }
+    @Override public void setSnapshotDataBuffer(DataTransferSnapshotBuffer pV)
         { snapshotMeta.dataSnapshotBuffer = pV; }
-    public DataTransferSnapshotBuffer getSnapshotDataBuffer()
+    @Override public DataTransferSnapshotBuffer getSnapshotDataBuffer()
         { return(snapshotMeta.dataSnapshotBuffer); }
 
     SampleMetaData mapMeta = new SampleMetaData(0);
-    public SampleMetaData getMapMeta(){ return(mapMeta); }
+    @Override public SampleMetaData getMapMeta(){ return(mapMeta); }
 
-    public void setMapDataBuffer(DataTransferIntMultiDimBuffer pV) {
+    @Override public void setMapDataBuffer(DataTransferIntMultiDimBuffer pV) {
                                                    mapMeta.dataMapBuffer = pV;}
-    public DataTransferIntMultiDimBuffer getMapDataBuffer() {
+    @Override public DataTransferIntMultiDimBuffer getMapDataBuffer() {
                                                return(mapMeta.dataMapBuffer); }
 
 //-----------------------------------------------------------------------------
@@ -155,8 +155,9 @@ public boolean getDeviceDataAndReset(PeakData pPeakData,
 // This class returns an object as the peak may be of various data types.
 //
 
+@Override
 public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue,
-                                        MKSInteger pThresholdViolation)
+                                    MKSInteger pThresholdViolation)
 {
 
     super.getPeakForChannelAndReset(pChannel, pPeakValue, pThresholdViolation);
@@ -203,6 +204,7 @@ public void getPeakDataAndReset(int pChannel, PeakData pPeakData)
 // or false otherwise.
 //
 
+@Override
 public boolean getPeakSnapshotDataAndReset(PeakSnapshotData pPeakSnapData)
 {
 
@@ -235,6 +237,7 @@ public boolean getPeakSnapshotDataAndReset(PeakSnapshotData pPeakSnapData)
 // or false otherwise.
 //
 
+@Override
 public boolean getPeakMapDataAndReset(PeakMapData pPeakMapData)
 {
 
@@ -380,6 +383,7 @@ void sendSetOnOffPacket(int pHdwChannel, boolean pValue)
 // pValue.
 //
 
+@Override
 void sendSetLocationPacket(int pHdwChannel, int pValue)
 {
 
@@ -396,6 +400,7 @@ void sendSetLocationPacket(int pHdwChannel, int pValue)
 // Sets the linear locations of each channel to their proper values.
 //
 
+@Override
 void setLinearLocationsOfChannels()
 {
 
@@ -419,6 +424,7 @@ void setLinearLocationsOfChannels()
 // to pValue.
 //
 
+@Override
 void sendSetClockPacket(int pHdwChannel, int pValue)
 {
 
