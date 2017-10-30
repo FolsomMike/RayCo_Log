@@ -26,6 +26,7 @@ import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -45,6 +46,11 @@ class ControlPanelControls extends ControlPanel
 {
     
     private final SharedSettings sharedSettings;
+    
+    //manual control panel
+    private JButton nextPieceButton;
+    private JLabel calModeWarning;
+    private JButton pauseResumeButton;
     
     //scan speed panel
     private MFloatSpinner scanSpeedEditor;
@@ -111,6 +117,16 @@ public void setupGUI()
     addVerticalSpacer(this, 10);
     
     add(createScanSpeedPanel());
+    
+    //only display manual control panel if necessary
+    if (sharedSettings.timerDrivenTracking 
+            || sharedSettings.timerDrivenTrackingInCalMode) {
+     
+        addVerticalSpacer(this, 10);
+    
+        add(createManualControlPanel());
+        
+    }
 
 }// end of ControlPanelControls::setupGUI
 //-----------------------------------------------------------------------------
@@ -141,6 +157,61 @@ private JPanel createInfoPanel()
     return(panel);
 
 }// end of ControlPanelControls::createInfoPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelControls::createManualControlPanel
+//
+// Returns a JPanel with controls and displays for manual control of the 
+// inspection process.  This is mainly used with handheld crabs and other 
+// systems without encoders or photoeyes.
+//
+
+private JPanel createManualControlPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBorder(BorderFactory.createTitledBorder("Manual Inspection"));
+    GUITools.setSizes(panel, 202, 80);
+    
+    addVerticalSpacer(panel, 5);
+    
+    //warning goes above buttons
+    panel.add(calModeWarning = new JLabel("Cal Mode", warningSymbol, 
+                                            JLabel.LEADING));
+    calModeWarning.setVisible(false); //starts out invisible
+    
+    addVerticalSpacer(panel, 5);
+    
+    //panel so buttons can be displayed horizontally
+    JPanel buttonsPanel = new JPanel();
+    buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
+    buttonsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.add(buttonsPanel);
+    
+    //add button
+    nextPieceButton = new JButton("Next Run");
+    nextPieceButton.setActionCommand("Next Run");
+    nextPieceButton.addActionListener(this);
+    nextPieceButton.setToolTipText("Begins inspection of next piece.");
+    nextPieceButton.setEnabled(false); //starts out invisible
+    buttonsPanel.add(nextPieceButton);
+
+    addHorizontalSpacer(buttonsPanel, 5);
+
+    //add button
+    pauseResumeButton = new JButton("Pause");
+    pauseResumeButton.setActionCommand("Pause or Resume");
+    pauseResumeButton.addActionListener(this);
+    pauseResumeButton.setToolTipText("Pauses the inspection without moving to next piece.");
+    pauseResumeButton.setEnabled(false); //starts out invisible
+    buttonsPanel.add(pauseResumeButton);
+
+    return(panel);
+
+}// end of ControlPanelControls::createManualControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -208,6 +279,22 @@ private JPanel createStatusPanel()
     return(panel);
 
 }// end of ControlPanelControls::createStatusPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelControls::setManualControlPanelEnabled
+//
+// Set all controls enabled or enabled.
+//
+
+@Override
+public void setEnabled(boolean pFalse)
+{
+
+    pauseResumeButton.setEnabled(pFalse);
+    nextPieceButton.setEnabled(pFalse);
+    
+}//end of ControlPanelControls::setManualControlPanelEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

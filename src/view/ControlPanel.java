@@ -21,6 +21,7 @@ package view;
 
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 //-----------------------------------------------------------------------------
@@ -41,6 +42,8 @@ class ControlPanel extends JPanel implements ControlsGroup{
     public int getChartNum(){ return(chartNum); }
 
     ActionListener parentActionListener;    
+    
+    protected ImageIcon warningSymbol;
     
 //-----------------------------------------------------------------------------
 // ControlPanel::ControlPanel (constructor)
@@ -65,6 +68,10 @@ public ControlPanel(int pChartGroupNum, int pChartNum,
 
 public void init()
 {
+    
+    //NOTE: You must use forward slashes in the path names for the resource
+    //loader to find the image files in the JAR package.
+    warningSymbol = createImageIcon("images/windows-warning.gif");
     
 }// end of ControlPanel::init
 //-----------------------------------------------------------------------------
@@ -93,6 +100,33 @@ public void setAllValues(ArrayList<Object> pValues)
 {
     
 }// end of MainView::setAllValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanel::createImageIcon
+//
+// Returns an ImageIcon, or null if the path was invalid.
+//
+// ***************************************************************************
+// NOTE: You must use forward slashes in the path names for the resource
+// loader to find the image files in the JAR package.
+// ***************************************************************************
+//
+
+public static ImageIcon createImageIcon(String path)
+{
+    
+    // have to use the MainView class because it is located in the same 
+    // package as the file; specifying the class specifies the first 
+    // portion of the path to the image, this concatenated with the pPath
+    java.net.URL imgURL = MainView.class.getResource(path);
+
+    if (imgURL != null) {
+        return new ImageIcon(imgURL);
+    }
+    else {return null;}
+
+}//end of ControlPanel::createImageIcon
 //-----------------------------------------------------------------------------
 
 }//end of class ControlPanel
