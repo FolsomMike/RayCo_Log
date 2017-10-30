@@ -994,6 +994,14 @@ private void loadConfigSettings()
 
     allDevicesSimulatedOverride = configFile.readBoolean(
                                         section, "simulate all devices", true);
+    
+    //if true, the traces will be driven by software timer rather than by
+    //encoder inputs - used for weldline crabs and systems without encoders
+    sharedSettings.timerDrivenTracking = configFile.readBoolean(
+                                    section, "Timer Driven Tracking", false);
+
+    sharedSettings.timerDrivenTrackingInCalMode = configFile.readBoolean(
+                       section, "Timer Driven Tracking in Cal Mode", false);
 
     numDevices = configFile.readInt(section, "number of devices", 0);
     maxNumChannels = configFile.readInt(section, "max number of channels", 10);

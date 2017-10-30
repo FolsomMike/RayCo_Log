@@ -77,6 +77,9 @@ public class SharedSettings{
     public static final int SCAN_MODE = 1;
     public static final int INSPECT_MODE = 2;
     public int opMode = STOP_MODE;
+    
+    public boolean timerDrivenTracking;
+    public boolean timerDrivenTrackingInCalMode;
 
     public String mainFileFormat = "UTF-8";
 
