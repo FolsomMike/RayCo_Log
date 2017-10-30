@@ -72,6 +72,11 @@ public class SharedSettings{
 
     private ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
     public void addThresholdInfo(ThresholdInfo pInfo) { thresholdInfos.add(pInfo); }
+    
+    public static final int STOP_MODE = 0;
+    public static final int SCAN_MODE = 1;
+    public static final int INSPECT_MODE = 2;
+    public int opMode = STOP_MODE;
 
     public String mainFileFormat = "UTF-8";
 

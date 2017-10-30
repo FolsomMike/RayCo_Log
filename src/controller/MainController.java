@@ -134,12 +134,6 @@ public class MainController implements EventHandler, Runnable
     private int numMapBuffers;
     private DataTransferIntMultiDimBuffer mapBuffers[];
 
-    private int mode;
-
-    public static final int STOP_MODE = 0;
-    public static final int SCAN_MODE = 1;
-    public static final int INSPECT_MODE = 2;
-
 //-----------------------------------------------------------------------------
 // MainController::MainController (constructor)
 //
@@ -159,11 +153,11 @@ public MainController()
 public void init()
 {
 
-    mode = STOP_MODE;
-
     sharedSettings = new SharedSettings();
     //main frame is not yet created, so pass null
     sharedSettings.init(null);
+    
+    sharedSettings.opMode = SharedSettings.STOP_MODE;
 
     loadConfigSettings();
 
@@ -545,7 +539,7 @@ private boolean channelGraphingEnabled()
 private void startInspectMode()
 {
 
-    mode = INSPECT_MODE;
+    sharedSettings.opMode = SharedSettings.INSPECT_MODE;
 
     //force view to reset everything he has
     mainView.resetAll();
@@ -921,12 +915,12 @@ public void actionPerformed(ActionEvent e)
     }
 
     if ("Start Stop Mode".equals(e.getActionCommand())) {
-        mode = STOP_MODE;
+        sharedSettings.opMode = SharedSettings.STOP_MODE;
         return;
     }
 
     if ("Start Scan Mode".equals(e.getActionCommand())) {
-        mode = SCAN_MODE;
+        sharedSettings.opMode = SharedSettings.SCAN_MODE;
         return;
     }
 
@@ -1288,7 +1282,7 @@ private void displayDataFromDevices()
     mainView.updateMonitorStatus(mainHandler.getMonitorPacket(true));
 
     //quit if in stop mode
-    if(mode == STOP_MODE) { return; }
+    if(sharedSettings.opMode == SharedSettings.STOP_MODE) { return; }
 
     //prepares to scan through all channels
     mainHandler.initForPeakScan();

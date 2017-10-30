@@ -736,7 +736,10 @@ public void collectData()
     }
 
     //send a request to the device for the next packet
-    //DEBUG HSS// uncomment later //requestRunDataPacket();
+    if (sharedSettings.opMode == SharedSettings.SCAN_MODE
+        || sharedSettings.opMode == SharedSettings.INSPECT_MODE) {
+        requestRunDataPacket();
+    }
 
 }// end of PeakDevice::collectData
 //-----------------------------------------------------------------------------
