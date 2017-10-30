@@ -232,7 +232,9 @@ private JPanel createScanSpeedPanel()
     addHorizontalSpacer(panel, 10);
     
     scanSpeedEditor = new MFloatSpinner(1, 1, 10, 1, "##0", 60, -1);
+    scanSpeedEditor.setName("Scan Speed Spinner");
     scanSpeedEditor.addChangeListener(this);
+    setSpinnerNameAndMouseListener(scanSpeedEditor, scanSpeedEditor.getName(), this);
     scanSpeedEditor.setToolTipText("Scanning & Inspecting Speed");
     panel.add(scanSpeedEditor);
 
@@ -282,13 +284,40 @@ private JPanel createStatusPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlPanelControls::handleSpinnerChange
+//
+// Processes changes to Spinner values.
+//
+// Should be overridden by child classes for specific handling.
+//
+
+@Override
+public void handleSpinnerChange(MFloatSpinner pSpinner)
+{
+    
+    if (pSpinner == null) { return; }
+
+    String name = pSpinner.getName();
+
+    if(name == null){ return; }
+
+    //put spinner value in scan speed spinner
+    if (name.equals("Scan Speed Spinner")){
+        
+        sharedSettings.scanSpeed = scanSpeedEditor.getIntValue();
+        
+    }
+
+}//end of ControlPanelControls::handleSpinnerChange
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlPanelControls::setManualControlPanelEnabled
 //
 // Set all controls enabled or enabled.
 //
 
-@Override
-public void setEnabled(boolean pFalse)
+public void setManualControlPanelEnabled(boolean pFalse)
 {
 
     pauseResumeButton.setEnabled(pFalse);
@@ -333,10 +362,6 @@ public static void addVerticalSpacer(JPanel pTarget, int pNumPixels)
 
 @Override
 public void actionPerformed(ActionEvent e) {}
-
-@Override
-public void stateChanged(ChangeEvent e) {}
-
 
 //end of ControlPanelBasic::(various abstract functions)
 //-----------------------------------------------------------------------------

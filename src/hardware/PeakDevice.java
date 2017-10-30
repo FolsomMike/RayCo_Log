@@ -38,6 +38,8 @@ public class PeakDevice extends MultiIODevice
     private int[] mapData;
 
     private int snapshotPeakType;
+    
+    private int scanRateCounter;
 
     PeakSnapshotBuffer peakSnapshotBuffer;
     SampleMetaData snapshotMeta = new SampleMetaData(0);
@@ -748,6 +750,105 @@ public void collectData()
     }
 
 }// end of PeakDevice::collectData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PeakDevice::requestRunDataPacket
+//
+// Sends a request to the device for a packet with runtime data such as signal
+// peaks, signal maps, photo-eye states, and encoder values.
+//
+// The returned packed will be handled by handleRunDataPacket. See that
+// method for more details.
+//
+
+@Override
+boolean requestRunDataPacket()
+{
+
+    //may also need check to see if in cal mode????? //DEBUG HSS// //WIP HSS//
+    
+    return super.requestRunDataPacket();//DEBUG HSS// remove later
+    
+    /*if (sharedSettings.timerDrivenTracking 
+            || sharedSettings.timerDrivenTrackingInCalMode) {
+        return requestRunDataPacketForScanOrTimerMode();
+    } else {
+        return requestRunDataPacketForInspectMode();
+    }*/
+    
+}//end of PeakDevice::requestRunDataPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PeakDevice::requestRunDataPacketForScanOrTimerMode
+//
+// Requests a run data packet from the device if time do so.
+//
+// This function is specifically for SCAN and INSPECT_WITH_TIMER_TRACKING modes
+// which use a timer to drive the traces rather than hardware encoder inputs.
+//
+// Peak data is requested periodically rather than being requested when the
+// encoder position dictates such.
+//
+
+public boolean requestRunDataPacketForScanOrTimerMode()
+{
+
+    //scanRateCounter is used to control rate the scan moves across the screen
+    //by not requesting new packets until told to do so
+
+    if (scanRateCounter-- == 0){
+        scanRateCounter = 10 - sharedSettings.scanSpeed;
+        return false;
+    } else { 
+        return super.requestRunDataPacket();
+    }
+
+}//end of PeakDevice::requestRunDataPacketForScanOrTimerMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PeakDevice::requestRunDataPacketForInspectMode
+//
+// Requests a run data packet from the device if time do so.
+//
+// This function is specifically for INSPECT mode which uses encoder data to
+// drive the traces rather than a timer.
+//
+// Peak data is requested each time the encoder moves the specified tigger
+// amount.
+//
+
+public boolean requestRunDataPacketForInspectMode()
+{
+    
+    return super.requestRunDataPacket(); //DEBUG HSS//
+
+    //process position information from whatever device is handling the encoder
+    //inputs
+
+    /*boolean newPositionData = collectEncoderDataInspectMode();
+
+    //call collectAnalogData again if new position data has been received --
+    //this makes sure the new position in the buffer is filled with something --
+    //the position will usually be overwritten by the next peak data
+    //wip mks -- not required to call collectAnalogData any more since
+    // the new TraceData class fills empty buffer spaces with previous data?
+
+    //also send a request to the remote device(s) for a peak data packet
+    //the returned data packet will be processed on subsequent calls to
+    //collectData
+
+    if (newPositionData){
+
+        collectAnalogData();
+
+        analogDriver.requestPeakDataForAllBoards();
+
+    }*/ //DEBUG HSS// fix this later //WIP HSS//
+
+}//end of PeakDevice::requestRunDataPacketForInspectMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

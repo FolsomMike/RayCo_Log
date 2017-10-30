@@ -1278,7 +1278,7 @@ private void updateGUIPeriodically()
 // collected from the hardware to the screen display controls such as traces,
 // numeric displays, graphs, etc.
 //
-
+int debugHssScanCnt; //DEBUG HSS//
 private void displayDataFromDevices()
 {
     
@@ -1324,6 +1324,12 @@ private void displayDataFromDevices()
 
         }
     }
+    
+    //DEBUG HSS// remove later????
+    if (debugHssScanCnt-- == 0){
+        debugHssScanCnt = 10 - sharedSettings.scanSpeed;
+    } else { return; }
+    //DEBUG HSS// end remove
 
     //update trace display objects from transfer buffers
     for(DataTransferIntBuffer dataBuffer: dataBuffers){

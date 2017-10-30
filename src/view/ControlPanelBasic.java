@@ -31,7 +31,6 @@ import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,12 +43,9 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import static javax.swing.SwingConstants.CENTER;
 import static javax.swing.SwingConstants.LEFT;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
 
 //-----------------------------------------------------------------------------
@@ -58,7 +54,7 @@ import mksystems.mswing.MFloatSpinner;
 //
 
 class ControlPanelBasic extends ControlPanel
-                     implements ActionListener, ChangeListener, MouseListener{
+{
 
     JTabbedPane tabPane;
 
@@ -377,35 +373,6 @@ public void addThresholdsPanel(JPanel pPanel)
     pPanel.add(panel);
 
 }// end of ControlPanelBasic::addThresholdsPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlPanelBasic::setSpinnerNameAndMouseListener
-//
-// A mouse listener cannot be added directly to a JSpinner or its sub-classes.
-// The listener must be added to the text field inside the spinner to work
-// properly.  This function also sets the name of the text field so that the
-// mouse listener response method can use it.
-//
-
-void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
-                                                   MouseListener pMouseListener)
-{
-
-    for (Component child : pSpinner.getComponents()) {
-
-        if (child instanceof JSpinner.NumberEditor) {
-            for (Component child2 :
-                  ((javax.swing.JSpinner.NumberEditor) child).getComponents()){
-                ((javax.swing.JFormattedTextField) child2).
-                                               addMouseListener(pMouseListener);
-                                ((javax.swing.JFormattedTextField) child2).
-                                                                setName(pName);
-            }
-        }
-    }
-
-}//end of ControlPanelBasic::setSpinnerNameAndMouseListener
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -978,49 +945,6 @@ private void setSizes(Component pComponent, int pWidth, int pHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlPanelBasic::stateChanged
-//
-// Responds to value changes in spinners, etc.
-//
-// You can tell which item was changed by using similar to:
-//
-// Object source = e.getSource();
-//
-
-@Override
-public void stateChanged(ChangeEvent e)
-{
-
-    //if for some reason the object which changed state is not a subclass of
-    //of Component, do nothing as this code only handles Components
-
-    if (!(e.getSource() instanceof Component)) { return; }
-
-    MFloatSpinner sp;
-
-    //try casting the source component to a spinner - if valid, then get the
-    //name if the component is a threshold control, then update chart
-    //settings only
-
-    try{
-        sp = (MFloatSpinner)e.getSource();
-        handleSpinnerChange(sp);
-        return;
-    }
-    catch (ClassCastException ce){
-        //this is an expected exception -- do not print warning to err file
-    }
-
-    //all other components which fire stateChanged events call to copy their
-    //values to the appropriate variables
-    //do something here with all uncaught changes
-
-    return;
-
-}//end of ControlPanelBasic::stateChanged
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // ControlPanelBasic::handleSpinnerChange
 //
 // Processes changes to Spinner values. The spinner's name should contain
@@ -1028,7 +952,8 @@ public void stateChanged(ChangeEvent e)
 // the channel in the cal channel list, Device number and the Channel number.
 //
 
-private void handleSpinnerChange(MFloatSpinner pSpinner)
+@Override
+public void handleSpinnerChange(MFloatSpinner pSpinner)
 {
 
     if (pSpinner == null) { return; }

@@ -78,6 +78,7 @@ public class SharedSettings{
     public static final int INSPECT_MODE = 2;
     public int opMode = STOP_MODE;
     
+    public int scanSpeed;
     public boolean timerDrivenTracking;
     public boolean timerDrivenTrackingInCalMode;
 
