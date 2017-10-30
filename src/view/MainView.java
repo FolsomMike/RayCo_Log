@@ -107,10 +107,6 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JCheckBox displayFilteredWaveFormInput;
     private JTextArea filterCoeffInput;
     private MFloatSpinner filteredOutputScaling;
-    
-    private MFloatSpinner pieceNumberEditor;
-    private JCheckBox calModeCheckBox;
-    public void setCalModeCBEnabled(boolean pE) { calModeCheckBox.setEnabled(pE); }
 
     private GuiUpdater guiUpdater;
     private Log log;
@@ -290,6 +286,9 @@ private void setupGui()
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
 
     mainPanel.add(controlsPanel = createControlsPanel());
+    
+    //display controls panel on start up
+    displayControlsPanel();
 
     currentControlPanel = null;
 
@@ -322,17 +321,9 @@ private JPanel createControlsPanel()
 
     panel.add(Box.createVerticalGlue());
     
-    panel.add(createInfoPanel());
+    panel.add(createDisplayControlsPanel());
     
-    addVerticalSpacer(panel, 10);
-    
-    panel.add(createStatusPanel());
-    
-    addVerticalSpacer(panel, 10);
-    
-    panel.add(createScanSpeedPanel());
-    
-    addVerticalSpacer(panel, 10);
+    addVerticalSpacer(panel, 5);
 
     panel.add(createModeButtonPanel());
 
@@ -368,31 +359,30 @@ public void setAllValuesInCurrentControlPanel(ArrayList<Object> pValues)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::createInfoPanel
+// MainView::createDisplayControlsPanel
 //
 // Returns a JPanel displaying misc information, such as job #.
 //
 
-private JPanel createInfoPanel()
+private JPanel createDisplayControlsPanel()
 {
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.setBorder(BorderFactory.createTitledBorder("Info"));
-    GUITools.setSizes(panel, 202, 50);
-    
-    addHorizontalSpacer(panel, 10);
+    GUITools.setSizes(panel, 202, 30);
 
-    //job #/name
-    JLabel jobLabel = new JLabel(" Job #: ");
-    panel.add(jobLabel);
-    JLabel jobValue = new JLabel(sharedSettings.currentJobName);
-    panel.add(jobValue);
+    JButton button;
 
+    //add button
+    button = new JButton("Controls");
+    button.setActionCommand("display controls panel");
+    button.addActionListener(this);
+    button.setToolTipText("Display Controls Panel.");
+    panel.add(button);
     return(panel);
 
-}// end of MainView::createInfoPanel
+}// end of MainView::createDisplayControlsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -439,73 +429,6 @@ private JPanel createModeButtonPanel()
     return(panel);
 
 }// end of MainView::createModeButtonPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createScanSpeedPanel
-//
-// Returns a JPanel allowing adjustment of the chart scan speed.
-//
-
-private JPanel createScanSpeedPanel()
-{
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.setBorder(BorderFactory.createTitledBorder("Scan Speed"));
-    GUITools.setSizes(panel, 202, 50);
-    
-    addHorizontalSpacer(panel, 10);
-    
-    MFloatSpinner scanSpeedEditor = new MFloatSpinner(1, 1, 10, 1, "##0", 60, -1);
-    scanSpeedEditor.addChangeListener(this);
-    scanSpeedEditor.setToolTipText("Scanning & Inspecting Speed");
-    panel.add(scanSpeedEditor);
-
-    return(panel);
-
-}// end of MainView::createScanSpeedPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createStatusPanel
-//
-// Returns a JPanel containing the status info, such as piece number and 
-// cal mode checkbox.
-//
-
-private JPanel createStatusPanel()
-{
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.setBorder(BorderFactory.createTitledBorder("Status"));
-    GUITools.setSizes(panel, 202, 50);
-    
-    addHorizontalSpacer(panel, 10);
-
-    //spinner to change piece number
-    pieceNumberEditor = new MFloatSpinner(1, 1, 100000, 1, "##0", 60, -1);
-    pieceNumberEditor.addChangeListener(this);
-    pieceNumberEditor.setToolTipText("The next piece number."); //DEBUG HSS// change piece type to be read from inifile
-    panel.add(pieceNumberEditor);
-    
-    addHorizontalSpacer(panel, 10);
-
-    //checkbox to indicate whether or not in cal mode
-    calModeCheckBox = new JCheckBox("Cal Mode");
-    calModeCheckBox.setSelected(false);
-    calModeCheckBox.setActionCommand("Calibration Mode");
-    calModeCheckBox.addActionListener(this);
-    calModeCheckBox.setToolTipText(
-                "Check this box to run and save calibration pieces"); //DEBUG HSS// change piece type to be read from inifile
-    panel.add(calModeCheckBox);
-
-    return(panel);
-
-}// end of MainView::createStatusPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1331,6 +1254,11 @@ public void actionPerformedLocal(ActionEvent e)
         open3DMapManipulatorControlPanel(e.getActionCommand());
         return;
     }
+    
+    if (e.getActionCommand().startsWith("display controls panel")) {
+        displayControlsPanel();
+        return;
+    }
 
     if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
 
@@ -1449,6 +1377,35 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
     mainFrame.pack();
 
 }//end of MainView::displayCalibrationPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::displayControlsPanel
+//
+// Displays the controls panel, which contains job #, scan speed, etc.
+//
+
+public void displayControlsPanel()
+{
+
+    //remove any panels already opened
+    controlsGroupPanel.removeAll();
+
+    //empty strings because we don't care about group or chart nums
+    ControlPanel panel = new ControlPanelControls(-1, -1, this, sharedSettings);
+    panel.init();
+    controlsGroupPanel.add(panel);
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    currentControlPanel = panel;
+
+    ((TitledBorder)(controlsPanel.getBorder())).setTitle(panel.getPanelTitle());
+
+    controlsPanel.invalidate();
+    controlsPanel.repaint();
+
+    mainFrame.pack();
+
+}//end of MainView::displayControlsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
