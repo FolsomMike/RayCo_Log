@@ -598,6 +598,8 @@ public void updateTrace(Graphics2D pG2)
 {
 
     int r;
+    
+    dataBuffer.incPutPtrAndSetReadyAfterDataFill();
 
     while((r = dataBuffer.getDataChange(dataSet)) != 0){
 

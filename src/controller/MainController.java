@@ -1333,8 +1333,6 @@ private void displayDataFromDevices()
 
     //update trace display objects from transfer buffers
     for(DataTransferIntBuffer dataBuffer: dataBuffers){
-        //pace this with timer to control scan speed
-        dataBuffer.incPutPtrAndSetReadyAfterDataFill();
         //update trace with all data changes
         mainView.updateChild(dataBuffer.chartGroupNum, dataBuffer.chartNum,
                                      dataBuffer.graphNum, dataBuffer.traceNum);
@@ -1342,15 +1340,11 @@ private void displayDataFromDevices()
 
     //update snapshot display objects from transfer buffers
     for(DataTransferSnapshotBuffer snapBuffer: snapshotBuffers){
-        //pace this with timer to control scan speed
-        snapBuffer.incPutPtrAndSetReadyAfterDataFill();
         //update trace with all data changes
         mainView.updateAnnotationGraphs(snapBuffer.chartGroupNum);
     }
 
     for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
-        //pace this with timer to control scan speed
-        mapBuffer.incPutPtrAndSetReadyAfterDataFill();
         //update trace with all data changes
         mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
                                        mapBuffer.graphNum, mapBuffer.traceNum);

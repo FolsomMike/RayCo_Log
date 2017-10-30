@@ -1912,6 +1912,8 @@ public void retrieveDataChanges()
 
     //quit if transfer buffer not set yet
     if (transferBuffer==null) { return; }
+    
+    transferBuffer.incPutPtrAndSetReadyAfterDataFill();
 
     int r;
     while((r = transferBuffer.getDataChange(dataSet)) != 0){
