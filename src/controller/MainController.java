@@ -175,10 +175,6 @@ public void init()
     mainHandler = new MainHandler(0, this, sharedSettings, configFile);
     mainHandler.init();
     devicesConnected = false;
-    
-    //display this after everything else done because he makes use of various
-    //settings in SharedSettings, and we need to ensure they have been loaded
-    mainView.displayControlsPanel();
 
     peakData = new PeakData(0, mainHandler.getMaxNumChannels());
     peakMapData = new PeakMapData(0, 48); //debug mks -- this needs to be loaded from config file!!!
@@ -189,6 +185,10 @@ public void init()
 
     //load the cal file
     loadCalFile();
+    
+    //display this after everything else done because he makes use of various
+    //settings in SharedSettings, and we need to ensure they have been loaded
+    mainView.displayControlsPanel();
 
     //force garbage collection before beginning any time sensitive tasks
     System.gc();

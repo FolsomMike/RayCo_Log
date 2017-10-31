@@ -231,7 +231,8 @@ private JPanel createScanSpeedPanel()
     
     addHorizontalSpacer(panel, 10);
     
-    scanSpeedEditor = new MFloatSpinner(1, 1, 10, 1, "##0", 60, -1);
+    scanSpeedEditor = new MFloatSpinner(sharedSettings.scanSpeed, 1, 10, 1,
+                                            "##0", 60, -1);
     scanSpeedEditor.setName("Scan Speed Spinner");
     scanSpeedEditor.addChangeListener(this);
     setSpinnerNameAndMouseListener(scanSpeedEditor, scanSpeedEditor.getName(), this);

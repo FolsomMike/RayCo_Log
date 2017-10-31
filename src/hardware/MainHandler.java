@@ -1065,6 +1065,9 @@ private void loadConfigSettings()
 
 public void loadCalFile(IniFile pCalFile)
 {
+    
+    sharedSettings.scanSpeed = pCalFile.readInt("Hardware", 
+                                        "Scanning and Inspecting Speed", 10);
 
     for (Device d : devices) { d.loadCalFile(pCalFile); }
 
@@ -1084,7 +1087,8 @@ public void loadCalFile(IniFile pCalFile)
 public void saveCalFile(IniFile pCalFile)
 {
 
-    pCalFile.writeString("Hardware", "Hardware Test Value", "test");
+    pCalFile.writeInt("Hardware", "Scanning and Inspecting Speed",
+                        sharedSettings.scanSpeed);
 
     for (Device d : devices) { d.saveCalFile(pCalFile); }
 

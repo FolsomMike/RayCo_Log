@@ -82,7 +82,7 @@ public class SharedSettings{
     
     public boolean updateView;
     
-    public int scanSpeed;
+    public int scanSpeed = 1;
     public boolean timerDrivenTracking;
     public boolean timerDrivenTrackingInCalMode;
 
