@@ -189,9 +189,9 @@ public void init()
     //load the cal file
     loadCalFile();
     
-    //display this after everything else done because he makes use of various
+    //refresg after everything else done because he makes use of various
     //settings in SharedSettings, and we need to ensure they have been loaded
-    mainView.displayControlsPanel();
+    mainView.refreshCurrentControlPanel();
 
     //force garbage collection before beginning any time sensitive tasks
     System.gc();

@@ -30,7 +30,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
 import model.SharedSettings;
@@ -48,9 +47,12 @@ class ControlPanelControls extends ControlPanel
     private final SharedSettings sharedSettings;
     
     //manual control panel
-    private JButton nextPieceButton;
+    private boolean manualControlPanelVisible;
     private JLabel calModeWarning;
+    private JButton nextPieceButton;
     private JButton pauseResumeButton;
+    public JButton getNextPieceButton() { return nextPieceButton; }
+    public JButton getPauseResumeButton() { return pauseResumeButton; }
     
     //scan speed panel
     private MFloatSpinner scanSpeedEditor;
@@ -75,6 +77,8 @@ public ControlPanelControls(int pChartGroupNum, int pChartNum,
     panelTitle = "Controls";
     
     sharedSettings = pSettings;
+    
+    manualControlPanelVisible = false;
     
 }//end of ControlPanelControls::ControlPanelControls (constructor)
 //-----------------------------------------------------------------------------
@@ -104,6 +108,8 @@ public void init()
 
 public void setupGUI()
 {
+    
+    removeAll();//just to be safe
 
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -125,6 +131,11 @@ public void setupGUI()
         addVerticalSpacer(this, 10);
     
         add(createManualControlPanel());
+        
+        //if using timer driven for cal mode only, start with panel disabled
+        if(sharedSettings.timerDrivenTrackingInCalMode){
+            setManualControlPanelEnabled(false);
+        }
         
     }
 
@@ -169,6 +180,8 @@ private JPanel createInfoPanel()
 
 private JPanel createManualControlPanel()
 {
+    
+    manualControlPanelVisible = true;
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -286,6 +299,22 @@ private JPanel createStatusPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlPanelControls::refresh
+//
+// Checks SharedSettings for any value changes and adjusts the GUI accordingly.
+//
+
+@Override
+public void refresh()
+{
+
+    //easiest way to do this is to reset the gui
+    setupGUI();
+
+}//end of ControlPanelControls::setCalModeEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlPanelControls::setCalModeEnabled
 //
 // Sets the cal mode in SharedSettings to pEnabled. If enabled, cal mode
@@ -296,7 +325,8 @@ protected void setCalModeEnabled(boolean pEnabled)
 {
 
     sharedSettings.calMode = pEnabled;
-    calModeWarning.setVisible(pEnabled);
+    
+    if (manualControlPanelVisible){ calModeWarning.setVisible(pEnabled); }
 
 }//end of ControlPanelControls::setCalModeEnabled
 //-----------------------------------------------------------------------------

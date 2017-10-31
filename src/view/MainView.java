@@ -30,7 +30,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -49,7 +48,6 @@ import java.util.ListIterator;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -59,7 +57,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
@@ -89,9 +86,7 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
 
     private MainMenu mainMenu;
 
-    JPanel controlsPanel, controlsGroupPanel;
-
-    private ControlsGroup currentControlPanel;
+    ControlsPanel controlsPanel;
 
     private JTextField dataVersionTField;
     private JTextField dataTArea1;
@@ -135,8 +130,6 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     private JLabel progressLabel;
 
     private Dimension totalScreenSize, usableScreenSize;
-
-    private JButton scanBtn, inspectBtn, stopBtn;
 
     private static final int CHART_WIDTH = 1000; //1670 for LG screen at RGNDT
     private static final int CHART_HEIGHT = 100;
@@ -285,51 +278,15 @@ private void setupGui()
 
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
 
-    mainPanel.add(controlsPanel = createControlsPanel());
-    
-    //display controls panel on start up
-    displayControlsPanel();
-
-    currentControlPanel = null;
+    controlsPanel = new ControlsPanel(this, sharedSettings);
+    controlsPanel.init();
+    mainPanel.add(controlsPanel);
 
     createChartGroups();
 
     linkGraphsWhichTrackOtherGraphsScolling();
 
 }// end of MainView::setupGui
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createControlsPanel
-//
-// Returns a JPanel containing the control GUI items.
-//
-
-private JPanel createControlsPanel()
-{
-
-    JPanel panel = new JPanel();
-    panel.setBorder(BorderFactory.createTitledBorder("Controls"));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-
-    addVerticalSpacer(panel, 10);
-
-    panel.add(controlsGroupPanel = new JPanel());
-    controlsGroupPanel.setLayout(
-                        new BoxLayout(controlsGroupPanel, BoxLayout.PAGE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    panel.add(Box.createVerticalGlue());
-    
-    panel.add(createDisplayControlsPanel());
-    
-    addVerticalSpacer(panel, 5);
-
-    panel.add(createModeButtonPanel());
-
-    return(panel);
-
-}// end of MainView::createControlsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -340,95 +297,21 @@ private JPanel createControlsPanel()
 public ArrayList<Object> getAllValuesFromCurrentControlPanel()
 {
 
-    return(currentControlPanel.getAllValues());
+    return(controlsPanel.getAllValuesFromCurrentControlPanel());
 
 }// end of MainView::getAllValuesFromCurrentControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::setAllValuesInCurrentControlPanel
-//
+// MainView::refreshCurrentControlPanel
 //
 
-public void setAllValuesInCurrentControlPanel(ArrayList<Object> pValues)
+public void refreshCurrentControlPanel()
 {
 
-    currentControlPanel.setAllValues(pValues);
+    controlsPanel.refreshCurrentControlPanel();
 
-}// end of MainView::setAllValuesInCurrentControlPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createDisplayControlsPanel
-//
-// Returns a JPanel displaying misc information, such as job #.
-//
-
-private JPanel createDisplayControlsPanel()
-{
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    GUITools.setSizes(panel, 202, 30);
-
-    JButton button;
-
-    //add button
-    button = new JButton("Controls");
-    button.setActionCommand("display controls panel");
-    button.addActionListener(this);
-    button.setToolTipText("Display Controls Panel.");
-    panel.add(button);
-    return(panel);
-
-}// end of MainView::createDisplayControlsPanel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainView::createModeButtonPanel
-//
-// Returns a JPanel containing the mode buttons, such as Scan, Inspect, Stop.
-//
-
-private JPanel createModeButtonPanel()
-{
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    GUITools.setSizes(panel, 202, 30);
-
-    JButton button;
-
-    //add button
-    inspectBtn = new JButton("Inspect");
-    inspectBtn.setActionCommand("Start Inspect Mode");
-    inspectBtn.addActionListener(this);
-    inspectBtn.setToolTipText("Start Inspect mode.");
-    panel.add(inspectBtn);
-
-    addHorizontalSpacer(panel, 3);
-
-    //add button
-    scanBtn = new JButton("Scan");
-    scanBtn.setActionCommand("Start Scan Mode");
-    scanBtn.addActionListener(this);
-    scanBtn.setToolTipText("Start Scan mode.");
-    panel.add(scanBtn);
-
-    addHorizontalSpacer(panel, 3);
-
-    //add button
-    stopBtn = new JButton("Stop");
-    stopBtn.setActionCommand("Start Stop Mode");
-    stopBtn.addActionListener(this);
-    stopBtn.setToolTipText("Start Stop mode.");
-    panel.add(stopBtn);
-
-    return(panel);
-
-}// end of MainView::createModeButtonPanel
+}// end of MainView::refreshCurrentControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1236,21 +1119,6 @@ public void actionPerformed(ActionEvent e)
 public void actionPerformedLocal(ActionEvent e)
 {
 
-    if ("Start Stop Mode".equals(e.getActionCommand())) {
-        inspectBtn.setEnabled(true); scanBtn.setEnabled(true);
-        return;
-    }
-
-    if ("Start Scan Mode".equals(e.getActionCommand())) {
-        inspectBtn.setEnabled(false); scanBtn.setEnabled(false);
-        return;
-    }
-
-    if ("Start Inspect Mode".equals(e.getActionCommand())) {
-        inspectBtn.setEnabled(false); scanBtn.setEnabled(false);
-        return;
-    }
-
     if ("Expand Chart Height".equals(e.getActionCommand())) {
         expandChartHeight();
         return;
@@ -1272,7 +1140,7 @@ public void actionPerformedLocal(ActionEvent e)
         return;
     }
     
-    if (e.getActionCommand().startsWith("display controls panel")) {
+    if (e.getActionCommand().startsWith("Display Controls Panel")) {
         displayControlsPanel();
         return;
     }
@@ -1315,11 +1183,6 @@ public void doTimerActions()
 public void open3DMapManipulatorControlPanel(String pActionCommand)
 {
 
-    //remove any panels already opened
-    controlsGroupPanel.removeAll();
-
-    int mapGraphNumber = 0; //graph of 3D map always expected to be first
-
     String[] split = pActionCommand.split(",");
 
     //extract the chart group and chart number of the invoking chart from
@@ -1327,24 +1190,18 @@ public void open3DMapManipulatorControlPanel(String pActionCommand)
 
     int invokingChartGroupNum = 0;
     if(split.length > 0){invokingChartGroupNum = Integer.valueOf(split[1]);}
+    
     int invokingChartNum = 0;
     if(split.length > 2){invokingChartNum = Integer.valueOf(split[2]);}
+    
+    int mapGraphNumber = 0; //graph of 3D map always expected to be first
+    
+    ArrayList<Object> graphParams = getGraphParameters(invokingChartGroupNum, 
+                                                        invokingChartNum, 
+                                                        mapGraphNumber);
 
-    Map3DManipulator map3DManip = new Map3DManipulator(
-                                invokingChartGroupNum, invokingChartNum, this);
-    map3DManip.init();
-    controlsGroupPanel.add(map3DManip);
-    map3DManip.setAlignmentX(Component.LEFT_ALIGNMENT);
-    currentControlPanel = map3DManip;
-
-    setAllValuesInCurrentControlPanel(getGraphParameters(
-                     invokingChartGroupNum, invokingChartNum, mapGraphNumber));
-
-    ((TitledBorder)(controlsPanel.getBorder())).
-                                        setTitle(map3DManip.getPanelTitle());
-
-    controlsPanel.invalidate();
-    controlsPanel.repaint();
+    controlsPanel.display3DMapManipulatorControlPanel(invokingChartGroupNum, 
+                                                invokingChartNum, graphParams);
 
     mainFrame.pack();
 
@@ -1364,33 +1221,21 @@ public void open3DMapManipulatorControlPanel(String pActionCommand)
 public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
                         String pPanelTitle, ArrayList<ChannelInfo> pChannelList)
 {
-
-    //remove any panels already opened
-    controlsGroupPanel.removeAll();
-
+    
     int mapGraphNumber = 0; //graph of 3D map always expected to be first
 
     LinkedHashSet<String> groupTitles = getListOfGroups(pChannelList);
     ArrayList<Threshold[]> thresholds = getThresholdsForChart(pChartGroupNum,
                                                                     pChartNum);
+    
+    ArrayList<Object> graphParams = getGraphParameters(pChartGroupNum, 
+                                                        pChartNum,
+                                                        mapGraphNumber);
 
-    ControlPanelBasic transCalPanel = new ControlPanelBasic(pChartGroupNum,
-                                            pChartNum, pPanelTitle, groupTitles,
-                                            pChannelList, thresholds, this);
-    transCalPanel.init();
-    controlsGroupPanel.add(transCalPanel);
-    transCalPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    currentControlPanel = transCalPanel;
-
-    setAllValuesInCurrentControlPanel(getGraphParameters(
-                                   pChartGroupNum, pChartNum, mapGraphNumber));
-
-    ((TitledBorder)(controlsPanel.getBorder())).
-                                      setTitle(transCalPanel.getPanelTitle());
-
-    controlsPanel.invalidate();
-    controlsPanel.repaint();
-
+    controlsPanel.displayCalibrationPanel(pChartGroupNum, pChartNum, pPanelTitle,
+                                            pChannelList, groupTitles, 
+                                            thresholds, graphParams);
+    
     mainFrame.pack();
 
 }//end of MainView::displayCalibrationPanel
@@ -1405,20 +1250,7 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
 public void displayControlsPanel()
 {
 
-    //remove any panels already opened
-    controlsGroupPanel.removeAll();
-
-    //empty strings because we don't care about group or chart nums
-    ControlPanel panel = new ControlPanelControls(-1, -1, this, sharedSettings);
-    panel.init();
-    controlsGroupPanel.add(panel);
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    currentControlPanel = panel;
-
-    ((TitledBorder)(controlsPanel.getBorder())).setTitle(panel.getPanelTitle());
-
-    controlsPanel.invalidate();
-    controlsPanel.repaint();
+    controlsPanel.displayControlsPanel();
 
     mainFrame.pack();
 
@@ -1513,14 +1345,14 @@ public void openTransverseControlPanel(int pChartGroupNum, int pChartNum,
 public void expandChartHeight()
 {
 
-    int chartGroupNum = currentControlPanel.getChartGroupNum();
-    int chartNum = currentControlPanel.getChartNum();
+    int chartGroupNum = controlsPanel.getChartGroupNum();
+    int chartNum = controlsPanel.getChartNum();
 
     chartGroups[chartGroupNum].expandChartHeight(chartNum, GRAPH_NUM_TO_EXPAND);
 
     //update the GUI controls to reflect the new view parameters
 
-    setAllValuesInCurrentControlPanel(getGraphParameters(
+    controlsPanel.setAllValuesInCurrentControlPanel(getGraphParameters(
                              chartGroupNum, chartNum, GRAPH_NUM_TO_EXPAND));
 
     mainFrame.pack();
@@ -1538,15 +1370,15 @@ public void expandChartHeight()
 public void setNormalChartHeight()
 {
 
-    int chartGroupNum = currentControlPanel.getChartGroupNum();
-    int chartNum = currentControlPanel.getChartNum();
+    int chartGroupNum = controlsPanel.getChartGroupNum();
+    int chartNum = controlsPanel.getChartNum();
 
     chartGroups[chartGroupNum].setNormalChartHeight(
                                                 chartNum, GRAPH_NUM_TO_EXPAND);
 
     //update the GUI controls to reflect the new view parameters
 
-    setAllValuesInCurrentControlPanel(getGraphParameters(
+    controlsPanel.setAllValuesInCurrentControlPanel(getGraphParameters(
                                 chartGroupNum, chartNum, GRAPH_NUM_TO_EXPAND));
 
     mainFrame.pack();
@@ -1564,8 +1396,8 @@ public void setNormalChartHeight()
 public void animateGraph()
 {
 
-    chartGroups[currentControlPanel.getChartGroupNum()].animateGraph(
-                      currentControlPanel.getChartNum(), GRAPH_NUM_TO_EXPAND);
+    chartGroups[controlsPanel.getChartGroupNum()].animateGraph(
+                      controlsPanel.getChartNum(), GRAPH_NUM_TO_EXPAND);
 
 }//end of MainView::animateGraph
 //-----------------------------------------------------------------------------

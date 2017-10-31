@@ -34,6 +34,8 @@ interface ControlsGroup{
 
     public void setAllValues(ArrayList<Object> pValues);
     
+    public void refresh();
+    
 }//end of interface ControlsGroup
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

@@ -26,7 +26,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
@@ -264,6 +263,9 @@ public static ImageIcon createImageIcon(String path)
 //
 // These functions are implemented per requirements of implemented interfaces.
 //
+
+@Override
+public void refresh() {}
 
 @Override
 public void mouseClicked(MouseEvent e) {}
