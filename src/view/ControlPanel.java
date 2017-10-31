@@ -26,6 +26,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
@@ -113,6 +114,39 @@ public void setAllValues(ArrayList<Object> pValues)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlPanel::actionPerformed
+//
+// Responds to events and passes them on to the parent actionListener object.
+//
+
+@Override
+public void actionPerformed(ActionEvent e)
+{
+
+    if (actionPerformedLocal(e) == true) { return; } //local processing
+
+    parentActionListener.actionPerformed(e); //parent handler processing
+
+}//end of ControlPanel::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanel::actionPerformedLocal
+//
+// Responds to events which require action by this object.
+//
+// Generally overridden by children classes to provide special handling.
+//
+
+protected boolean actionPerformedLocal(ActionEvent e)
+{
+
+    return false;
+
+}//end of ControlPanel::actionPerformedLocal
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlPanel::stateChanged
 //
 // Responds to value changes in spinners, etc.
@@ -122,6 +156,7 @@ public void setAllValues(ArrayList<Object> pValues)
 // Object source = e.getSource();
 //
 
+@Override
 public void stateChanged(ChangeEvent e)
 {
 
@@ -229,9 +264,6 @@ public static ImageIcon createImageIcon(String path)
 //
 // These functions are implemented per requirements of implemented interfaces.
 //
-
-@Override
-public void actionPerformed(ActionEvent e) {}
 
 @Override
 public void mouseClicked(MouseEvent e) {}

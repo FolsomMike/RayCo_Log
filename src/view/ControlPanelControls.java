@@ -273,8 +273,9 @@ private JPanel createStatusPanel()
     //checkbox to indicate whether or not in cal mode
     calModeCheckBox = new JCheckBox("Cal Mode");
     calModeCheckBox.setSelected(false);
-    calModeCheckBox.setActionCommand("Calibration Mode");
+    calModeCheckBox.setActionCommand("Calibration Mode Checkbox");
     calModeCheckBox.addActionListener(this);
+    calModeCheckBox.addMouseListener(this);
     calModeCheckBox.setToolTipText(
                 "Check this box to run and save calibration pieces"); //DEBUG HSS// change piece type to be read from inifile
     panel.add(calModeCheckBox);
@@ -282,6 +283,50 @@ private JPanel createStatusPanel()
     return(panel);
 
 }// end of ControlPanelControls::createStatusPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelControls::setCalModeEnabled
+//
+// Sets the cal mode in SharedSettings to pEnabled. If enabled, cal mode
+// warning label is displayed.
+//
+
+protected void setCalModeEnabled(boolean pEnabled)
+{
+
+    sharedSettings.calMode = pEnabled;
+    calModeWarning.setVisible(pEnabled);
+
+}//end of ControlPanelControls::setCalModeEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelControls::actionPerformedLocal
+//
+// Responds to events which require action by this object.
+//
+// Returns true if the action is not to be handled by other listeners.
+//
+
+@Override
+protected boolean actionPerformedLocal(ActionEvent e)
+{
+
+    if (e.getActionCommand().equals("Calibration Mode Checkbox")){
+
+        if (!(e.getSource() instanceof JCheckBox)) { return(false); }
+        JCheckBox box = (JCheckBox)e.getSource();
+        
+        //set cal mode to state of checkbox
+        setCalModeEnabled(box.isSelected());
+        
+        return(true);
+    }
+
+    return(false);
+
+}//end of ControlPanelControls::actionPerformedLocal
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -353,18 +398,6 @@ public static void addVerticalSpacer(JPanel pTarget, int pNumPixels)
     pTarget.add(Box.createRigidArea(new Dimension(0,pNumPixels)));
 
 }// end of ControlPanelControls::addVerticalSpacer
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlPanelBasic::(various abstract functions)
-//
-// These functions are implemented per requirements of implemented interfaces.
-//
-
-@Override
-public void actionPerformed(ActionEvent e) {}
-
-//end of ControlPanelBasic::(various abstract functions)
 //-----------------------------------------------------------------------------
 
 }//end of class ControlPanelControls

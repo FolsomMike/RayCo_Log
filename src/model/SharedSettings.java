@@ -66,6 +66,7 @@ public class SharedSettings{
 
     public boolean isCalDataSaved = false;
 
+    public boolean calMode = false;
     public int lastPieceNumber;
     public int lastCalPieceNumber;
     public boolean startNewPieceAtLeftEdge = true;

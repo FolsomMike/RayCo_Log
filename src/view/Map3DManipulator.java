@@ -478,36 +478,22 @@ public void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map3DManipulator::actionPerformed
-//
-// Responds to events and passes them on to the parent actionListener object.
-//
-
-@Override
-public void actionPerformed(ActionEvent e)
-{
-
-    actionPerformedLocal(e); //local processing
-    
-    parentActionListener.actionPerformed(e); //parent handler processing
-
-}//end of Map3DManipulator::actionPerformed
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Map3DManipulator::actionPerformedLocal
 //
 // Responds to events which require action by this object.
 //
 
-public void actionPerformedLocal(ActionEvent e)
+@Override
+protected boolean actionPerformedLocal(ActionEvent e)
 {
 
     if ("Expand Chart Height".equals(e.getActionCommand())
         || "Set Normal Chart Height".equals(e.getActionCommand())) {
         handleExpandButtonClick();
-        return;
+        return false; //return false so parent handling still occurs
     }
+    
+    return false;
     
 }//end of Map3DManipulator::actionPerformedLocal
 //-----------------------------------------------------------------------------

@@ -840,23 +840,6 @@ public void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlPanelBasic::actionPerformed
-//
-// Responds to events and passes them on to the parent actionListener object.
-//
-
-@Override
-public void actionPerformed(ActionEvent e)
-{
-
-    if (actionPerformedLocal(e) == true) { return; } //local processing
-
-    parentActionListener.actionPerformed(e); //parent handler processing
-
-}//end of ControlPanelBasic::actionPerformed
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // ControlPanelBasic::actionPerformedLocal
 //
 // Responds to events which require action by this object.
@@ -864,7 +847,8 @@ public void actionPerformed(ActionEvent e)
 // Returns true if the action is not to be handled by other listeners.
 //
 
-private boolean actionPerformedLocal(ActionEvent e)
+@Override
+protected boolean actionPerformedLocal(ActionEvent e)
 {
 
     if ("Expand Chart Height".equals(e.getActionCommand())

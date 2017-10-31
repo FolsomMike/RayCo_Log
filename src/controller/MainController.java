@@ -133,6 +133,9 @@ public class MainController implements EventHandler, Runnable
     private DataTransferSnapshotBuffer snapshotBuffers[];
     private int numMapBuffers;
     private DataTransferIntMultiDimBuffer mapBuffers[];
+    
+    int lastPieceInspected = -1;
+    boolean isLastPieceInspectedACal = false;
 
 //-----------------------------------------------------------------------------
 // MainController::MainController (constructor)
@@ -1170,20 +1173,35 @@ private void saveCalFile()
 private void saveSegment()
 {
 
+    isLastPieceInspectedACal = sharedSettings.calMode;
+
+    String filename = getSegmentFileName();
+    
+    //save segment to primary data folders
+    saveSegmentToPath(sharedSettings.jobPathPrimary + filename);
+    
+    //save segment to secondary data folders
+    saveSegmentToPath(sharedSettings.jobPathSecondary + filename);
+
+}//end of MainController::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::saveSegment
+//
+// Saves the current segment data to pPath.
+//
+
+private void saveSegmentToPath(String pPath)
+{
+
     FileOutputStream fileOutputStream = null;
     OutputStreamWriter outputStreamWriter = null;
     BufferedWriter out = null;
 
     try{
 
-        //DEBUG HSS//
-        String segmentNumber = fileNameFormat.format(1);
-        String filename = "20 - " + segmentNumber + ".dat";
-        String primaryPath = sharedSettings.jobPathPrimary + filename;
-        String secondaryPath = sharedSettings.jobPathSecondary + filename;
-        //DEBUG HSS//
-
-        fileOutputStream = new FileOutputStream(primaryPath);
+        fileOutputStream = new FileOutputStream(pPath);
         outputStreamWriter = new OutputStreamWriter(fileOutputStream,
                                                 sharedSettings.mainFileFormat);
         out = new BufferedWriter(outputStreamWriter);
@@ -1205,7 +1223,43 @@ private void saveSegment()
         catch(IOException e){}
     }
 
-}//end of MainController::saveSegment
+}//end of MainController::saveSegmentToPath
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::getSegmentFileName
+//
+// Determines what the segment file name should be and returns a string 
+// containing it.
+//
+// Inspected pieces are saved with the prefix 20 and file type .dat while 
+// calibration pieces are saved with the prefix 30 and file type .cal. This 
+// forces them to be grouped together and controls the order in which the types 
+// are listed when the folder is viewed in alphabetical order in an explorer 
+// window.
+//
+
+private String getSegmentFileName()
+{
+    
+    String segmentFilename = "";
+    
+    String pieceNumber = fileNameFormat.format(1);//DEBUG HSS// remove later
+    
+    if (sharedSettings.calMode) { 
+        segmentFilename = "30 - " + pieceNumber + ".cal";
+        //save number before it changes to the next -- used for reports and such
+        //DEBUG HSS// uncomment later //lastPieceInspected = controlPanel.nextCalPieceNumber;
+    }
+    else {
+        segmentFilename = "20 - " + pieceNumber + ".dat";
+        //save number before it changes to the next -- used for reports and such
+        //DEBUG HSS// uncomment later //lastPieceInspected = controlPanel.nextPieceNumber;
+    }
+    
+    return segmentFilename;
+    
+}//end of MainController::getSegmentFileName
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1299,7 +1353,7 @@ private void displayDataFromDevices()
                                                         peakSnapshotData,
                                                         peakMapData);
         if (results != true) { continue; }
-
+        
         //put data in snapshot buffer
         peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
                                                     peakSnapshotData.peakArray);
