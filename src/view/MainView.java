@@ -627,6 +627,23 @@ public void updateChild(int pChartGroup, int pChart, int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::updateChildren
+//
+// Instructs all children listening for transfer buffer changes to check for
+// changes and update.
+//
+
+public void updateChildren()
+{
+    
+    for (ChartGroup g : chartGroups) { 
+        g.updateChildren(); g.updateAnnotationGraphs();
+    }
+    
+}// end of MainView::updateChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::repaintChild
 //
 // Repaints pGraph of pChart of pChartGroup.

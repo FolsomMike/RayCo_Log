@@ -62,6 +62,7 @@ public class MainHandler
     public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
     public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
 
+    private int scanRateCounter;
     int peakScanDev;
     int peakScanCh;
 
@@ -962,6 +963,33 @@ synchronized private void processChannelParameterChanges()
     setHdwParamsDirty(false);
 
 }//end of MainHandler::processChannelParameterChanges
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::isReadyToAdvanceInsertionPoints
+//
+// Returns true if it is time advance all transfer buffers' insertion points.
+//
+// //WIP HSS// //DEBUG HSS// this currently only works for timer driven tracking
+//      mode but should work for all modes. Probably be best to create EncoderHandler
+//      class that sets up or is passed an encoder to call on to determine values
+//      and decide when to update. For timer driven tracking, another encoder class
+//      would be created who only returned true that pipe has advanced a specified
+//      amount if scan speed counter ran out and told him to; standard encoder
+//      actually retrieve values. Must think on way to use standard encoder in this
+//      situation because Transverse will serve as Control board as well.
+//
+
+public boolean isReadyToAdvanceInsertionPoints()
+{
+
+    if (scanRateCounter-- == 0){ 
+        scanRateCounter = 10 - sharedSettings.scanSpeed; 
+        return true;
+    }
+    else { return false; }
+
+}// end of MainHandler::isReadyToAdvanceInsertionPoints
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

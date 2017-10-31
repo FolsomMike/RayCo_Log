@@ -261,6 +261,23 @@ public void updateChild(int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::updateChildren
+//
+// Instructs all children listening for transfer buffer changes to check for
+// changes and update.
+//
+
+@Override
+public void updateChildren()
+{
+
+    map3D.update((Graphics2D)getGraphics());
+
+}// end of Map3DGraph::updateChildren
+//-----------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::paintComponent
 //
 

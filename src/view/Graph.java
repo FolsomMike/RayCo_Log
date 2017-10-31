@@ -383,6 +383,21 @@ public void updateChild(int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::updateChildren
+//
+// Instructs all children listening for transfer buffer changes to check for
+// changes and update.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void updateChildren()
+{
+
+}// end of Graph::updateChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::setHeight
 //
 // Sets the height to pHeight. The calling oject is responsible for repacking

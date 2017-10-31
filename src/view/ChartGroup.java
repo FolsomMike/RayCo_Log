@@ -114,6 +114,21 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::updateChildren
+//
+// Instructs all children listening for transfer buffer changes to check for
+// changes and update.
+//
+
+public void updateChildren()
+{
+
+    for (Chart c : charts) { c.updateChildren(); }
+
+}// end of ChartGroup::updateChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::updateDimensions
 //
 // Adjusts all width and height variables for the panel along with all such

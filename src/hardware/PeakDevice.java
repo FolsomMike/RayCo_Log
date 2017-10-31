@@ -38,8 +38,6 @@ public class PeakDevice extends MultiIODevice
     private int[] mapData;
 
     private int snapshotPeakType;
-    
-    private int scanRateCounter;
 
     PeakSnapshotBuffer peakSnapshotBuffer;
     SampleMetaData snapshotMeta = new SampleMetaData(0);
@@ -738,7 +736,7 @@ public void collectData()
         extractSnapshotData(packet, snapshotIndex);
 
         if(numClockPositions > 0) { extractMapData(packet, clockMapIndex); }
-
+        
         deviceData.putData(channelPeaks, peak, snapData, mapData);
 
     }
@@ -778,34 +776,6 @@ boolean requestRunDataPacket()
     }*/
     
 }//end of PeakDevice::requestRunDataPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// PeakDevice::requestRunDataPacketForScanOrTimerMode
-//
-// Requests a run data packet from the device if time do so.
-//
-// This function is specifically for SCAN and INSPECT_WITH_TIMER_TRACKING modes
-// which use a timer to drive the traces rather than hardware encoder inputs.
-//
-// Peak data is requested periodically rather than being requested when the
-// encoder position dictates such.
-//
-
-public boolean requestRunDataPacketForScanOrTimerMode()
-{
-
-    //scanRateCounter is used to control rate the scan moves across the screen
-    //by not requesting new packets until told to do so
-
-    if (scanRateCounter-- == 0){
-        scanRateCounter = 10 - sharedSettings.scanSpeed;
-        return false;
-    } else { 
-        return super.requestRunDataPacket();
-    }
-
-}//end of PeakDevice::requestRunDataPacketForScanOrTimerMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

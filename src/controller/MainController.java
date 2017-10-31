@@ -1278,7 +1278,7 @@ private void updateGUIPeriodically()
 // collected from the hardware to the screen display controls such as traces,
 // numeric displays, graphs, etc.
 //
-int debugHssScanCnt; //DEBUG HSS//
+
 private void displayDataFromDevices()
 {
     
@@ -1325,31 +1325,13 @@ private void displayDataFromDevices()
         }
     }
     
-    //DEBUG HSS// remove later????
-    if (debugHssScanCnt-- == 0){
-        debugHssScanCnt = 10 - sharedSettings.scanSpeed;
-    } else { return; }
-    //DEBUG HSS// end remove
-
-    //update trace display objects from transfer buffers
-    for(DataTransferIntBuffer dataBuffer: dataBuffers){
-        //update trace with all data changes
-        mainView.updateChild(dataBuffer.chartGroupNum, dataBuffer.chartNum,
-                                     dataBuffer.graphNum, dataBuffer.traceNum);
+    //update view and advance insertion points AFTER all devices have 
+    //contributed to current and only if MainHandler says it's time to move on 
+    //to the next one
+    if (mainHandler.isReadyToAdvanceInsertionPoints()) { 
+        mainView.updateChildren(); //this will also advance insertion points
     }
-
-    //update snapshot display objects from transfer buffers
-    for(DataTransferSnapshotBuffer snapBuffer: snapshotBuffers){
-        //update trace with all data changes
-        mainView.updateAnnotationGraphs(snapBuffer.chartGroupNum);
-    }
-
-    for(DataTransferIntMultiDimBuffer mapBuffer: mapBuffers){
-        //update trace with all data changes
-        mainView.updateChild(mapBuffer.chartGroupNum, mapBuffer.chartNum,
-                                       mapBuffer.graphNum, mapBuffer.traceNum);
-    }
-
+    
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
 

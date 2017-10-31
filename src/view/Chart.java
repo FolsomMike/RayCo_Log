@@ -797,6 +797,21 @@ public void updateChild(int pGraphNum, int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::updateChildren
+//
+// Instructs all children listening for transfer buffer changes to check for
+// changes and update.
+//
+
+public void updateChildren()
+{
+
+    for (Graph g : graphs) { g.updateChildren(); }
+
+}// end of Chart::updateChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::getThresholds
 //
 // Returns an array of thresholds.

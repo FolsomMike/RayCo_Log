@@ -313,6 +313,22 @@ public void updateChild(int pChildNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// TraceGraph::updateChildren
+//
+// Instructs all children listening for transfer buffer changes to check for
+// changes and update.
+//
+
+@Override
+public void updateChildren()
+{
+
+    for (Trace t : traces) { t.updateTrace((Graphics2D) getGraphics()); }
+
+}// end of TraceGraph::updateChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // TraceGraph::getXOfPeakInBox
 //
 // Returns the x location of the greatest peak within the box. If no peak is
