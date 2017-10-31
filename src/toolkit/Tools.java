@@ -20,8 +20,10 @@ package toolkit;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import view.Xfer;
 
 //
@@ -226,6 +228,34 @@ static public void setSizes(Component pComponent, int pWidth, int pHeight)
     pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
 
 }//end of Tools::setSizes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Tools::addHorizontalSpacer
+//
+// Adds a horizontal spacer of pNumPixels width to JPanel pTarget.
+//
+
+public static void addHorizontalSpacer(JPanel pTarget, int pNumPixels)
+{
+
+    pTarget.add(Box.createRigidArea(new Dimension(pNumPixels,0)));
+
+}// end of Tools::addHorizontalSpacer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Tools::addVerticalSpacer
+//
+// Adds a vertical spacer of pNumPixels height to JPanel pTarget.
+//
+
+public static void addVerticalSpacer(JPanel pTarget, int pNumPixels)
+{
+
+    pTarget.add(Box.createRigidArea(new Dimension(0,pNumPixels)));
+
+}// end of Tools::addVerticalSpacer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
