@@ -297,6 +297,24 @@ public void paintSingleTraceDataPoint(int pTrace, int pIndex)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// TraceGraph::isSegmentStarted
+//
+// Checks to see if a segment has been started and thus may have data which
+// needs to be saved.
+//
+
+@Override
+public boolean isSegmentStarted()
+{
+
+    for (Trace t : traces) { if (t.isSegmentStarted()) { return true; } }
+    
+    return(false);
+
+}//end of TraceGraph::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // TraceGraph::updateChild
 //
 // Plots all data added to the data transfer buffer and erases any data which

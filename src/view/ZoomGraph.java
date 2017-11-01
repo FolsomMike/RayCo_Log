@@ -275,6 +275,26 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ZoomGraph::isSegmentStarted
+//
+// Checks to see if a segment has been started.  If the insertion point has
+// moved a predetermined amount after the current segment was initiated, it is
+// assumed that a segment has been started.
+//
+// The insertion point must move more than a few counts to satisfy the start
+// criteria. This is to ignore any small errors.
+//
+
+@Override
+public boolean isSegmentStarted()
+{
+
+    return lastSegmentStartIndex>-1 && data.size()>10;
+
+}//end of ZoomGraph::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ZoomGraph::saveSegment
 //
 // Saves all of the zoom data.

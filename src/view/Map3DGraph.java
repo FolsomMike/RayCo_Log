@@ -474,6 +474,22 @@ private void parseColorMappingStyle(String pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::isSegmentStarted
+//
+// Checks to see if a segment has been started and thus may have data which
+// needs to be saved.
+//
+
+@Override
+public boolean isSegmentStarted()
+{
+    
+    return map3D.isSegmentStarted();
+
+}//end of Map3DGraph::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::saveSegment
 //
 // Saves all of the zoom data.

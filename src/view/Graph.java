@@ -368,6 +368,21 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::isSegmentStarted
+//
+// Checks to see if a segment has been started and thus may have data which
+// needs to be saved.
+//
+
+public boolean isSegmentStarted()
+{
+
+    return(false);
+
+}//end of Graph::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::updateChild
 //
 // Plots all new data added to the data transfer buffer and erases any data

@@ -51,6 +51,7 @@ public class Trace{
     ArrayList<Integer> data = new ArrayList<>(10000);
     ArrayList<Integer> dataFlags = new ArrayList<>(10000);
 
+    private int segmentLength = 0;
     private int lastSegmentStartIndex = -1;
     private int lastSegmentEndIndex = -1;
 
@@ -339,7 +340,7 @@ public void resetData()
     data.clear(); dataFlags.clear();
 
     //reset segment starts and ends
-    lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
+    lastSegmentStartIndex = -1; lastSegmentEndIndex = -1; segmentLength = 0;
 
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
@@ -692,6 +693,25 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
     return peak;
 
 }// end of Trace::getPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::isSegmentStarted
+//
+// Checks to see if a segment has been started.  If the insertion point has
+// moved a predetermined amount after the current segment was initiated, it is
+// assumed that a segment has been started.
+//
+// The insertion point must move more than a few counts to satisfy the start
+// criteria. This is to ignore any small errors.
+//
+
+public boolean isSegmentStarted()
+{
+
+    return lastSegmentStartIndex>-1 && data.size()>10;
+
+}//end of Trace::isSegmentStarted
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

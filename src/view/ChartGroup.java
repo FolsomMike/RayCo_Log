@@ -114,6 +114,23 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::isSegmentStarted
+//
+// Checks to see if a segment has been started and thus may have data which
+// needs to be saved.
+//
+
+public boolean isSegmentStarted()
+{
+
+    for (Chart c : charts){ if (c.isSegmentStarted()) { return(true);} }
+
+    return(false);
+
+}//end of ChartGroup::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::updateChildren
 //
 // Instructs all children listening for transfer buffer changes to check for

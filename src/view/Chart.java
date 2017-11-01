@@ -723,6 +723,23 @@ private int getIndexOfTracesPeak(int pIndexStart, int pIndexEnd)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::isSegmentStarted
+//
+// Checks to see if a segment has been started and thus may have data which
+// needs to be saved.
+//
+
+public boolean isSegmentStarted()
+{
+
+    for (Graph g : graphs){ if (g.isSegmentStarted()) { return(true);} }
+
+    return(false);
+
+}//end of Chart::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::updateAnnotationGraph
 //
 // Plots data added to annoBuffer and/or erases any data which has been

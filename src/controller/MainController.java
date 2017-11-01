@@ -136,7 +136,6 @@ public class MainController implements EventHandler, Runnable
     
     int lastPieceInspected = -1;
     boolean isLastPieceInspectedACal = false;
-    private boolean segmentStarted = false;
 
 //-----------------------------------------------------------------------------
 // MainController::MainController (constructor)
@@ -602,6 +601,12 @@ private void startInspectMode()
 
 private void handleNextRun()
 {
+    
+    //if an inspection was not started, ignore so that the piece number is not 
+    //incremented needlessly when the user clicks "Stop" or "Next Run" without 
+    //having inspected a piece
+
+    if (!mainView.isSegmentStarted()){ return;  }
 
     sharedSettings.opMode = SharedSettings.STOP_MODE; //stop everything
     processFinishedPiece();
@@ -626,23 +631,14 @@ private void handleNextRun()
 public void processFinishedPiece()
 {
 
-    //if an inspection was started, save the data and increment to the next
-    //piece number - if an inspection was not started, ignore so that the
-    //piece number is not incremented needlessly when the user clicks "Stop"
-    //or "Next Run" without having inspected a piece
+    markSegmentEnd();  //mark the buffer location of the end of the segment
 
-    if (segmentStarted){
+    saveSegment(); //save the data for the segment
 
-        markSegmentEnd();  //mark the buffer location of the end of the segment
+    //increment the next piece or next cal piece number
+    incrementPieceNumber();
 
-        saveSegment(); //save the data for the segment
-
-        //increment the next piece or next cal piece number
-        incrementPieceNumber();
-        
-        sharedSettings.save();
-
-    }
+    sharedSettings.save();
 
 }//end of MainController::processFinishedPiece
 //-----------------------------------------------------------------------------
@@ -694,8 +690,6 @@ private void prepareForNextPiece()
 
 private void markSegmentStart()
 {
-    
-    segmentStarted = true;
 
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentStart(); }
     for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentStart(); }
@@ -718,8 +712,6 @@ private void markSegmentStart()
 
 public void markSegmentEnd()
 {
-    
-    segmentStarted = false;
 
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentEnd(); }
     for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentEnd(); }
@@ -1374,14 +1366,19 @@ private String getSegmentFileName()
     
     String segmentFilename = "";
     
-    String pieceNumber = fileNameFormat.format(1);//DEBUG HSS// remove later
+    String pieceNumber;
     
     if (sharedSettings.calMode) { 
+        
+        pieceNumber = fileNameFormat.format(sharedSettings.nextCalPieceNumber);
+        
         segmentFilename = "30 - " + pieceNumber + ".cal";
         //save number before it changes to the next -- used for reports and such
         //DEBUG HSS// uncomment later //lastPieceInspected = controlPanel.nextCalPieceNumber;
     }
     else {
+        pieceNumber = fileNameFormat.format(sharedSettings.nextPieceNumber);
+        
         segmentFilename = "20 - " + pieceNumber + ".dat";
         //save number before it changes to the next -- used for reports and such
         //DEBUG HSS// uncomment later //lastPieceInspected = controlPanel.nextPieceNumber;

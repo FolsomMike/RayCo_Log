@@ -495,6 +495,23 @@ public void updateAnnotationGraphs(int pChartGroup)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::isSegmentStarted
+//
+// Checks to see if a segment has been started and thus may have data which
+// needs to be saved.
+//
+
+public boolean isSegmentStarted()
+{
+
+    for (ChartGroup c : chartGroups){ if (c.isSegmentStarted()) { return(true);} }
+
+    return(false);
+
+}//end of MainView::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::updateChild
 //
 // Plots all new data added to transfer data buffer and erases any data which

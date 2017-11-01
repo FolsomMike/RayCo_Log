@@ -1574,6 +1574,25 @@ void quickDrawLastRow(Graphics2D pG2)
 //---------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3D::isSegmentStarted
+//
+// Checks to see if a segment has been started.  If the insertion point has
+// moved a predetermined amount after the current segment was initiated, it is
+// assumed that a segment has been started.
+//
+// The insertion point must move more than a few counts to satisfy the start
+// criteria. This is to ignore any small errors.
+//
+
+public boolean isSegmentStarted()
+{
+    
+    return lastSegmentStartIndex>-1 && this.mapDataBuffer.getCurrentIndex()>10;
+
+}//end of Map3D::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3D::saveSegment
 //
 // Saves all of the zoom data.
