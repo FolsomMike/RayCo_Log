@@ -391,7 +391,10 @@ private JPanel createStatusPanel()
 
     //spinner to change piece number
     pieceNumberEditor = new MFloatSpinner(1, 1, 100000, 1, "##0", 60, -1);
+    pieceNumberEditor.setName("Piece Number Spinner");
     pieceNumberEditor.addChangeListener(this);
+    setSpinnerNameAndMouseListener(pieceNumberEditor, 
+                                        pieceNumberEditor.getName(), this);
     pieceNumberEditor.setToolTipText("The next piece number."); //DEBUG HSS// change piece type to be read from inifile
     panel.add(pieceNumberEditor);
     
@@ -524,10 +527,19 @@ public void handleSpinnerChange(MFloatSpinner pSpinner)
 
     if(name == null){ return; }
 
-    //put spinner value in scan speed spinner
-    if (name.equals("Scan Speed Spinner")){
+    //update SharedSettings with value from spinner
+    if ("Scan Speed Spinner".equals(name)){
         
         sharedSettings.scanSpeed = scanSpeedEditor.getIntValue();
+        
+    }
+    
+    //update SharedSettings with value from spinner
+    else if ("Piece Number Spinner".equals(name)){
+        
+        int val = pieceNumberEditor.getIntValue();
+        if (sharedSettings.calMode) { sharedSettings.nextCalPieceNumber = val; }
+        else { sharedSettings.nextPieceNumber = val; }
         
     }
 
