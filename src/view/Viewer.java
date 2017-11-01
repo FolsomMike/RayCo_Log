@@ -406,9 +406,6 @@ int getFirstOrLastAvailableSegmentNumber(int pWhich)
     //load the list of available segment numbers / files
     loadSegmentList();
 
-    boolean debugHss = true;
-    if (debugHss) { return 1; }//DEBUG HSS// force use of first segment
-
     if (segmentList.isEmpty()) {return(-2);}  //no files found
 
     //attempt to convert the first or last entry in the list
