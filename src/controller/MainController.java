@@ -731,11 +731,13 @@ private void prepareForNextPiece()
 
 private void markSegmentStart()
 {
-
+    
+    mainView.markSegmentStart();
+    
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentStart(); }
     for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentStart(); }
     for(DataTransferIntMultiDimBuffer buf: mapBuffers){ buf.markSegmentStart(); }
-
+    
 }//end of MainController::markSegmentStart
 //-----------------------------------------------------------------------------
 
@@ -753,6 +755,8 @@ private void markSegmentStart()
 
 public void markSegmentEnd()
 {
+    
+    mainView.markSegmentEnd();
 
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentEnd(); }
     for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentEnd(); }

@@ -297,6 +297,36 @@ public void paintSingleTraceDataPoint(int pTrace, int pIndex)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// TraceGraph::markSegmentStart
+//
+// Instructs children to mark last retrieved data as segment start.
+//
+
+@Override
+public void markSegmentStart()
+{
+    
+    for (Trace c : traces){ c.markSegmentStart();  }
+    
+}//end of TraceGraph::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// TraceGraph::markSegmentEnd
+//
+// Instructs children to mark last retrieved data as segment end.
+//
+
+@Override
+public void markSegmentEnd()
+{
+    
+    for (Trace c : traces){ c.markSegmentEnd();  }
+
+}//end of TraceGraph::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // TraceGraph::isSegmentStarted
 //
 // Checks to see if a segment has been started and thus may have data which

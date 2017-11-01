@@ -723,6 +723,34 @@ private int getIndexOfTracesPeak(int pIndexStart, int pIndexEnd)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::markSegmentStart
+//
+// Instructs children to mark last retrieved data as segment start.
+//
+
+public void markSegmentStart()
+{
+    
+    for (Graph c : graphs){ c.markSegmentStart();  }
+    
+}//end of Chart::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::markSegmentEnd
+//
+// Instructs children to mark last retrieved data as segment end.
+//
+
+public void markSegmentEnd()
+{
+    
+    for (Graph c : graphs){ c.markSegmentEnd();  }
+
+}//end of Chart::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::isSegmentStarted
 //
 // Checks to see if a segment has been started and thus may have data which

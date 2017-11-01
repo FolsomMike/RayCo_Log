@@ -275,6 +275,50 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ZoomGraph::markSegmentStart
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment start.
+//
+
+@Override
+public void markSegmentStart()
+{
+    
+    //bail if no data stored yet, just use flag read in from dataBuffer later
+    if (dataFlags.size()<=0) { return; }
+    
+    //set flag at last data flag retrieved
+    lastSegmentStartIndex = dataFlags.size()-1;
+    int newFlag = dataFlags.get(lastSegmentStartIndex) | DataFlags.SEGMENT_START_SEPARATOR;
+    dataFlags.set(lastSegmentStartIndex, newFlag);
+    
+}//end of ZoomGraph::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::markSegmentEnd
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment end.
+//
+
+@Override
+public void markSegmentEnd()
+{
+    
+    //bail if no data stored yet, just use flag read in from dataBuffer later
+    if (dataFlags.size()<=0) { return; }
+    
+    //set flag at last data flag retrieved
+    lastSegmentEndIndex = dataFlags.size()-1;
+    int newFlag = dataFlags.get(lastSegmentEndIndex) | DataFlags.SEGMENT_END_SEPARATOR;
+    dataFlags.set(lastSegmentEndIndex, newFlag);
+
+}//end of ZoomGraph::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ZoomGraph::isSegmentStarted
 //
 // Checks to see if a segment has been started.  If the insertion point has

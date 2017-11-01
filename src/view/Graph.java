@@ -368,6 +368,34 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::markSegmentStart
+//
+// Instructs children to mark last retrieved data as segment start.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void markSegmentStart()
+{
+    
+}//end of Graph::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Graph::markSegmentEnd
+//
+// Instructs children to mark last retrieved data as segment end.
+//
+// Generally overridden by subclasses to provide appropriate processing.
+//
+
+public void markSegmentEnd()
+{
+
+}//end of Graph::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::isSegmentStarted
 //
 // Checks to see if a segment has been started and thus may have data which

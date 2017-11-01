@@ -51,7 +51,6 @@ public class Trace{
     ArrayList<Integer> data = new ArrayList<>(10000);
     ArrayList<Integer> dataFlags = new ArrayList<>(10000);
 
-    private int segmentLength = 0;
     private int lastSegmentStartIndex = -1;
     private int lastSegmentEndIndex = -1;
 
@@ -340,7 +339,7 @@ public void resetData()
     data.clear(); dataFlags.clear();
 
     //reset segment starts and ends
-    lastSegmentStartIndex = -1; lastSegmentEndIndex = -1; segmentLength = 0;
+    lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
 
 }// end of Trace::resetData
 //-----------------------------------------------------------------------------
@@ -693,6 +692,48 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
     return peak;
 
 }// end of Trace::getPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::markSegmentStart
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment start.
+//
+
+public void markSegmentStart()
+{
+    
+    //bail if no data stored yet, just use flag read in from dataBuffer later
+    if (dataFlags.size()<=0) { return; }
+    
+    //set flag at last data flag retrieved
+    lastSegmentStartIndex = dataFlags.size()-1;
+    int newFlag = dataFlags.get(lastSegmentStartIndex) | DataFlags.SEGMENT_START_SEPARATOR;
+    dataFlags.set(lastSegmentStartIndex, newFlag);
+    
+}//end of Trace::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::markSegmentEnd
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment end.
+//
+
+public void markSegmentEnd()
+{
+    
+    //bail if no data stored yet, just use flag read in from dataBuffer later
+    if (dataFlags.size()<=0) { return; }
+    
+    //set flag at last data flag retrieved
+    lastSegmentEndIndex = dataFlags.size()-1;
+    int newFlag = dataFlags.get(lastSegmentEndIndex) | DataFlags.SEGMENT_END_SEPARATOR;
+    dataFlags.set(lastSegmentEndIndex, newFlag);
+
+}//end of Trace::markSegmentEnd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

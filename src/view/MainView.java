@@ -60,6 +60,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import mksystems.mswing.MFloatSpinner;
+import model.DataTransferIntBuffer;
+import model.DataTransferIntMultiDimBuffer;
+import model.DataTransferSnapshotBuffer;
 import model.MainDataClass;
 import model.IniFile;
 import model.SharedSettings;
@@ -492,6 +495,34 @@ public void updateAnnotationGraphs(int pChartGroup)
     chartGroups[pChartGroup].updateAnnotationGraphs();
 
 }// end of MainView::updateAnnotationGraphs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::markSegmentStart
+//
+// Instructs children to mark last retrieved data as segment start.
+//
+
+public void markSegmentStart()
+{
+    
+    for (ChartGroup c : chartGroups){ c.markSegmentStart(); }
+    
+}//end of MainView::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::markSegmentEnd
+//
+// Instructs children to mark last retrieved data as segment end.
+//
+
+public void markSegmentEnd()
+{
+    
+    for (ChartGroup c : chartGroups){ c.markSegmentEnd(); }
+
+}//end of MainView::markSegmentEnd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

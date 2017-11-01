@@ -1574,6 +1574,37 @@ void quickDrawLastRow(Graphics2D pG2)
 //---------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3D::markSegmentStart
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment start.
+//
+
+public void markSegmentStart()
+{
+    
+    lastSegmentStartIndex = mapDataBuffer.getCurrentIndex();
+    
+}//end of Map3D::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::markSegmentEnd
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment end.
+//
+
+public void markSegmentEnd()
+{
+    
+    lastSegmentEndIndex = mapDataBuffer.getCurrentIndex();
+    lastSegmentDrawnDataEndIndex = drawnData.size()-1;
+    
+}//end of Map3D::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3D::isSegmentStarted
 //
 // Checks to see if a segment has been started.  If the insertion point has

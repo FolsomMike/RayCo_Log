@@ -301,8 +301,10 @@ public void loadSegmentList()
 {
 
     //specify the type of files to load
-    segmentFileFilter.extension
-                = controlPanel.calModeCheckBox.isSelected() ? ".cal" : ".dat";
+    /*//DEBUG HSS// uncomment //segmentFileFilter.extension
+                = controlPanel.calModeCheckBox.isSelected() ? ".cal" : ".dat";*/
+    
+    segmentFileFilter.extension = ".dat"; //DEBUG HSS// remove later and use above code
 
     //directory containing the various pertinent files
     File jobDir = new File(jobPrimaryPath);
@@ -402,7 +404,7 @@ int getFirstOrLastAvailableSegmentNumber(int pWhich)
 {
 
     //load the list of available segment numbers / files
-    //DEBUG HSS//loadSegmentList();
+    loadSegmentList();
 
     boolean debugHss = true;
     if (debugHss) { return 1; }//DEBUG HSS// force use of first segment

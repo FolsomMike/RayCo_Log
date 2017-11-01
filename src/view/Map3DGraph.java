@@ -474,6 +474,38 @@ private void parseColorMappingStyle(String pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3DGraph::markSegmentStart
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment start.
+//
+
+@Override
+public void markSegmentStart()
+{
+    
+    map3D.markSegmentStart();
+    
+}//end of Map3DGraph::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::markSegmentEnd
+//
+// Sets the flag of the last read data point to indicate that the data point
+// assoicated with a segment end.
+//
+
+@Override
+public void markSegmentEnd()
+{
+    
+    map3D.markSegmentEnd();
+
+}//end of Map3DGraph::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3DGraph::isSegmentStarted
 //
 // Checks to see if a segment has been started and thus may have data which

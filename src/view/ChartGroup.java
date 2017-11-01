@@ -114,6 +114,34 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::markSegmentStart
+//
+// Instructs children to mark last retrieved data as segment start.
+//
+
+public void markSegmentStart()
+{
+    
+    for (Chart c : charts){ c.markSegmentStart();  }
+    
+}//end of ChartGroup::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::markSegmentEnd
+//
+// Instructs children to mark last retrieved data as segment end.
+//
+
+public void markSegmentEnd()
+{
+    
+    for (Chart c : charts){ c.markSegmentEnd();  }
+
+}//end of ChartGroup::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::isSegmentStarted
 //
 // Checks to see if a segment has been started and thus may have data which
