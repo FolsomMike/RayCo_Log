@@ -89,6 +89,15 @@ public class SharedSettings{
     public int scanSpeed = 1;
     public boolean timerDrivenTracking;
     public boolean timerDrivenTrackingInCalMode;
+    
+    //these will likely be changed by values read from IniFile
+    public String pieceDescription = "Piece";
+    //lower case of the above
+    public String pieceDescriptionLC = "piece";
+    //lower case of the above
+    public String pieceDescriptionPlural = "Pieces";
+    //lower case of the above
+    public String pieceDescriptionPluralLC = "pieces";
 
     public String mainFileFormat = "UTF-8";
 

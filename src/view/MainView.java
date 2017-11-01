@@ -1034,8 +1034,29 @@ public void setTextForDataTArea2(String pText)
 public void loadConfigSettings()
 {
 
-    numChartGroups = configFile.readInt(
-                                "Main Settings", "number of chart groups", 0);
+    String section = "Main Settings";
+    
+    numChartGroups = configFile.readInt(section, "number of chart groups", 0);
+    
+    sharedSettings.pieceDescription 
+            = configFile.readString(section, 
+                                        "piece description", 
+                                        "Joint");
+    
+    sharedSettings.pieceDescriptionLC
+            = configFile.readString(section,
+                                        "piece description lower case", 
+                                        "joint");
+    
+    sharedSettings.pieceDescriptionPlural
+            = configFile.readString(section,
+                                        "piece description plural", 
+                                        "Joints");
+    
+    sharedSettings.pieceDescriptionPluralLC
+            = configFile.readString(section,
+                                        "piece description plural lower case", 
+                                        "joints");
 
 }// end of MainView::loadConfigSettings
 //-----------------------------------------------------------------------------
