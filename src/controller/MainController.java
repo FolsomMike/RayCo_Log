@@ -572,6 +572,27 @@ private void resumeMode()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::startStopMode
+//
+// Starts the pause mode by setting the mode in shared settings and telling 
+// View to refresh his controls panel.
+//
+
+private void startStopMode()
+{
+
+    sharedSettings.opModePrev =  sharedSettings.opMode;
+    sharedSettings.opMode = SharedSettings.STOP_MODE;
+    
+    //save data only if a segment was started
+    if (mainView.isSegmentStarted()){ processFinishedPiece(); }
+    
+    mainView.refreshControlsPanel(); //force view to refresh stuff
+
+}//end of MainController::startStopMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::startInspectMode
 //
 // Starts the inspection mode by resetting all buffers and telling view to
@@ -1037,8 +1058,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     if ("Start Stop Mode".equals(e.getActionCommand())) {
-        sharedSettings.opMode = SharedSettings.STOP_MODE;
-        mainView.refreshControlsPanel();
+        startStopMode();
         return;
     }
 
