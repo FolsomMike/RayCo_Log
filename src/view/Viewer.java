@@ -301,10 +301,8 @@ public void loadSegmentList()
 {
 
     //specify the type of files to load
-    /*//DEBUG HSS// uncomment //segmentFileFilter.extension
-                = controlPanel.calModeCheckBox.isSelected() ? ".cal" : ".dat";*/
-    
-    segmentFileFilter.extension = ".dat"; //DEBUG HSS// remove later and use above code
+    segmentFileFilter.extension
+                = controlPanel.calModeCheckBox.isSelected() ? ".cal" : ".dat";
 
     //directory containing the various pertinent files
     File jobDir = new File(jobPrimaryPath);
@@ -1556,8 +1554,7 @@ public void displayErrorMessage(String pMessage)
 public boolean isCalSelected()
 {
 
-    //WIP HSS//return(controlPanel.calModeCheckBox.isSelected());
-    return false;
+    return(controlPanel.calModeCheckBox.isSelected());
 
 }//end of Viewer::isCalSelected
 //-----------------------------------------------------------------------------
@@ -1919,7 +1916,7 @@ private void configure(/*IniFile pConfigFile*/)
 
     //add a panel allowing user to jump to a specific file
 
-    /*JPanel gotoPanel = new JPanel();
+    JPanel gotoPanel = new JPanel();
     gotoPanel.setBorder(BorderFactory.createTitledBorder(
                                     "Choose " + settings.pieceDescription));
     gotoPanel.setLayout(new BoxLayout(gotoPanel, BoxLayout.X_AXIS));
@@ -1952,7 +1949,7 @@ private void configure(/*IniFile pConfigFile*/)
     list.setToolTipText("List all " + settings.pieceDescriptionPluralLC + ".");
     gotoPanel.add(list);
 
-    add(gotoPanel);*/ //WIP HSS// use later
+    add(gotoPanel);
 
 }//end of ViewerControlPanel::configure
 //-----------------------------------------------------------------------------
