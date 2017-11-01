@@ -593,6 +593,26 @@ private void startStopMode()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::startScanMode
+//
+// Starts the scan mode by resetting all buffers and telling view to
+// erase all traces and start back at the left of the screen.
+//
+
+private void startScanMode()
+{
+
+    sharedSettings.opMode = SharedSettings.SCAN_MODE;
+
+    //force view to reset everything he has
+    mainView.resetAll();
+    
+    mainView.refreshControlsPanel(); //force view to refresh stuff
+
+}//end of MainController::startScanMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::startInspectMode
 //
 // Starts the inspection mode by resetting all buffers and telling view to
@@ -1063,8 +1083,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     if ("Start Scan Mode".equals(e.getActionCommand())) {
-        sharedSettings.opMode = SharedSettings.SCAN_MODE;
-        mainView.refreshControlsPanel();
+        startScanMode();
         return;
     }
 
