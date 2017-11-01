@@ -103,21 +103,15 @@ public void init()
 public void setupGUI()
 {
     
-    //this one is never thrown away because it contains the most important
-    //-1 because we don't care about group or chart nums
-    controlPanelControls = new ControlPanelControls(-1, -1, this, sharedSettings);
-    controlPanelControls.init();
-    controlPanelControls.setAlignmentX(Component.LEFT_ALIGNMENT);
-    
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     setAlignmentX(Component.LEFT_ALIGNMENT);
+    setBorder(BorderFactory.createTitledBorder("Controls"));
 
     Tools.addVerticalSpacer(this, 10);
 
     add(controlsGroupPanel = new JPanel());
     controlsGroupPanel.setLayout(new BoxLayout(controlsGroupPanel, 
                                                     BoxLayout.PAGE_AXIS));
-    controlsGroupPanel.setBorder(BorderFactory.createTitledBorder("Controls"));
     controlsGroupPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     add(Box.createVerticalGlue());
@@ -172,8 +166,6 @@ private JPanel createModeButtonPanel()
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
     GUITools.setSizes(panel, 202, 30);
 
-    JButton button;
-
     //add button
     inspectBtn = new JButton("Inspect");
     inspectBtn.setActionCommand("Start Inspect Mode");
@@ -205,6 +197,48 @@ private JPanel createModeButtonPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlsPanel::refreshModeButtonPanel
+//
+// Refreshes all labels, spinners, buttons, etc. in the info panel based
+// on settings found in SharedSettings.
+//
+// Spinner values are cast to a double or the float spinner will switch its 
+// internal value to an integer which will cause problems later when using 
+// getIntValue()
+//
+
+private void refreshModeButtonPanel()
+{
+
+    switch (sharedSettings.opMode) {
+        
+        case SharedSettings.INSPECT_MODE:
+            //same as pause mode
+            
+        case SharedSettings.SCAN_MODE:
+            //same as pause mode
+
+        case SharedSettings.PAUSE_MODE:
+            inspectBtn.setEnabled(false);
+            scanBtn.setEnabled(false);
+            stopBtn.setEnabled(true);
+            break;
+            
+        case SharedSettings.STOP_MODE:
+            //same as default
+            
+        default:
+            inspectBtn.setEnabled(true);
+            scanBtn.setEnabled(true);
+            stopBtn.setEnabled(false);
+            break;
+            
+    }
+
+}// end of ControlsPanel::refreshModeButtonPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlsPanel::display3DMapManipulatorControlPanel
 //
 // Displays a control panel for manipulating 3D maps.
@@ -231,8 +265,7 @@ public void display3DMapManipulatorControlPanel(int pInvokingChartGroupNum,
 
     currentControlPanel.setAllValues(pGraphParameters);
 
-    ((TitledBorder)(controlsGroupPanel.getBorder())).
-                                        setTitle(map3DManip.getPanelTitle());
+    ((TitledBorder)(getBorder())).setTitle(map3DManip.getPanelTitle());
 
     invalidate(); repaint();
 
@@ -272,8 +305,7 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
 
     currentControlPanel.setAllValues(pGraphParameters);
 
-    ((TitledBorder)(controlsGroupPanel.getBorder())).
-                                      setTitle(transCalPanel.getPanelTitle());
+    ((TitledBorder)(getBorder())).setTitle(transCalPanel.getPanelTitle());
 
     invalidate(); repaint();
 
@@ -288,16 +320,23 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
 
 public void displayControlsPanel()
 {
+    
+    //this one is never thrown away because it contains the most important
+    //-1 because we don't care about group or chart nums
+    if (controlPanelControls == null) {
+        controlPanelControls = new ControlPanelControls(-1, -1, this,
+                                                            sharedSettings);
+        controlPanelControls.init();
+        controlPanelControls.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
 
     //remove any panels already opened
     controlsGroupPanel.removeAll();
 
-    
     controlsGroupPanel.add(controlPanelControls);
     currentControlPanel = controlPanelControls;
 
-    ((TitledBorder)(controlsGroupPanel.getBorder()))
-                            .setTitle(controlPanelControls.getPanelTitle());
+    ((TitledBorder)(getBorder())).setTitle(controlPanelControls.getPanelTitle());
 
     invalidate(); repaint();
 
@@ -330,15 +369,21 @@ public void setAllValuesInCurrentControlPanel(
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlsPanel::refreshCurrentControlPanel
+// ControlsPanel::refresh
 //
 
-public void refreshCurrentControlPanel()
+public void refresh()
 {
 
     currentControlPanel.refresh();
+    
+    //always force refresh of control panel controls
+    controlPanelControls.refresh();
+    
+    //make sure proper buttons are enabled and disabled
+    refreshModeButtonPanel();
 
-}// end of ControlsPanel::refreshCurrentControlPanel
+}// end of ControlsPanel::refresh
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -366,31 +411,6 @@ public void actionPerformed(ActionEvent e)
 
 private void actionPerformedLocal(ActionEvent e)
 {
-
-    if ("Start Stop Mode".equals(e.getActionCommand())) {
-        inspectBtn.setEnabled(true); scanBtn.setEnabled(true);
-        return;
-    }
-
-    if ("Start Scan Mode".equals(e.getActionCommand())) {
-        inspectBtn.setEnabled(false); scanBtn.setEnabled(false);
-        return;
-    }
-
-    if ("Start Inspect Mode".equals(e.getActionCommand())) {
-        inspectBtn.setEnabled(false); scanBtn.setEnabled(false);
-        
-        //allow user to control inspection if manual tracking is enabled
-        if (sharedSettings.timerDrivenTracking && controlPanelControls!=null) {
-            controlPanelControls.getPauseResumeButton().setEnabled(true);
-            controlPanelControls.getNextPieceButton().setEnabled(true);
-
-            //force the paused mode so the user can start inspection at will
-            controlPanelControls.getPauseResumeButton().setText("Resume");
-        }
-        
-        return;
-    }
 
 }//end of ControlsPanel::actionPerformedLocal
 //-----------------------------------------------------------------------------

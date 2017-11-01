@@ -96,6 +96,8 @@ public void init()
     super.init();
 
     setupGUI();
+    
+    refresh(); //make sure all values are correct
 
 }// end of ControlPanelControls::init
 //-----------------------------------------------------------------------------
@@ -124,20 +126,7 @@ public void setupGUI()
     
     add(createScanSpeedPanel());
     
-    //only display manual control panel if necessary
-    if (sharedSettings.timerDrivenTracking 
-            || sharedSettings.timerDrivenTrackingInCalMode) {
-     
-        addVerticalSpacer(this, 10);
-    
-        add(createManualControlPanel());
-        
-        //if using timer driven for cal mode only, start with panel disabled
-        if(sharedSettings.timerDrivenTrackingInCalMode){
-            setManualControlPanelEnabled(false);
-        }
-        
-    }
+    createManualControlPanel();
 
 }// end of ControlPanelControls::setupGUI
 //-----------------------------------------------------------------------------
@@ -171,15 +160,44 @@ private JPanel createInfoPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlPanelControls::refreshInfoPanel
+//
+// Refreshes all labels, spinners, buttons, etc. in the info panel based
+// on settings found in SharedSettings.
+//
+// Spinner values are cast to a double or the float spinner will switch its 
+// internal value to an integer which will cause problems later when using 
+// getIntValue()
+//
+
+public void refreshInfoPanel()
+{
+
+    //nothing should need to be refreshed. job name should always be the same
+
+}// end of ControlPanelControls::refreshInfoPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlPanelControls::createManualControlPanel
 //
-// Returns a JPanel with controls and displays for manual control of the 
+// Adds a JPanel with controls and displays for manual control of the 
 // inspection process.  This is mainly used with handheld crabs and other 
 // systems without encoders or photoeyes.
 //
+// Only adds if in timer driven tracking mode.
+//
 
-private JPanel createManualControlPanel()
+private void createManualControlPanel()
 {
+    
+    //only display manual control panel if necessary
+    if (!sharedSettings.timerDrivenTracking 
+            || !sharedSettings.timerDrivenTrackingInCalMode) {
+        return;
+    }
+     
+    addVerticalSpacer(this, 10);
     
     manualControlPanelVisible = true;
 
@@ -216,15 +234,92 @@ private JPanel createManualControlPanel()
 
     //add button
     pauseResumeButton = new JButton("Pause");
-    pauseResumeButton.setActionCommand("Pause or Resume");
+    pauseResumeButton.setActionCommand(pauseResumeButton.getText());
     pauseResumeButton.addActionListener(this);
     pauseResumeButton.setToolTipText("Pauses the inspection without moving to next piece.");
     pauseResumeButton.setEnabled(false); //starts out invisible
     buttonsPanel.add(pauseResumeButton);
 
-    return(panel);
+    add(panel);
+    
+    //if using timer driven for cal mode only, start with panel disabled
+    if(sharedSettings.timerDrivenTrackingInCalMode){
+        setManualControlPanelEnabled(false);
+    }
 
 }// end of ControlPanelControls::createManualControlPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelControls::refreshManualControlPanel
+//
+// Refreshes all labels, spinners, buttons, etc. in the manual control panel 
+// based on settings found in SharedSettings.
+//
+// If the manual control panel is not yet created/visible, this function will
+// create it if it should be.
+//
+// Spinner values are cast to a double or the float spinner will switch its 
+// internal value to an integer which will cause problems later when using 
+// getIntValue()
+//
+
+public void refreshManualControlPanel()
+{
+
+    //create it if necessary, will set flag to true after
+    if (!manualControlPanelVisible) { createManualControlPanel(); }
+    
+    //if flag not set, we don't need to do anything else
+    if (!manualControlPanelVisible) { return; }
+    
+    //set buttons enabled and pause/resume text appropriately
+    switch (sharedSettings.opMode) {
+        
+        case SharedSettings.INSPECT_MODE:
+            setManualControlPanelEnabled(true);
+            pauseResumeButton.setText("Pause");
+            break;
+            
+        case SharedSettings.SCAN_MODE:
+            setManualControlPanelEnabled(false);
+            break;
+            
+        case SharedSettings.PAUSE_MODE:
+            setManualControlPanelEnabled(true);
+            pauseResumeButton.setText("Resume");
+            break;
+            
+        case SharedSettings.STOP_MODE:
+            setManualControlPanelEnabled(false);
+            pauseResumeButton.setText("Resume");
+            break;
+        
+        default:
+            setManualControlPanelEnabled(true);
+            break;
+            
+    }
+    
+    //set action command to text of button
+    pauseResumeButton.setActionCommand(pauseResumeButton.getText());
+    
+}// end of ControlPanelControls::refreshManualControlPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelControls::setManualControlPanelEnabled
+//
+// Set all controls enabled or enabled.
+//
+
+public void setManualControlPanelEnabled(boolean pFalse)
+{
+
+    pauseResumeButton.setEnabled(pFalse);
+    nextPieceButton.setEnabled(pFalse);
+    
+}//end of ControlPanelControls::setManualControlPanelEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -255,6 +350,25 @@ private JPanel createScanSpeedPanel()
     return(panel);
 
 }// end of ControlPanelControls::createScanSpeedPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelControls::refreshScanSpeedPanel
+//
+// Refreshes all labels, spinners, buttons, etc. in the scan speed panel based
+// on settings found in SharedSettings.
+//
+// Spinner values are cast to a double or the float spinner will switch its 
+// internal value to an integer which will cause problems later when using 
+// getIntValue()
+//
+
+public void refreshScanSpeedPanel()
+{
+
+    scanSpeedEditor.setValue((double)sharedSettings.scanSpeed);
+
+}// end of ControlPanelControls::refreshScanSpeedPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -299,17 +413,50 @@ private JPanel createStatusPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlPanelControls::refreshStatusPanel
+//
+// Refreshes all labels, spinners, buttons, etc. in the status panel based on
+// settings found in Shared Settings.
+//
+// Spinner values are cast to a double or the float spinner will switch its 
+// internal value to an integer which will cause problems later when using 
+// getIntValue()
+//
+
+public void refreshStatusPanel()
+{
+
+    setCalModeEnabled(sharedSettings.calMode);
+
+    //display either the cal piece number or normal piece number
+    if (sharedSettings.calMode) {
+        pieceNumberEditor.setValue((double)sharedSettings.nextCalPieceNumber);
+    } 
+    else { 
+        pieceNumberEditor.setValue((double)sharedSettings.nextPieceNumber);
+    }
+
+}// end of ControlPanelControls::refreshStatusPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlPanelControls::refresh
 //
 // Checks SharedSettings for any value changes and adjusts the GUI accordingly.
+//
+// Spinner values are cast to a double or the float spinner will switch its 
+// internal value to an integer which will cause problems later when using 
+// getIntValue()
 //
 
 @Override
 public void refresh()
 {
-
-    //easiest way to do this is to reset the gui
-    setupGUI();
+    
+    refreshInfoPanel();
+    refreshManualControlPanel();
+    refreshScanSpeedPanel();
+    refreshStatusPanel();
 
 }//end of ControlPanelControls::setCalModeEnabled
 //-----------------------------------------------------------------------------
@@ -348,8 +495,8 @@ protected boolean actionPerformedLocal(ActionEvent e)
         if (!(e.getSource() instanceof JCheckBox)) { return(false); }
         JCheckBox box = (JCheckBox)e.getSource();
         
-        //set cal mode to state of checkbox
-        setCalModeEnabled(box.isSelected());
+        //set cal mode to state of checkbox and refresh controls
+        setCalModeEnabled(box.isSelected()); refresh();
         
         return(true);
     }
@@ -385,21 +532,6 @@ public void handleSpinnerChange(MFloatSpinner pSpinner)
     }
 
 }//end of ControlPanelControls::handleSpinnerChange
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlPanelControls::setManualControlPanelEnabled
-//
-// Set all controls enabled or enabled.
-//
-
-public void setManualControlPanelEnabled(boolean pFalse)
-{
-
-    pauseResumeButton.setEnabled(pFalse);
-    nextPieceButton.setEnabled(pFalse);
-    
-}//end of ControlPanelControls::setManualControlPanelEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

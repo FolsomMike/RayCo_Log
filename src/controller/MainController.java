@@ -136,6 +136,7 @@ public class MainController implements EventHandler, Runnable
     
     int lastPieceInspected = -1;
     boolean isLastPieceInspectedACal = false;
+    private boolean segmentStarted = false;
 
 //-----------------------------------------------------------------------------
 // MainController::MainController (constructor)
@@ -191,7 +192,7 @@ public void init()
     
     //refresg after everything else done because he makes use of various
     //settings in SharedSettings, and we need to ensure they have been loaded
-    mainView.refreshCurrentControlPanel();
+    mainView.refreshControlsPanel();
 
     //force garbage collection before beginning any time sensitive tasks
     System.gc();
@@ -537,6 +538,41 @@ private boolean channelGraphingEnabled()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::startPauseMode
+//
+// Starts the pause mode by setting the mode in shared settings and telling 
+// View to refresh his controls panel.
+//
+
+private void startPauseMode()
+{
+
+    sharedSettings.opModePrev =  sharedSettings.opMode;
+    sharedSettings.opMode = SharedSettings.PAUSE_MODE;
+    
+    mainView.refreshControlsPanel(); //force view to refresh stuff
+
+}//end of MainController::startPauseMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::resumeMode
+//
+// Resumes the previous mode by setting the mode in shared settings and telling 
+// View to refresh his controls panel.
+//
+
+private void resumeMode()
+{
+
+    sharedSettings.opMode = sharedSettings.opModePrev;
+    
+    mainView.refreshControlsPanel(); //force view to refresh stuff
+
+}//end of MainController::resumeMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::startInspectMode
 //
 // Starts the inspection mode by resetting all buffers and telling view to
@@ -552,8 +588,83 @@ private void startInspectMode()
     mainView.resetAll();
 
     prepareForNextPiece();
+    
+    mainView.refreshControlsPanel(); //force view to refresh stuff
 
 }//end of MainController::startInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::handleNextRun
+//
+// Handles preparations for the next run.
+//
+
+private void handleNextRun()
+{
+
+    sharedSettings.opMode = SharedSettings.STOP_MODE; //stop everything
+    processFinishedPiece();
+    prepareForNextPiece();
+    
+    //force the paused mode, setting the previous mode to the inspect mode so 
+    //that when the user hits "Resume" the inspection mode will be entered again
+    sharedSettings.opModePrev = SharedSettings.INSPECT_MODE;
+    sharedSettings.opMode = SharedSettings.PAUSE_MODE;
+    
+    mainView.refreshControlsPanel(); //force view to refresh stuff
+
+}//end of MainController::handleNextRun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::processFinishedPiece
+//
+// Process a completed piece by saving it, analyzing it, etc.
+//
+
+public void processFinishedPiece()
+{
+
+    //if an inspection was started, save the data and increment to the next
+    //piece number - if an inspection was not started, ignore so that the
+    //piece number is not incremented needlessly when the user clicks "Stop"
+    //or "Next Run" without having inspected a piece
+
+    if (segmentStarted){
+
+        markSegmentEnd();  //mark the buffer location of the end of the segment
+
+        saveSegment(); //save the data for the segment
+
+        //increment the next piece or next cal piece number
+        incrementPieceNumber();
+        
+        sharedSettings.save();
+
+    }
+
+}//end of MainController::processFinishedPiece
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::incrementPieceNumber
+//
+// Increments the piece number or cal piece number depending on the value of
+// calMode.  The spinner control is updated with the new number.
+//
+
+public void incrementPieceNumber()
+{
+
+    //depending on the mode, increment the appropriate variable and control
+    if (sharedSettings.calMode){ sharedSettings.nextCalPieceNumber++; }
+    else { sharedSettings.nextPieceNumber++; }
+    
+    //tell MainView to refresh controls panel
+    mainView.refreshControlsPanel();
+
+}//end of MainController::incrementPieceNumber
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -583,6 +694,8 @@ private void prepareForNextPiece()
 
 private void markSegmentStart()
 {
+    
+    segmentStarted = true;
 
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentStart(); }
     for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentStart(); }
@@ -605,6 +718,8 @@ private void markSegmentStart()
 
 public void markSegmentEnd()
 {
+    
+    segmentStarted = false;
 
     for(DataTransferIntBuffer buf: dataBuffers){ buf.markSegmentEnd(); }
     for(DataTransferSnapshotBuffer buf: snapshotBuffers){ buf.markSegmentEnd(); }
@@ -920,19 +1035,34 @@ public void actionPerformed(ActionEvent e)
         saveUserSettingsToFile();
         return;
     }
+    
+    if ("Pause".equals(e.getActionCommand())) {
+        startPauseMode(); return;
+    }
+    
+    if ("Resume".equals(e.getActionCommand())) {
+        resumeMode(); return;
+    }
 
     if ("Start Stop Mode".equals(e.getActionCommand())) {
         sharedSettings.opMode = SharedSettings.STOP_MODE;
+        mainView.refreshControlsPanel();
         return;
     }
 
     if ("Start Scan Mode".equals(e.getActionCommand())) {
         sharedSettings.opMode = SharedSettings.SCAN_MODE;
+        mainView.refreshControlsPanel();
         return;
     }
 
     if ("Start Inspect Mode".equals(e.getActionCommand())) {
-        startInspectMode();
+        startInspectMode();        
+        return;
+    }
+    
+    if ("Next Run".equals(e.getActionCommand())) {
+        handleNextRun();
         return;
     }
 
@@ -1339,8 +1469,9 @@ private void displayDataFromDevices()
     //tell View to update monitor window if he is displaying one
     mainView.updateMonitorStatus(mainHandler.getMonitorPacket(true));
 
-    //quit if in stop mode
-    if(sharedSettings.opMode == SharedSettings.STOP_MODE) { return; }
+    //quit if in not in inspect or scan mode
+    if(sharedSettings.opMode != SharedSettings.INSPECT_MODE
+        && sharedSettings.opMode != SharedSettings.SCAN_MODE) { return; }
 
     //prepares to scan through all channels
     mainHandler.initForPeakScan();

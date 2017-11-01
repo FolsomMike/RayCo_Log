@@ -67,6 +67,8 @@ public class SharedSettings{
     public boolean isCalDataSaved = false;
 
     public boolean calMode = false;
+    public int nextPieceNumber = 1;
+    public int nextCalPieceNumber = 1;
     public int lastPieceNumber;
     public int lastCalPieceNumber;
     public boolean startNewPieceAtLeftEdge = true;
@@ -80,6 +82,7 @@ public class SharedSettings{
     static public final int INSPECT_WITH_TIMER_TRACKING_MODE = 3;
     static public final int PAUSE_MODE = 4;
     public int opMode = STOP_MODE;
+    public int opModePrev = STOP_MODE;
     
     public boolean updateView;
     

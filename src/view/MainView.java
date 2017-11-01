@@ -303,15 +303,15 @@ public ArrayList<Object> getAllValuesFromCurrentControlPanel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainView::refreshCurrentControlPanel
+// MainView::refreshControlsPanel
 //
 
-public void refreshCurrentControlPanel()
+public void refreshControlsPanel()
 {
 
-    controlsPanel.refreshCurrentControlPanel();
+    controlsPanel.refresh();
 
-}// end of MainView::refreshCurrentControlPanel
+}// end of MainView::refreshControlsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
