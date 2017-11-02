@@ -1616,7 +1616,7 @@ String loadSegment(boolean pQuietMode)
         return(result);
         }
 
-    //WIP HSS//controlPanel.segmentEntry.setText(currentSegmentNumber + result);
+    controlPanel.segmentEntry.setText(currentSegmentNumber + result);
 
     //set up the main JFrame with its children components
     resetMainFrameAndSetUp();
