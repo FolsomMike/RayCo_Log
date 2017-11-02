@@ -63,6 +63,16 @@ public MainMenu(ActionListener pActionListener, SharedSettings pSharedSettings)
     actionListener = pActionListener;
     sharedSettings = pSharedSettings;
 
+}//end of MainMenu::MainMenu (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainMenu::init
+//
+
+public void init()
+{
+    
     //File menu
     fileMenu = new JMenu("File");
     fileMenu.setMnemonic(KeyEvent.VK_F);
@@ -168,7 +178,7 @@ public MainMenu(ActionListener pActionListener, SharedSettings pSharedSettings)
     helpMenuItem.addActionListener(actionListener);
     helpMenu.add(helpMenuItem);
 
-}//end of MainMenu::MainMenu (constructor)
+}//end of MainMenu::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
