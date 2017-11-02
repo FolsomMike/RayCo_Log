@@ -125,6 +125,8 @@ public class MainView implements ActionListener, WindowListener, ChangeListener
     int animateGraphTimer = 0;
 
     private final EventHandler eventHandler;
+    
+    private PieceInfo pieceIDInfo;
 
     private Font blackSmallFont, redSmallFont;
     private Font redLargeFont, greenLargeFont, yellowLargeFont, blackLargeFont;
@@ -197,6 +199,14 @@ public void init()
 
     //create various fonts for use by the program
     createFonts();
+    
+    //create an object to hold info about each piece
+    pieceIDInfo = new PieceInfo(mainFrame, sharedSettings.jobPathPrimary,
+                                    sharedSettings.jobPathSecondary, 
+                                    sharedSettings.currentJobName, 
+                                    sharedSettings.currentJobNamePathFriendly, 
+                                    this, false, sharedSettings.mainFileFormat);
+    pieceIDInfo.init();
 
     //create user interface: buttons, displays, etc.
     setupGui();
@@ -729,6 +739,20 @@ public void createFonts()
     yellowLargeFont = blackLargeFont.deriveFont(map);
 
 }// end of MainView::createFonts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::displayPieceInfo
+//
+// Displays piece info.
+//
+
+public void displayPieceInfo()
+{
+
+    pieceIDInfo.setVisible(true);
+
+}//end of MainView::displayPieceInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1606,6 +1630,29 @@ public void saveSegment(BufferedWriter pOut) throws IOException {
     for (ChartGroup c : chartGroups) { c.saveSegment(pOut); }
 
 }//end of MainView::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::saveSegmentInfo
+//
+
+public void saveSegmentInfo(BufferedWriter pOut) throws IOException {
+    
+    //write the header information - this portion can be read by the iniFile
+    //class which will only read up to the "[Header End]" tag - this allows
+    //simple parsing of the header information while ignoring the data
+    //stream which  follows the header
+
+    pOut.write("[MetaData]"); pOut.newLine();
+    pOut.newLine();
+    pOut.write("Segment Data Version=" + SharedSettings.SEGMENT_DATA_VERSION);
+    pOut.newLine();
+    pOut.newLine();
+    pOut.write("[MetaData End]"); pOut.newLine(); pOut.newLine();
+
+    pieceIDInfo.saveDataToStream(pOut);
+
+}//end of MainView::saveSegmentInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

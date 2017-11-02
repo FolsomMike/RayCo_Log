@@ -46,6 +46,7 @@ public class MainMenu extends JMenuBar{
 
     JMenu viewMenu;
     JMenuItem viewCompleted;
+    JMenuItem viewIDInfoMenuItem;
 
     JMenu helpMenu;
     JMenuItem logMenuItem, aboutMenuItem, helpMenuItem, monitor, exitMenuItem;
@@ -116,6 +117,15 @@ public MainMenu(ActionListener pActionListener, SharedSettings pSharedSettings)
     viewCompleted.setActionCommand("View Completed");
     viewCompleted.addActionListener(actionListener);
     viewMenu.add(viewCompleted);
+    
+    //View/Edit Identifier Info
+    viewIDInfoMenuItem = new JMenuItem("View / Edit Identifier Info");
+    viewIDInfoMenuItem.setMnemonic(KeyEvent.VK_I);
+    viewIDInfoMenuItem.setToolTipText(
+                    "View and edit the identifier info for each "
+                                    + sharedSettings.pieceDescriptionLC + ".");
+    viewIDInfoMenuItem.addActionListener(actionListener);
+    viewMenu.add(viewIDInfoMenuItem);
 
 
     //Help menu

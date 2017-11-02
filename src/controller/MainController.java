@@ -1027,6 +1027,8 @@ public void actionPerformed(ActionEvent e)
 {
 
     if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
+    
+    if ("View / Edit Identifier Info".equals(e.getActionCommand())) {displayPieceInfo(); return;}
 
     if ("Display Job Info".equals(e.getActionCommand())) {displayJobInfo(); return;}
 
@@ -1347,12 +1349,24 @@ private void saveSegment()
     
     //save segment to secondary data folders
     saveSegmentToPath(sharedSettings.jobPathSecondary + filename);
+    
+    //save the info file for each segment
+    //info which can be modified later such as heat, lot, id number, etc.
+
+    filename = getSegmentInfoFileName();
+
+    //save segment to primary data folders
+    saveSegmentInfoToPath(sharedSettings.jobPathPrimary + filename);
+    
+    //save segment to secondary data folders
+    saveSegmentInfoToPath(sharedSettings.jobPathSecondary + filename);
+
 
 }//end of MainController::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainController::saveSegment
+// MainController::saveSegmentToPath
 //
 // Saves the current segment data to pPath.
 //
@@ -1389,6 +1403,46 @@ private void saveSegmentToPath(String pPath)
     }
 
 }//end of MainController::saveSegmentToPath
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::saveSegmentInfoToPath
+//
+// Saves the current segment info to pPath.
+//
+
+private void saveSegmentInfoToPath(String pPath)
+{
+
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter out = null;
+
+    try{
+
+        fileOutputStream = new FileOutputStream(pPath);
+        outputStreamWriter = new OutputStreamWriter(fileOutputStream,
+                                                sharedSettings.mainFileFormat);
+        out = new BufferedWriter(outputStreamWriter);
+
+        //tell view to save data to file
+        mainView.saveSegmentInfo(out);
+
+    }
+    catch(IOException e){
+        MKSTools.logSevere(getClass().getName(), e.getMessage()
+                                                    + " - Error: 1175");
+    }
+    finally{
+        try{if (out != null) {out.close();}}
+        catch(IOException e){}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
+        catch(IOException e){}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
+        catch(IOException e){}
+    }
+
+}//end of MainController::saveSegmentInfoToPath
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1430,6 +1484,46 @@ private String getSegmentFileName()
     return segmentFilename;
     
 }//end of MainController::getSegmentFileName
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::getSegmentInfoFileName
+//
+// Determines what the segment info file name should be and returns a string 
+// containing it.
+//
+// Inspected pieces are saved with the prefix 20 while calibration pieces are 
+// saved with the prefix 30. Both have file type .info. This forces them to be 
+// grouped together and controls the order in which the types are listed when 
+// the folder is viewed in alphabetical order in an explorer window.
+//
+
+private String getSegmentInfoFileName()
+{
+    
+    String segmentFilename = "";
+    
+    String pieceNumber;
+    
+    if (sharedSettings.calMode) { 
+        
+        pieceNumber = fileNameFormat.format(sharedSettings.nextCalPieceNumber);
+        
+        segmentFilename = "30 - " + pieceNumber + ".info";
+        //save number before it changes to the next -- used for reports and such
+        //DEBUG HSS// uncomment later //lastPieceInspected = controlPanel.nextCalPieceNumber;
+    }
+    else {
+        pieceNumber = fileNameFormat.format(sharedSettings.nextPieceNumber);
+        
+        segmentFilename = "20 - " + pieceNumber + ".info";
+        //save number before it changes to the next -- used for reports and such
+        //DEBUG HSS// uncomment later //lastPieceInspected = controlPanel.nextPieceNumber;
+    }
+    
+    return segmentFilename;
+    
+}//end of MainController::getSegmentInfoFileName
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1558,6 +1652,20 @@ private void displayDataFromDevices()
     }
     
 }// end of MainController::displayDataFromDevices
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayPieceInfo
+//
+// Displays piece info.
+//
+
+private void displayPieceInfo()
+{
+
+    mainView.displayPieceInfo();
+
+}//end of MainController::displayPieceInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
