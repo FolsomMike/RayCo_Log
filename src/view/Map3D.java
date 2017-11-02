@@ -445,6 +445,8 @@ public void resetAll()
 
     drawnData.clear();
     drawnMetaData.clear();
+    
+    mapDataBuffer.reset();
 
     //reset segment starts and ends
     lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
