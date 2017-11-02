@@ -21,6 +21,7 @@ package view;
 
 import java.awt.event.*;
 import javax.swing.*;
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -32,6 +33,7 @@ import javax.swing.*;
 public class MainMenu extends JMenuBar{
 
     ActionListener actionListener;
+    SharedSettings sharedSettings;
 
     JMenu fileMenu;
     JMenuItem jobInfoMenuItem;
@@ -54,10 +56,11 @@ public class MainMenu extends JMenuBar{
 
 String language;
 
-public MainMenu(ActionListener pActionListener)
+public MainMenu(ActionListener pActionListener, SharedSettings pSharedSettings)
 {
 
     actionListener = pActionListener;
+    sharedSettings = pSharedSettings;
 
     //File menu
     fileMenu = new JMenu("File");
@@ -105,9 +108,11 @@ public MainMenu(ActionListener pActionListener)
 
     //View/View Completed
     //WIP HSS// settings needs to have piece description so this can be changed
-    viewCompleted = new JMenuItem("View Chart of a Completed Joint");
+    viewCompleted = new JMenuItem("View Chart of a Completed " 
+                                        + sharedSettings.pieceDescription);
     viewCompleted.setMnemonic(KeyEvent.VK_X);
-    viewCompleted.setToolTipText("View Chart of a Completed Joint");
+    viewCompleted.setToolTipText("View chart of a completed " 
+                                        + sharedSettings.pieceDescriptionLC + ".");
     viewCompleted.setActionCommand("View Completed");
     viewCompleted.addActionListener(actionListener);
     viewMenu.add(viewCompleted);

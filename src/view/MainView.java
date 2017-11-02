@@ -193,7 +193,7 @@ public void init()
     tsLog.appendLine("Hello"); tsLog.appendLine("");
 
     //add a menu to the main form, passing this as the action listener
-    mainFrame.setJMenuBar(mainMenu = new MainMenu(this));
+    mainFrame.setJMenuBar(mainMenu = new MainMenu(this, sharedSettings));
 
     //create various fonts for use by the program
     createFonts();

@@ -226,7 +226,8 @@ private void createManualControlPanel()
     nextPieceButton = new JButton("Next Run");
     nextPieceButton.setActionCommand("Next Run");
     nextPieceButton.addActionListener(this);
-    nextPieceButton.setToolTipText("Begins inspection of next piece.");
+    nextPieceButton.setToolTipText("Begins inspection of next "
+                                    + sharedSettings.pieceDescriptionLC + ".");
     nextPieceButton.setEnabled(false); //starts out invisible
     buttonsPanel.add(nextPieceButton);
 
@@ -236,7 +237,9 @@ private void createManualControlPanel()
     pauseResumeButton = new JButton("Pause");
     pauseResumeButton.setActionCommand(pauseResumeButton.getText());
     pauseResumeButton.addActionListener(this);
-    pauseResumeButton.setToolTipText("Pauses the inspection without moving to next piece.");
+    pauseResumeButton.setToolTipText("Pauses the inspection without moving to"
+                                    + " next " 
+                                    + sharedSettings.pieceDescriptionLC + ".");
     pauseResumeButton.setEnabled(false); //starts out invisible
     buttonsPanel.add(pauseResumeButton);
 
@@ -395,7 +398,9 @@ private JPanel createStatusPanel()
     pieceNumberEditor.addChangeListener(this);
     setSpinnerNameAndMouseListener(pieceNumberEditor, 
                                         pieceNumberEditor.getName(), this);
-    pieceNumberEditor.setToolTipText("The next piece number."); //DEBUG HSS// change piece type to be read from inifile
+    pieceNumberEditor.setToolTipText("The next " 
+                                        + sharedSettings.pieceDescription 
+                                        + " number.");
     panel.add(pieceNumberEditor);
     
     addHorizontalSpacer(panel, 10);
@@ -407,7 +412,8 @@ private JPanel createStatusPanel()
     calModeCheckBox.addActionListener(this);
     calModeCheckBox.addMouseListener(this);
     calModeCheckBox.setToolTipText(
-                "Check this box to run and save calibration pieces"); //DEBUG HSS// change piece type to be read from inifile
+                "Check this box to run and save calibration " 
+                        + sharedSettings.pieceDescriptionPluralLC + ".");
     panel.add(calModeCheckBox);
 
     return(panel);
