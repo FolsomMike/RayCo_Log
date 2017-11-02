@@ -1230,7 +1230,7 @@ public static void enableDoubleBuffering(Component c)
 public String formatPieceIDEntriesForPrinting()
 {
 
-    /*String result = "";
+    String result = "";
 
     KeyValue keyValue = new KeyValue();
 
@@ -1246,9 +1246,7 @@ public String formatPieceIDEntriesForPrinting()
             result + keyValue.keyString + ": " + keyValue.valueString + "    ";
     }
 
-    return(result);*/ //WIP HSS// will use later
-
-    return "";
+    return(result);
 
 }//end of Viewer::printPieceIDEntriesInFooter
 //-----------------------------------------------------------------------------
@@ -1417,9 +1415,9 @@ public void actionPerformed(ActionEvent e)
         displayPrintRangeWindow();
     }
 
-    /*if ("Show Info Details".equals(e.getActionCommand())){
+    if ("Show Info Details".equals(e.getActionCommand())){
         pieceIDInfo.setVisible(true);
-    }*/ //WIP HSS// use later
+    }
 
 }//end of Viewer::actionPerformed
 //-----------------------------------------------------------------------------

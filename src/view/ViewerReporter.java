@@ -77,6 +77,8 @@ public class ViewerReporter implements ActionListener {
 
     DecimalFormat[] decimalFormats;
     int currentSegmentNumber;
+    
+    PieceInfo pieceIDInfo;
 
     ViewerControlPanel controlPanel;
 
@@ -307,6 +309,12 @@ public ViewerReporter(SharedSettings pSettings, JobInfo pJobInfo,
 
 public void init()
 {
+    
+    //create an object to hold info about each piece
+    pieceIDInfo = new PieceInfo(mainFrame, jobPrimaryPath, jobBackupPath,
+                                currentJobName, currentJobNamePathFriendly, 
+                                this, true, settings.mainFileFormat);
+    pieceIDInfo.init();
 
 }//end of ViewerReporter::init
 //-----------------------------------------------------------------------------
@@ -497,7 +505,7 @@ private String getFileCreationDateTimeString(String pFilename)
 private void loadInfoHelper(String pFilename)
 {
 
-    //WIP HSS// -- make this work later //pieceIDInfo.loadData(pFilename);
+    pieceIDInfo.loadData(pFilename);
 
 }//end of ViewerReporter::loadInfoHelper
 //-----------------------------------------------------------------------------
