@@ -368,12 +368,12 @@ void loadFirstOrLastAvailableSegment(int pWhich)
     int segNumber = getFirstOrLastAvailableSegmentNumber(pWhich);
 
     if (currentSegmentNumber == -1){
-        displayErrorMessage("Error with name in file list.");
+        displayErrorMessage("Error with name in file list.", false);
         return;
     }
 
     if (currentSegmentNumber == -2){
-        displayErrorMessage("No valid files in folder.");
+        displayErrorMessage("No valid files in folder.", false);
         return;
     }
 
@@ -521,7 +521,7 @@ boolean parseSegmentNumberEntry()
         currentSegmentNumber = Integer.valueOf(sn);
     }
     catch(NumberFormatException nfe){
-        displayErrorMessage("Illegal entry.");
+        displayErrorMessage("Illegal entry.", false);
         return(false);
     }
 
@@ -1346,6 +1346,8 @@ public void itemStateChanged(ItemEvent e)
 @Override
 public void actionPerformed(ActionEvent e)
 {
+    
+    super.actionPerformed(e);
 
     if ("Load".equals(e.getActionCommand())) {
 
@@ -1533,13 +1535,46 @@ public void componentResized(ComponentEvent e)
 //
 
 @Override
-public void displayErrorMessage(String pMessage)
+public void displayErrorMessage(String pMessage, boolean pAutoDisappear)
 {
-
-    JOptionPane.showMessageDialog(mainFrame, pMessage,
-                                            "Error", JOptionPane.ERROR_MESSAGE);
+    
+    //auto disappear -- must be started before, because code is locked up by
+    //display of dialog and will not continue to next line until closed
+    if (pAutoDisappear) {
+        timer = new javax.swing.Timer (2000, this);
+        timer.setActionCommand ("Close Error Message");
+        timer.start();
+    }
+ 
+    //display error message
+    JOptionPane pane = new JOptionPane(pMessage, JOptionPane.ERROR_MESSAGE,
+                                        JOptionPane.DEFAULT_OPTION);
+    errorMessageDialog = pane.createDialog(mainFrame, "Error");
+    errorMessageDialog.setVisible(true);
 
 }//end of Viewer::displayErrorMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerReporter::closeErrorMessage
+//
+// Closes the active error message dialog.
+//
+// Should be overridden by subclasses to provide custom message handling.
+//
+
+@Override
+public void closeErrorMessage()
+{
+    
+    if (errorMessageDialog != null) {
+        errorMessageDialog.dispose();
+        errorMessageDialog = null;
+    }
+    
+    if (timer != null) { timer.stop(); timer = null; }
+
+}//end of ViewerReporter::closeErrorMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1608,7 +1643,7 @@ String loadSegment(boolean pQuietMode)
 
     //on error, display the message, repaint with empty chart, and exit
     if (result.startsWith("Error")){
-        if(!pQuietMode){displayErrorMessage(result);}
+        if(!pQuietMode){ displayErrorMessage(result, true); }
         mainFrame.repaint();
         printRunnable.unPauseThread(); //release the print thread if waiting
         return(result);

@@ -57,6 +57,10 @@ public class ViewerReporter implements ActionListener {
     String currentJobName, currentJobNamePathFriendly;
     JScrollPane scrollPane;
     JPanel chartGroupPanel;
+    
+    JDialog errorMessageDialog;
+    
+    javax.swing.Timer timer;
 
     private Dimension totalScreenSize, usableScreenSize;
 
@@ -163,7 +167,7 @@ public void run() {
 
             }
         catch (PrinterException e) {
-            displayErrorMessage("Error sending to printer."); //debug mks wrap this in thread safe code
+            displayErrorMessage("Error sending to printer.", false); //debug mks wrap this in thread safe code
             }
 
         }//while(true)
@@ -660,10 +664,24 @@ public void loadCalFile()
 // Should be overridden by subclasses to provide custom message handling.
 //
 
-public void displayErrorMessage(String pMessage)
+public void displayErrorMessage(String pMessage, boolean pAutoDisappear)
 {
 
 }//end of ViewerReporter::displayErrorMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerReporter::closeErrorMessage
+//
+// Closes the active error message dialog.
+//
+// Should be overridden by subclasses to provide custom message handling.
+//
+
+public void closeErrorMessage()
+{
+
+}//end of ViewerReporter::closeErrorMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -744,6 +762,12 @@ public void configure()
 @Override
 public void actionPerformed(ActionEvent e)
 {
+    
+    if ("Close Error Message".equals(e.getActionCommand())) {
+
+        closeErrorMessage();
+
+    }// if ("Close Error Message".equals(e.getActionCommand()))
 
 
 }//end of ViewerReporter::actionPerformed
