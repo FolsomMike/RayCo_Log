@@ -28,9 +28,8 @@ import view.LogPanel;
 public class MultiIODevice extends Device
 {
 
-    byte[] packet;
-
-    int packetRequestTimer = 0;
+    byte[] runDataPacket;
+    byte[] inspectPacket;
 
     static final int AD_MAX_VALUE = 255;
     static final int AD_MIN_VALUE = 0;
@@ -93,7 +92,13 @@ public MultiIODevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
     super(pDeviceNum, pLogPanel, pConfigFile, pSettings, pSimMode);
     
+    runDataPacketSize = 212; //includes Rabbit checksum byte
+    
+    inspectPacketSize = 28; //includes Rabbit checksum byte //WIP HSS// //DEBUG HSS// verify later!!!!!
+    
     monitorPacketSize = 28; //includes Rabbit checksum byte
+    
+    allEncodersPacketSize = 32; //includes Rabbit checksum byte
 
 }//end of MultiIODevice::MultiIODevice (constructor)
 //-----------------------------------------------------------------------------
@@ -112,8 +117,9 @@ public void init()
 
     super.init();
 
-    packet = new byte[RUN_DATA_BUFFER_SIZE];
-
+    runDataPacket = new byte[runDataPacketSize];
+    inspectPacket = new byte[inspectPacketSize];
+    
 }// end of MultiIODevice::init
 //-----------------------------------------------------------------------------
 
@@ -148,6 +154,120 @@ void initAfterConnect(){
     super.initAfterConnect();
 
 }//end of MultiIODevice::initAfterConnect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::collectData
+//
+// Collects data from source(s) -- remote hardware devices, databases,
+// simulations, etc.
+//
+// Should be called periodically to allow collection of data buffered in the
+// source.
+//
+
+@Override
+public void collectData()
+{
+
+    super.collectData();
+
+    processInspectPacket();
+
+}// end of MultiIODevice::collectData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::processInspectPacket
+//
+// Processes the inpsect packet, performing calculations, setting values, etc.
+//
+// This packet is only received when the the device is acting as a control
+// device. It is only sent by the remote device when the encoders have moved
+// a pre-determined amount, which means that each time this packet is received,
+// it is time to advance transfer buffer insertion points, which will give
+// other classes and threads access to the point it was previously putting data
+// into. Note that the incrementation of the insertion points is not done here,
+// this just determines whether or not someone else is allowed to.
+//
+
+private void processInspectPacket()
+{
+
+    //bail if no need to process
+    if (!getInspectPacketFromDevice(inspectPacket)) { return; }
+    
+    int x = 0;
+    
+    // combine four bytes each to make the encoder counts
+
+    int encoder1Count, encoder2Count;
+
+    // create integer from four bytes in buffer
+    encoder1Count = ((inspectPacket[x++] << 24));
+    encoder1Count |= (inspectPacket[x++] << 16) & 0x00ff0000;
+    encoder1Count |= (inspectPacket[x++] << 8)  & 0x0000ff00;
+    encoder1Count |= (inspectPacket[x++])       & 0x000000ff;
+
+    // create integer from four bytes in buffer
+    encoder2Count = ((inspectPacket[x++] << 24));
+    encoder2Count |= (inspectPacket[x++] << 16) & 0x00ff0000;
+    encoder2Count |= (inspectPacket[x++] << 8)  & 0x0000ff00;
+    encoder2Count |= (inspectPacket[x++])       & 0x000000ff;
+
+    //transfer to the class variables in one move -- this will be an atomic
+    //copy so it is safe for other threads to access those variables
+    encoder1 = encoder1Count; encoder2 = encoder2Count;
+
+    //flag if encoder count was increased or decreased
+    //a no change case should not occur since packets are sent when there
+    //has been a change of encoder count
+
+    if (encoder1 > prevEncoder1) {
+        encoder1Dir = EncoderHandler.INCREASING;
+    }
+    else {
+        encoder1Dir = EncoderHandler.DECREASING;
+    }
+
+    //flag if encoder count was increased or decreased
+    if (encoder2 > prevEncoder2) {
+        encoder2Dir = EncoderHandler.INCREASING;
+    }
+    else {
+        encoder2Dir = EncoderHandler.DECREASING;
+    }
+
+    //update the previous encoder values for use next time
+    prevEncoder1 = encoder1; prevEncoder2 = encoder2;
+
+    //transfer the status of the Control board input ports
+    processControlFlags = inspectPacket[x++];
+    controlPortE = inspectPacket[x++];
+
+    //control flags are active high
+    onPipeFlag = ((processControlFlags & ON_PIPE_CTRL) != 0);
+
+    head1Down = ((processControlFlags & HEAD1_DOWN_CTRL) != 0);
+
+    head2Down = ((processControlFlags & HEAD2_DOWN_CTRL) != 0);
+
+    head3Down = ((processControlFlags & HEAD3_DOWN_CTRL) != 0);
+
+    //port E inputs are active low
+    tdcFlag = ((controlPortE & TDC_MASK) == 0);
+
+    unused1Flag = ((controlPortA & UNUSED1_MASK) == 0);
+
+    unused2Flag = ((controlPortA & UNUSED2_MASK) == 0);
+
+    unused3Flag = ((controlPortE & UNUSED3_MASK) == 0);
+    
+    //retrieval of an inspect packet means that we are ready to advance
+    //insertion points in transfer buffers
+    readyToAdvanceInsertionPoints = true;
+
+}// end of MultiIODevice::processInspectPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -208,6 +328,19 @@ public void stopMonitor()
     sendPacket(STOP_MONITOR_CMD, (byte) 0);
 
 }//end of MultiIODevice::stopMonitor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::zeroEncoderCounts
+//
+// Sends command to zero the encoder counts.
+//
+
+@Override
+public void zeroEncoderCounts()
+{
+
+}//end of MultiIODevice::zeroEncoderCounts
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -318,6 +451,31 @@ public void processChannelParameterChanges()
     if(!getHdwParamsDirty()){ return; } //do nothing if no values changed
 
 }//end of MultiIODevice::processChannelParameterChanges
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::requestInspectPacket
+//
+// Sends a request to the device for a packet with inspect data such as signal
+// photo-eye states, and encoder values.
+//
+// The returned packet will be handled by handleInspectPacket. See that
+// method for more details.
+//
+// Overridden by children classes for custom handling.
+//
+
+@Override
+boolean requestInspectPacket()
+{
+
+    if (!super.requestInspectPacket()) { return false; }
+
+    sendPacket(GET_INSPECT_PACKET_CMD, (byte)0);
+
+    return true;
+
+}//end of MultiIODevice::requestInspectPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -488,64 +646,22 @@ int handleChassisSlotAddressPacket()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MultiIODevice::handleMonitorPacket
+// MultiIODevice::requestMonitorPacket
 //
-// Transfers debugging data received from the remote into an array.
-//
-// Returns number of bytes retrieved from the socket.
-//
-// Overridden by children classes for custom handling.
-//
-
-int handleMonitorPacket()
-{
-
-    int numBytesInPkt = monitorPacketSize; //includes Rabbit checksum byte
-    
-    packetRequestTimer = 0; //reset since we got a packet
-
-    int result;
-    result = readBytesAndVerify(monitorBuffer, numBytesInPkt, pktID);
-    if (result != numBytesInPkt){ return(result); }
-
-    return result;
-
-}//end of MultiIODevice::handleMonitorPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MultiIODevice::getMonitorPacket
-//
-// Returns in a byte array I/O status data which has already been received and
-// stored from the remote.
-// If pRequestPacket is true, then a packet is requested every so often.
-// If false, then packets are only received when the remote computer sends
-// them.
-//
-// NOTE: This function is often called from a different thread than the one
-// transferring the data from the input buffer -- erroneous values for some of
-// the multibyte values may occur due to thread collision but they are for
-// display/debugging only and an occasional glitch in the displayed values
-// should not be of major concern.
+// Sends a request to the device for the monitor packet
 //
 
 @Override
-public byte[] getMonitorPacket(boolean pRequestPacket)
+boolean requestMonitorPacket()
 {
 
-    if (pRequestPacket){
-        //request a packet be sent if the counter has timed out
-        //this packet will arrive in the future and be processed by another
-        //function so it can be retrieved by another call to this function
-        if (packetRequestTimer++ == 50){
-            packetRequestTimer = 0;
-            sendPacket(GET_MONITOR_PACKET_CMD, (byte) 0);
-        }
-    }
+    if (!super.requestMonitorPacket()) { return false; }
 
-    return super.getMonitorPacket(pRequestPacket);
+    sendPacket(GET_MONITOR_PACKET_CMD, (byte)0);
 
-}//end of MultiIODevice::getMonitorPacket
+    return true;
+
+}//end of MultiIODevice::requestMonitorPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

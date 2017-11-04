@@ -25,6 +25,7 @@ import static hardware.Channel.CATCH_HIGHEST;
 import static hardware.Channel.CATCH_LOWEST;
 import static hardware.Channel.DOUBLE_TYPE;
 import static hardware.Channel.INTEGER_TYPE;
+import static hardware.MultiIODevice.GET_MONITOR_PACKET_CMD;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -40,7 +41,6 @@ import model.DataTransferIntMultiDimBuffer;
 import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 import model.SharedSettings;
-import toolkit.MKSBoolean;
 import toolkit.MKSInteger;
 import view.LogPanel;
 
@@ -48,7 +48,7 @@ import view.LogPanel;
 // class Device
 //
 
-public class Device implements Runnable
+public class Device implements Runnable, ControlDevice
 {
 
     boolean shutDown = false;
@@ -61,6 +61,7 @@ public class Device implements Runnable
     private final int deviceNum;
     public int getDeviceNum(){ return(deviceNum); }
     String title = "", shortTitle = "";
+    public String getTitle() { return title; }
     String deviceType = "";
     public String getDeviceType(){ return(deviceType); }
     String deviceSubtype = "";
@@ -80,19 +81,21 @@ public class Device implements Runnable
     int[] clockTranslations;
     int numGridsHeightPerSourceClock, numGridsLengthPerSourceClock;
 
-    private boolean newRunData = false;
-
     byte runDataBuffer[] = new byte[RUN_DATA_BUFFER_SIZE];
-    byte[] monitorBuffer;
-    //needs to be set by child classes
-    int runDataPacketSize = 0;
-    //needs to be set by child classes
-    int monitorPacketSize = 0;
-
+    int runDataPacketSize = 0; //needs to be set by child classes
+    private boolean newRunData = false;
     private int prevRbtRunDataPktCnt = -1;
     private int rbtRunDataPktCntError = 0;
     private int prevPICRunDataPktCnt = -1;
     private int picRunDataPktCntError = 0;
+    
+    byte[] inspectBuffer;
+    int inspectPacketSize = 0; //needs to be set by child classes
+    private boolean newInspectData = false;
+    
+    byte[] monitorBuffer;
+    int monitorPacketSize = 0; //needs to be set by child classes
+    int monitorPacketRequestTimer = 0;
 
     Socket socket = null;
     PrintWriter out = null;
@@ -117,10 +120,10 @@ public class Device implements Runnable
     int numACKsExpected = 0;
     int numACKsReceived = 0;
 
-    private boolean connectionAttemptCompleted = false;
+    protected boolean connectionAttemptCompleted = false;
     public boolean getConnectionAttemptCompleted(){
                                          return (connectionAttemptCompleted); }
-    private boolean connectionSuccessful = false;
+    protected boolean connectionSuccessful = false;
     public boolean getConnectionSuccessful(){ return (connectionSuccessful); }
 
     //WIP HSS//
@@ -143,6 +146,67 @@ public class Device implements Runnable
     PeakArrayBufferInt peakMapBuffer;
 
     LogPanel logPanel;
+    
+    
+    //START vars for use as control device
+    
+    boolean isControlDevice = false;
+    public boolean isControlDevice() { return isControlDevice; }
+    
+    protected boolean readyToAdvanceInsertionPoints = true;
+    
+    byte[] allEncoderValuesBuffer;
+    int allEncodersPacketSize = 0; //needs to be set by child classes
+    
+    int encoder1, prevEncoder1;
+    int encoder2, prevEncoder2;
+    int encoder1Dir, encoder2Dir;
+
+    EncoderValues encoderValues;
+
+    int inspectPacketCount = 0;
+
+    boolean onPipeFlag = false;
+    boolean inspectControlFlag = false;
+    boolean head1Down = false;
+    boolean head2Down = false;
+    boolean head3Down = false;
+    boolean tdcFlag = false;
+    boolean unused1Flag = false;
+    boolean unused2Flag = false;
+    boolean unused3Flag = false;
+    byte controlPortA, controlPortE;
+    byte processControlFlags;
+
+    //number of counts each encoder moves to trigger an inspection data packet
+    //these values are read later from the config file
+    int encoder1DeltaTrigger, encoder2DeltaTrigger;
+    
+    //Masks for the Control Board inputs
+    static byte UNUSED1_MASK = (byte)0x10;	// bit on Port A
+    static byte UNUSED2_MASK = (byte)0x20;	// bit on Port A
+    static byte INSPECT_MASK = (byte)0x40;	// bit on Port A
+    static byte ON_PIPE_MASK = (byte)0x80;	// bit on Port A ??no longer true??
+    static byte TDC_MASK = (byte)0x01;    	// bit on Port E
+    static byte UNUSED3_MASK = (byte)0x20;	// bit on Port E
+    
+    //Masks for the Control Board command flags
+    static byte ON_PIPE_CTRL =      (byte)0x01;
+    static byte HEAD1_DOWN_CTRL =   (byte)0x02;
+    static byte HEAD2_DOWN_CTRL =   (byte)0x04;
+    static byte HEAD3_DOWN_CTRL =   (byte)0x08;
+    static byte UNUSED2_CTRL =      (byte)0x10;
+    static byte UNUSED3_CTRL =      (byte)0x20;
+    static byte UNUSED4_CTRL =      (byte)0x40;
+    static byte UNUSED5_CTRL =      (byte)0x80;
+    
+    //modes
+    static int FORWARD = 0;
+    static int REVERSE = 1;
+    static int STOP = 2;
+    static int RESET = 3;
+    
+    //END vars for use as control device
 
     final static int RUN_DATA_BUFFER_SIZE = 1024;
     final static int RUNTIME_PACKET_SIZE = 50;
@@ -178,8 +242,29 @@ public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
 public void init()
 {
+    
+    configureForUseAsControlDevice(); //will only configure if necessary
 
+}// end of Device::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::configureForUseAsControlDevice
+//
+// If this device serves as a Control Device, it is set up as one.
+//
+
+private void configureForUseAsControlDevice()
+{
+
+    if (!isControlDevice()) { return; } //bail if not Control Device
+    
     monitorBuffer = new byte[monitorPacketSize];
+    inspectBuffer = new byte[inspectPacketSize];
+    
+    encoderValues = new EncoderValues(); encoderValues.init();
+
+    allEncoderValuesBuffer = new byte[allEncodersPacketSize];
 
 }// end of Device::init
 //-----------------------------------------------------------------------------
@@ -234,6 +319,8 @@ public void initAfterLoadingConfig()
 
 void sendPacket(byte pCommand, byte... pBytes)
 {
+    
+    if (byteOut == null) {return;}  //do nothing if the port is closed
 
     int i = 0, checksum;
 
@@ -283,6 +370,8 @@ void sendPacket(byte pCommand, byte... pBytes)
 
 int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 {
+    
+    if (byteIn == null) {return -1;}  //do nothing if the port is closed
 
     try{
 
@@ -319,6 +408,28 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 //----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::isReadyToAdvanceInsertionPoints
+//
+// Returns the flag for whether or not the device is ready to advance the 
+// the transfer buffer insertion points.
+//
+// Sets the flag to false after if this is a control device.
+//
+
+@Override
+public boolean isReadyToAdvanceInsertionPoints()
+{
+
+    boolean ready = readyToAdvanceInsertionPoints;
+    
+    if (isControlDevice()) { readyToAdvanceInsertionPoints = false; }
+    
+    return ready;
+
+}// end of Device::isReadyToAdvanceInsertionPoints
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::handleACKPackets
 //
 // Handles ACK_CMD packets. Increments the numACKsReceive counter.
@@ -336,6 +447,63 @@ public int handleACKPackets()
     return 0;
 
 }//end of Device::handleACKPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::requestMonitorPacket
+//
+// Sends a request to the device for a packet with monitor data such as signal
+// photo-eye states, and encoder values.
+//
+// When in monitor mode, it is expected that devices will send back monitor
+// packets continously without request. This is generally only used when those
+// devices fail to do send back a packet for a certain period of time.
+//
+// The returned packet will be handled by handleMonitorPacket. See that
+// method for more details.
+//
+// Overridden by children classes for custom handling.
+//
+
+boolean requestMonitorPacket()
+{
+
+    //waiting for remote response or not a control return false since we bailed
+    if (waitingForRemoteResponse || !isControlDevice()) { return false; }
+
+    //return true because we did not bail
+    return waitingForRemoteResponse = true;
+
+}//end of Device::requestMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::handleMonitorPacket
+//
+// Transfers debugging data received from the remote into an array.
+//
+// The array the data is put into is generally gathered by external classes
+// from getMonitorPacket(). See that method for more details.
+//
+// Returns number of bytes retrieved from the socket.
+//
+// Overridden by children classes for custom handling.
+//
+
+public int handleMonitorPacket()
+{
+
+    int numBytesInPkt = monitorPacketSize; //includes Rabbit checksum byte
+    
+    monitorPacketRequestTimer = 0; //reset since we got a packet
+
+    int result;
+    result = readBytesAndVerify(monitorBuffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }
+
+    return result;
+
+}//end of Device::handleMonitorPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -357,9 +525,110 @@ public int handleACKPackets()
 public byte[] getMonitorPacket(boolean pRequestPacket)
 {
 
+    if (pRequestPacket){
+        //request a packet be sent if the counter has timed out
+        //this packet will arrive in the future and be processed by another
+        //function so it can be retrieved by another call to this function
+        if (monitorPacketRequestTimer++ == 50){
+            monitorPacketRequestTimer = 0;
+            requestMonitorPacket();
+        }
+    }
+
     return monitorBuffer;
 
 }//end of Device::getMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::requestInspectPacket
+//
+// Sends a request to the device for a packet with inspect data such as signal
+// photo-eye states, and encoder values.
+//
+// The returned packet will be handled by handleInspectPacket. See that
+// method for more details.
+//
+// Overridden by children classes for custom handling.
+//
+
+boolean requestInspectPacket()
+{
+
+    //waiting for remote response or not a control return false since we bailed
+    if (waitingForRemoteResponse || !isControlDevice()) { return false; }
+
+    //return true because we did not bail
+    return waitingForRemoteResponse = true;
+
+}//end of Device::requestInspectPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::handleInspectPacket
+//
+// Copies the remainder of the packet from the ethernet buffer to the
+// inspectBuffer for later retrieval.
+//
+// Sets newInspectData flag true.
+//
+// Overridden by children classes for custom handling.
+//
+
+public int handleInspectPacket()
+{
+
+    waitingForRemoteResponse = false;
+
+    int numBytesInPkt = inspectPacketSize; //includes Rabbit checksum byte
+
+    int result;
+    result = readBytesAndVerify(inspectBuffer, numBytesInPkt, pktID);
+    if (result != numBytesInPkt){ return(result); }
+
+    newInspectData = true;
+
+    return(result);
+
+}// end of Device::handleInspectPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getInspectPacketFromDevice
+//
+// Returns the last inspect packet received from the device.
+//
+// If a new packet has been received since the last call, returns true and the
+// packet is copied to pPacket.
+//
+// If no packet has been recevied since the last call, returns false and the
+// data in pPacket is invalid.
+//
+
+boolean getInspectPacketFromDevice(byte[] pPacket)
+{
+
+    if(!newInspectData || !isControlDevice()){ return(false); }
+
+    System.arraycopy(inspectBuffer, 0, pPacket, 0, pPacket.length);
+
+    newInspectData = false;
+
+    return(true);
+
+}// end of Device::getInspectPacketFromDevice
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::zeroEncoderCounts
+//
+// Sends command to zero the encoder counts.
+//
+
+public void zeroEncoderCounts()
+{
+
+}//end of Device::zeroEncoderCounts
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -368,27 +637,28 @@ public byte[] getMonitorPacket(boolean pRequestPacket)
 // Transfers local variables related to inspection control signals and encoder
 // counts.
 //
-// Overridden by children for custom handling.
-//
 
 public void getInspectControlVars(InspectControlVars pICVars)
 {
 
+    pICVars.onPipeFlag = onPipeFlag;
+
+    pICVars.head1Down = head1Down;
+
+    pICVars.head2Down = head2Down;
+
+    pICVars.head3Down = head3Down;
+
+    pICVars.encoderHandler.encoder1 = encoder1;
+    pICVars.encoderHandler.prevEncoder1 = prevEncoder1;
+
+    pICVars.encoderHandler.encoder2 = encoder2;
+    pICVars.encoderHandler.prevEncoder2 = prevEncoder2;
+
+    pICVars.encoderHandler.encoder1Dir = encoder1Dir;
+    pICVars.encoderHandler.encoder2Dir = encoder2Dir;
+
 }//end of Device::getInspectControlVars
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Device::zeroEncoderCounts
-//
-// Sends command to zero the encoder counts.
-//
-// Overridden by children classes for custom handling.
-//
-
-public void zeroEncoderCounts()
-{
-
-}//end of Device::zeroEncoderCounts
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1253,6 +1523,8 @@ protected int takeActionBasedOnPacketId(int pPktID)
 
 public void reSync()
 {
+    
+    if (byteIn == null) { return; }  //do nothing if the port is closed
 
     reSynced = false;
 

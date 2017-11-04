@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import model.IniFile;
 import model.SharedSettings;
 import view.LogPanel;
+import view.Xfer;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -62,7 +63,6 @@ public class MainHandler
     public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
     public void setHdwParamsDirty(boolean pState){ hdwParamsDirty = pState;}
 
-    private int scanRateCounter;
     int peakScanDev;
     int peakScanCh;
 
@@ -71,6 +71,12 @@ public class MainHandler
     ArrayList<Boolean> deviceSimModes = new ArrayList<>();
     ArrayList<String> deviceTypesSimulated = new ArrayList<>();
     ArrayList<String> deviceTypes = new ArrayList<>();
+    
+    private ControlDevice controlDevice;
+    private String nameOfDeviceToUseForControl;
+    
+    private ControlDevice controlDeviceCalMode;
+    private String nameOfDeviceToUseForControlCalMode;
 
     private boolean allDevicesSimulatedOverride;
 
@@ -143,8 +149,6 @@ public void connectToDevices()
 
     status = findAndConnectToDevices();
 
-    //if (status) { status = initializeDevices();}
-
     ready = status; //if set true, devices are ready for use
 
 }// end of MainHandler::connectToDevices
@@ -184,6 +188,8 @@ private void setUpDevices(ArrayList<LogPanel> pLogPanels)
         devices[index].init();
         index++;
     }
+    
+    configureControlDevice();
 
 }// end of MainHandler::setUpDevices
 //-----------------------------------------------------------------------------
@@ -662,6 +668,116 @@ private void setupSocketAndDatagram(SocketSet pSocketSet)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainHandler::configureControlDevice
+//
+// Properly sets the control device and the control device to use in calibration
+// mode.
+// 
+// Will even create a timer driven control device if necessary.
+//
+
+private void configureControlDevice()
+{
+    
+    if (sharedSettings.timerDrivenTracking 
+            && sharedSettings.timerDrivenTrackingInCalMode) {
+        createControlDeviceTimerDriven();
+    }
+    else { findControlDevices(); }
+
+}// end of MainHandler::configureControlDevice
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::createControlDeviceTimerDriven
+//
+// If necessary, cretates a control device as if it was read from the IniFile.
+//
+// This helps with using legacy ini file formats brought over from Chart.
+//
+
+private void createControlDeviceTimerDriven()
+{
+    
+    //make sure a timer driven control device is present if desired operation 
+    //is timer driven tracking and one was specifically created for the purpose
+    ControlDeviceTimerDriven dev = new ControlDeviceTimerDriven(sharedSettings);
+    dev.init();   
+        
+    if (sharedSettings.timerDrivenTracking) { 
+        controlDevice = dev; 
+    }
+    if (sharedSettings.timerDrivenTrackingInCalMode) { 
+        controlDeviceCalMode = dev; 
+    }
+
+}// end of MainHandler::createControlDeviceTimerDriven
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::findControlDevices
+//
+// Finds and sets the control device and the control device to use in 
+// calibration mode. Sends error and success messages to the log panel.
+//
+
+private void findControlDevices()
+{
+   
+    String msg = "";
+    
+    boolean success = false;
+       
+    boolean found = false;
+    boolean foundCal = false;
+    for (Device d : devices) {
+
+        if (d.getTitle().equals(nameOfDeviceToUseForControl)) {
+
+            found = true;
+
+            if (!d.isControlDevice()) {
+                msg += "Error Finding Control Device: Device " 
+                                + nameOfDeviceToUseForControl 
+                                + " cannot be used as a control device.\n";
+            } else { controlDevice = d; success = true; }
+
+        }
+        
+        if (d.getTitle().equals(nameOfDeviceToUseForControlCalMode)) {
+
+            foundCal = true;
+
+            if (!d.isControlDevice()) {
+                msg += "Error Finding Control Device to Use in Cal Mode: Device " 
+                            + nameOfDeviceToUseForControlCalMode
+                            + " cannot be used as a control device.\n";
+            } else { controlDeviceCalMode = d; success = true; }
+
+        }
+
+    }
+
+    if (!found) {
+        msg += "Error Finding Control Device: Device " 
+                + nameOfDeviceToUseForControl 
+                + " was not found in list of devices.\n";
+    }
+    
+    if (!foundCal) {
+        msg += "Error Finding Control Device to Use in Cal Mode: Device " 
+                + nameOfDeviceToUseForControlCalMode
+                + " was not found in list of devices.\n";
+    }
+    
+    if (success) { msg = "Control devices successfully configured.\n"; }
+
+    logPanel.appendTS(msg);
+
+}// end of MainHandler::findControlDevices
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainHandler::collectData
 //
 // Collects data from all source(s) -- remote hardware devices, databases,
@@ -983,11 +1099,9 @@ synchronized private void processChannelParameterChanges()
 public boolean isReadyToAdvanceInsertionPoints()
 {
 
-    if (scanRateCounter-- == 0){ 
-        scanRateCounter = 10 - sharedSettings.scanSpeed; 
-        return true;
-    }
-    else { return false; }
+    if (sharedSettings.calMode) { 
+        return controlDevice.isReadyToAdvanceInsertionPoints(); 
+    } else { return controlDeviceCalMode.isReadyToAdvanceInsertionPoints(); }
 
 }// end of MainHandler::isReadyToAdvanceInsertionPoints
 //-----------------------------------------------------------------------------
@@ -1049,6 +1163,14 @@ private void loadConfigSettings()
         if(sim || allDevicesSimulatedOverride){ deviceTypesSimulated.add(t); }
 
     }
+    
+    nameOfDeviceToUseForControl = configFile.readString(section, 
+                                    "title of device to use for control", "");
+    
+    nameOfDeviceToUseForControlCalMode = configFile.readString(section, 
+                                    "title of device to use for control"
+                                    + " in calibration mode", 
+                                    nameOfDeviceToUseForControl);
 
 }// end of MainHandler::loadConfigSettings
 //-----------------------------------------------------------------------------

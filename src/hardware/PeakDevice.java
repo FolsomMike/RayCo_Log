@@ -67,8 +67,8 @@ public PeakDevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
     mapMeta.deviceNum = pDeviceNum;
     snapshotMeta.deviceNum = pDeviceNum;
-
-    runDataPacketSize = 212;
+    
+    isControlDevice = false;
 
 }//end of PeakDevice::PeakDevice (constructor)
 //-----------------------------------------------------------------------------
@@ -86,8 +86,6 @@ public void init()
 {
 
     super.init();
-
-    packet = new byte[RUN_DATA_BUFFER_SIZE];
 
 }// end of PeakDevice::init
 //-----------------------------------------------------------------------------
@@ -709,7 +707,7 @@ public void collectData()
 
     super.collectData();
 
-    boolean processPacket = getRunPacketFromDevice(packet);
+    boolean processPacket = getRunPacketFromDevice(runDataPacket);
 
     if (processPacket){
 
@@ -724,7 +722,7 @@ public void collectData()
         int peak=0;
         for(int i=0; i<channels.length; i++){
 
-            data = getUnsignedShortFromPacket(packet, index);
+            data = getUnsignedShortFromPacket(runDataPacket, index);
             data = Math.abs(data - AD_ZERO_OFFSET);
             index+=2; //skip two because short is 2 bytes
             channelPeaks[i] = data;
@@ -733,9 +731,9 @@ public void collectData()
 
         }
 
-        extractSnapshotData(packet, snapshotIndex);
+        extractSnapshotData(runDataPacket, snapshotIndex);
 
-        if(numClockPositions > 0) { extractMapData(packet, clockMapIndex); }
+        if(numClockPositions > 0) { extractMapData(runDataPacket, clockMapIndex); }
         
         deviceData.putData(channelPeaks, peak, snapData, mapData);
 

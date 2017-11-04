@@ -188,7 +188,7 @@ public void collectData()
 
     super.collectData();
 
-    boolean processPacket = getRunPacketFromDevice(packet);
+    boolean processPacket = getRunPacketFromDevice(inspectPacket);
 
     if (processPacket){
 
