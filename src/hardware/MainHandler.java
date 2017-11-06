@@ -1036,7 +1036,7 @@ private void handleSettingsChanges()
 {
 
     //handle operation mode changes
-    /*if (opModeChanged) {
+    if (opModeChanged) {
     
         opModeChanged = false; //not considered changed after this
 
@@ -1059,7 +1059,7 @@ private void handleSettingsChanges()
 
         }
         
-    }*/ //DEBUG HSS// uncomment later
+    }
 
 }//end of MainHandler::handleSettingsChanges
 //-----------------------------------------------------------------------------
@@ -1080,9 +1080,6 @@ private void startStopMode()
     //disable tracking pulses from Control to other devices
     controlDevice.setTrackPulsesEnabledFlag(false);
     controlDeviceCalMode.setTrackPulsesEnabledFlag(false);
-
-    //invoke all devices to stop inspect
-    for (Device d : devices) { d.stopInspect(); }
 
 }//end of MainHandler::startStopMode
 //-----------------------------------------------------------------------------
@@ -1151,9 +1148,6 @@ private void startInspectMode()
     //force remote to send Inspect packet so all the flags will be up to date
     if (sharedSettings.calMode) { controlDeviceCalMode.requestInspectPacket(); }
     else { controlDevice.requestInspectPacket(); }
-
-    //invoke all devices to start inspect
-    for (Device d : devices) { d.startInspect(); }
 
 }//end of MainHandler::startInspectMode
 //-----------------------------------------------------------------------------
