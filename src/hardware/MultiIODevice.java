@@ -59,8 +59,6 @@ public class MultiIODevice extends Device
     static final byte GET_ALL_LAST_AD_VALUES_CMD = 11;
     static final byte SET_LOCATION_CMD = 12;
     static final byte SET_CLOCK_CMD = 13;
-
-    //Commands for Control boards
     static byte GET_INSPECT_PACKET_CMD = 14;
     static byte ZERO_ENCODERS_CMD = 15;
     static byte GET_MONITOR_PACKET_CMD = 16;
@@ -77,6 +75,15 @@ public class MultiIODevice extends Device
     static byte RESET_TRACK_COUNTERS_CMD = 27;
     static byte GET_ALL_ENCODER_VALUES_CMD = 28;
     static byte SET_MODE_CMD = 29;
+    static byte RESET_FOR_NEXT_RUN_CMD = 30;
+    
+    // transmit tracking pulse to DSPs for every o'clock position and a reset
+    // pulse at every TDC
+    static final int RABBIT_SEND_CLOCK_MARKERS = 0x0001;
+    // transmit a single pulse at every TDC detection
+    static final int RABBIT_SEND_TDC = 0x0002;
+    // enables sending of track sync pulses (doesn't affect track reset pulses)
+    static final int TRACK_PULSES_ENABLED = 0x0004;
 
     static final byte ERROR = 125;
     static final byte DEBUG_CMD = 126;
@@ -286,6 +293,21 @@ public void startInspect()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::sendResetForNextRunCmd
+//
+// Sends to the remote the command to reset for the next run.
+//
+
+@Override
+public void sendResetForNextRunCmd()
+{
+
+    sendPacket(RESET_FOR_NEXT_RUN_CMD, (byte) (0));
+
+}//end of MultiIODevice::sendResetForNextRunCmd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MultiIODevice::stopInspect
 //
 // Takes device out of the inspect mode.
@@ -341,6 +363,67 @@ public void zeroEncoderCounts()
 {
 
 }//end of MultiIODevice::zeroEncoderCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::setTrackPulsesEnabledFlag
+//
+// Sets the proper flag in rabbitControlFlags and transmits it to the remote.
+//
+
+@Override
+public void setTrackPulsesEnabledFlag(boolean pState) 
+{
+
+    if (pState){
+        rabbitControlFlags |= TRACK_PULSES_ENABLED;
+    }
+    else{
+        rabbitControlFlags &= (~TRACK_PULSES_ENABLED);
+    }
+
+    //send updated flags to the remotes
+    sendRabbitControlFlags();
+    
+}//end of MultiIODevice::setTrackPulsesEnabledFlag
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::resetTrackCounters
+//
+// Sends to the remote the command to fire a Track Counter Reset pulse to
+// zero the tracking counters.
+//
+
+@Override
+public void resetTrackCounters()
+{
+    
+    sendPacket(RESET_TRACK_COUNTERS_CMD, (byte)(0));
+
+}//end of MultiIODevice::resetTrackCounters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MultiIODevice::sendRabbitControlFlags
+//
+// Sends the rabbitControlFlags value to the remotes. These flags control
+// the functionality of the remotes.
+//
+// The paramater pCommand is the command specific to the subclass for its
+// Rabbit remote.
+//
+
+@Override
+public void sendRabbitControlFlags()
+{
+
+    sendPacket(SET_CONTROL_FLAGS_CMD,
+                (byte) ((rabbitControlFlags >> 8) & 0xff),
+                (byte) (rabbitControlFlags & 0xff)
+                );
+
+}//end of MultiIODevice::sendRabbitControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -466,7 +549,7 @@ public void processChannelParameterChanges()
 //
 
 @Override
-boolean requestInspectPacket()
+public boolean requestInspectPacket()
 {
 
     if (!super.requestInspectPacket()) { return false; }

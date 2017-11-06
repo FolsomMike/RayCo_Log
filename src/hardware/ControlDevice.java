@@ -16,5 +16,9 @@ package hardware;
 public interface ControlDevice {
 
     public boolean isReadyToAdvanceInsertionPoints();
+    public void setTrackPulsesEnabledFlag(boolean pState);
+    public void resetTrackCounters();
+    public void setNewInspectData(boolean pState);
+    public boolean requestInspectPacket();
 
 }

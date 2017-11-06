@@ -28,6 +28,8 @@ import model.IniFile;
 
 public class HardwareVars extends Object{
 
+    private final IniFile configFile;
+    
     int nextIndex;
 
     EncoderValues encoderValues;
@@ -110,6 +112,21 @@ public class HardwareVars extends Object{
     //that a flaw gate can create a spike on the wall trace(s)
     public int wallMaxModifier;
     public int wallMinModifier =  Integer.MIN_VALUE;
+    
+//-----------------------------------------------------------------------------
+// HardwareVars::HardwareVars (constructor)
+//
+// The parameter configFile is used to load configuration data.  The IniFile
+// should already be opened and ready to access.
+//
+
+public HardwareVars(IniFile pConfigFile)
+{
+
+    configFile = pConfigFile;
+
+}//end of HardwareVars::HardwareVars (constructor)
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // EncoderValues::init
@@ -121,6 +138,8 @@ public void init()
 {
 
     encoderValues = new EncoderValues(); encoderValues.init();
+    
+    configure(configFile);
 
 }//end of EncoderValues::init
 //-----------------------------------------------------------------------------

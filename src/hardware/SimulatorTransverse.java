@@ -36,6 +36,53 @@ public class SimulatorTransverse extends Simulator
     int count=0;
 
     protected int posTest = 128; protected int negTest = 127; //DEBUG HSS// remove later
+    
+    //control vars
+    boolean onPipeFlag = false;
+    boolean head1Down = false;
+    boolean head2Down = false;
+    boolean head3Down = false;
+    boolean inspectMode = false;
+    //DEBUG HSS//int simulationMode = MessageLink.STOP;
+    int encoder1 = 0, encoder2 = 0;
+    int encoder1DeltaTrigger = 1000, encoder2DeltaTrigger = 1000;
+    int inspectPacketCount = 0;
+
+    byte controlFlags = 0, portE = 0;
+
+    int positionTrack; // this is the number of packets sent, not the encoder
+                       // value
+
+    public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
+    int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+
+    //This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
+    //Number of encoder counts (using leading eye for both ends): 90107
+    //The PLC actually gives pipe-on when the lead eye hits the pipe and
+    //pipe-off when the trailing eye leaves the pipe:
+    // eye to eye distance is 53.4375", or 17,653 encoder counts.
+    //Number of encoder counts for simulated joint: 90107 + 17,653 = 107,760
+    // (this assumes starting with lead eye and ending with trail eye)
+    //Number of counts per packet: 83
+    //Number of packets for complete simulated joint: 107,760 / 83 = 1298
+
+    //number of packets to skip before simulating lead eye reaching pipe
+    //this simulates the head moving from the off-pipe position to on-pipe
+    public final static int START_DELAY_IN_PACKETS = 10;
+
+    //number of packets for length of tube -- take into account the start delay
+    //packets as inspection does not occur during that time
+    public static int LENGTH_OF_JOINT_IN_PACKETS =
+                                                1400 + START_DELAY_IN_PACKETS;
+
+    byte enc1AInput = 0, enc1BInput = 1, enc2AInput = 1, enc2BInput = 0;
+    byte padrUnused1 = 0, padrUnused2 = 0, padrUnused3 = 0, padrUnused4 = 0;
+    byte padrInspect = 0, pedrTDC = 0;
+    byte inspectionStatus = 0;
+    short rpm = 123, rpmVariance = 2;
+    int enc1Count = 0, enc2Count = 0;
+    short enc1CountsPerSec = 0, enc2CountsPerSec = 0;
+    int monitorSimRateCounter = 0;
 
 //-----------------------------------------------------------------------------
 // SimulatorTransverse::SimulatorTransverse (constructor)
@@ -305,6 +352,272 @@ public int handleGetRunData()
     return(result);
 
 }//end of SimulatorTransverse::handleGetRunData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SimulatorTransverse::handleGetInspectPacket
+//
+// Handles GET_INSPECT_PACKET_CMD packet requests. Sends appropriate packet via
+// the socket.
+//
+
+@Override
+public int handleGetInspectPacket()
+{
+    
+    int numBytesInPkt = 2;  //includes the checksum byte
+
+    int result = readBytesAndVerify(
+                       inBuffer, numBytesInPkt, MultiIODevice.GET_RUN_DATA_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    simulateInspection();
+    
+    return result;
+
+}//end of SimulatorTransverse::handleGetInspectPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::handleSetEncodersDeltaTrigger
+//
+// Handles GET_INSPECT_PACKET_CMD packet requests. Sends appropriate packet via
+// the socket.
+//
+// Tells the Control board how many encoder counts to wait before sending
+// an encoder value update.  The trigger value for each encoder is sent.
+//
+// Normally, this value will be set to something reasonable like .25 to 1.0
+// inch of travel of the piece being inspected. Should be no larger than the
+// distance represented by a single pixel.
+//
+
+@Override
+public int handleSetEncodersDeltaTrigger()
+{
+    
+    int numBytesInPkt = 5;  //includes the checksum byte
+
+    int result = readBytesAndVerify(inBuffer, numBytesInPkt, 
+                                MultiIODevice.SET_ENCODERS_DELTA_TRIGGER_CMD);
+    if (result != numBytesInPkt){ return result; }
+
+    encoder1DeltaTrigger =
+                   (int)((inBuffer[0]<<8) & 0xff00) + (int)(inBuffer[1] & 0xff);
+
+    encoder2DeltaTrigger =
+                   (int)((inBuffer[2]<<8) & 0xff00) + (int)(inBuffer[3] & 0xff);
+
+    return result;
+
+}//end of ControlSimulator::handleSetEncodersDeltaTrigger
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::handleStartInspect
+//
+// Handles START_INSPECT_CMD packet commands from host.
+//
+
+@Override
+public int handleStartInspect()
+{
+    
+    int numBytesInPkt = 2; //includes the checksum byte
+
+    int result = readBytesAndVerify(inBuffer, numBytesInPkt, 
+                                        MultiIODevice.START_INSPECT_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    resetAllInspectionValues();
+    
+    inspectMode = true;
+    
+    sendACK();
+
+    return result;
+
+}//end of ControlSimulator::handleStartInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::handleStopInspect
+//
+// Handles STOP_INSPECT_CMD packet commands from host.
+//
+
+@Override
+public int handleStopInspect()
+{
+    
+    int numBytesInPkt = 2; //includes the checksum byte
+
+    int result = readBytesAndVerify(inBuffer, numBytesInPkt, 
+                                        MultiIODevice.STOP_INSPECT_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    inspectMode = false;
+    
+    sendACK();
+
+    return result;
+
+}//end of ControlSimulator::handleStopInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::resetAllInspectionValues
+//
+// Resets all variables in preparation to simulate a new piece.
+//
+
+private void resetAllInspectionValues()
+{
+
+    positionTrack = 0;
+    onPipeFlag = false;
+    head1Down = false;
+    head2Down = false;
+    head3Down = false;
+    encoder1 = 0; encoder2 = 0;
+    inspectPacketCount = 0;
+    delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+
+}//end of ControlSimulator::resetAllInspectionValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::simulateInspection
+//
+// Simulates signals expected by the host in inspect mode.
+//
+
+@Override
+public void simulateInspection()
+{
+
+    //do nothing if not in inspect mode
+    if (!inspectMode) { return; }
+    
+    //do nothing if in STOP mode
+    //DEBUG HSS//if (simulationMode == MessageLink.STOP) {return;}
+
+    //delay between sending inspect packets to the host
+    if (delayBetweenPackets-- != 0) {return;}
+    //restart time for next packet send
+    delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+
+    inspectPacketCount++; //count packets sent to host
+
+    //track distance moved by number of packets sent
+    /*if (simulationMode == MessageLink.FORWARD){
+        positionTrack++;
+    }
+    else if (simulationMode == MessageLink.REVERSE){
+        positionTrack--;
+    }*/
+    //DEBUG HSS// //WIP HSS// assume in forward mode for now
+    positionTrack++;
+
+    //the position track will run negative if inspection is occurring in the
+    //reverse direction -- use absolute value to find trigger points for both
+    //directions
+
+    int triggerTrack = Math.abs(positionTrack);
+
+    //after photo eye reaches piece, give "on pipe" signal
+    onPipeFlag = triggerTrack >= 10;
+
+    //after head 1 reaches position, give head 1 down signal
+    head1Down = triggerTrack >= 225;
+
+    //after head 2 reaches position, give head 2 down signal
+    head2Down = triggerTrack >= 250;
+
+    //after head 3 reaches position, give head 3 down signal
+    head3Down = triggerTrack >= 275;
+
+    //after head 1 reaches pick up position, give head 1 up signal
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-75) {head1Down = false;}
+
+    //after head 2 reaches pick up position, give head 2 up signal
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-50) {head2Down = false;}
+
+    //after head 3 reaches pick up position, give head 3 up signal
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-25) {head3Down = false;}
+
+    //after photo eye reaches end of piece, turn off "on pipe" signal
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS) {onPipeFlag = false;}
+
+    //wait a bit after head has passed the end and prepare for the next piece
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS + 10) {
+        resetAllInspectionValues();
+    }
+
+    //start with all control flags set to 0
+    controlFlags = (byte)0x00;
+    //start with portE bits = 1, they are changed to zero if input is active
+    portE = (byte)0xff;
+
+    //set appropriate bit high for each flag which is active low
+    if (onPipeFlag)
+        {controlFlags = (byte)(controlFlags | MultiIODevice.ON_PIPE_CTRL);}
+    if (head1Down)
+        {controlFlags = (byte)(controlFlags | MultiIODevice.HEAD1_DOWN_CTRL);}
+    if (head2Down)
+        {controlFlags = (byte)(controlFlags | MultiIODevice.HEAD2_DOWN_CTRL);}
+    if (head3Down)
+        {controlFlags = (byte)(controlFlags | MultiIODevice.HEAD3_DOWN_CTRL);}
+
+    //the following allows the dual linear encoder simulation to work, but
+    // should actually only turn encoder 2 after the tube reaches it and
+    // stop turning encoder 1 after the tube passes it
+
+    //for trolley units, encoder 2 should turn as tube moves but encoder 1
+    //should be incremented to reflect tube rotation -- most trolley units
+    //don't have encoder 1 but instead use a once-per-rev TDC signal
+
+    //move the encoders the forward or backward the amount expected by the host
+    /*if (simulationMode == MessageLink.FORWARD){
+        encoder1 += encoder1DeltaTrigger;
+        encoder2 += encoder2DeltaTrigger;
+    }
+    else if (simulationMode == MessageLink.REVERSE){
+        encoder1 -= encoder1DeltaTrigger;
+        encoder2 -= encoder2DeltaTrigger;
+    }*/
+    //DEBUG HSS// //WIP HSS// assume moving forward
+    
+    encoder1 += encoder1DeltaTrigger;
+    encoder2 += encoder2DeltaTrigger;
+    
+    sendPacket(MultiIODevice.GET_INSPECT_PACKET_CMD,
+                
+                //packet count, MSB followed by LSB
+                (byte)((inspectPacketCount >> 8) & 0xff),
+                (byte)(inspectPacketCount++ & 0xff),
+                
+                //encoder 1 values by byte, MSB first
+                (byte)((encoder1 >> 24) & 0xff),
+                (byte)((encoder1 >> 16) & 0xff),
+                (byte)((encoder1 >> 8) & 0xff),
+                (byte)(encoder1 & 0xff),
+            
+                //encoder 2 values by byte, MSB first
+                (byte)((encoder2 >> 24) & 0xff),
+                (byte)((encoder2 >> 16) & 0xff),
+                (byte)((encoder2 >> 8) & 0xff),
+                (byte)(encoder2 & 0xff),
+                
+                //control flags
+                controlFlags,
+                
+                //port E
+                portE
+                
+            );
+
+}//end of ControlSimulator::simulateInspection
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

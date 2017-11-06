@@ -618,7 +618,8 @@ int stopInspect(byte pPktID)
 // Simulates signals expected by the host in inspect mode.
 //
 
-void simulateInspection()
+@Override
+public void simulateInspection()
 {
 
     //do nothing if in STOP mode

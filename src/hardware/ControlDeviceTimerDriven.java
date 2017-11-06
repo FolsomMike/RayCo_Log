@@ -77,10 +77,24 @@ public boolean isReadyToAdvanceInsertionPoints()
         scanRateCounter = 10 - sharedSettings.scanSpeed; 
         return true;
     }
-    else { return false; }
+    else { 
+        return false; 
+    }
 
 }// end of ControlDeviceTimerDriven::isReadyToAdvanceInsertionPoints
 //-----------------------------------------------------------------------------
+
+@Override
+public void setTrackPulsesEnabledFlag(boolean pState) {}
+
+@Override
+public void resetTrackCounters() {}
+
+@Override
+public void setNewInspectData(boolean pState) {}
+
+@Override
+public boolean requestInspectPacket() { return true; }
 
 }//end of class ControlDeviceTimerDriven
 //-----------------------------------------------------------------------------

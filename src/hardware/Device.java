@@ -25,7 +25,6 @@ import static hardware.Channel.CATCH_HIGHEST;
 import static hardware.Channel.CATCH_LOWEST;
 import static hardware.Channel.DOUBLE_TYPE;
 import static hardware.Channel.INTEGER_TYPE;
-import static hardware.MultiIODevice.GET_MONITOR_PACKET_CMD;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -92,6 +91,8 @@ public class Device implements Runnable, ControlDevice
     byte[] inspectBuffer;
     int inspectPacketSize = 0; //needs to be set by child classes
     private boolean newInspectData = false;
+    @Override
+    public void setNewInspectData(boolean pState) { newInspectData = pState; }
     
     byte[] monitorBuffer;
     int monitorPacketSize = 0; //needs to be set by child classes
@@ -154,6 +155,8 @@ public class Device implements Runnable, ControlDevice
     public boolean isControlDevice() { return isControlDevice; }
     
     protected boolean readyToAdvanceInsertionPoints = true;
+    
+    short rabbitControlFlags = 0;
     
     byte[] allEncoderValuesBuffer;
     int allEncodersPacketSize = 0; //needs to be set by child classes
@@ -552,7 +555,8 @@ public byte[] getMonitorPacket(boolean pRequestPacket)
 // Overridden by children classes for custom handling.
 //
 
-boolean requestInspectPacket()
+@Override
+public boolean requestInspectPacket()
 {
 
     //waiting for remote response or not a control return false since we bailed
@@ -629,6 +633,49 @@ public void zeroEncoderCounts()
 {
 
 }//end of Device::zeroEncoderCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::setTrackPulsesEnabledFlag
+//
+// Sets the proper flag in rabbitControlFlags and transmits it to the remote.
+//
+
+@Override
+public void setTrackPulsesEnabledFlag(boolean pState)
+{
+    
+}//end of Device::setTrackPulsesEnabledFlag
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::resetTrackCounters
+//
+// Sends to the remote the command to fire a Track Counter Reset pulse to
+// zero the tracking counters.
+//
+
+@Override
+public void resetTrackCounters()
+{
+
+}//end of Device::resetTrackCounters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::sendRabbitControlFlags
+//
+// Sends the rabbitControlFlags value to the remotes. These flags control
+// the functionality of the remotes.
+//
+// The paramater pCommand is the command specific to the subclass for its
+// Rabbit remote.
+//
+
+public void sendRabbitControlFlags()
+{
+
+}//end of Device::sendRabbitControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1111,6 +1158,18 @@ void sendSetClockPacket(int pHdwChannel, int pValue)
     numACKsExpected++;
 
 }//end of Device::sendSetClockPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::sendResetForNextRunCmd
+//
+// Sends to the remote the command to reset for the next run.
+//
+
+public void sendResetForNextRunCmd()
+{
+
+}//end of Device::sendResetForNextRunCmd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

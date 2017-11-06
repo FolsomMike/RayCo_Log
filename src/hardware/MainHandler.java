@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 import model.IniFile;
 import model.SharedSettings;
 import view.LogPanel;
-import view.Xfer;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -52,6 +51,7 @@ public class MainHandler
     private final MainController mainController;
     private final IniFile configFile;
     private final SharedSettings sharedSettings;
+    private HardwareVars hdwVs;
 
     LogPanel logPanel;
 
@@ -84,6 +84,8 @@ public class MainHandler
     
     //true means monitor mode active, false means not
     private boolean monitorStatus = false;
+    
+    private boolean opModeChanged = false;
 
     private static final int LONG = 0;  //longitudinal system
     private static final int TRANS = 1; //transverse system
@@ -111,6 +113,8 @@ public MainHandler(int pHandlerNum, MainController pMainController,
 
 public void init()
 {
+    
+    hdwVs = new HardwareVars(configFile); hdwVs.init();
 
     loadConfigSettings();
 
@@ -795,6 +799,8 @@ private void findControlDevices()
 public void collectData()
 {
 
+    handleSettingsChanges(); //process if a new op mode has been set
+    
     processChannelParameterChanges(); //process updated values
 
     for(Device device : devices){ device.collectData(); }
@@ -997,6 +1003,186 @@ public void processData()
 
 
 }// end of MainHandler::processData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::setOperationMode
+//
+// Sets a flag indicating that the operation mode has changed and actions need
+// to be taken in the main thread to handle the new mode.
+//
+// This function is only called from the GUI thread.
+//
+// Currently, pOpMode is ignored because everything in Hardware reads the
+// mode from SharedSettings. It is only passed in because it may be required
+// in the future.
+//
+
+synchronized public void setOperationMode(int pOpMode)
+{
+
+    opModeChanged = true;
+
+}//end of MainHandler::setOperationMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::handleSettingsChanges
+//
+// Handles all settings that have been flagged as changed.
+//
+
+private void handleSettingsChanges()
+{
+
+    //handle operation mode changes
+    /*if (opModeChanged) {
+    
+        opModeChanged = false; //not considered changed after this
+
+        switch (sharedSettings.opMode) {
+
+            case SharedSettings.STOP_MODE:
+                startStopMode();
+                break;
+
+            case SharedSettings.SCAN_MODE:
+                startScanMode();
+                break;
+
+            case SharedSettings.INSPECT_MODE:
+                startInspectMode();
+                break;
+
+            default:
+                break;
+
+        }
+        
+    }*/ //DEBUG HSS// uncomment later
+
+}//end of MainHandler::handleSettingsChanges
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::startStopMode
+//
+// Puts the system in Stop mode.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeStopModeTrigger true.
+//
+
+private void startStopMode()
+{
+ 
+    //disable tracking pulses from Control to other devices
+    controlDevice.setTrackPulsesEnabledFlag(false);
+    controlDeviceCalMode.setTrackPulsesEnabledFlag(false);
+
+    //invoke all devices to stop inspect
+    for (Device d : devices) { d.stopInspect(); }
+
+}//end of MainHandler::startStopMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::startScanMode
+//
+// Puts the system in Scan mode.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeScanModeTrigger true.
+//
+
+private void startScanMode()
+{
+
+    prepareRemotesForNextRun(); //prepare Devices, Control Boards, etc.
+    
+    //in scan mode, map is advanced on each TDC, so enable Control board to
+    //provide a pulse for each TDC it detects
+    controlDevice.setTrackPulsesEnabledFlag(false);
+    controlDeviceCalMode.setTrackPulsesEnabledFlag(false);
+
+}//end of MainHandler::startScanMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::startInspectMode
+//
+// Puts the system in Inspect mode.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeInspectModeTrigger true.
+//
+
+private void startInspectMode()
+{
+    
+    //system waits until it receives flag that head is off the pipe or no
+    //pipe is in the system
+    hdwVs.waitForOffPipe = true;
+
+    //track from photo eye clear to end of pipe
+    hdwVs.trackToEndOfPiece = false;
+
+    //use a flag and a tracking counter to indicate when head is still near
+    //the beginning of the piece
+    hdwVs.nearStartOfPiece = true;
+    hdwVs.nearStartOfPieceTracker = hdwVs.nearStartOfPiecePosition;
+
+    //flags set true later when end of pipe is near
+    hdwVs.trackToNearEndofPiece = false;
+    hdwVs.nearEndOfPiece = false;
+
+    //reset length of tube
+    hdwVs.measuredLength = 0;
+
+    prepareRemotesForNextRun(); //prep all devices
+
+    //ignore the Inspect status flags until a new packet is received
+    controlDevice.setNewInspectData(false);
+    controlDeviceCalMode.setNewInspectData(false);
+
+    //force remote to send Inspect packet so all the flags will be up to date
+    if (sharedSettings.calMode) { controlDeviceCalMode.requestInspectPacket(); }
+    else { controlDevice.requestInspectPacket(); }
+
+    //invoke all devices to start inspect
+    for (Device d : devices) { d.startInspect(); }
+
+}//end of MainHandler::startInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::prepareRemotesForNextRun
+//
+// Prepares all remote devices for the next inspection run.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeStopModeTrigger true.
+//
+
+private void prepareRemotesForNextRun()
+{
+
+    //make sure tracking pulses are disabled before issuing reset command
+    controlDevice.setTrackPulsesEnabledFlag(false);
+    controlDeviceCalMode.setTrackPulsesEnabledFlag(false);
+        
+    //tell Control board to pulse the Track Counter Reset line to zero the
+    //tracking counters
+    controlDevice.resetTrackCounters();
+    
+    //tell all devices to reset for next run
+    for (Device d : devices) { d.sendResetForNextRunCmd(); }
+        
+}//end of MainHandler::prepareRemotesForNextRun
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

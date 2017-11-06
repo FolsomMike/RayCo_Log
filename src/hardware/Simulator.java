@@ -242,6 +242,8 @@ public int processDataPackets(boolean pWaitForPkt)
 
 public int processDataPacketsHelper(boolean pWaitForPkt)
 {
+    
+    simulateInspection();
 
     if (byteIn == null) {return(0);}  //do nothing if the port is closed
 
@@ -320,6 +322,14 @@ public void handlePacket(byte pCommand)
                                             handleGetAllLastADValuesPacket(); }
     else
     if (pCommand == MultiIODevice.GET_RUN_DATA_CMD) { handleGetRunData(); }
+    else
+    if (pCommand == MultiIODevice.START_INSPECT_CMD) { handleStartInspect(); }
+    else
+    if (pCommand == MultiIODevice.GET_INSPECT_PACKET_CMD) { handleGetInspectPacket(); }
+    else
+    if (pCommand == MultiIODevice.SET_ENCODERS_DELTA_TRIGGER_CMD) { 
+        handleSetEncodersDeltaTrigger(); 
+    }
 
 }//end of Simulator::handlePacket
 //-----------------------------------------------------------------------------
@@ -382,6 +392,18 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
     else{ packetErrorCnt++; return(-1); }
 
 }//end of Simulator::readBytesAndVerify
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::simulateInspection
+//
+// Simulates and transmits signals expected by the host in inspect mode.
+//
+
+public void simulateInspection()
+{
+
+}//end of Simulator::simulateInspection
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -581,6 +603,81 @@ public int handleGetRunData()
     return(0);
 
 }//end of Simulator::handleGetRunData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleStartInspect
+//
+// Handles START_INSPECT_CMD packet requests. Sends appropriate packet via
+// the socket.
+//
+// This method should be overridden by child classes to provide appropriate
+// processing.
+//
+
+public int handleStartInspect()
+{
+    
+    return 0;
+
+}//end of Simulator::handleStartInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleStopInspect
+//
+// Handles STOP_INSPECT_CMD packet commands from host.
+//
+
+public int handleStopInspect()
+{
+    
+    return 0;
+
+}//end of Simulator::handleStopInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleGetInspectPacket
+//
+// Handles GET_INSPECT_PACKET_CMD packet requests. Sends appropriate packet via
+// the socket.
+//
+// This method should be overridden by child classes to provide appropriate
+// processing.
+//
+
+public int handleGetInspectPacket()
+{
+    
+    return 0;
+
+}//end of Simulator::handleGetInspectPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::handleSetEncodersDeltaTrigger
+//
+// Handles GET_INSPECT_PACKET_CMD packet requests. Sends appropriate packet via
+// the socket.
+//
+// Tells the Control board how many encoder counts to wait before sending
+// an encoder value update.  The trigger value for each encoder is sent.
+//
+// Normally, this value will be set to something reasonable like .25 to 1.0
+// inch of travel of the piece being inspected. Should be no larger than the
+// distance represented by a single pixel.
+//
+// This method should be overridden by child classes to provide appropriate
+// processing.
+//
+
+public int handleSetEncodersDeltaTrigger()
+{
+    
+    return 0;
+
+}//end of ControlSimulator::handleSetEncodersDeltaTrigger
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
