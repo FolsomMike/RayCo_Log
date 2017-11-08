@@ -641,6 +641,33 @@ private void startInspectMode()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::handlePieceTransition
+//
+// Saves the data for the piece just processed and prepares to process a new
+// piece.
+//
+
+public void handlePieceTransition()
+{
+    
+    //if an inspection was not started, ignore so that the piece number is not 
+    //incremented needlessly
+
+    if (!mainView.isSegmentStarted()){ return;  }
+
+    //save the piece just finished
+    processFinishedPiece();
+
+    //prepare buffers for next piece
+    prepareForNextPiece();
+    
+    //prepare hardware interface for new piece
+    mainHandler.setOperationMode(sharedSettings.opMode);
+
+}//end of MainController::handlePieceTransition
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::handleNextRun
 //
 // Handles preparations for the next run.
@@ -1542,6 +1569,13 @@ private String getSegmentInfoFileName()
 
 public void doTimerActions()
 {
+    
+    //if the hardware interface has received an end of piece signal, save the
+    //finished piece and prepare for the next one
+    if (mainHandler.needToPrepareForNewPiece()){
+        mainHandler.setPrepareForNewPiece(false);
+        handlePieceTransition();
+    }
 
     //If a shut down is initiated, clean up, save data, etc
     if(sharedSettings.beginShutDown) {

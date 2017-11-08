@@ -106,6 +106,7 @@ public class MainHandler
     
     private boolean prepareForNewPiece;
     public boolean needToPrepareForNewPiece() { return prepareForNewPiece; }
+    public void setPrepareForNewPiece(boolean pPrep) { prepareForNewPiece = pPrep; }
     
     private boolean readyToAdvanceInsertionPoints = false;
     
