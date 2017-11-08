@@ -584,6 +584,8 @@ private void startStopMode()
     sharedSettings.opModePrev =  sharedSettings.opMode;
     sharedSettings.opMode = SharedSettings.STOP_MODE;
     
+    mainHandler.setOperationMode(sharedSettings.opMode);
+    
     //save data only if a segment was started
     if (mainView.isSegmentStarted()){ processFinishedPiece(); }
     
@@ -603,6 +605,8 @@ private void startScanMode()
 {
 
     sharedSettings.opMode = SharedSettings.SCAN_MODE;
+    
+    mainHandler.setOperationMode(sharedSettings.opMode);
 
     //force view to reset everything he has
     mainView.resetAll();
@@ -623,6 +627,8 @@ private void startInspectMode()
 {
 
     sharedSettings.opMode = SharedSettings.INSPECT_MODE;
+    
+    mainHandler.setOperationMode(sharedSettings.opMode);
 
     //force view to reset everything he has
     mainView.resetAll();

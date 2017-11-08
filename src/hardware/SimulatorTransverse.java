@@ -39,9 +39,6 @@ public class SimulatorTransverse extends Simulator
     
     //control vars
     boolean onPipeFlag = false;
-    boolean head1Down = false;
-    boolean head2Down = false;
-    boolean head3Down = false;
     boolean inspectMode = false;
     //DEBUG HSS//int simulationMode = MessageLink.STOP;
     int encoder1 = 0, encoder2 = 0;
@@ -368,7 +365,7 @@ public int handleGetInspectPacket()
     int numBytesInPkt = 2;  //includes the checksum byte
 
     int result = readBytesAndVerify(
-                       inBuffer, numBytesInPkt, MultiIODevice.GET_RUN_DATA_CMD);
+                       inBuffer, numBytesInPkt, MultiIODevice.GET_INSPECT_PACKET_CMD);
     if (result != numBytesInPkt){ return(result); }
     
     simulateInspection();
@@ -429,8 +426,6 @@ public int handleStartInspect()
                                         MultiIODevice.START_INSPECT_CMD);
     if (result != numBytesInPkt){ return(result); }
     
-    resetAllInspectionValues();
-    
     inspectMode = true;
     
     sendACK();
@@ -476,9 +471,6 @@ private void resetAllInspectionValues()
 
     positionTrack = 0;
     onPipeFlag = false;
-    head1Down = false;
-    head2Down = false;
-    head3Down = false;
     encoder1 = 0; encoder2 = 0;
     inspectPacketCount = 0;
     delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
@@ -528,24 +520,6 @@ public void simulateInspection()
     //after photo eye reaches piece, give "on pipe" signal
     onPipeFlag = triggerTrack >= 10;
 
-    //after head 1 reaches position, give head 1 down signal
-    head1Down = triggerTrack >= 225;
-
-    //after head 2 reaches position, give head 2 down signal
-    head2Down = triggerTrack >= 250;
-
-    //after head 3 reaches position, give head 3 down signal
-    head3Down = triggerTrack >= 275;
-
-    //after head 1 reaches pick up position, give head 1 up signal
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-75) {head1Down = false;}
-
-    //after head 2 reaches pick up position, give head 2 up signal
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-50) {head2Down = false;}
-
-    //after head 3 reaches pick up position, give head 3 up signal
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-25) {head3Down = false;}
-
     //after photo eye reaches end of piece, turn off "on pipe" signal
     if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS) {onPipeFlag = false;}
 
@@ -560,14 +534,9 @@ public void simulateInspection()
     portE = (byte)0xff;
 
     //set appropriate bit high for each flag which is active low
-    if (onPipeFlag)
-        {controlFlags = (byte)(controlFlags | MultiIODevice.ON_PIPE_CTRL);}
-    if (head1Down)
-        {controlFlags = (byte)(controlFlags | MultiIODevice.HEAD1_DOWN_CTRL);}
-    if (head2Down)
-        {controlFlags = (byte)(controlFlags | MultiIODevice.HEAD2_DOWN_CTRL);}
-    if (head3Down)
-        {controlFlags = (byte)(controlFlags | MultiIODevice.HEAD3_DOWN_CTRL);}
+    if (onPipeFlag) {
+        controlFlags = (byte)(controlFlags | MultiIODevice.ON_PIPE_CTRL);
+    }
 
     //the following allows the dual linear encoder simulation to work, but
     // should actually only turn encoder 2 after the tube reaches it and
@@ -588,8 +557,10 @@ public void simulateInspection()
     }*/
     //DEBUG HSS// //WIP HSS// assume moving forward
     
+    //DEBUG HSS// remove later
     encoder1 += encoder1DeltaTrigger;
     encoder2 += encoder2DeltaTrigger;
+    //DEBUG HSS// end remove later
     
     sendPacket(MultiIODevice.GET_INSPECT_PACKET_CMD,
                 

@@ -77,6 +77,8 @@ public class Channel
 
     MKSInteger data = new MKSInteger(0);
     MKSInteger thresholdViolation = new MKSInteger(-1);
+    private boolean flaggingEnabled = false;
+    public void enableFlagging(boolean pEn) { flaggingEnabled = pEn; }
 
     ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
 
@@ -279,6 +281,8 @@ public void catchPeak(int pPeakValue)
 private int checkThresholdViolation(int pSig)
 
 {
+    
+    if (!flaggingEnabled) { return -1; } //bail if not flagging
 
     for (ThresholdInfo info : thresholdInfos) {
 

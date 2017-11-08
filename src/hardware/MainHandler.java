@@ -28,6 +28,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -51,7 +52,10 @@ public class MainHandler
     private final MainController mainController;
     private final IniFile configFile;
     private final SharedSettings sharedSettings;
-    private HardwareVars hdwVs;
+    
+    static public int SCAN = 0, INSPECT = 1, STOPPED = 2;
+    static public int INSPECT_WITH_TIMER_TRACKING = 3, PAUSED = 4;
+    private int opMode = STOPPED;
 
     LogPanel logPanel;
 
@@ -74,9 +78,6 @@ public class MainHandler
     
     private ControlDevice controlDevice;
     private String nameOfDeviceToUseForControl;
-    
-    private ControlDevice controlDeviceCalMode;
-    private String nameOfDeviceToUseForControlCalMode;
 
     private boolean allDevicesSimulatedOverride;
 
@@ -86,6 +87,38 @@ public class MainHandler
     private boolean monitorStatus = false;
     
     private boolean opModeChanged = false;
+    
+    //START control vars
+    
+    private String msg = "";
+    
+    private String encoderHandlerName;
+    
+    private InspectControlVars inspectCtrlVars;
+    
+    private EncoderCalValues encoderCalValues;
+    
+    private HardwareVars hdwVs;
+    private boolean manualInspectControl = false;
+    private boolean flaggingEnabled = false;
+    
+    private final DecimalFormat decFmt0x0 = new DecimalFormat("0.0");
+    
+    private boolean prepareForNewPiece;
+    public boolean needToPrepareForNewPiece() { return prepareForNewPiece; }
+    
+    private boolean readyToAdvanceInsertionPoints = false;
+    
+    private EncoderHandler encoders;
+    private EncoderValues encoderValues;
+    
+    private double previousTally = 0.0;
+
+    //number of counts each encoder moves to trigger an inspection data packet
+    //these values are read later from the config file
+    private int encoder1DeltaTrigger, encoder2DeltaTrigger;
+    
+    //END control vars
 
     private static final int LONG = 0;  //longitudinal system
     private static final int TRANS = 1; //transverse system
@@ -112,11 +145,15 @@ public MainHandler(int pHandlerNum, MainController pMainController,
 //
 
 public void init()
-{
-    
-    hdwVs = new HardwareVars(configFile); hdwVs.init();
+{    
 
     loadConfigSettings();
+    
+    hdwVs = new HardwareVars(configFile); hdwVs.init();
+    setEncoderHandler();
+    
+    inspectCtrlVars = new InspectControlVars(encoders); inspectCtrlVars.init();
+    encoderCalValues = new EncoderCalValues(); encoderCalValues.init();
 
     //add one logging master panel for the main handler to use
 
@@ -132,6 +169,37 @@ public void init()
     setUpDevices(logPanels);
 
 }// end of MainHandler::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::setEncoderHandler
+//
+// Creates and initiaizes the encoder hander object base on settings read
+// from the config file.
+//
+
+private void setEncoderHandler()
+{
+
+    switch(encoderHandlerName){
+
+        case "Linear and Rotational" :
+            encoders = new EncoderLinearAndRotational(hdwVs.encoderValues, null);
+        break;
+
+        case "Encoder Dual Linear" :
+            encoders = new EncoderDualLinear(hdwVs.encoderValues, null);
+        break;
+
+        default:
+            encoders = new EncoderLinearAndRotational(hdwVs.encoderValues,null);
+        break;
+
+    }
+
+    encoders.init();
+
+}//end of MainHandler::setEncoderHandler
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -711,10 +779,7 @@ private void createControlDeviceTimerDriven()
     if (sharedSettings.timerDrivenTracking) { 
         controlDevice = dev; 
     }
-    if (sharedSettings.timerDrivenTrackingInCalMode) { 
-        controlDeviceCalMode = dev; 
-    }
-
+    
 }// end of MainHandler::createControlDeviceTimerDriven
 //-----------------------------------------------------------------------------
 
@@ -728,55 +793,36 @@ private void createControlDeviceTimerDriven()
 private void findControlDevices()
 {
    
-    String msg = "";
+    String foundMsg = "";
     
     boolean success = false;
        
     boolean found = false;
-    boolean foundCal = false;
     for (Device d : devices) {
 
         if (d.getTitle().equals(nameOfDeviceToUseForControl)) {
 
             found = true;
 
-            if (!d.isControlDevice()) {
-                msg += "Error Finding Control Device: Device " 
+            if (!d.canBeControlDevice()) {
+                foundMsg += "Error Finding Control Device: Device " 
                                 + nameOfDeviceToUseForControl 
                                 + " cannot be used as a control device.\n";
             } else { controlDevice = d; success = true; }
-
-        }
-        
-        if (d.getTitle().equals(nameOfDeviceToUseForControlCalMode)) {
-
-            foundCal = true;
-
-            if (!d.isControlDevice()) {
-                msg += "Error Finding Control Device to Use in Cal Mode: Device " 
-                            + nameOfDeviceToUseForControlCalMode
-                            + " cannot be used as a control device.\n";
-            } else { controlDeviceCalMode = d; success = true; }
 
         }
 
     }
 
     if (!found) {
-        msg += "Error Finding Control Device: Device " 
+        foundMsg += "Error Finding Control Device: Device " 
                 + nameOfDeviceToUseForControl 
                 + " was not found in list of devices.\n";
     }
     
-    if (!foundCal) {
-        msg += "Error Finding Control Device to Use in Cal Mode: Device " 
-                + nameOfDeviceToUseForControlCalMode
-                + " was not found in list of devices.\n";
-    }
-    
-    if (success) { msg = "Control devices successfully configured.\n"; }
+    if (success) { foundMsg = "Control devices successfully configured.\n"; }
 
-    logPanel.appendTS(msg);
+    logPanel.appendTS(foundMsg);
 
 }// end of MainHandler::findControlDevices
 //-----------------------------------------------------------------------------
@@ -802,12 +848,318 @@ public void collectData()
     handleSettingsChanges(); //process if a new op mode has been set
     
     processChannelParameterChanges(); //process updated values
+    
+    if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING) {
+        collectDataForScanOrTimerMode();
+    }
+    else if (opMode == INSPECT) {
+        collectDataForInspectMode();
+    }
 
     for(Device device : devices){ device.collectData(); }
 
     for(Device device : devices){ device.driveSimulation(); }
 
 }// end of MainHandler::collectData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::collectDataForScanOrTimerMode
+//
+// Currently does nothing.
+//
+// This function is specifically for SCAN and INSPECT_WITH_TIMER_TRACKING modes
+// which use a timer to drive the traces rather than hardware encoder inputs.
+//
+// Peak data is requested periodically rather than being requested when the
+// encoder position dictates such.
+//
+
+private void collectDataForScanOrTimerMode()
+{
+
+}//end of MainHandler::collectDataForScanOrTimerMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::collectDataForInspectMode
+//
+// Collects analog data from all channels and stores it in the appropriate trace
+// buffers, collects encoder and digital I/O inputs and processes as necessary.
+//
+// This function is specifically for INSPECT mode which uses encoder data to
+// drive the traces rather than a timer.
+//
+// Peak data is requested each time the encoder moves the specified tigger
+// amount.
+//
+
+private void collectDataForInspectMode()
+{
+
+    //process position information from whatever device is handling the encoder
+    //inputs
+
+    collectEncoderDataInspectMode();
+
+}//end of MainHandler::collectDataForInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::collectEncoderDataInspectMode
+//
+// Collects and processes encoder and digital inputs.
+//
+// Returns true if new data has been processed.
+//
+// If the encoder has reached the next array position, chInfo[?].nextIndex++
+// is updated so that data will be placed in the next position.  It takes
+// a set amount of encoder counts to reach the next array position as specified
+// by the calibration value in the configuration file.
+//
+
+boolean collectEncoderDataInspectMode()
+{
+
+    //do nothing until a new Inspect packet is ready
+    if (!controlDevice.getNewInspectDataReady()) { return false; }
+
+    //debug mks -- could a new packet be received between the above line and the
+    //setting of the flag below -- miss a packet? -- packet processing in this
+    //same thread then no prob -- different thread, then problem
+
+    //ignore further calls to this function until a new packet is ready
+    controlDevice.setNewInspectDataReady(false);
+
+    //retrieve all the info related to inpection control -- photo eye status,
+    //encoder values, etc.
+    controlDevice.getInspectControlVars(inspectCtrlVars);
+
+    //On entering INSPECT mode, the system will wait until signalled that the
+    //head is off the pipe or the pipe is out of the system, then it will wait
+    //until the head is on the pipe or pipe enters the system before moving the
+    //traces
+
+    // manual control option will override signals from the Control Board and
+    // begin inspection immediately after the operator presses the Inspect
+    // button should manual control option be removed after fixing XXtreme unit?
+
+    //if waiting for piece clear of system, do nothing until flag says true
+    if (hdwVs.waitForOffPipe){
+
+        if (manualInspectControl) {inspectCtrlVars.onPipeFlag = false;}
+
+        if (inspectCtrlVars.onPipeFlag) {return false;}
+        else {
+            //piece has been removed; prepare for it to enter to begin
+            hdwVs.waitForOffPipe = false;
+            hdwVs.waitForOnPipe = true;
+            displayMsg("system clear, previous tally = " + 
+                                       decFmt0x0.format(previousTally));
+            previousTally = 0;
+            
+            }
+        }
+
+    if (manualInspectControl) {inspectCtrlVars.onPipeFlag = true;}
+
+    //if waiting for piece to enter the head, do nothing until flag says true
+    if (hdwVs.waitForOnPipe){
+
+        if (!inspectCtrlVars.onPipeFlag) {return false;}
+        else {
+            hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
+
+            //the direction of the linear encoder at the start of the inspection
+            //sets the forward direction (increasing or decreasing encoder
+            //count)
+            encoders.setCurrentLinearDirectionAsFoward();            
+            
+            initializePlotterOffsetDelays(
+                                    encoders.getDirectionSetForLinearFoward());
+            
+            //set the text description for the direction of inspection
+            if (encoders.getDirectionSetForLinearFoward() == 
+                                                  encoders.getAwayDirection()) {
+                sharedSettings.inspectionDirectionDescription
+                        = sharedSettings.awayFromHome;
+            }
+            else {
+                sharedSettings.inspectionDirectionDescription
+                        = sharedSettings.towardsHome;
+            }
+
+            encoders.resetAll();
+            
+            //record the value of linear encoder at start of inspection
+            encoders.recordLinearStartCount();
+            displayMsg("entry eye blocked...");
+        }
+    }
+
+    if (manualInspectControl){
+        inspectCtrlVars.head1Down = true;
+        inspectCtrlVars.head2Down = true;
+        inspectCtrlVars.head3Down = true;
+    }
+        
+    //watch for piece to exit head
+    if (hdwVs.watchForOffPipe){
+        if (!inspectCtrlVars.onPipeFlag){
+
+            //use tracking counter to delay after leading photo eye cleared
+            //until position where modifier is to be added until the end of
+            //the piece
+            hdwVs.nearEndOfPieceTracker = hdwVs.nearEndOfPiecePosition;
+            //start counting down to near end of piece modifier apply start
+            //position
+            hdwVs.trackToNearEndofPiece = true;
+            //calculate length of tube
+            controlDevice.requestAllEncoderValuesPacket();
+
+            hdwVs.measuredLength = encoders.calculateTally();
+
+            previousTally = hdwVs.measuredLength;
+            
+            hdwVs.watchForOffPipe = false;
+
+            //set flag to force preparation for a new piece
+            prepareForNewPiece = true;
+            
+            displayMsg("exit eye cleared, tally = " + 
+                                        decFmt0x0.format(hdwVs.measuredLength));
+
+        }//if (!inspectCtrlVars.onPipeFlag)
+    }//if (hdwVs.watchForOffPipe)
+
+    boolean newPositionData = true;  //signal that position has been changed
+
+    //check to see if encoder hand over should occur
+    encoders.handleEncoderSwitchOver();
+    
+    //made it to here, so assume we can move forward
+    readyToAdvanceInsertionPoints = true;
+
+    return newPositionData;
+
+}//end of MainHandler::collectEncoderDataInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::initializePlotterOffsetDelays
+//
+// Initializes the plotter start delays for the different types of plotter
+// objects. See the notes in each method called for more details.
+
+public void initializePlotterOffsetDelays(int pDirection)
+{
+
+    /*//DEBUG HSS//initializeTraceOffsetDelays(pDirection);
+
+    analogDriver.initializeMapOffsetDelays(
+                                      pDirection, encoders.getAwayDirection());*/
+
+}//end of MainHandler::initializePlotterOffsetDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::initializeTraceOffsetDelays
+//
+// Sets the trace start delays so the traces don't start until their associated
+// sensors reach the pipe.
+//
+// The distance is set depending on the direction of inspection.  Some systems
+// have different photo eye to sensor distances depending on the direction
+// of travel.
+//
+// The delay is necessary because each sensor may be a different distance from
+// the photo-eye which detects the start of the pipe.
+//
+// Two sets of values are stored:
+//
+// The distance of each sensor from the front edge of its head.
+// The front edge of the head is the edge which reaches the inspection piece
+// first when the carriage is moving away from the operator's station
+// (the "forward" direction).
+//
+// The distances of Photo Eye 1 and Photo Eye 2 to the front edge of each
+// head.
+//
+// Photo Eye 1 is the photo eye which reaches the inspection piece first when
+// the carriage is moving away from the operator's station (the "forward"
+// direction).
+//
+
+public void initializeTraceOffsetDelays(int pDirection)
+{
+
+    /*//DEBUG HSS//Plotter plotterPtr;
+
+    double leadingTraceCatch, trailingTraceCatch;
+    int lead = 0, trail = 0;
+        for (ChartGroup chartGroup : chartGroups) {
+            int nSC = chartGroup.getNumberOfStripCharts();
+            for (int sc = 0; sc < nSC; sc++) {
+                int nTr = chartGroup.getStripChart(sc).getNumberOfPlotters();
+                //these used to find the leading trace (smallest offset) and the
+                //trailing trace (greatest offset) for each chart
+                leadingTraceCatch = Double.MAX_VALUE;
+                trailingTraceCatch = Double.MIN_VALUE;
+                for (int tr = 0; tr < nTr; tr++) {
+                    plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
+                    //if the current direction is the "Away" direction, then set
+                    //the offsets properly for the carriage moving away from the
+                    //operator otherwise set them for the carriage moving towards
+                    //the operator see more notes in this method's header
+                    if (plotterPtr != null){
+                        
+                        //start with all false, one will be set true
+                        plotterPtr.leadPlotter = false;
+                        
+                        if (pDirection == encoders.getAwayDirection()) {
+                            plotterPtr.delayDistance =
+                                    plotterPtr.startFwdDelayDistance;
+                        }
+                        else {
+                            plotterPtr.delayDistance =
+                                    plotterPtr.startRevDelayDistance;
+                        }
+                        
+                        //find the leading and trailing traces
+                        if (plotterPtr.delayDistance < leadingTraceCatch){
+                            lead = tr; leadingTraceCatch = plotterPtr.delayDistance;
+                        }
+                        if (plotterPtr.delayDistance > trailingTraceCatch){
+                            trail = tr; trailingTraceCatch=plotterPtr.delayDistance;
+                        }
+                        
+                    }//if (tracePtr != null)
+                } //for (int tr = 0; tr < nTr; tr++)
+                chartGroup.getStripChart(sc).getPlotter(lead).leadPlotter = true;
+                chartGroup.getStripChart(sc).getPlotter(trail).trailPlotter = true;
+                chartGroup.getStripChart(sc).setLeadTrailTraces(lead, trail);
+            } //for (int sc = 0; sc < nSC; sc++)
+        } //for (int cg = 0; cg < chartGroups.length; cg++)*/
+
+}//end of MainHandler::initializeTraceOffsetDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::enableFlagging
+//
+// Enables or disables all flagging for all devices.
+//
+// This method is generally called when the inspection start/stop signals are
+// received. In other places in the code there is a distance delay after this
+// signal to avoid recording the glitches incurred while the head is settling.
+//
+
+void enableFlagging(boolean pEnable)
+{
+
+    for (Device d : devices) { d.enableFlagging(pEnable); }
+
+}//end of MainHandler::enableFlagging
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1076,10 +1428,11 @@ private void handleSettingsChanges()
 
 private void startStopMode()
 {
+    
+    opMode = MainHandler.STOPPED;
  
     //disable tracking pulses from Control to other devices
     controlDevice.setTrackPulsesEnabledFlag(false);
-    controlDeviceCalMode.setTrackPulsesEnabledFlag(false);
 
 }//end of MainHandler::startStopMode
 //-----------------------------------------------------------------------------
@@ -1096,13 +1449,14 @@ private void startStopMode()
 
 private void startScanMode()
 {
+    
+    opMode = MainHandler.SCAN;
 
     prepareRemotesForNextRun(); //prepare Devices, Control Boards, etc.
     
     //in scan mode, map is advanced on each TDC, so enable Control board to
     //provide a pulse for each TDC it detects
     controlDevice.setTrackPulsesEnabledFlag(false);
-    controlDeviceCalMode.setTrackPulsesEnabledFlag(false);
 
 }//end of MainHandler::startScanMode
 //-----------------------------------------------------------------------------
@@ -1119,6 +1473,12 @@ private void startScanMode()
 
 private void startInspectMode()
 {
+    
+    if (sharedSettings.timerDrivenTracking) { 
+        opMode = MainHandler.INSPECT_WITH_TIMER_TRACKING; 
+    } else { opMode = MainHandler.INSPECT; }
+
+    prepareRemotesForNextRun(); //prep all devices
     
     //system waits until it receives flag that head is off the pipe or no
     //pipe is in the system
@@ -1138,16 +1498,15 @@ private void startInspectMode()
 
     //reset length of tube
     hdwVs.measuredLength = 0;
-
-    prepareRemotesForNextRun(); //prep all devices
+    
+    //tell control device to start inspect
+    controlDevice.startInspect();
 
     //ignore the Inspect status flags until a new packet is received
-    controlDevice.setNewInspectData(false);
-    controlDeviceCalMode.setNewInspectData(false);
+    controlDevice.setNewInspectDataReady(false);
 
     //force remote to send Inspect packet so all the flags will be up to date
-    if (sharedSettings.calMode) { controlDeviceCalMode.requestInspectPacket(); }
-    else { controlDevice.requestInspectPacket(); }
+    controlDevice.requestInspectPacket();
 
 }//end of MainHandler::startInspectMode
 //-----------------------------------------------------------------------------
@@ -1167,7 +1526,6 @@ private void prepareRemotesForNextRun()
 
     //make sure tracking pulses are disabled before issuing reset command
     controlDevice.setTrackPulsesEnabledFlag(false);
-    controlDeviceCalMode.setTrackPulsesEnabledFlag(false);
         
     //tell Control board to pulse the Track Counter Reset line to zero the
     //tracking counters
@@ -1266,22 +1624,11 @@ synchronized private void processChannelParameterChanges()
 //
 // Returns true if it is time advance all transfer buffers' insertion points.
 //
-// //WIP HSS// //DEBUG HSS// this currently only works for timer driven tracking
-//      mode but should work for all modes. Probably be best to create EncoderHandler
-//      class that sets up or is passed an encoder to call on to determine values
-//      and decide when to update. For timer driven tracking, another encoder class
-//      would be created who only returned true that pipe has advanced a specified
-//      amount if scan speed counter ran out and told him to; standard encoder
-//      actually retrieve values. Must think on way to use standard encoder in this
-//      situation because Transverse will serve as Control board as well.
-//
 
 public boolean isReadyToAdvanceInsertionPoints()
 {
 
-    if (sharedSettings.calMode) { 
-        return controlDevice.isReadyToAdvanceInsertionPoints(); 
-    } else { return controlDeviceCalMode.isReadyToAdvanceInsertionPoints(); }
+    return readyToAdvanceInsertionPoints;
 
 }// end of MainHandler::isReadyToAdvanceInsertionPoints
 //-----------------------------------------------------------------------------
@@ -1320,10 +1667,10 @@ private void loadConfigSettings()
     //if true, the traces will be driven by software timer rather than by
     //encoder inputs - used for weldline crabs and systems without encoders
     sharedSettings.timerDrivenTracking = configFile.readBoolean(
-                                    section, "Timer Driven Tracking", false);
+                                    section, "timer driven tracking", false);
 
     sharedSettings.timerDrivenTrackingInCalMode = configFile.readBoolean(
-                       section, "Timer Driven Tracking in Cal Mode", false);
+                       section, "timer driven tracking in cal mode", false);
 
     numDevices = configFile.readInt(section, "number of devices", 0);
     maxNumChannels = configFile.readInt(section, "max number of channels", 10);
@@ -1347,10 +1694,20 @@ private void loadConfigSettings()
     nameOfDeviceToUseForControl = configFile.readString(section, 
                                     "title of device to use for control", "");
     
-    nameOfDeviceToUseForControlCalMode = configFile.readString(section, 
-                                    "title of device to use for control"
-                                    + " in calibration mode", 
-                                    nameOfDeviceToUseForControl);
+    encoderHandlerName = configFile.readString(
+                  section, "encoder handler name", "Linear and Rotational");
+    
+    sharedSettings.awayFromHome =
+        configFile.readString(
+            section,
+            "Description for inspecting in the direction leading away from the"
+            + " operator's compartment", "Away From Home");
+
+    sharedSettings.towardsHome =
+        configFile.readString(
+            section,
+            "Description for inspecting in the direction leading toward the"
+            + " operator's compartment", "Toward Home");
 
 }// end of MainHandler::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -1395,6 +1752,41 @@ public void saveCalFile(IniFile pCalFile)
     for (Device d : devices) { d.saveCalFile(pCalFile); }
 
 }//end of MainHandler::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::displayMsg
+//
+// Displays a message on the msgLabel using a threadsafe method.
+//
+// There is no bufferering, so if this function is called again before
+// invokeLater calls displayMsgThreadSafe, the prior message will be
+// overwritten.
+//
+
+public void displayMsg(String pMessage)
+{
+
+    msg = pMessage;
+
+    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);    
+
+}//end of MainHandler::displayMsg
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::displayMsgThreadSafe
+//
+// Displays a message on the msgLabel and should only be called from
+// invokeLater.
+//
+
+public void displayMsgThreadSafe()
+{
+
+    //DEBUG HSS// //WIP HSS//settings.msgLabel.setText(msg);
+    
+}//end of MainHandler::displayMsgThreadSafe
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -91,10 +91,22 @@ public void setTrackPulsesEnabledFlag(boolean pState) {}
 public void resetTrackCounters() {}
 
 @Override
-public void setNewInspectData(boolean pState) {}
+public boolean requestInspectPacket() { return true; }
 
 @Override
-public boolean requestInspectPacket() { return true; }
+public void startInspect() {}
+
+@Override
+public boolean getNewInspectDataReady() { return false; }
+
+@Override
+public void setNewInspectDataReady(boolean pState) {}
+
+@Override
+public void getInspectControlVars(InspectControlVars pICVars) {}
+
+@Override
+public void requestAllEncoderValuesPacket() {}
 
 }//end of class ControlDeviceTimerDriven
 //-----------------------------------------------------------------------------

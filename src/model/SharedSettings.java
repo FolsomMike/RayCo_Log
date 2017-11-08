@@ -98,6 +98,13 @@ public class SharedSettings{
     public String pieceDescriptionPlural = "Pieces";
     //lower case of the above
     public String pieceDescriptionPluralLC = "pieces";
+    
+    //these are the descriptions to be used for the direction the piece was
+    //inspected -- towards home is towards the operator's compartment, away from
+    //home is away from the operator's compartment -- these are loaded from the
+    //configuration file so that they can be customized
+    public String towardsHome, awayFromHome;
+    public String inspectionDirectionDescription = "unknown";
 
     public String mainFileFormat = "UTF-8";
 

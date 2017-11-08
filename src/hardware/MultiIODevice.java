@@ -101,7 +101,7 @@ public MultiIODevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
     
     runDataPacketSize = 212; //includes Rabbit checksum byte
     
-    inspectPacketSize = 28; //includes Rabbit checksum byte //WIP HSS// //DEBUG HSS// verify later!!!!!
+    inspectPacketSize = 13; //includes Rabbit checksum byte
     
     monitorPacketSize = 28; //includes Rabbit checksum byte
     
@@ -206,6 +206,9 @@ private void processInspectPacket()
     
     int x = 0;
     
+    inspectPacketCount = (int)((inBuffer[x++]<<8) & 0xff00)
+                                                 + (int)(inBuffer[x++] & 0xff);
+    
     // combine four bytes each to make the encoder counts
 
     int encoder1Count, encoder2Count;
@@ -269,10 +272,6 @@ private void processInspectPacket()
     unused2Flag = ((controlPortA & UNUSED2_MASK) == 0);
 
     unused3Flag = ((controlPortE & UNUSED3_MASK) == 0);
-    
-    //retrieval of an inspect packet means that we are ready to advance
-    //insertion points in transfer buffers
-    readyToAdvanceInsertionPoints = true;
 
 }// end of MultiIODevice::processInspectPacket
 //-----------------------------------------------------------------------------
@@ -748,6 +747,26 @@ boolean requestMonitorPacket()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MultiIODevice::requestAllEncoderValuesPacket
+//
+// Requests a packet from the remote with all encoder values saved at different
+// points in the inspection process.
+//
+// Note that the values will not be valid until the packet is received. If
+// any encoder value is Integer.MAX_VALUE, the packet has not been received.
+//
+
+@Override
+public void requestAllEncoderValuesPacket()
+{
+    
+    //request packet; returned packet handled by processAllEncoderValuesPacket
+    sendPacket(GET_ALL_ENCODER_VALUES_CMD, (byte)0);
+
+}//end of MultiIODevice::requestAllEncoderValuesPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MultiIODevice::handleAllEncoderValuesPacket
 //
 // Parses and stores data from a GET_ALL_ENCODER_VALUES_CMD packet.
@@ -813,6 +832,9 @@ protected int takeActionBasedOnPacketId(int pPktID)
     }
     else if (pktID == GET_ALL_ENCODER_VALUES_CMD) {
         return handleAllEncoderValuesPacket();
+    }
+    else if (pktID == GET_INSPECT_PACKET_CMD) {
+        return handleInspectPacket();
     }
 
     return results;

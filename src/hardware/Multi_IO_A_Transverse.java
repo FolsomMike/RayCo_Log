@@ -39,7 +39,7 @@ public Multi_IO_A_Transverse(int pIndex, LogPanel pLogPanel,
 
     super(pIndex, pLogPanel, pConfigFile, pSettings, pSimMode);
     
-    isControlDevice = true;
+    canBeControlDevice = true;
 
 //debug remove this -- superseded by Socket Simulator      if(simMode){ simulator = new SimulatorTransverse(0); simulator.init(); }
 

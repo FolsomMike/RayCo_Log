@@ -34,6 +34,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.DataTransferIntMultiDimBuffer;
@@ -56,6 +57,16 @@ public class Device implements Runnable, ControlDevice
     final String section;
     final String calFileSection;
     final SharedSettings sharedSettings;
+    
+    private String msg = "";
+    
+    protected boolean canBeControlDevice = false;
+    public boolean canBeControlDevice() { return canBeControlDevice; }
+    
+    boolean flaggingEnabled = true;
+    
+    protected byte[] allEncoderValuesBuffer;
+    protected int allEncodersPacketSize = 0; //needs to be set by child classes
 
     private final int deviceNum;
     public int getDeviceNum(){ return(deviceNum); }
@@ -71,6 +82,8 @@ public class Device implements Runnable, ControlDevice
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
     public Channel[] getChannels(){ return(channels); }
+    
+    String encoderHandlerName = "";
 
     private boolean hdwParamsDirty = false;
     public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
@@ -90,9 +103,11 @@ public class Device implements Runnable, ControlDevice
     
     byte[] inspectBuffer;
     int inspectPacketSize = 0; //needs to be set by child classes
+    int inspectPacketCount = 0;
+    private boolean newInspectPacket = false;
     private boolean newInspectData = false;
-    @Override
-    public void setNewInspectData(boolean pState) { newInspectData = pState; }
+    @Override public boolean getNewInspectDataReady() { return newInspectData; }
+    @Override public void setNewInspectDataReady(boolean pState) { newInspectData = pState; }
     
     byte[] monitorBuffer;
     int monitorPacketSize = 0; //needs to be set by child classes
@@ -148,68 +163,25 @@ public class Device implements Runnable, ControlDevice
 
     LogPanel logPanel;
     
-    
-    //START vars for use as control device
-    
-    boolean isControlDevice = false;
-    public boolean isControlDevice() { return isControlDevice; }
-    
-    protected boolean readyToAdvanceInsertionPoints = true;
-    
+    //START control vars
     short rabbitControlFlags = 0;
-    
-    byte[] allEncoderValuesBuffer;
-    int allEncodersPacketSize = 0; //needs to be set by child classes
     
     int encoder1, prevEncoder1;
     int encoder2, prevEncoder2;
     int encoder1Dir, encoder2Dir;
-
-    EncoderValues encoderValues;
-
-    int inspectPacketCount = 0;
-
+    
     boolean onPipeFlag = false;
     boolean inspectControlFlag = false;
     boolean head1Down = false;
     boolean head2Down = false;
-    boolean head3Down = false;
+    boolean head3Down = false;    
     boolean tdcFlag = false;
     boolean unused1Flag = false;
     boolean unused2Flag = false;
     boolean unused3Flag = false;
     byte controlPortA, controlPortE;
     byte processControlFlags;
-
-    //number of counts each encoder moves to trigger an inspection data packet
-    //these values are read later from the config file
-    int encoder1DeltaTrigger, encoder2DeltaTrigger;
-    
-    //Masks for the Control Board inputs
-    static byte UNUSED1_MASK = (byte)0x10;	// bit on Port A
-    static byte UNUSED2_MASK = (byte)0x20;	// bit on Port A
-    static byte INSPECT_MASK = (byte)0x40;	// bit on Port A
-    static byte ON_PIPE_MASK = (byte)0x80;	// bit on Port A ??no longer true??
-    static byte TDC_MASK = (byte)0x01;    	// bit on Port E
-    static byte UNUSED3_MASK = (byte)0x20;	// bit on Port E
-    
-    //Masks for the Control Board command flags
-    static byte ON_PIPE_CTRL =      (byte)0x01;
-    static byte HEAD1_DOWN_CTRL =   (byte)0x02;
-    static byte HEAD2_DOWN_CTRL =   (byte)0x04;
-    static byte HEAD3_DOWN_CTRL =   (byte)0x08;
-    static byte UNUSED2_CTRL =      (byte)0x10;
-    static byte UNUSED3_CTRL =      (byte)0x20;
-    static byte UNUSED4_CTRL =      (byte)0x40;
-    static byte UNUSED5_CTRL =      (byte)0x80;
-    
-    //modes
-    static int FORWARD = 0;
-    static int REVERSE = 1;
-    static int STOP = 2;
-    static int RESET = 3;
-    
-    //END vars for use as control device
+    //END control vars
 
     final static int RUN_DATA_BUFFER_SIZE = 1024;
     final static int RUNTIME_PACKET_SIZE = 50;
@@ -233,6 +205,8 @@ public Device(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
     section = "Device " + deviceNum + " Settings";
     calFileSection = "Device " + deviceNum + " Settings";
+    
+    canBeControlDevice = false;
 
 }//end of Device::Device (constructor)
 //-----------------------------------------------------------------------------
@@ -260,16 +234,14 @@ public void init()
 private void configureForUseAsControlDevice()
 {
 
-    if (!isControlDevice()) { return; } //bail if not Control Device
+    if (!canBeControlDevice()) { return; } //bail if not Control Device
     
     monitorBuffer = new byte[monitorPacketSize];
     inspectBuffer = new byte[inspectPacketSize];
-    
-    encoderValues = new EncoderValues(); encoderValues.init();
 
     allEncoderValuesBuffer = new byte[allEncodersPacketSize];
 
-}// end of Device::init
+}// end of Device::configureForUseAsControlDevice
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -413,23 +385,37 @@ int readBytesAndVerify(byte[] pBuffer, int pNumBytes, int pPktID)
 //-----------------------------------------------------------------------------
 // Device::isReadyToAdvanceInsertionPoints
 //
-// Returns the flag for whether or not the device is ready to advance the 
-// the transfer buffer insertion points.
+// Returns whether or not the device is ready to advance the the transfer buffer
+// insertion points. By default, all devices are always ready.
 //
-// Sets the flag to false after if this is a control device.
+// Should be overridden by child classes to provide custom handling.
 //
 
 @Override
 public boolean isReadyToAdvanceInsertionPoints()
 {
 
-    boolean ready = readyToAdvanceInsertionPoints;
-    
-    if (isControlDevice()) { readyToAdvanceInsertionPoints = false; }
-    
-    return ready;
+    return true;
 
 }// end of Device::isReadyToAdvanceInsertionPoints
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::enableFlagging
+//
+// Enables or disables all flagging for this device.
+//
+// This method is generally called when the inspection start/stop signals are
+// received. In other places in the code there is a distance delay after this
+// signal to avoid recording the glitches incurred while the head is settling.
+//
+
+public void enableFlagging(boolean pEnable)
+{
+
+    flaggingEnabled = pEnable;
+
+}//end of Device::enableFlagging
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -472,7 +458,7 @@ boolean requestMonitorPacket()
 {
 
     //waiting for remote response or not a control return false since we bailed
-    if (waitingForRemoteResponse || !isControlDevice()) { return false; }
+    if (waitingForRemoteResponse || !canBeControlDevice()) { return false; }
 
     //return true because we did not bail
     return waitingForRemoteResponse = true;
@@ -544,6 +530,25 @@ public byte[] getMonitorPacket(boolean pRequestPacket)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::requestAllEncoderValuesPacket
+//
+// Requests a packet from the remote with all encoder values saved at different
+// points in the inspection process.
+//
+// Note that the values will not be valid until the packet is received. If
+// any encoder value is Integer.MAX_VALUE, the packet has not been received.
+//
+// Should be overridden by child classes to provide custom handling.
+//
+
+@Override
+public void requestAllEncoderValuesPacket()
+{
+
+}//end of Device::requestAllEncoderValuesPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::requestInspectPacket
 //
 // Sends a request to the device for a packet with inspect data such as signal
@@ -560,7 +565,7 @@ public boolean requestInspectPacket()
 {
 
     //waiting for remote response or not a control return false since we bailed
-    if (waitingForRemoteResponse || !isControlDevice()) { return false; }
+    if (waitingForRemoteResponse || !canBeControlDevice()) { return false; }
 
     //return true because we did not bail
     return waitingForRemoteResponse = true;
@@ -590,11 +595,42 @@ public int handleInspectPacket()
     result = readBytesAndVerify(inspectBuffer, numBytesInPkt, pktID);
     if (result != numBytesInPkt){ return(result); }
 
-    newInspectData = true;
+    newInspectPacket = true;
 
     return(result);
 
 }// end of Device::handleInspectPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::getInspectControlVars
+//
+// Transfers local variables related to inspection control signals and encoder
+// counts.
+//
+
+@Override
+public void getInspectControlVars(InspectControlVars pICVars)
+{
+
+    pICVars.onPipeFlag = onPipeFlag;
+
+    pICVars.head1Down = head1Down;
+
+    pICVars.head2Down = head2Down;
+
+    pICVars.head3Down = head3Down;
+    
+    pICVars.encoderHandler.encoder1 = encoder1;
+    pICVars.encoderHandler.prevEncoder1 = prevEncoder1;
+
+    pICVars.encoderHandler.encoder2 = encoder2; 
+    pICVars.encoderHandler.prevEncoder2 = prevEncoder2;
+
+    pICVars.encoderHandler.encoder1Dir = encoder1Dir;
+    pICVars.encoderHandler.encoder2Dir = encoder2Dir;
+
+}//end of Device::getInspectControlVars
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -612,11 +648,12 @@ public int handleInspectPacket()
 boolean getInspectPacketFromDevice(byte[] pPacket)
 {
 
-    if(!newInspectData || !isControlDevice()){ return(false); }
+    if(!newInspectPacket || !canBeControlDevice()){ return false; }
 
     System.arraycopy(inspectBuffer, 0, pPacket, 0, pPacket.length);
 
-    newInspectData = false;
+    //no new packets, but new data is available to other objects
+    newInspectPacket = false; newInspectData = true;
 
     return(true);
 
@@ -676,36 +713,6 @@ public void sendRabbitControlFlags()
 {
 
 }//end of Device::sendRabbitControlFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Device::getInspectControlVars
-//
-// Transfers local variables related to inspection control signals and encoder
-// counts.
-//
-
-public void getInspectControlVars(InspectControlVars pICVars)
-{
-
-    pICVars.onPipeFlag = onPipeFlag;
-
-    pICVars.head1Down = head1Down;
-
-    pICVars.head2Down = head2Down;
-
-    pICVars.head3Down = head3Down;
-
-    pICVars.encoderHandler.encoder1 = encoder1;
-    pICVars.encoderHandler.prevEncoder1 = prevEncoder1;
-
-    pICVars.encoderHandler.encoder2 = encoder2;
-    pICVars.encoderHandler.prevEncoder2 = prevEncoder2;
-
-    pICVars.encoderHandler.encoder1Dir = encoder1Dir;
-    pICVars.encoderHandler.encoder2Dir = encoder2Dir;
-
-}//end of Device::getInspectControlVars
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -852,6 +859,9 @@ void loadConfigSettings()
     //only override if previously set simMode not true
     boolean readSimMode = configFile.readBoolean(section, "simulate", false);
     if (!simMode) { simMode = readSimMode; }
+    
+    encoderHandlerName = configFile.readString(
+                  section, "Encoder Handler Name", "Linear and Rotational");
 
 }// end of Device::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -973,6 +983,7 @@ public boolean getPeakMapDataAndReset(PeakMapData pPeakMapData)
 // Overridden by children classes for custom handling.
 //
 
+@Override
 public void startInspect()
 {
 
@@ -1719,6 +1730,41 @@ public void saveCalFile(IniFile pCalFile)
 {
 
 }//end of Device::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::displayMsg
+//
+// Displays a message on the msgLabel using a threadsafe method.
+//
+// There is no bufferering, so if this function is called again before
+// invokeLater calls displayMsgThreadSafe, the prior message will be
+// overwritten.
+//
+
+public void displayMsg(String pMessage)
+{
+
+    msg = pMessage;
+
+    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);    
+
+}//end of Device::displayMsg
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Device::displayMsgThreadSafe
+//
+// Displays a message on the msgLabel and should only be called from
+// invokeLater.
+//
+
+public void displayMsgThreadSafe()
+{
+
+    //DEBUG HSS// //WIP HSS//settings.msgLabel.setText(msg);
+    
+}//end of Device::displayMsgThreadSafe
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

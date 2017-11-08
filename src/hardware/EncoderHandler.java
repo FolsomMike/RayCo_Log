@@ -130,7 +130,7 @@ public void displayMsg(String pMessage)
 public void displayMsgThreadSafe()
 {
 
-    msgLabel.setText(msg);
+    //DEBUG HSS// null right now //msgLabel.setText(msg);
     
 }//end of EncoderHandler::displayMsgThreadSafe
 //-----------------------------------------------------------------------------

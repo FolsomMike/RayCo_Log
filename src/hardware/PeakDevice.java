@@ -67,8 +67,6 @@ public PeakDevice(int pDeviceNum, LogPanel pLogPanel, IniFile pConfigFile,
 
     mapMeta.deviceNum = pDeviceNum;
     snapshotMeta.deviceNum = pDeviceNum;
-    
-    isControlDevice = false;
 
 }//end of PeakDevice::PeakDevice (constructor)
 //-----------------------------------------------------------------------------
@@ -909,6 +907,27 @@ private void setUpChannels()
     }
 
 }// end of PeakDevice::setUpChannels
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PeakDevice::enableFlagging
+//
+// Enables or disables all flagging for this device.
+//
+// This method is generally called when the inspection start/stop signals are
+// received. In other places in the code there is a distance delay after this
+// signal to avoid recording the glitches incurred while the head is settling.
+//
+
+@Override
+public void enableFlagging(boolean pEnable)
+{
+    
+    super.enableFlagging(pEnable);
+
+    for (Channel c : channels) { c.enableFlagging(pEnable); }
+
+}//end of PeakDevice::enableFlagging
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
