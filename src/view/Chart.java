@@ -818,8 +818,39 @@ public void updateChild(int pGraphNum, int pChildNum)
 
     graphs[pGraphNum].updateChild(pChildNum);
 
-    //scroll any graphs which are set up to track this graph's scrolling
-    //check array for null first to avoid unnecessary processing on empty arrays
+    scrollTrackingGraphs(pGraphNum);
+
+}// end of Chart::updateChild
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::updateChildren
+//
+// Instructs all children listening for transfer buffer changes to check for
+// changes and update.
+//
+
+public void updateChildren()
+{
+
+    for (Graph g : graphs) { 
+        g.updateChildren(); 
+        scrollTrackingGraphs(g.getGraphNum());
+    }
+
+}// end of Chart::updateChildren
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::scrollTrackingGraphs
+//
+// Scroll any graphs which are set up to track this pGraphNum's scrolling.
+//
+// Check array for null first to avoid unnecessary processing on empty arrays
+//
+
+private void scrollTrackingGraphs(int pGraphNum)
+{
 
     if (graphs[pGraphNum].graphInfo.lastScrollAmount != 0){
 
@@ -838,22 +869,7 @@ public void updateChild(int pGraphNum, int pChildNum)
 
     graphs[pGraphNum].graphInfo.lastScrollAmount = 0;
 
-}// end of Chart::updateChild
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Chart::updateChildren
-//
-// Instructs all children listening for transfer buffer changes to check for
-// changes and update.
-//
-
-public void updateChildren()
-{
-
-    for (Graph g : graphs) { g.updateChildren(); }
-
-}// end of Chart::updateChildren
+}// end of Chart::scrollTrackingGraphs
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
