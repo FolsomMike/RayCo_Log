@@ -92,6 +92,8 @@ public class MainHandler
     
     private String msg = "";
     
+    private int scanRateCounter = 0;
+    
     private String encoderHandlerName;
     
     private InspectControlVars inspectCtrlVars;
@@ -743,20 +745,15 @@ private void setupSocketAndDatagram(SocketSet pSocketSet)
 //-----------------------------------------------------------------------------
 // MainHandler::configureControlDevice
 //
-// Properly sets the control device and the control device to use in calibration
-// mode.
-// 
-// Will even create a timer driven control device if necessary.
+// Properly sets the control device to a device found in a list of devices or
+// creates a timer driven control device object to use if necessary.
 //
 
 private void configureControlDevice()
 {
-    
-    if (sharedSettings.timerDrivenTracking 
-            && sharedSettings.timerDrivenTrackingInCalMode) {
-        createControlDeviceTimerDriven();
-    }
-    else { findControlDevices(); }
+     
+    if (sharedSettings.timerDrivenTracking) { createControlDeviceTimerDriven(); }
+    else { findControlDevice(); }
 
 }// end of MainHandler::configureControlDevice
 //-----------------------------------------------------------------------------
@@ -785,13 +782,13 @@ private void createControlDeviceTimerDriven()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler::findControlDevices
+// MainHandler::findControlDevice
 //
-// Finds and sets the control device and the control device to use in 
-// calibration mode. Sends error and success messages to the log panel.
+// Finds and sets the control device. Sends error and success messages to the 
+// log panel.
 //
 
-private void findControlDevices()
+private void findControlDevice()
 {
    
     String foundMsg = "";
@@ -825,7 +822,7 @@ private void findControlDevices()
 
     logPanel.appendTS(foundMsg);
 
-}// end of MainHandler::findControlDevices
+}// end of MainHandler::findControlDevice
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -878,6 +875,17 @@ public void collectData()
 
 private void collectDataForScanOrTimerMode()
 {
+    
+    //do nothing if not time to update
+    if (scanRateCounter-- == 0){ 
+        scanRateCounter = 10 - sharedSettings.scanSpeed; 
+    }
+    else { 
+        return; 
+    }
+
+    //made it to here, so assume we can move forward
+    readyToAdvanceInsertionPoints = true;
 
 }//end of MainHandler::collectDataForScanOrTimerMode
 //-----------------------------------------------------------------------------
@@ -1475,11 +1483,18 @@ private void startScanMode()
 private void startInspectMode()
 {
     
-    if (sharedSettings.timerDrivenTracking) { 
+    //determine whether to use timer driven or remote device driven
+    if (sharedSettings.timerDrivenTracking
+        || (sharedSettings.timerDrivenTrackingInCalMode 
+                && sharedSettings.calMode))
+    { 
         opMode = MainHandler.INSPECT_WITH_TIMER_TRACKING; 
-    } else { opMode = MainHandler.INSPECT; }
+    } 
+    else { opMode = MainHandler.INSPECT; }
 
     prepareRemotesForNextRun(); //prep all devices
+    
+    readyToAdvanceInsertionPoints = false; //not ready on first go around
     
     //system waits until it receives flag that head is off the pipe or no
     //pipe is in the system
@@ -1625,11 +1640,17 @@ synchronized private void processChannelParameterChanges()
 //
 // Returns true if it is time advance all transfer buffers' insertion points.
 //
+// Resets to false so that next call to this function will say not ready unless
+// set back to true again.
+//
 
 public boolean isReadyToAdvanceInsertionPoints()
 {
+    
+    boolean isReady = readyToAdvanceInsertionPoints;
+    readyToAdvanceInsertionPoints = false;
 
-    return readyToAdvanceInsertionPoints;
+    return isReady;
 
 }// end of MainHandler::isReadyToAdvanceInsertionPoints
 //-----------------------------------------------------------------------------
