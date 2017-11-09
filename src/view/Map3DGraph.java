@@ -249,14 +249,6 @@ public void updateChild(int pChildNum)
 
     map3D.update((Graphics2D)getGraphics());
 
-    /*int r;
-    while((r = mapBuffer.getDataChange(mapDataSet)) != 0){
-
-        map3D.setAndDrawDataRow(
-                        (Graphics2D)getGraphics(), mapDataSet.d, mapDataSet.m);
-
-    }*/ //DEBUG HSS
-
 }// end of Map3DGraph::updateChild
 //-----------------------------------------------------------------------------
 
