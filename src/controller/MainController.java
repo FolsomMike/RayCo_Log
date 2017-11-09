@@ -619,23 +619,52 @@ private void startScanMode()
 //-----------------------------------------------------------------------------
 // MainController::startInspectMode
 //
-// Starts the inspection mode by resetting all buffers and telling view to
-// erase all traces and start back at the left of the screen.
+// Sets the inspection mode to the normal INSPECT mode or to the 
+// INSPECT_WITH_TIMER_DRIVEN_TRACKING mode, depending on values in
+// SharedSettings. 
+//
+// Tells View to reset everything, prepares for the next piece, and also tells
+// View to ensure all control panels have been refreshed for the new settings.
 //
 
 private void startInspectMode()
 {
-
-    sharedSettings.opMode = SharedSettings.INSPECT_MODE;
     
-    mainHandler.setOperationMode(sharedSettings.opMode);
-
-    //force view to reset everything he has
-    mainView.resetAll();
-
-    prepareForNextPiece();
+    determineInspectionMode(); //sets to timer driven or regular inspect mode
     
-    mainView.refreshControlsPanel(); //force view to refresh stuff
+    mainHandler.setOperationMode(sharedSettings.opMode); //notify hardware
+
+    mainView.resetAll(); //force view to reset everything he has
+
+    prepareForNextPiece(); //prep for next piece
+    
+    mainView.refreshControlsPanel(); //force view to refresh control panels
+
+}//end of MainController::startInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::determineInspectionMode
+//
+// Sets the inspection mode to the normal INSPECT mode or to the 
+// INSPECT_WITH_TIMER_DRIVEN_TRACKING mode, depending on values in
+// SharedSettings.
+//
+
+private void determineInspectionMode()
+{
+    
+    if (sharedSettings.timerDrivenTracking
+        || (sharedSettings.timerDrivenTrackingInCalMode 
+                && sharedSettings.calMode))
+    {
+        //start off inspect with timer tracking mode in pause
+        sharedSettings.opModePrev = SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE;
+        sharedSettings.opMode = SharedSettings.PAUSE_MODE;
+    } 
+    else { 
+        sharedSettings.opMode = SharedSettings.INSPECT_MODE;
+    }
 
 }//end of MainController::startInspectMode
 //-----------------------------------------------------------------------------
@@ -688,8 +717,7 @@ private void handleNextRun()
     
     //force the paused mode, setting the previous mode to the inspect mode so 
     //that when the user hits "Resume" the inspection mode will be entered again
-    sharedSettings.opModePrev = SharedSettings.INSPECT_MODE;
-    sharedSettings.opMode = SharedSettings.PAUSE_MODE;
+    determineInspectionMode();
     
     mainView.refreshControlsPanel(); //force view to refresh stuff
 
@@ -925,6 +953,36 @@ private ArrayList<PeakData> getChannelList()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::setCalibrationMode
+//
+// Uses information found in pInfo to either enable or disable calibration mode.
+//
+// Before doing so, STOP mode is invoked to ensure processing and saving of 
+//
+
+private void setCalibrationMode(String pInfo)
+{
+    
+    // [0] = Action command
+    // [1] = Cal mode enabled (1) or disabled (2)
+    String[] infoSplits = pInfo.split(",");
+    boolean state = Boolean.parseBoolean(infoSplits[1]);
+    
+    //do nothing if already in proper mode
+    if (sharedSettings.calMode == state) { return; }
+
+    startStopMode(); //stop everything
+    
+    mainView.resetAll(); //force view to reset everything he has
+    
+    sharedSettings.calMode = state; //change cal mode
+    
+    mainView.refreshControlsPanel();
+
+}// end of MainController::setCalibrationMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::updateThreshold
 //
 // Updates the threshold value in sharedSettings and then invokes view to
@@ -1143,6 +1201,11 @@ public void actionPerformed(ActionEvent e)
 
     if (e.getActionCommand().startsWith("display calibration panel")) {
         displayCalibrationPanel(e.getActionCommand());
+        return;
+    }
+    
+    if (e.getActionCommand().startsWith("Calibration Mode")) {
+        setCalibrationMode(e.getActionCommand());
         return;
     }
 
@@ -1645,6 +1708,7 @@ private void displayDataFromDevices()
 
     //quit if in not in inspect or scan mode
     if(sharedSettings.opMode != SharedSettings.INSPECT_MODE
+        && sharedSettings.opMode != SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE
         && sharedSettings.opMode != SharedSettings.SCAN_MODE) { return; }
 
     //prepares to scan through all channels

@@ -739,7 +739,9 @@ public void collectData()
 
     //send a request to the device for the next packet
     if (sharedSettings.opMode == SharedSettings.SCAN_MODE
-        || sharedSettings.opMode == SharedSettings.INSPECT_MODE) {
+        || sharedSettings.opMode == SharedSettings.INSPECT_MODE
+        || sharedSettings.opMode == SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE) 
+    {
         requestRunDataPacket();
     }
 

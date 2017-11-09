@@ -215,6 +215,9 @@ private void refreshModeButtonPanel()
         case SharedSettings.INSPECT_MODE:
             //same as pause mode
             
+        case SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE:
+            //same as pause mode
+            
         case SharedSettings.SCAN_MODE:
             //same as pause mode
 

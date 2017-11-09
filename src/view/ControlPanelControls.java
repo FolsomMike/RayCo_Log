@@ -47,7 +47,7 @@ class ControlPanelControls extends ControlPanel
     private final SharedSettings sharedSettings;
     
     //manual control panel
-    private boolean manualControlPanelVisible;
+    private JPanel manualControlPanel;
     private JLabel calModeWarning;
     private JButton nextPieceButton;
     private JButton pauseResumeButton;
@@ -77,8 +77,6 @@ public ControlPanelControls(int pChartGroupNum, int pChartNum,
     panelTitle = "Controls";
     
     sharedSettings = pSettings;
-    
-    manualControlPanelVisible = false;
     
 }//end of ControlPanelControls::ControlPanelControls (constructor)
 //-----------------------------------------------------------------------------
@@ -191,36 +189,35 @@ public void refreshInfoPanel()
 private void createManualControlPanel()
 {
     
-    //only display manual control panel if necessary
-    if (!sharedSettings.timerDrivenTracking 
-            || !sharedSettings.timerDrivenTrackingInCalMode) {
+    //only create manual control panel if necessary
+    if (manualControlPanel != null || (!sharedSettings.timerDrivenTracking 
+           && !sharedSettings.timerDrivenTrackingInCalMode)) 
+    {
         return;
     }
      
     addVerticalSpacer(this, 10);
-    
-    manualControlPanelVisible = true;
 
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.setBorder(BorderFactory.createTitledBorder("Manual Inspection"));
-    GUITools.setSizes(panel, 202, 80);
+    manualControlPanel = new JPanel();
+    manualControlPanel.setLayout(new BoxLayout(manualControlPanel, BoxLayout.Y_AXIS));
+    manualControlPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    manualControlPanel.setBorder(BorderFactory.createTitledBorder("Manual Inspection"));
+    GUITools.setSizes(manualControlPanel, 202, 80);
     
-    addVerticalSpacer(panel, 5);
+    addVerticalSpacer(manualControlPanel, 5);
     
     //warning goes above buttons
-    panel.add(calModeWarning = new JLabel("Cal Mode", warningSymbol, 
+    manualControlPanel.add(calModeWarning = new JLabel("Cal Mode", warningSymbol, 
                                             JLabel.LEADING));
     calModeWarning.setVisible(false); //starts out invisible
     
-    addVerticalSpacer(panel, 5);
+    addVerticalSpacer(manualControlPanel, 5);
     
     //panel so buttons can be displayed horizontally
     JPanel buttonsPanel = new JPanel();
     buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
     buttonsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(buttonsPanel);
+    manualControlPanel.add(buttonsPanel);
     
     //add button
     nextPieceButton = new JButton("Next Run");
@@ -243,12 +240,10 @@ private void createManualControlPanel()
     pauseResumeButton.setEnabled(false); //starts out invisible
     buttonsPanel.add(pauseResumeButton);
 
-    add(panel);
+    add(manualControlPanel);
     
-    //if using timer driven for cal mode only, start with panel disabled
-    if(sharedSettings.timerDrivenTrackingInCalMode){
-        setManualControlPanelEnabled(false);
-    }
+    //default to disabled
+    setManualControlPanelEnabled(false);
 
 }// end of ControlPanelControls::createManualControlPanel
 //-----------------------------------------------------------------------------
@@ -270,16 +265,18 @@ private void createManualControlPanel()
 public void refreshManualControlPanel()
 {
 
-    //create it if necessary, will set flag to true after
-    if (!manualControlPanelVisible) { createManualControlPanel(); }
+    createManualControlPanel(); //create control panel if necessary
     
-    //if flag not set, we don't need to do anything else
-    if (!manualControlPanelVisible) { return; }
+    if (manualControlPanel==null) { return; } //do nothing else if not created
     
     //set buttons enabled and pause/resume text appropriately
     switch (sharedSettings.opMode) {
         
         case SharedSettings.INSPECT_MODE:
+            setManualControlPanelEnabled(false);
+            break;
+            
+        case SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE:
             setManualControlPanelEnabled(true);
             pauseResumeButton.setText("Pause");
             break;
@@ -295,7 +292,6 @@ public void refreshManualControlPanel()
             
         case SharedSettings.STOP_MODE:
             setManualControlPanelEnabled(false);
-            pauseResumeButton.setText("Resume");
             break;
         
         default:
@@ -307,6 +303,9 @@ public void refreshManualControlPanel()
     //set action command to text of button
     pauseResumeButton.setActionCommand(pauseResumeButton.getText());
     
+    //display cal mode warning if necessary
+    calModeWarning.setVisible(sharedSettings.calMode);
+    
 }// end of ControlPanelControls::refreshManualControlPanel
 //-----------------------------------------------------------------------------
 
@@ -316,11 +315,15 @@ public void refreshManualControlPanel()
 // Set all controls enabled or enabled.
 //
 
-public void setManualControlPanelEnabled(boolean pFalse)
+public void setManualControlPanelEnabled(boolean pState)
 {
 
-    pauseResumeButton.setEnabled(pFalse);
-    nextPieceButton.setEnabled(pFalse);
+    //hide everything
+    manualControlPanel.setVisible(pState);
+    
+    //disable buttons for good measure
+    pauseResumeButton.setEnabled(pState);
+    nextPieceButton.setEnabled(pState);
     
 }//end of ControlPanelControls::setManualControlPanelEnabled
 //-----------------------------------------------------------------------------
@@ -435,8 +438,6 @@ private JPanel createStatusPanel()
 public void refreshStatusPanel()
 {
 
-    setCalModeEnabled(sharedSettings.calMode);
-
     //display either the cal piece number or normal piece number
     if (sharedSettings.calMode) {
         pieceNumberEditor.setValue((double)sharedSettings.nextCalPieceNumber);
@@ -471,23 +472,6 @@ public void refresh()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlPanelControls::setCalModeEnabled
-//
-// Sets the cal mode in SharedSettings to pEnabled. If enabled, cal mode
-// warning label is displayed.
-//
-
-protected void setCalModeEnabled(boolean pEnabled)
-{
-
-    sharedSettings.calMode = pEnabled;
-    
-    if (manualControlPanelVisible){ calModeWarning.setVisible(pEnabled); }
-
-}//end of ControlPanelControls::setCalModeEnabled
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // ControlPanelControls::actionPerformedLocal
 //
 // Responds to events which require action by this object.
@@ -504,10 +488,12 @@ protected boolean actionPerformedLocal(ActionEvent e)
         if (!(e.getSource() instanceof JCheckBox)) { return(false); }
         JCheckBox box = (JCheckBox)e.getSource();
         
-        //set cal mode to state of checkbox and refresh controls
-        setCalModeEnabled(box.isSelected()); refresh();
+        //tell parent listeners that calibration mode has changed
+        parentActionListener.actionPerformed(new ActionEvent(this, 1,
+                                            "Calibration Mode,"
+                                            + box.isSelected()));
         
-        return(true);
+        return true;
     }
 
     return(false);

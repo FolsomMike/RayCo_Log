@@ -52,10 +52,6 @@ public class MainHandler
     private final MainController mainController;
     private final IniFile configFile;
     private final SharedSettings sharedSettings;
-    
-    static public int SCAN = 0, INSPECT = 1, STOPPED = 2;
-    static public int INSPECT_WITH_TIMER_TRACKING = 3, PAUSED = 4;
-    private int opMode = STOPPED;
 
     LogPanel logPanel;
 
@@ -87,6 +83,7 @@ public class MainHandler
     private boolean monitorStatus = false;
     
     private boolean opModeChanged = false;
+    private boolean calModeChanged = false;
     
     //START control vars
     
@@ -847,10 +844,12 @@ public void collectData()
     
     processChannelParameterChanges(); //process updated values
     
-    if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING) {
+    if (sharedSettings.opMode == SharedSettings.SCAN_MODE
+        || sharedSettings.opMode == SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE)
+    {
         collectDataForScanOrTimerMode();
     }
-    else if (opMode == INSPECT) {
+    else if (sharedSettings.opMode == SharedSettings.INSPECT_MODE) {
         collectDataForInspectMode();
     }
 
@@ -1388,6 +1387,27 @@ synchronized public void setOperationMode(int pOpMode)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainHandler::setCalibrationMode
+//
+// Sets a flag indicating that the calibration mode has changed and actions need
+// to be taken in the main thread to handle the new mode.
+//
+// This function is only called from the GUI thread.
+//
+// Currently, pMode is ignored because everything in Hardware reads the
+// mode from SharedSettings. It is only passed in because it may be required
+// in the future.
+//
+
+synchronized public void setCalibrationMode(boolean pMode)
+{
+
+    calModeChanged = true;
+
+}//end of MainHandler::setCalibrationMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainHandler::handleSettingsChanges
 //
 // Handles all settings that have been flagged as changed.
@@ -1412,6 +1432,7 @@ private void handleSettingsChanges()
                 break;
 
             case SharedSettings.INSPECT_MODE:
+            case SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE:
                 startInspectMode();
                 break;
 
@@ -1437,8 +1458,6 @@ private void handleSettingsChanges()
 
 private void startStopMode()
 {
-    
-    opMode = MainHandler.STOPPED;
  
     //disable tracking pulses from Control to other devices
     controlDevice.setTrackPulsesEnabledFlag(false);
@@ -1458,8 +1477,6 @@ private void startStopMode()
 
 private void startScanMode()
 {
-    
-    opMode = MainHandler.SCAN;
 
     prepareRemotesForNextRun(); //prepare Devices, Control Boards, etc.
     
@@ -1482,15 +1499,6 @@ private void startScanMode()
 
 private void startInspectMode()
 {
-    
-    //determine whether to use timer driven or remote device driven
-    if (sharedSettings.timerDrivenTracking
-        || (sharedSettings.timerDrivenTrackingInCalMode 
-                && sharedSettings.calMode))
-    { 
-        opMode = MainHandler.INSPECT_WITH_TIMER_TRACKING; 
-    } 
-    else { opMode = MainHandler.INSPECT; }
 
     prepareRemotesForNextRun(); //prep all devices
     
