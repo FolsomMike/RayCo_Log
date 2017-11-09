@@ -171,6 +171,11 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     String line = processMetaData(pIn, pLastLine, false);
 
     for (Trace t : traces) { line = t.loadSegment(pIn, line); }
+    
+    //DEBUG HSS//  test code to set width to first trace
+    width = traces[0].getWidth();
+    setSizes(this, width, height);
+    //DEBUG HSS// end
 
     return line;
 

@@ -36,7 +36,9 @@ class ChartInfoPanel extends JPanel{
     private String title;    
     private String shortTitle;
     private final int chartGroupNum, chartNum, infoPanelNum;
-    private final int width, height;
+    private int width, height;
+    public void setWidth(int pWidth) { width = pWidth; }
+    public void setHeight(int pHeight) { height = pHeight; }
     ArrayList<ColorKeyInfo> colorKeys = new ArrayList<>();
 
     String button1Text, button1Action, button1ToolTipText;
@@ -148,6 +150,26 @@ public void createColorKeys(String pSection)
     
 }// end of ChartInfoPanel::createColorKeys
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartInfoPanel::updateDimensions
+//
+// Adjusts all width and height variables for the panel along with all such
+// values in relevant child objects.
+//
+// Should be called any time the panel is resized.
+//
+
+public void updateDimensions(int pNewWidth, int pNewHeight)
+{
+
+    width = pNewWidth; height = pNewHeight;
+
+    setSizes(this, width, height);
+
+}// end of ChartInfoPanel::updateDimensions
+//-----------------------------------------------------------------------------
+
 
 //-----------------------------------------------------------------------------
 // ChartInfoPanel::setSizes

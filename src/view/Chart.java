@@ -981,6 +981,13 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 
     // tell each graph to load data
     for (Graph g : graphs) { line = g.loadSegment(pIn, line); }
+    
+    //DEBUG HSS//  test code to set width to first graph
+    graphWidth = graphs[0].getGraphWidth();
+    if (infoPanel!=null) { 
+        infoPanel.updateDimensions(graphWidth, infoPanel.getHeight()); 
+    }
+    //DEBUG HSS// end
 
     // draw all necessary zoomboxes if a zoomgraph is there
     if (zoomGraph==null) { return line; }

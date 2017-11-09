@@ -54,6 +54,8 @@ public class Graph extends JPanel{
     int graphNum;
     public int getGraphNum(){ return(graphNum); }
     int width, height, specifiedWidth, specifiedHeight;
+    public int getGraphWidth() { return width; }
+    public int getGraphHeight() { return height; }
     Color backgroundColor;
 
     DataTransferSnapshotBuffer snapshotBuffer; //see notes at top of file

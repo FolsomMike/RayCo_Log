@@ -826,6 +826,8 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
         //add identifying details to the error message and pass it on
         throw new IOException(e.getMessage() + " of " + section);
     }
+    
+    updateDimensions(data.size(), height);//DEBUG HSS//
 
     return line;
 
