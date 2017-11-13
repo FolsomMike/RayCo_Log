@@ -128,6 +128,11 @@ public void paint(Graphics2D pG2)
         int yScale = 1; //DEBUG HSS// remove later
         int y1 = ((data[i-1]/yScale)*-1)+vertOffset;
         int y2 = ((data[i]/yScale)*-1)+vertOffset;
+        
+        //don't let y's exceed height
+        if (y1>height) { y1 = height; } else if (y1<y) { y1 = y; }
+        if (y2>height) { y2 = height; } else if (y2<y) { y2 = y; }
+        
         pG2.drawLine(adjX+i-1, y1, adjX+i, y2);
     }
 
