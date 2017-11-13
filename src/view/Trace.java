@@ -60,7 +60,7 @@ public class Trace{
     public int colorKeyXPos;
     public int colorKeyYPos;
     public int chartGroupNum, chartNum, graphNum, traceNum;
-    private int width, height;
+    private int width, height, minWidth, minHeight;
     Color backgroundColor;
     Color gridColor;
     int gridTrack;
@@ -169,6 +169,10 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
 
 public void updateDimensions(int pNewWidth, int pNewHeight)
 {
+    
+    //make sure we stay within constraints
+    if (pNewWidth<minWidth) { pNewWidth = minWidth; }
+    if (pNewHeight<minHeight) { pNewHeight = minHeight; }
 
     width = pNewWidth; height = pNewHeight;
 
@@ -207,6 +211,9 @@ private void loadConfigSettings()
     int configHeight = configFile.readInt(section, "height", 0);
 
     if (configHeight > 0) height = configHeight; //override if > 0
+    
+    //store current width and height as the mins
+    minWidth = width; minHeight = height;
 
     connectPoints = configFile.readBoolean(
                             section, "connect data points with line", false);
