@@ -238,7 +238,7 @@ void updateZoomBox(int pX)
 void resetLastUpdatedZoomBox()
 {
 
-    if (lastUpdatedZoomBox!=null) {
+    if (lastUpdatedZoomBox!=null && lastUpdatedZoomBoxDataIndex<data.size()) {
         lastUpdatedZoomBox.setData(data.get(lastUpdatedZoomBoxDataIndex),
                                     lastUpdatedZoomBoxDataIndex);
         lastUpdatedZoomBox.paint((Graphics2D)getGraphics());
