@@ -49,6 +49,8 @@ class Chart extends JPanel implements MouseListener, MouseMotionListener {
     private final int chartNum;
     public int getChartNum(){ return(chartNum); }
     private int graphWidth, graphHeight;
+    public int getGraphWidth() { return graphWidth; }
+    public int getGraphHeight() { return graphHeight; }
     int numGraphs;
     boolean hasZoomGraph = false;
     boolean hasInfoPanel;
@@ -137,6 +139,26 @@ public void updateDimensions()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::updateGraphDimensions
+//
+// Updates all children graph using the passed in dimnesions.
+
+public void updateGraphDimensions(int pNewWidth, int pNewHeight)
+{
+
+    graphWidth = pNewWidth; graphHeight = pNewHeight;
+    for (Graph g : graphs){ 
+        g.updateDimensions(graphWidth, graphHeight);
+    }
+    
+    if (infoPanel!=null) { 
+        infoPanel.updateDimensions(graphWidth, infoPanel.getHeight()); 
+    }
+
+}// end of Chart::updateGraphDimensions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::addGraphs
 //
 // Adds basic graphs to the chart. The type of each graph is loaded from the
@@ -181,6 +203,14 @@ private void addGraphs()
             add(graphs[i]);
             addSeparatorPanelSpecifiedInConfigFile(i);
 
+        }
+        
+        //if any graphs used larger width or heights, use those
+        if (graphs[i].getGraphWidth()>graphWidth) { 
+            graphWidth = graphs[i].getGraphWidth(); 
+        }
+        if (graphs[i].getGraphHeight()>graphHeight) { 
+            graphHeight = graphs[i].getGraphHeight(); 
         }
 
     }

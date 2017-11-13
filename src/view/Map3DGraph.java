@@ -74,6 +74,9 @@ public class Map3DGraph extends Graph{
     // used to hold the parameters currently in use
 
     Map3DViewParameters currentViewParams = new Map3DViewParameters();
+    
+    
+    private double pixelWidthOfGridBlockInRuntimeLayout;
 
     //length is the x axis, width is the y axis (o'clock position)
     private int mapLengthInDataPoints;
@@ -191,6 +194,35 @@ public void update(ArrayList <Object> pValues)
     repaint();
 
 }// end of Map3DGraph::update
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3DGraph::updateDimensions
+//
+// Updates size-related variables such as width, height, etc. using the passed
+// in values
+//
+
+@Override
+public void updateDimensions(int pWidth, int pHeight)
+{
+    
+    super.updateDimensions(pWidth, pHeight);
+    
+    //only change map length data points if config file says to rely on width
+    mapLengthInDataPoints =
+      configFile.readInt(fileSection, "length of map in data points", 12);
+
+    //if value in config file is -1, set such that the graph is filled
+    if (mapLengthInDataPoints == -1){
+        mapLengthInDataPoints =
+                           (int)(width / pixelWidthOfGridBlockInRuntimeLayout);
+    }
+    
+    map3D.updateDimensions(width, height,  
+                            mapLengthInDataPoints, mapWidthInDataPoints);
+    
+}// end of Map3DGraph::updateDimensions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -567,8 +599,6 @@ void loadConfigSettings()
                                             + " Graph " + graphNum;
 
     super.loadConfigSettings();
-
-    double pixelWidthOfGridBlockInRuntimeLayout;
 
     pixelWidthOfGridBlockInRuntimeLayout = configFile.readDouble(
             fileSection,

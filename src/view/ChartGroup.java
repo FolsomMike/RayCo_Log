@@ -599,6 +599,13 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 
     // call each chart to load its data
     for (Chart c : charts) { line = c.loadSegment(pIn, line); }
+    
+    //DEBUG HSS//  test code to use width to first graph of first chart
+    graphWidth = charts[0].getGraphWidth();
+    for (Chart c : charts) { 
+        c.updateGraphDimensions(graphWidth, c.getGraphHeight());
+    }
+    //DEBUG HSS// end
 
     repaint();
 

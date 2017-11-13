@@ -187,7 +187,7 @@ public class Map3D{
     int graphNum;
     public int getGraphNum(){ return(graphNum); }
 
-    private final MapDataBuffer mapDataBuffer;
+    private MapDataBuffer mapDataBuffer;
     public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer)
         { mapDataBuffer.setTransferBuffer(pMapBuffer); }
     DataSetIntMultiDim mapDataSet;
@@ -492,6 +492,7 @@ public void createArrays()
 {
 
     dataBuf = new int[xMax][yMax];
+    metaBuf = new int[xMax][yMax];
 
     s = new ScreenPlane[xMax][yMax];
     orthoS = new ScreenPlane[xMax][yMax];
@@ -624,6 +625,32 @@ public void update(Graphics2D pG2)
     setAndDrawDataRow(pG2, mapDataSet.d, mapDataSet.m);
 
 }// end of Map3D::update
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::updateDimensions
+//
+// Updates size-related variables such as width, height, etc. using the passed
+// in values
+//
+
+public void updateDimensions(int pWidth, int pHeight,
+                                int pDataXMax, int pDataYMax)
+{
+    
+    setCanvasSize(pWidth, pHeight);
+
+    dataXMax = pDataXMax; dataYMax = pDataYMax;
+    xMax = dataXMax + 2; yMax = dataYMax + 2;
+
+    mapDataBuffer = new MapDataBuffer(dataYMax);
+
+    createArrays();
+
+    //make sure data is in active drawing buffers
+    loadDrawnDataListsIntoActiveArrays();
+    
+}// end of Map3D::updateDimensions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1711,23 +1738,9 @@ public String loadSegment(BufferedReader pIn, String pLastLine,
         //add identifying details to the error message and pass it on
         throw new IOException(e.getMessage() + " of " + pErrorSection);
     }
-
-    //set data in the active drawing buffers
-    int drawnIndex= drawnData.size()>dataBuf.length
-                            ? drawnData.size()-dataBuf.length : 0;
-    for (int i=1;
-            i<dataBuf.length && i<metaBuf.length
-            && drawnIndex<drawnData.size() && drawnIndex<drawnMetaData.size();
-            i++, drawnIndex++)
-    {
-
-        System.arraycopy(drawnData.get(drawnIndex), 0, dataBuf[i],
-                            1, drawnData.get(drawnIndex).length);
-
-        System.arraycopy(drawnMetaData.get(drawnIndex), 0, metaBuf[i],
-                            1, drawnMetaData.get(drawnIndex).length);
-
-    }
+    
+    //make sure data is in active drawing buffers
+    loadDrawnDataListsIntoActiveArrays();
 
     return line;
 
@@ -1833,6 +1846,37 @@ public String loadDataSeries(BufferedReader pIn, String pLastLine,
     return(line); //should be "[xxxx]" tag on success, unknown value if not
 
 }//end of Map3D::loadDataSeries
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map3D::loadDrawnDataListsIntoActiveArrays
+//
+// Puts data from the drawn data and drawn meta data lists into the active
+// drawing buffer arrays. Will put either the entire list into the buffer array
+// or will quit when it reaches the buffer size
+//
+
+private void loadDrawnDataListsIntoActiveArrays()
+{
+
+    //set data in the active drawing buffers
+    int drawnIndex= drawnData.size()>dataBuf.length
+                            ? drawnData.size()-dataBuf.length : 0;
+    for (int i=1;
+            i<dataBuf.length && i<metaBuf.length
+            && drawnIndex<drawnData.size() && drawnIndex<drawnMetaData.size();
+            i++, drawnIndex++)
+    {
+
+        System.arraycopy(drawnData.get(drawnIndex), 0, dataBuf[i],
+                            1, drawnData.get(drawnIndex).length);
+
+        System.arraycopy(drawnMetaData.get(drawnIndex), 0, metaBuf[i],
+                            1, drawnMetaData.get(drawnIndex).length);
+
+    }
+
+}//end of Map3D::loadDrawnDataListsIntoActiveArrays
 //-----------------------------------------------------------------------------
 
 }//end of class Map3D
