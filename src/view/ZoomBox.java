@@ -124,8 +124,7 @@ public void paint(Graphics2D pG2)
     pG2.setColor(Color.RED);
     for(int i=1; i<data.length; i++){
         //data values inverted because 0 is in top left corner
-        //DEBUG HSS//int yScale = 5; //WIP HSS// read in from ini file
-        int yScale = 1; //DEBUG HSS// remove later
+        int yScale = 5;
         int y1 = ((data[i-1]/yScale)*-1)+vertOffset;
         int y2 = ((data[i]/yScale)*-1)+vertOffset;
         
