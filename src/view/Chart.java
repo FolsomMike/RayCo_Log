@@ -129,7 +129,9 @@ public void init()
 public void updateDimensions()
 {
 
-    for (Graph graph : graphs){ graph.updateDimensions(); }
+    for (Graph g : graphs){ 
+        g.updateDimensions(g.getGraphWidth(), g.getGraphHeight());
+    }
 
 }// end of Chart::updateDimensions
 //-----------------------------------------------------------------------------
@@ -984,6 +986,7 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     
     //DEBUG HSS//  test code to set width to first graph
     graphWidth = graphs[0].getGraphWidth();
+    for (Graph g : graphs) { g.updateDimensions(graphWidth, g.getGraphHeight()); }
     if (infoPanel!=null) { 
         infoPanel.updateDimensions(graphWidth, infoPanel.getHeight()); 
     }

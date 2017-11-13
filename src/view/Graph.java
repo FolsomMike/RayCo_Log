@@ -150,9 +150,12 @@ public void init()
 // Should be overridden by child classes to provide custom handling.
 //
 
-public void updateDimensions()
+public void updateDimensions(int pNewWidth, int pNewHeight)
 {
 
+    width = pNewWidth; height = pNewHeight;
+
+    setSizes(this, width, height);
 
 }// end of Chart::updateDimensions
 //-----------------------------------------------------------------------------
