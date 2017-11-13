@@ -481,6 +481,8 @@ boolean requestMonitorPacket()
 
 public int handleMonitorPacket()
 {
+    
+    waitingForRemoteResponse = false;
 
     int numBytesInPkt = monitorPacketSize; //includes Rabbit checksum byte
     
