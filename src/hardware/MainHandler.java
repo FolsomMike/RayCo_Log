@@ -105,8 +105,7 @@ public class MainHandler
     //this value needs to be at least 1 because if the delay is set to zero
     //it gets ignored...the code only catches when it decrements to 0
     //value of 1 actually triggers immediately, so functions as zero delay
-    //DEBUG HSS// uncommentprivate final static int MASK_DISABLE_DELAY = 1; //DEBUG HSS// uncomment
-    private final static int MASK_DISABLE_DELAY = 200;  //DEBUG HSS// remove
+    private final static int MASK_DISABLE_DELAY = 1;
     
     private final DecimalFormat decFmt0x0 = new DecimalFormat("0.0");
     
