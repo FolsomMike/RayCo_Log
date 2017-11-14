@@ -778,9 +778,6 @@ private void prepareForNextPiece()
     //tell view to reset everything to left edge if setting say so
     if (sharedSettings.startNewPieceAtLeftEdge) { mainView.resetAll();  }
 
-    //mark the starting point of a new segment
-    markSegmentStart();
-
 }// end of MainController::prepareForNextPiece
 //-----------------------------------------------------------------------------
 
@@ -790,7 +787,7 @@ private void prepareForNextPiece()
 // Marks a segment start in all transfer buffers.
 //
 
-private void markSegmentStart()
+public void markSegmentStart()
 {
     
     mainView.markSegmentStart();

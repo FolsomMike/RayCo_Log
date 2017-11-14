@@ -282,7 +282,7 @@ private int checkThresholdViolation(int pSig)
 
 {
     
-    //DEBUG HSS//if (!flaggingEnabled) { return -1; } //bail if not flagging
+    if (!flaggingEnabled) { return -1; } //bail if not flagging
 
     for (ThresholdInfo info : thresholdInfos) {
 

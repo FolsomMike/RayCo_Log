@@ -100,6 +100,13 @@ public class MainHandler
     private HardwareVars hdwVs;
     private boolean manualInspectControl = false;
     private boolean flaggingEnabled = false;
+    private int flaggingEnableDelay = 0;
+    
+    //this value needs to be at least 1 because if the delay is set to zero
+    //it gets ignored...the code only catches when it decrements to 0
+    //value of 1 actually triggers immediately, so functions as zero delay
+    //DEBUG HSS// uncommentprivate final static int MASK_DISABLE_DELAY = 1; //DEBUG HSS// uncomment
+    private final static int MASK_DISABLE_DELAY = 200;  //DEBUG HSS// remove
     
     private final DecimalFormat decFmt0x0 = new DecimalFormat("0.0");
     
@@ -962,6 +969,7 @@ boolean collectEncoderDataInspectMode()
             //piece has been removed; prepare for it to enter to begin
             hdwVs.waitForOffPipe = false;
             hdwVs.waitForOnPipe = true;
+            enableFlagging(false); flaggingEnableDelay = 0; //disable flagging
             displayMsg("system clear, previous tally = " + 
                                        decFmt0x0.format(previousTally));
             previousTally = 0;
@@ -986,6 +994,11 @@ boolean collectEncoderDataInspectMode()
             initializePlotterOffsetDelays(
                                     encoders.getDirectionSetForLinearFoward());
             
+            //disable flagging upon start -- will be enabled after a small 
+            //distance delay is used to prevent flagging of the initial
+            //transition
+            enableFlagging(false); flaggingEnableDelay = MASK_DISABLE_DELAY;
+            
             //set the text description for the direction of inspection
             if (encoders.getDirectionSetForLinearFoward() == 
                                                   encoders.getAwayDirection()) {
@@ -1003,12 +1016,6 @@ boolean collectEncoderDataInspectMode()
             encoders.recordLinearStartCount();
             displayMsg("entry eye blocked...");
         }
-    }
-
-    if (manualInspectControl){
-        inspectCtrlVars.head1Down = true;
-        inspectCtrlVars.head2Down = true;
-        inspectCtrlVars.head3Down = true;
     }
         
     //watch for piece to exit head
@@ -1044,6 +1051,11 @@ boolean collectEncoderDataInspectMode()
 
     //check to see if encoder hand over should occur
     encoders.handleEncoderSwitchOver();
+    
+    if (flaggingEnableDelay != 0 && --flaggingEnableDelay == 0){
+        enableFlagging(true);
+        mainController.markSegmentStart();
+    }
     
     //made it to here, so assume we can move forward
     readyToAdvanceInsertionPoints = true;
