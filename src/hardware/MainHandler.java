@@ -1165,9 +1165,9 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
                 channelAdvanced = true; 
                 c.getDataBuffer().setPositionAdvanced(true);
                 
-                //DEBUG HSS// uncomment //for (int x=0; x<pPixelsMoved; x++) { 
+                for (int x=0; x<pPixelsMoved; x++) { 
                     c.getDataBuffer().incPutPtrAndSetReadyAfterDataFill(); 
-                //DEBUG HSS// uncomment //}
+                }
             }
         }
         
@@ -1180,9 +1180,9 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
         {
             d.getSnapshotDataBuffer().setPositionAdvanced(true);
             
-            //DEBUG HSS// uncomment //for (int x=0; x<pPixelsMoved; x++) {
+            for (int x=0; x<pPixelsMoved; x++) {
                 d.getSnapshotDataBuffer().incPutPtrAndSetReadyAfterDataFill();
-            //DEBUG HSS// uncomment //}
+            }
         }
         
         //map buffers
@@ -1191,9 +1191,9 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
         {
             d.getMapDataBuffer().setPositionAdvanced(true);
             
-            //DEBUG HSS// uncomment //for (int x=0; x<pPixelsMoved; x++) {
+            for (int x=0; x<pPixelsMoved; x++) {
                 d.getMapDataBuffer().incPutPtrAndSetReadyAfterDataFill();
-            //DEBUG HSS// uncomment //}
+            }
         }
         
     }
