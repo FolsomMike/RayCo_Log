@@ -57,6 +57,10 @@ public int traceNum = -1;
 int putPointer;
 int getPointer;
 
+private boolean positionAdvanced = false;
+public boolean getPositionAdvanced() { return positionAdvanced; }
+public void setPositionAdvanced(boolean pSet) { positionAdvanced = pSet; }
+
 int bufLength;
 int bufWidth;
 int dataPeakBuf[];

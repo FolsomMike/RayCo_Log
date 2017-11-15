@@ -533,8 +533,10 @@ public void paintSingleTraceDataPoint(
     //calculate the x position in pixels
     int x = (int)Math.round(pDataIndex * xScale);
 
-    //lead plotter invokes scrolling and decorating
-    if (leadDataPlotter){ handleLeadPlotterActions(pG2, x); }
+    //lead buffer invokes scrolling and decorating
+    if (leadDataPlotter || dataBuffer.isLeadBuffer()){ 
+        handleLeadPlotterActions(pG2, x); 
+    }
 
     //adjust for any scrolling that has occurred before plotting
     int xAdj = x - graphInfo.scrollOffset;
@@ -605,8 +607,6 @@ public void updateTrace(Graphics2D pG2)
 {
 
     int r;
-    
-    dataBuffer.incPutPtrAndSetReadyAfterDataFill();
 
     while((r = dataBuffer.getDataChange(dataSet)) != 0){
 

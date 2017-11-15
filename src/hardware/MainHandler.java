@@ -36,6 +36,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.SharedSettings;
 import view.LogPanel;
@@ -101,6 +102,7 @@ public class MainHandler
     private boolean manualInspectControl = false;
     private boolean flaggingEnabled = false;
     private int flaggingEnableDelay = 0;
+    public double delayDistance;
     
     //this value needs to be at least 1 because if the delay is set to zero
     //it gets ignored...the code only catches when it decrements to 0
@@ -113,12 +115,12 @@ public class MainHandler
     public boolean needToPrepareForNewPiece() { return prepareForNewPiece; }
     public void setPrepareForNewPiece(boolean pPrep) { prepareForNewPiece = pPrep; }
     
-    private boolean readyToAdvanceInsertionPoints = false;
-    
     private EncoderHandler encoders;
     private EncoderValues encoderValues;
     
     private double previousTally = 0.0;
+    
+    private int prevPixPosition;
 
     //number of counts each encoder moves to trigger an inspection data packet
     //these values are read later from the config file
@@ -850,6 +852,8 @@ public void collectData()
     
     processChannelParameterChanges(); //process updated values
     
+    for(Device device : devices){ device.collectData(); }
+    
     if (sharedSettings.opMode == SharedSettings.SCAN_MODE
         || sharedSettings.opMode == SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE)
     {
@@ -858,8 +862,6 @@ public void collectData()
     else if (sharedSettings.opMode == SharedSettings.INSPECT_MODE) {
         collectDataForInspectMode();
     }
-
-    for(Device device : devices){ device.collectData(); }
 
     for(Device device : devices){ device.driveSimulation(); }
 
@@ -888,9 +890,6 @@ private void collectDataForScanOrTimerMode()
     else { 
         return; 
     }
-
-    //made it to here, so assume we can move forward
-    readyToAdvanceInsertionPoints = true;
 
 }//end of MainHandler::collectDataForScanOrTimerMode
 //-----------------------------------------------------------------------------
@@ -989,9 +988,7 @@ boolean collectEncoderDataInspectMode()
             //sets the forward direction (increasing or decreasing encoder
             //count)
             encoders.setCurrentLinearDirectionAsFoward();            
-            
-            initializePlotterOffsetDelays(
-                                    encoders.getDirectionSetForLinearFoward());
+            initializeOffsetDelays(encoders.getDirectionSetForLinearFoward());
             
             //disable flagging upon start -- will be enabled after a small 
             //distance delay is used to prevent flagging of the initial
@@ -1013,6 +1010,7 @@ boolean collectEncoderDataInspectMode()
             
             //record the value of linear encoder at start of inspection
             encoders.recordLinearStartCount();
+            prevPixPosition = 0;
             displayMsg("entry eye blocked...");
         }
     }
@@ -1051,13 +1049,7 @@ boolean collectEncoderDataInspectMode()
     //check to see if encoder hand over should occur
     encoders.handleEncoderSwitchOver();
     
-    if (flaggingEnableDelay != 0 && --flaggingEnableDelay == 0){
-        enableFlagging(true);
-        mainController.markSegmentStart();
-    }
-    
-    //made it to here, so assume we can move forward
-    readyToAdvanceInsertionPoints = true;
+    moveEncoders();
 
     return newPositionData;
 
@@ -1065,27 +1057,248 @@ boolean collectEncoderDataInspectMode()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler::initializePlotterOffsetDelays
+// MainHandler::moveEncoders
 //
-// Initializes the plotter start delays for the different types of plotter
-// objects. See the notes in each method called for more details.
+// Calculates position of the head/test piece to determine if plotters need
+// to move and to perform any other actions required by linear motion.
+//
 
-public void initializePlotterOffsetDelays(int pDirection)
+private void moveEncoders()
 {
 
-    /*//DEBUG HSS//initializeTraceOffsetDelays(pDirection);
+    //The control board sends new encoder data after a set number of encoder
+    //counts, this set number approximates the distance for one pixel.  It is
+    //not exact because there is a round off error which accumulates with each
+    //packet sent.
+    //To counterract this, the actual encoder count used to compute if a new
+    //pixel has been reached.  Sometimes a packet may be sent for which the
+    //encoder count does not calculate to the next pixel, so the buffer pointer
+    //is not moved and incoming data is still stored in the previous pixel.
+    //Sometimes, a packet will arrive which skips a pixel.  In that case, the
+    //skipped pixels are filled with data from the previous pixel.
 
-    analogDriver.initializeMapOffsetDelays(
-                                      pDirection, encoders.getAwayDirection());*/
+    double position = encoders.getAbsValueLinearDistanceMovedInches();
 
-}//end of MainHandler::initializePlotterOffsetDelays
+    //calculate the number of pixels moved since the last check
+    int pixPosition = (int)(position * hdwVs.pixelsPerInch);
+
+    //debug mks -- check here for passing zero point -- means pipe has backed
+    //out of the system so remove segment
+
+    //calculate the number of pixels moved since the last update
+    int pixelsMoved = pixPosition - prevPixPosition;
+
+    //check encoder handler to see if trace should be updated
+    //do nothing if encoders haven't moved enough to reach the next pixel, etc.
+
+    if(!encoders.allowTraceUpdate(pixelsMoved)){ return; }
+
+    prevPixPosition = pixPosition;
+
+    if (flaggingEnableDelay != 0 && --flaggingEnableDelay == 0){
+        enableFlagging(true);
+        mainController.markSegmentStart();
+    }
+
+    moveBuffers(pixelsMoved, position);
+
+}//end of MainHandler::moveEncoders
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler::initializeTraceOffsetDelays
+// MainHandler::moveBuffers
 //
-// Sets the trace start delays so the traces don't start until their associated
-// sensors reach the pipe.
+
+void moveBuffers(int pPixelsMoved, double pPosition)
+{
+
+    //Scan through all device channels buffers, snapshot buffers, and map
+    //buffers, updating the buffer pointer for each
+
+    //too avoid multiple increments of such a trace's pointer, each trace is
+    //flagged when it is updated so it can be ignored the next time it is 
+    //encountered.
+
+    //NOTE: you must check for NULL trace references because some channels
+    //are tied to flags but not traces.
+
+    //set all advanced flags to false before starting
+    for (Device d : devices) {
+        
+        //channels
+        for (Channel c : d.getChannels()) {
+            if (c.getDataBuffer()!=null) {
+                c.getDataBuffer().setPositionAdvanced(false);
+            }
+        }
+    
+        //snapshot buffers
+        if (d.getSnapshotDataBuffer()!=null) {
+            d.getSnapshotDataBuffer().setPositionAdvanced(false);
+        }
+        
+        //map buffers
+        if (d.getMapDataBuffer()!=null) {
+            d.getMapDataBuffer().setPositionAdvanced(false);
+        }
+        
+    }
+    
+    //advance buffers forward or backwards
+    if (pPixelsMoved > 0) { moveBuffersForward(pPixelsMoved, pPosition); }
+    else { moveBuffersBackward(pPixelsMoved, pPosition); }
+
+}//end of MainHandler::moveBuffers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::moveBuffersForward
+//
+// Moves the buffer forward to respond to forward inspection direction.
+//
+// Parameter pPixelsMoved is the number of pixels the trace is to be moved.
+//
+// Parameter pPosition is the position of the head or inspection piece as
+// measured from the point where the photo eye was blocked.
+//
+
+void moveBuffersForward(int pPixelsMoved, double pPosition)
+{
+
+    //move all buffers forward for all devices
+    for (Device d : devices) {
+        
+        //nothing else updated unless at least one channel is advanced
+        boolean channelAdvanced = false;
+        
+        //channels -- only advance if delay distance reached, and hasn't 
+        //already advanced
+        for (Channel c : d.getChannels()) {
+            if (c.getDataBuffer()!=null && c.getDelayDistance()<pPosition
+                && !c.getDataBuffer().getPositionAdvanced())
+            {
+                
+                
+                
+                channelAdvanced = true; 
+                c.getDataBuffer().setPositionAdvanced(true);
+                
+                //DEBUG HSS// uncomment //for (int x=0; x<pPixelsMoved; x++) { 
+                    c.getDataBuffer().incPutPtrAndSetReadyAfterDataFill(); 
+                //DEBUG HSS// uncomment //}
+            }
+        }
+        
+        //do nothing else if no channels advanced
+        if (!channelAdvanced) { break; }
+    
+        //snapshot buffers
+        if (d.getSnapshotDataBuffer()!=null
+            && !d.getSnapshotDataBuffer().getPositionAdvanced()) 
+        {
+            d.getSnapshotDataBuffer().setPositionAdvanced(true);
+            
+            //DEBUG HSS// uncomment //for (int x=0; x<pPixelsMoved; x++) {
+                d.getSnapshotDataBuffer().incPutPtrAndSetReadyAfterDataFill();
+            //DEBUG HSS// uncomment //}
+        }
+        
+        //map buffers
+        if (d.getMapDataBuffer()!=null
+            && !d.getMapDataBuffer().getPositionAdvanced()) 
+        {
+            d.getMapDataBuffer().setPositionAdvanced(true);
+            
+            //DEBUG HSS// uncomment //for (int x=0; x<pPixelsMoved; x++) {
+                d.getMapDataBuffer().incPutPtrAndSetReadyAfterDataFill();
+            //DEBUG HSS// uncomment //}
+        }
+        
+    }
+
+}//end of MainHandler::moveBuffersForward
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::moveBuffersBackward
+//
+// Moves the buffers backward to respond to system being reversed.
+// This is not to be confused with inspecting in the reverse direction.
+// Inspection can occur in either directon.  This code handles cases where the
+// head or piece is backed up for the current inspection forward direction to
+// re-inspect a segment.
+//
+// Parameter pTrace is the trace to be updated.
+//
+// Parameter pPixelsMoved is the number of pixels the trace is to be moved and
+// should always be positive.
+//
+// Parameter pPosition is the position of the head or inspection piece as
+// measured from the point where the photo eye was blocked.
+//
+// wip mks -- need to catch when pipe/head has reversed all the way back past
+// the start point and exit the inspect mode!
+//
+
+void moveBuffersBackward(int pPixelsMoved, double pPosition)
+{
+    
+    //move all buffers forward for all devices
+    for (Device d : devices) {
+        
+        //nothing else updated unless at least one channel is advanced
+        boolean channelAdvanced = false;
+        
+        //channels -- only advance if delay distance reached, and hasn't 
+        //already advanced
+        for (Channel c : d.getChannels()) {
+            if (c.getDataBuffer()!=null && c.getDelayDistance()<pPosition
+                && !c.getDataBuffer().getPositionAdvanced())
+            {
+                channelAdvanced = true; 
+                c.getDataBuffer().setPositionAdvanced(true);
+                
+                for (int x=0; x<pPixelsMoved; x++) { 
+                    c.getDataBuffer().decrementPutPointerAndSetErasedFlag();
+                }
+            }
+        }
+        
+        //do nothing if else if no channels advanced
+        if (!channelAdvanced) { break; }
+    
+        //snapshot buffers
+        if (d.getSnapshotDataBuffer()!=null
+            && !d.getSnapshotDataBuffer().getPositionAdvanced()) 
+        {
+            d.getSnapshotDataBuffer().setPositionAdvanced(true);
+            
+            for (int x=0; x<pPixelsMoved; x++) {
+                d.getSnapshotDataBuffer().decrementPutPointerAndSetErasedFlag();
+            }
+        }
+        
+        //map buffers
+        if (d.getMapDataBuffer()!=null
+            && !d.getMapDataBuffer().getPositionAdvanced()) 
+        {
+            d.getMapDataBuffer().setPositionAdvanced(true);
+            
+            for (int x=0; x<pPixelsMoved; x++) {
+                d.getMapDataBuffer().decrementPutPointerAndSetErasedFlag();
+            }
+        }
+        
+    }
+
+}//end of MainHandler::moveBuffersBackward
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::initializeOffsetDelays
+//
+// Sets the start delays so that channels' traces don't start until their 
+// associated sensors reach the pipe.
 //
 // The distance is set depending on the direction of inspection.  Some systems
 // have different photo eye to sensor distances depending on the direction
@@ -1109,58 +1322,91 @@ public void initializePlotterOffsetDelays(int pDirection)
 // direction).
 //
 
-public void initializeTraceOffsetDelays(int pDirection)
+public void initializeOffsetDelays(int pDirection)
 {
+    
+    //key = chart group + chart num + graph num
+    Map<String, Channel> leads = new HashMap<>();
+    Map<String, Channel> trails = new HashMap<>();
+    
+    //iterate through all buffers for all device channels
+    DataTransferIntBuffer buf;
+    for (Device d : devices) {
+        for (Channel c : d.getChannels()) {
 
-    /*//DEBUG HSS//Plotter plotterPtr;
+            //skip over channels with no buffers
+            if ((buf=c.getDataBuffer())==null) { continue; }
 
-    double leadingTraceCatch, trailingTraceCatch;
-    int lead = 0, trail = 0;
-        for (ChartGroup chartGroup : chartGroups) {
-            int nSC = chartGroup.getNumberOfStripCharts();
-            for (int sc = 0; sc < nSC; sc++) {
-                int nTr = chartGroup.getStripChart(sc).getNumberOfPlotters();
-                //these used to find the leading trace (smallest offset) and the
-                //trailing trace (greatest offset) for each chart
-                leadingTraceCatch = Double.MAX_VALUE;
-                trailingTraceCatch = Double.MIN_VALUE;
-                for (int tr = 0; tr < nTr; tr++) {
-                    plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
-                    //if the current direction is the "Away" direction, then set
-                    //the offsets properly for the carriage moving away from the
-                    //operator otherwise set them for the carriage moving towards
-                    //the operator see more notes in this method's header
-                    if (plotterPtr != null){
-                        
-                        //start with all false, one will be set true
-                        plotterPtr.leadPlotter = false;
-                        
-                        if (pDirection == encoders.getAwayDirection()) {
-                            plotterPtr.delayDistance =
-                                    plotterPtr.startFwdDelayDistance;
-                        }
-                        else {
-                            plotterPtr.delayDistance =
-                                    plotterPtr.startRevDelayDistance;
-                        }
-                        
-                        //find the leading and trailing traces
-                        if (plotterPtr.delayDistance < leadingTraceCatch){
-                            lead = tr; leadingTraceCatch = plotterPtr.delayDistance;
-                        }
-                        if (plotterPtr.delayDistance > trailingTraceCatch){
-                            trail = tr; trailingTraceCatch=plotterPtr.delayDistance;
-                        }
-                        
-                    }//if (tracePtr != null)
-                } //for (int tr = 0; tr < nTr; tr++)
-                chartGroup.getStripChart(sc).getPlotter(lead).leadPlotter = true;
-                chartGroup.getStripChart(sc).getPlotter(trail).trailPlotter = true;
-                chartGroup.getStripChart(sc).setLeadTrailTraces(lead, trail);
-            } //for (int sc = 0; sc < nSC; sc++)
-        } //for (int cg = 0; cg < chartGroups.length; cg++)*/
+            //start with all false
+            buf.setLeadBuffer(false); buf.setTrailBuffer(false);
 
-}//end of MainHandler::initializeTraceOffsetDelays
+            //set channel delay distance depending on direction
+            if (pDirection == encoders.getAwayDirection()) {
+                c.setDelayDistance(c.getStartFwdDelayDistance());
+            } else { c.setDelayDistance(c.getStartRevDelayDistance()); }
+
+            //generate key from chart group num, chart num, & graph num
+            String key = ""+c.getChartGroup()+c.getChart()+c.getGraph();
+
+            //set as leading trace if none set for this key or if new leading
+            if (leads.get(key)==null
+                    || c.getDelayDistance()<leads.get(key).getDelayDistance())
+            { leads.put(key, c); }
+
+            //set as traiing trace if none set for this key or if new trailing
+            if (trails.get(key)==null
+                    || c.getDelayDistance()<trails.get(key).getDelayDistance())
+            { trails.put(key, c); }
+
+        }
+    }
+    
+    //set leading and trailing buffers
+    leads.forEach((k,v)->v.getDataBuffer().setLeadBuffer(true));
+    trails.forEach((k,v)->v.getDataBuffer().setLeadBuffer(true));
+
+}//end of MainHandler::initializeOffsetDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::calculateTraceOffsetDelays
+//
+// Adds the appropriate photo eye distance to the front of each head to each
+// trace's distance from the front edge of its head.
+//
+// These offsets are used to delay the trace after the photo eye detects the
+// pipe until the sensor(s) associated to that trace reach the pipe.
+//
+
+void calculateTraceOffsetDelays()
+{
+    
+    for (Device d : devices) {
+        for (Channel c : d.getChannels()) {
+            
+            //set forward delay of channel
+            double photoEye1DistanceFrontOfHead =
+                hdwVs.encoderValues
+                    .photoEye1DistanceFrontOfHead[c.getMetaData().channelNum];
+            
+            c.setStartFwdDelayDistance(
+                                    hdwVs.encoderValues.endStopLength
+                                    + photoEye1DistanceFrontOfHead
+                                    + c.getDistanceSensorToFrontEdgeOfHead());
+            
+            //set reverese delay of channel
+            double photoEye2DistanceFrontOfHead =
+                hdwVs.encoderValues
+                    .photoEye2DistanceFrontOfHead[c.getMetaData().channelNum];
+            
+            c.setStartRevDelayDistance(
+                                    photoEye2DistanceFrontOfHead 
+                                    - c.getDistanceSensorToFrontEdgeOfHead());
+            
+        }
+    }
+
+}//end of MainHandler::calculateTraceOffsetDelays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1513,8 +1759,6 @@ private void startInspectMode()
 
     prepareRemotesForNextRun(); //prep all devices
     
-    readyToAdvanceInsertionPoints = false; //not ready on first go around
-    
     //system waits until it receives flag that head is off the pipe or no
     //pipe is in the system
     hdwVs.waitForOffPipe = true;
@@ -1652,26 +1896,6 @@ synchronized private void processChannelParameterChanges()
     setHdwParamsDirty(false);
 
 }//end of MainHandler::processChannelParameterChanges
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainHandler::isReadyToAdvanceInsertionPoints
-//
-// Returns true if it is time advance all transfer buffers' insertion points.
-//
-// Resets to false so that next call to this function will say not ready unless
-// set back to true again.
-//
-
-public boolean isReadyToAdvanceInsertionPoints()
-{
-    
-    boolean isReady = readyToAdvanceInsertionPoints;
-    readyToAdvanceInsertionPoints = false;
-
-    return isReady;
-
-}// end of MainHandler::isReadyToAdvanceInsertionPoints
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

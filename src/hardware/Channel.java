@@ -36,6 +36,7 @@ public class Channel
     IniFile configFile;
 
     SampleMetaData meta = new SampleMetaData(0);
+    public SampleMetaData getMetaData() { return meta; }
 
     public void setDataBuffer(DataTransferIntBuffer pV) {meta.dataBuffer = pV;}
     public DataTransferIntBuffer getDataBuffer() { return(meta.dataBuffer); }
@@ -71,6 +72,21 @@ public class Channel
     private BoardChannelParameters chanHdwParams;
     public BoardChannelParameters getHdwParams() { return chanHdwParams; }
     public void setHdwParams(BoardChannelParameters pH) { chanHdwParams = pH; }
+    
+    private double delayDistance = 1;
+    public double getDelayDistance() { return delayDistance; }
+    public void setDelayDistance(double pD) { delayDistance = pD; }
+    
+    private double startFwdDelayDistance;
+    public double getStartFwdDelayDistance() { return startFwdDelayDistance; }
+    public void setStartFwdDelayDistance(double pD) { startFwdDelayDistance = pD; }
+    
+    private double startRevDelayDistance;
+    public double getStartRevDelayDistance() { return startRevDelayDistance; }
+    public void setStartRevDelayDistance(double pD) { startRevDelayDistance = pD; }
+    
+    private double distanceSensorToFrontEdgeOfHead;
+    public double getDistanceSensorToFrontEdgeOfHead() { return distanceSensorToFrontEdgeOfHead; }
 
     int peakType;
     PeakBufferInt peakBuffer;

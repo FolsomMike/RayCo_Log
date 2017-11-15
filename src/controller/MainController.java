@@ -1745,12 +1745,7 @@ private void displayDataFromDevices()
         }
     }
     
-    //update view and advance insertion points AFTER all devices have 
-    //contributed to current and only if MainHandler says it's time to move on 
-    //to the next one
-    if (mainHandler.isReadyToAdvanceInsertionPoints()) { 
-        mainView.updateChildren(); //this will also advance insertion points
-    }
+    mainView.updateChildren(); //update view
     
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------

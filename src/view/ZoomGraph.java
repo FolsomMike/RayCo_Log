@@ -132,8 +132,6 @@ public void paintComponent (Graphics g)
 
 public void retrieveDataChanges()
 {
-
-    snapshotBuffer.incPutPtrAndSetReadyAfterDataFill();
     
     while(snapshotBuffer.getDataChange(dataSet) != 0){
 
