@@ -884,9 +884,66 @@ private void collectDataForScanOrTimerMode()
     //do nothing if not time to update
     if (scanRateCounter-- == 0){ 
         scanRateCounter = 10 - sharedSettings.scanSpeed; 
+    } else { return; }
+    
+    //set all advanced flags to false before starting
+    for (Device d : devices) {
+        
+        //channels
+        for (Channel c : d.getChannels()) {
+            if (c.getDataBuffer()!=null) {
+                c.getDataBuffer().setPositionAdvanced(false);
+            }
+        }
+    
+        //snapshot buffers
+        if (d.getSnapshotDataBuffer()!=null) {
+            d.getSnapshotDataBuffer().setPositionAdvanced(false);
+        }
+        
+        //map buffers
+        if (d.getMapDataBuffer()!=null) {
+            d.getMapDataBuffer().setPositionAdvanced(false);
+        }
+        
     }
-    else { 
-        return; 
+    
+    //move all buffers forward for all devices
+    for (Device d : devices) {
+        
+        //nothing else updated unless at least one channel is advanced
+        boolean channelAdvanced = false;
+        
+        //channels
+        for (Channel c : d.getChannels()) {
+            if (c.getDataBuffer()!=null
+                && !c.getDataBuffer().getPositionAdvanced())
+            {
+                channelAdvanced = true; 
+                c.getDataBuffer().setPositionAdvanced(true);
+                c.getDataBuffer().incPutPtrAndSetReadyAfterDataFill(); 
+            }
+        }
+        
+        //do nothing else if no channels advanced
+        if (!channelAdvanced) { break; }
+    
+        //snapshot buffers
+        if (d.getSnapshotDataBuffer()!=null
+            && !d.getSnapshotDataBuffer().getPositionAdvanced()) 
+        {
+            d.getSnapshotDataBuffer().setPositionAdvanced(true);
+            d.getSnapshotDataBuffer().incPutPtrAndSetReadyAfterDataFill();
+        }
+        
+        //map buffers
+        if (d.getMapDataBuffer()!=null
+            && !d.getMapDataBuffer().getPositionAdvanced()) 
+        {
+            d.getMapDataBuffer().setPositionAdvanced(true);
+            d.getMapDataBuffer().incPutPtrAndSetReadyAfterDataFill();
+        }
+        
     }
 
 }//end of MainHandler::collectDataForScanOrTimerMode
@@ -910,7 +967,6 @@ private void collectDataForInspectMode()
 
     //process position information from whatever device is handling the encoder
     //inputs
-
     collectEncoderDataInspectMode();
 
 }//end of MainHandler::collectDataForInspectMode
@@ -1165,8 +1221,6 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
             if (c.getDataBuffer()!=null && c.getDelayDistance()<pPosition
                 && !c.getDataBuffer().getPositionAdvanced())
             {
-                
-                
                 
                 channelAdvanced = true; 
                 c.getDataBuffer().setPositionAdvanced(true);
