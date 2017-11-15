@@ -855,10 +855,10 @@ public void collectData()
     if (sharedSettings.opMode == SharedSettings.SCAN_MODE
         || sharedSettings.opMode == SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE)
     {
-        collectDataForScanOrTimerMode();
+        handleControlForScanOrTimerMode();
     }
     else if (sharedSettings.opMode == SharedSettings.INSPECT_MODE) {
-        collectDataForInspectMode();
+        handleControlForInspectMode();
     }
 
     for(Device device : devices){ device.driveSimulation(); }
@@ -867,9 +867,10 @@ public void collectData()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler::collectDataForScanOrTimerMode
+// MainHandler::handleControlForScanOrTimerMode
 //
-// Currently does nothing.
+// Handles Control inputs and data. Will increment buffer insertion points as
+// necessary.
 //
 // This function is specifically for SCAN and INSPECT_WITH_TIMER_TRACKING modes
 // which use a timer to drive the traces rather than hardware encoder inputs.
@@ -878,7 +879,7 @@ public void collectData()
 // encoder position dictates such.
 //
 
-private void collectDataForScanOrTimerMode()
+private void handleControlForScanOrTimerMode()
 {
     
     //do nothing if not time to update
@@ -887,26 +888,7 @@ private void collectDataForScanOrTimerMode()
     } else { return; }
     
     //set all advanced flags to false before starting
-    for (Device d : devices) {
-        
-        //channels
-        for (Channel c : d.getChannels()) {
-            if (c.getDataBuffer()!=null) {
-                c.getDataBuffer().setPositionAdvanced(false);
-            }
-        }
-    
-        //snapshot buffers
-        if (d.getSnapshotDataBuffer()!=null) {
-            d.getSnapshotDataBuffer().setPositionAdvanced(false);
-        }
-        
-        //map buffers
-        if (d.getMapDataBuffer()!=null) {
-            d.getMapDataBuffer().setPositionAdvanced(false);
-        }
-        
-    }
+    setBufferAdvancedFlags(false);
     
     //move all buffers forward for all devices
     for (Device d : devices) {
@@ -946,34 +928,11 @@ private void collectDataForScanOrTimerMode()
         
     }
 
-}//end of MainHandler::collectDataForScanOrTimerMode
+}//end of MainHandler::handleControlForScanOrTimerMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler::collectDataForInspectMode
-//
-// Collects analog data from all channels and stores it in the appropriate trace
-// buffers, collects encoder and digital I/O inputs and processes as necessary.
-//
-// This function is specifically for INSPECT mode which uses encoder data to
-// drive the traces rather than a timer.
-//
-// Peak data is requested each time the encoder moves the specified tigger
-// amount.
-//
-
-private void collectDataForInspectMode()
-{
-
-    //process position information from whatever device is handling the encoder
-    //inputs
-    collectEncoderDataInspectMode();
-
-}//end of MainHandler::collectDataForInspectMode
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainHandler::collectEncoderDataInspectMode
+// MainHandler::handleControlForInspectMode
 //
 // Collects and processes encoder and digital inputs.
 //
@@ -985,7 +944,7 @@ private void collectDataForInspectMode()
 // by the calibration value in the configuration file.
 //
 
-boolean collectEncoderDataInspectMode()
+boolean handleControlForInspectMode()
 {
 
     //do nothing until a new Inspect packet is ready
@@ -1102,7 +1061,7 @@ boolean collectEncoderDataInspectMode()
 
     return newPositionData;
 
-}//end of MainHandler::collectEncoderDataInspectMode
+}//end of MainHandler::handleControlForInspectMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1167,26 +1126,7 @@ void moveBuffers(int pPixelsMoved, double pPosition)
     //are tied to flags but not traces.
 
     //set all advanced flags to false before starting
-    for (Device d : devices) {
-        
-        //channels
-        for (Channel c : d.getChannels()) {
-            if (c.getDataBuffer()!=null) {
-                c.getDataBuffer().setPositionAdvanced(false);
-            }
-        }
-    
-        //snapshot buffers
-        if (d.getSnapshotDataBuffer()!=null) {
-            d.getSnapshotDataBuffer().setPositionAdvanced(false);
-        }
-        
-        //map buffers
-        if (d.getMapDataBuffer()!=null) {
-            d.getMapDataBuffer().setPositionAdvanced(false);
-        }
-        
-    }
+    setBufferAdvancedFlags(false);
     
     //advance buffers forward or backwards
     if (pPixelsMoved > 0) { moveBuffersForward(pPixelsMoved, pPosition); }
@@ -1334,6 +1274,40 @@ void moveBuffersBackward(int pPixelsMoved, double pPosition)
     }
 
 }//end of MainHandler::moveBuffersBackward
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::setBufferAdvancedFlags
+//
+// Sets all devices' channel, snapshot, and map transfer data buffers advanced
+// flags to false.
+//
+
+private void setBufferAdvancedFlags(boolean pState)
+{
+
+    for (Device d : devices) {
+        
+        //channels
+        for (Channel c : d.getChannels()) {
+            if (c.getDataBuffer()!=null) {
+                c.getDataBuffer().setPositionAdvanced(pState);
+            }
+        }
+    
+        //snapshot buffers
+        if (d.getSnapshotDataBuffer()!=null) {
+            d.getSnapshotDataBuffer().setPositionAdvanced(pState);
+        }
+        
+        //map buffers
+        if (d.getMapDataBuffer()!=null) {
+            d.getMapDataBuffer().setPositionAdvanced(pState);
+        }
+        
+    }
+
+}//end of MainHandler::collectDataForScanOrTimerMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
