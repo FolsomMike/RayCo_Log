@@ -48,11 +48,11 @@ public HighPeakBufferInt(int pIndex)
 //
 
 @Override
-public void catchPeak(int pNewData, int pThresholdViolation)
+public void catchPeak(int pNewData)
 {
 
     if(pNewData > peak) {
-        peak = pNewData; thresholdViolation = pThresholdViolation;
+        peak = pNewData;
         peakUpdated = true;
     }
 

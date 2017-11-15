@@ -446,6 +446,22 @@ public void updateChildren()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::updateThreshold
+//
+// Updates the specified threshold.
+//
+
+public void updateThreshold(int pThres, int pLvl)
+{
+    
+    if (thresholds!=null) { thresholds[pThres].setLevel(pLvl); }
+    
+    repaint(); //repaint so that thresholds are redrawn
+
+}// end of Graph::updateThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::setHeight
 //
 // Sets the height to pHeight. The calling oject is responsible for repacking

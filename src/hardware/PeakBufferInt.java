@@ -38,10 +38,8 @@ public class PeakBufferInt
 {
 
     int peak;
-    int thresholdViolation;
 
     int peakReset;
-    int thresholdViolationReset = -1; //-1 means no violations
 
     final int peakBufferNum;
 
@@ -69,7 +67,7 @@ public PeakBufferInt(int pPeakBufferNum)
 // lowest value, closest to a target value, etc.
 //
 
-public void catchPeak(int pNewData, int pThresholdViolation)
+public void catchPeak(int pNewData)
 {
 
     // This method must be overridden by subclasses.
@@ -83,11 +81,10 @@ public void catchPeak(int pNewData, int pThresholdViolation)
 // Forces peak to pValue.
 //
 
-public void setPeak(int pValue, int pThresholdViolation)
+public void setPeak(int pValue)
 {
 
     peak = pValue;
-    thresholdViolation = pThresholdViolation;
 
 }// end of PeakBufferInt::setPeak
 //-----------------------------------------------------------------------------
@@ -102,7 +99,6 @@ public void reset()
 {
 
     peak = peakReset;
-    thresholdViolation = thresholdViolationReset;
 
     peakUpdated = false;
 
@@ -120,7 +116,6 @@ public void setResetValue(int pValue, int pThresholdViolationReset)
 {
 
     peakReset = pValue;
-    thresholdViolationReset = pThresholdViolationReset;
 
 }// end of PeakBufferInt::setResetValue
 //-----------------------------------------------------------------------------
@@ -131,11 +126,10 @@ public void setResetValue(int pValue, int pThresholdViolationReset)
 // Retrieves the current value of the peak without resetting it.
 //
 
-public void getPeak(MKSInteger pPeakData, MKSInteger pThresholdViolation)
+public void getPeak(MKSInteger pPeakData)
 {
 
     pPeakData.x = peak;
-    pThresholdViolation.x = thresholdViolation;
 
 }// end of PeakBufferInt::getPeak
 //-----------------------------------------------------------------------------
@@ -150,14 +144,12 @@ public void getPeak(MKSInteger pPeakData, MKSInteger pThresholdViolation)
 // or false otherwise.
 //
 
-public boolean getPeakAndReset(MKSInteger pPeakData,
-                                    MKSInteger pThresholdViolation)
+public boolean getPeakAndReset(MKSInteger pPeakData)
 {
 
     boolean lPeakUpdated = peakUpdated;
 
     pPeakData.x = peak;
-    pThresholdViolation.x = thresholdViolation;
 
     reset();
 

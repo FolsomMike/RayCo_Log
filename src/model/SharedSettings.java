@@ -72,9 +72,6 @@ public class SharedSettings{
     public int lastPieceNumber;
     public int lastCalPieceNumber;
     public boolean startNewPieceAtLeftEdge = true;
-
-    private ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
-    public void addThresholdInfo(ThresholdInfo pInfo) { thresholdInfos.add(pInfo); }
     
     static public final int STOP_MODE = 0;
     static public final int SCAN_MODE = 1;
@@ -237,54 +234,6 @@ private void loadMainSettings()
              "Main Settings", "number of last calibration piece processed", 0);
 
 }// end of SharedSettings::loadMainSettings
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// SharedSettings::getThresholdInfo
-//
-// Returns the ThresholdInfo object whose info matches the parameters.
-//
-
-public ThresholdInfo getThresholdInfo(int pChartGroup, int pChart, int pGraph,
-                                        int pThreshold)
-{
-
-    for (ThresholdInfo info : thresholdInfos) {
-        if (pChartGroup==info.getChartGroupNum()
-                && pChart==info.getChartNum()
-                && pGraph==info.getGraphNum()
-                && pThreshold==info.getThresholdNum())
-        { return info; }
-    }
-
-    return null;
-
-}// end of SharedSettings::getThresholdInfo
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// SharedSettings::getThresholdInfosForGraph
-//
-// Returns a list of ThresholdInfo objects for pGraph of pChart of pChartGroup.
-//
-
-public ArrayList<ThresholdInfo> getThresholdInfosForGraph(int pChartGroup,
-                                                            int pChart,
-                                                            int pGraph)
-{
-
-    ArrayList<ThresholdInfo> infos = new ArrayList<>(thresholdInfos.size());
-
-    for (ThresholdInfo info : thresholdInfos) {
-        if (pChartGroup==info.getChartGroupNum()
-                && pChart==info.getChartNum()
-                && pGraph==info.getGraphNum())
-        { infos.add(info); }
-    }
-
-    return infos;
-
-}// end of SharedSettings::getThresholdInfosForGraph
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

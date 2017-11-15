@@ -1003,14 +1003,10 @@ private void updateThreshold(String pInfo)
     int chart = Integer.parseInt(infoSplits[3]);
     int graph = Integer.parseInt(infoSplits[4]);
     int thres = Integer.parseInt(infoSplits[5]);
-
-    //update threshold level in shared settings
     int lvl = Integer.parseInt(infoSplits[6]);
-    sharedSettings.getThresholdInfo(chartGroup, chart, graph, thres)
-                                                                .setLevel(lvl);
 
-    //invoke MainView to repaint the graph containing this threshold
-    mainView.repaintChild(chartGroup, chart, graph);
+    //tell view to update the threshold
+    mainView.updateThreshold(chartGroup, chart, graph, thres, lvl);
 
 }// end of MainController::updateThreshold
 //-----------------------------------------------------------------------------
@@ -1735,12 +1731,6 @@ private void displayDataFromDevices()
             DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
 
             buf.putData(peakData.peakArray[i]);
-
-            //only store threshold if it is violated
-            int thresholdNum = peakData.thresholdViolationArray[i];
-            if (thresholdNum!=-1) {
-                buf.storeThresholdAtInsertionPoint(thresholdNum);
-            }
 
         }
     }

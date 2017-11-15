@@ -26,6 +26,7 @@ import model.DataFlags;
 import model.DataSetInt;
 import model.DataTransferIntBuffer;
 import model.IniFile;
+import model.ThresholdInfo;
 import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
@@ -86,6 +87,8 @@ public class Trace{
     int gridY1;
 
     int flagThreshold;
+    private boolean flaggingEnabled = false;
+    public void enableFlagging(boolean pEn) { flaggingEnabled = pEn; }
 
     private int lastRequestedPeak = -1;
     private int lastRequestedPeakX = -1;
@@ -117,6 +120,8 @@ public class Trace{
 
 public Trace()
 {
+    
+    flaggingEnabled = true;//DEBUG HSS// remove later
 
 }//end of Trace::Trace (constructor)
 //-----------------------------------------------------------------------------
@@ -609,6 +614,9 @@ public void updateTrace(Graphics2D pG2)
     int r;
 
     while((r = dataBuffer.getDataChange(dataSet)) != 0){
+        
+        //check and flag any threshold violations
+        checkThresholdViolations(dataSet);
 
         //store for future use
         data.add(dataSet.d);
@@ -622,6 +630,77 @@ public void updateTrace(Graphics2D pG2)
     }
 
 }// end of Trace::updateTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::checkThresholdViolations
+//
+// Checks to see if any thresholds were violated. If a threshold was violated,
+// that threshold's number is stored in the flags stored in pDataSet. Whether 
+// this is above or below the threshold is determined by flagOnOver.
+//
+// The threshold with the lowest (0) thresholdIndex is the highest severity
+// threshold, highest index is lowest.  This function should be called for the
+// thresholds in order of their index which happens automatically if they are
+// stored in an array in this order.  If called in this order, no more
+// thresholds should be checked after one returns true because lower severity
+// thresholds should not override higher ones.
+//
+
+private void checkThresholdViolations(DataSetInt pDataSet)
+
+{
+    
+    if (!flaggingEnabled) { return; } //bail if not flagging
+
+    for (int i=0; i<thresholds.length; i++) {
+
+        ThresholdInfo info = thresholds[i].getThresholdInfo();
+        
+        int lvl = info.getLevel();
+
+        //true check for signal above, if false check for signal below
+        if (info.getFlagOnOver()){
+            if (pDataSet.d >= lvl) { flagThresholdViolation(i , pDataSet); }
+        }
+        else{ if (pDataSet.d <= lvl) { flagThresholdViolation(i , pDataSet); } }
+
+    }
+
+}//end of Trace::checkThresholdViolations
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::flagThresholdViolation
+//
+// Changes the flags variable found in pDataSet to indicate that a threshold
+// has been violated.
+//
+// The threshold with the lowest (0) thresholdIndex is the highest severity
+// threshold, highest index is lowest.  This function should be called for the
+// thresholds in order of their index which happens automatically if they are
+// stored in an array in this order.  If called in this order, no more
+// thresholds should be checked after one returns true because lower severity
+// thresholds should not override higher ones.
+//
+
+private int flagThresholdViolation(int pThresholdNum, DataSetInt pDataSet)
+
+{
+            
+    pDataSet.flags &= DataFlags.CLEAR_THRESHOLD_MASK; //erase old value
+    
+    //shift up by value of 2 (see notes above)
+    pThresholdNum += 2;
+    
+    //mask top bits to protect against invalid value
+    pThresholdNum &= DataFlags.TRIM_THRESHOLD_MASK;
+    
+    pDataSet.flags += pThresholdNum << 9; //store new flag
+
+    return -1; //-1 because no threshold violated
+
+}//end of Trace::flagThresholdViolation
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -100,8 +100,6 @@ public class MainHandler
     
     private HardwareVars hdwVs;
     private boolean manualInspectControl = false;
-    private boolean flaggingEnabled = false;
-    private int flaggingEnableDelay = 0;
     public double delayDistance;
     
     //this value needs to be at least 1 because if the delay is set to zero
@@ -967,7 +965,6 @@ boolean collectEncoderDataInspectMode()
             //piece has been removed; prepare for it to enter to begin
             hdwVs.waitForOffPipe = false;
             hdwVs.waitForOnPipe = true;
-            enableFlagging(false); flaggingEnableDelay = 0; //disable flagging
             displayMsg("system clear, previous tally = " + 
                                        decFmt0x0.format(previousTally));
             previousTally = 0;
@@ -989,11 +986,7 @@ boolean collectEncoderDataInspectMode()
             //count)
             encoders.setCurrentLinearDirectionAsFoward();            
             initializeOffsetDelays(encoders.getDirectionSetForLinearFoward());
-            
-            //disable flagging upon start -- will be enabled after a small 
-            //distance delay is used to prevent flagging of the initial
-            //transition
-            enableFlagging(false); flaggingEnableDelay = MASK_DISABLE_DELAY;
+
             
             //set the text description for the direction of inspection
             if (encoders.getDirectionSetForLinearFoward() == 
@@ -1094,11 +1087,6 @@ private void moveEncoders()
     if(!encoders.allowTraceUpdate(pixelsMoved)){ return; }
 
     prevPixPosition = pixPosition;
-
-    if (flaggingEnableDelay != 0 && --flaggingEnableDelay == 0){
-        enableFlagging(true);
-        mainController.markSegmentStart();
-    }
 
     moveBuffers(pixelsMoved, position);
 
@@ -1407,24 +1395,6 @@ void calculateTraceOffsetDelays()
     }
 
 }//end of MainHandler::calculateTraceOffsetDelays
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainHandler::enableFlagging
-//
-// Enables or disables all flagging for all devices.
-//
-// This method is generally called when the inspection start/stop signals are
-// received. In other places in the code there is a distance delay after this
-// signal to avoid recording the glitches incurred while the head is settling.
-//
-
-void enableFlagging(boolean pEnable)
-{
-
-    for (Device d : devices) { d.enableFlagging(pEnable); }
-
-}//end of MainHandler::enableFlagging
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

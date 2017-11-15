@@ -401,24 +401,6 @@ public boolean isReadyToAdvanceInsertionPoints()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Device::enableFlagging
-//
-// Enables or disables all flagging for this device.
-//
-// This method is generally called when the inspection start/stop signals are
-// received. In other places in the code there is a distance delay after this
-// signal to avoid recording the glitches incurred while the head is settling.
-//
-
-public void enableFlagging(boolean pEnable)
-{
-
-    flaggingEnabled = pEnable;
-
-}//end of Device::enableFlagging
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Device::handleACKPackets
 //
 // Handles ACK_CMD packets. Increments the numACKsReceive counter.
@@ -899,8 +881,7 @@ public boolean getDeviceDataAndReset(PeakData pPeakData,
 // Overridden by children classes for custom handling.
 //
 
-public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue,
-                                        MKSInteger pThresholdViolation)
+public void getPeakForChannelAndReset(int pChannel, MKSInteger pPeakValue)
 {
 
     //does nothing because channels may not even be set

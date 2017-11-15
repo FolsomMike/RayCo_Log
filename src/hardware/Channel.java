@@ -92,11 +92,6 @@ public class Channel
     PeakBufferInt peakBuffer;
 
     MKSInteger data = new MKSInteger(0);
-    MKSInteger thresholdViolation = new MKSInteger(-1);
-    private boolean flaggingEnabled = false;
-    public void enableFlagging(boolean pEn) { flaggingEnabled = pEn; }
-
-    ArrayList<ThresholdInfo> thresholdInfos = new ArrayList<>(10);
 
     public static final int CATCH_HIGHEST = 0;
     public static final int CATCH_LOWEST = 1;
@@ -132,10 +127,6 @@ public void init()
     loadConfigSettings();
 
     setUpPeakBuffer();
-
-    //get the thresholds that are on the same graph as this channel
-    thresholdInfos = sharedSettings.getThresholdInfosForGraph(
-                                    meta.chartGroup, meta.chart, meta.graph);
 
 }// end of Channel::init
 //-----------------------------------------------------------------------------
@@ -274,47 +265,9 @@ private void parseDataType(String pValue)
 public void catchPeak(int pPeakValue)
 {
 
-    peakBuffer.catchPeak(pPeakValue, checkThresholdViolation(pPeakValue));
+    peakBuffer.catchPeak(pPeakValue);
 
 }// end of Channel::catchPeak
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Channel::checkThresholdViolation
-//
-// Returns -1 if no thresholds were violated. If a threshold was violated, that
-// threshold's number is returned. Whether this is above or below the threshold
-// is determined by flagOnOver.
-//
-// The threshold with the lowest (0) thresholdIndex is the highest severity
-// threshold, highest index is lowest.  This function should be called for the
-// thresholds in order of their index which happens automatically if they are
-// stored in an array in this order.  If called in this order, no more
-// thresholds should be checked after one returns true because lower severity
-// thresholds should not override higher ones.
-//
-
-private int checkThresholdViolation(int pSig)
-
-{
-    
-    if (!flaggingEnabled) { return -1; } //bail if not flagging
-
-    for (ThresholdInfo info : thresholdInfos) {
-
-        int lvl = info.getLevel();
-
-        //true check for signal above, if false check for signal below
-        if (info.getFlagOnOver()){
-            if (pSig >= lvl) { return info.getThresholdNum(); }
-        }
-        else{ if (pSig <= lvl) { return info.getThresholdNum(); } }
-
-    }
-
-    return -1; //-1 because no threshold violated
-
-}//end of Channel::checkThresholdViolation
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -326,10 +279,10 @@ private int checkThresholdViolation(int pSig)
 // This method returns an object as the peak may be of various data types.
 //
 
-public void getPeakAndReset(MKSInteger pPeakValue, MKSInteger pThresViolation)
+public void getPeakAndReset(MKSInteger pPeakValue)
 {
 
-    peakBuffer.getPeakAndReset(pPeakValue, pThresViolation);
+    peakBuffer.getPeakAndReset(pPeakValue);
 
 }// end of Channel::getPeakAndReset
 //-----------------------------------------------------------------------------
@@ -351,10 +304,9 @@ public boolean getPeakDataAndReset(PeakData pPeakData)
 
     pPeakData.metaArray[meta.channelNum] = meta; //channel/buffer/trace etc. info
 
-    boolean peakUpdated = peakBuffer.getPeakAndReset(data, thresholdViolation);
+    boolean peakUpdated = peakBuffer.getPeakAndReset(data);
 
     pPeakData.peakArray[meta.channelNum] = data.x;
-    pPeakData.thresholdViolationArray[meta.channelNum] = thresholdViolation.x;
 
     return(peakUpdated);
 

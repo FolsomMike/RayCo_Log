@@ -600,6 +600,22 @@ public void repaintChild(int pChartGroup, int pChart, int pGraph)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::updateThreshold
+//
+// Updates the specified threshold.
+//
+
+public void updateThreshold(int pChartGroup, int pChart, int pGraph, 
+                                int pThres, int pLvl)
+{
+    
+    
+    chartGroups[pChartGroup].updateThreshold(pChart, pGraph, pThres, pLvl);
+
+}// end of MainView::updateThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::setAllUserInputData
 //
 // Sets the values for all of the user input GUI controls to values in pList.

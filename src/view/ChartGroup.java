@@ -421,6 +421,21 @@ public void repaintChild(int pChart, int pGraph)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::updateThreshold
+//
+// Updates the specified threshold.
+//
+
+public void updateThreshold(int pChart, int pGraph, int pThres, int pLvl)
+{
+    
+    
+    charts[pChart].updateThreshold(pGraph, pThres, pLvl);
+
+}// end of ChartGroup::updateThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::expandChartHeight
 //
 // Expands the height of the chart pChart while minimizing the height of all

@@ -118,9 +118,6 @@ public void init()
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
-    //add this threshold's ThresholdInfo to the list in SharedSettings
-    sharedSettings.addThresholdInfo(thresholdInfo);
-
 }// end of Threshold::init
 //-----------------------------------------------------------------------------
 

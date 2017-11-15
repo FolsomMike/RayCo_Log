@@ -499,6 +499,21 @@ public void repaintGraph()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::updateThreshold
+//
+// Updates the specified threshold.
+//
+
+public void updateThreshold(int pGraph, int pThres, int pLvl)
+{
+    
+    
+    graphs[pGraph].updateThreshold(pThres, pLvl);
+
+}// end of Chart::updateThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::setSizes
 //
 // Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
