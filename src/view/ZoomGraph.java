@@ -59,7 +59,7 @@ public class ZoomGraph extends Graph{
     public int getWidthInDataPoints(){return(widthInDataPoints);}
     private int bufferLengthInDataPoints;
     public int getBufferLengthInDataPoints(){return(bufferLengthInDataPoints);}
-
+    
     private int lastSegmentStartIndex = -1;
     private int lastSegmentEndIndex = -1;
 
@@ -134,6 +134,9 @@ public void retrieveDataChanges()
 {
     
     while(snapshotBuffer.getDataChange(dataSet) != 0){
+        
+        //check to see if this data point should be segment start
+        checkSegmentStart(dataSet);
 
         //store for future use
         data.add(dataSet.d.clone());
@@ -275,8 +278,8 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 // ZoomGraph::markSegmentStart
 //
-// Sets the flag of the last read data point to indicate that the data point
-// assoicated with a segment start.
+// Sets the flag to indicate that the next read data point should be flagged
+// as segment start.
 //
 
 @Override
@@ -334,6 +337,30 @@ public boolean isSegmentStarted()
     return lastSegmentStartIndex>-1 && data.size()>10;
 
 }//end of ZoomGraph::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::checkSegmentStart
+//
+// If in INSPECT or INSPECT_WITH_TIMER_DRIVEN_TRACKING mode, will start a
+// segment if the flag to mark the next data point read in is true. The segment 
+// is started by setting the flags variable in pDataSet to indicate a segment 
+// start.
+//
+
+private void checkSegmentStart(DataSetSnapshot pDataSet)
+{
+    
+    if ((sharedSettings.opMode != SharedSettings.INSPECT_MODE 
+        && sharedSettings.opMode != SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE)
+        || lastSegmentStartIndex != -1)
+        { return; } //bail if not in proper modes or if already started
+
+    //DEBUG HSS// //WIP HSS// perform check to ensure distance traveled is past mask
+
+    pDataSet.flags |= DataFlags.SEGMENT_START_SEPARATOR;
+
+}//end of ZoomGraph::checkSegmentStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

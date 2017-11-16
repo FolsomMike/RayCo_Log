@@ -145,7 +145,7 @@ private void addMaps()
     map3D = new Map3D(chartGroupNum, chartNum, graphNum,
         width, height,  mapLengthInDataPoints, mapWidthInDataPoints,
         numSystems, colorMappingStyle,
-        mapBaselineThreshold, mapBaselineColor);
+        mapBaselineThreshold, mapBaselineColor, sharedSettings);
 
     map3D.init();
     map3D.createArrays();

@@ -215,7 +215,7 @@ private void addTraces()
         traces[i] = new Trace();
         traces[i].init(chartGroupNum, chartNum, graphNum, i, width, height,
             backgroundColor, drawGridBaseline, gridColor, gridXSpacing,
-            gridYSpacing, graphInfo, configFile, thresholds);
+            gridYSpacing, graphInfo, configFile, thresholds, sharedSettings);
     }
 
 }//end of TraceGraph::addTraces

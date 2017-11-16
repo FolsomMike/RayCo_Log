@@ -26,6 +26,7 @@ import model.DataFlags;
 import model.DataSetInt;
 import model.DataTransferIntBuffer;
 import model.IniFile;
+import model.SharedSettings;
 import model.ThresholdInfo;
 import toolkit.Tools;
 
@@ -40,6 +41,8 @@ public class Trace{
     private String section;
 
     private GraphInfo graphInfo;
+    
+    private SharedSettings sharedSettings;
 
     private Threshold[] thresholds;
 
@@ -139,7 +142,7 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
               int pTraceNum, int pWidth, int pHeight, Color pBackgroundColor,
               boolean pDrawGridBaseline, Color pGridColor, int pGridXSpacing,
               int pGridYSpacing, GraphInfo pGraphInfo, IniFile pConfigFile,
-              Threshold[] pThresholds)
+              Threshold[] pThresholds, SharedSettings pSettings)
 {
 
     chartGroupNum = pChartGroupNum; chartNum = pChartNum;
@@ -150,7 +153,8 @@ public void init(int pChartGroupNum, int pChartNum, int pGraphNum,
     gridXSpacing = pGridXSpacing; gridYSpacing = pGridYSpacing;
     graphInfo = pGraphInfo; configFile = pConfigFile;
     thresholds = pThresholds;
-
+    sharedSettings = pSettings;
+    
     gridY1 = gridYSpacing-1; //do math once for repeated use
 
     section = "Chart Group " + chartGroupNum + " Chart " + chartNum
@@ -539,7 +543,7 @@ public void paintSingleTraceDataPoint(
     int x = (int)Math.round(pDataIndex * xScale);
 
     //lead buffer invokes scrolling and decorating
-    if (leadDataPlotter || dataBuffer.isLeadBuffer()){ 
+    if (leadDataPlotter || (dataBuffer!=null && dataBuffer.isLeadBuffer())){ 
         handleLeadPlotterActions(pG2, x); 
     }
 
@@ -614,6 +618,9 @@ public void updateTrace(Graphics2D pG2)
     int r;
 
     while((r = dataBuffer.getDataChange(dataSet)) != 0){
+        
+        //check to see if this data point should be segment start
+        checkSegmentStart(dataSet);
         
         //check and flag any threshold violations
         checkThresholdViolations(dataSet);
@@ -783,8 +790,8 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
 //-----------------------------------------------------------------------------
 // Trace::markSegmentStart
 //
-// Sets the flag of the last read data point to indicate that the data point
-// assoicated with a segment start.
+// Sets the flag to indicate that the next read data point should be flagged
+// as segment start.
 //
 
 public void markSegmentStart()
@@ -839,6 +846,30 @@ public boolean isSegmentStarted()
     return lastSegmentStartIndex>-1 && data.size()>10;
 
 }//end of Trace::isSegmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::checkSegmentStart
+//
+// If in INSPECT or INSPECT_WITH_TIMER_DRIVEN_TRACKING mode, will start a
+// segment if the flag to mark the next data point read in is true. The segment 
+// is started by setting the flags variable in pDataSet to indicate a segment 
+// start.
+//
+
+private void checkSegmentStart(DataSetInt pDataSet)
+{
+    
+    if ((sharedSettings.opMode != SharedSettings.INSPECT_MODE 
+        && sharedSettings.opMode != SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE)
+        || lastSegmentStartIndex != -1)
+        { return; } //bail if not in proper modes or if already started
+    
+    //DEBUG HSS// //WIP HSS// perform check to ensure distance traveled is past mask
+    
+    pDataSet.flags |= DataFlags.SEGMENT_START_SEPARATOR;
+
+}//end of Trace::checkSegmentStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

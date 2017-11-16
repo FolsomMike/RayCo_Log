@@ -159,6 +159,7 @@ import model.DataFlags;
 import model.DataSetIntMultiDim;
 import model.DataTransferIntMultiDimBuffer;
 import model.IniFile;
+import model.SharedSettings;
 import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
@@ -186,6 +187,8 @@ public class Map3D{
     public int getChartNum(){ return(chartNum); }
     int graphNum;
     public int getGraphNum(){ return(graphNum); }
+    
+    private final SharedSettings sharedSettings;
 
     private MapDataBuffer mapDataBuffer;
     public void setMapBuffer(DataTransferIntMultiDimBuffer pMapBuffer)
@@ -321,7 +324,7 @@ public class Map3D{
 public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
             int pWidth, int pHeight, int pDataXMax, int pDataYMax,
             int pNumSystems, int pColorMappingStyle, int pBaselineThreshold,
-            Color pBaselineColor)
+            Color pBaselineColor, SharedSettings pSettings)
 {
 
     chartGroupNum = pChartGroupNum;
@@ -334,6 +337,8 @@ public Map3D(int pChartGroupNum, int pChartNum, int pGraphNum,
     colorMappingStyle = pColorMappingStyle;
     baselineThreshold = pBaselineThreshold;
     baselineColor = pBaselineColor;
+    
+    sharedSettings = pSettings;
 
     numSystems = pNumSystems;
     systemNames = new String[numSystems];
@@ -607,6 +612,8 @@ public void setDataRow(int pLengthPos, int[] pDataRow, int[] pMetaRow)
 
 public void update(Graphics2D pG2)
 {
+    
+    checkSegmentStart(); //check to see if a semgent should be marked started
 
     //tell map data buffer to retrieve and store changes
     mapDataBuffer.retrieveDataChanges();
@@ -1603,15 +1610,38 @@ void quickDrawLastRow(Graphics2D pG2)
 //---------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Map3D::checkSegmentStart
+//
+// If in INSPECT or INSPECT_WITH_TIMER_DRIVEN_TRACKING mode, will start a
+// segment if the flag to mark the next data point read in is true.
+//
+
+private void checkSegmentStart()
+{
+    
+    if ((sharedSettings.opMode != SharedSettings.INSPECT_MODE 
+    && sharedSettings.opMode != SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE)
+    || lastSegmentStartIndex != -1)
+    { return; } //bail if not in proper modes or if already started
+    
+    //DEBUG HSS// //WIP HSS// perform check to ensure distance traveled is past mask
+    
+    markSegmentStart();
+    
+}//end of Map3D::checkSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Map3D::markSegmentStart
 //
-// Sets the flag of the last read data point to indicate that the data point
-// assoicated with a segment start.
+// Sets the flag to indicate that the next read data point should be flagged
+// as segment start.
 //
 
 public void markSegmentStart()
 {
     
+    lastSegmentDrawnDataStartIndex = drawnData.size();
     lastSegmentStartIndex = mapDataBuffer.getCurrentIndex();
     
 }//end of Map3D::markSegmentStart

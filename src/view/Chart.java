@@ -862,7 +862,7 @@ public void updateAnnotationGraph()
 
 public void updateChild(int pGraphNum, int pChildNum)
 {
-
+        
     graphs[pGraphNum].updateChild(pChildNum);
 
     scrollTrackingGraphs(pGraphNum);
