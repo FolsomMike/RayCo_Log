@@ -33,11 +33,13 @@ class ZoomBox{
     private String title;
     private String shortTitle;
     private final int chartGroupNum, chartNum, graphNum, zoomBoxNum;
-    private int x, xEnd, y;
+    private int x, xEnd, representedXEnd, y;
     public void setX(int pX) { x = pX; }
     public int getX() { return x; }
     public void setXEnd(int pI) { xEnd = pI; }
     public int getXEnd() { return xEnd; }
+    public void setRepresentedXEnd(int pI) { representedXEnd = pI; }
+    public int getRepresentedXEnd() { return representedXEnd; }
     public void setY(int pY) { y = pY; }
     public int getY() { return y; }
     private final int width, height;
@@ -68,7 +70,8 @@ public ZoomBox(int pChartGroupNum, int pChartNum, int pGraphNum,
     zoomBoxNum = pZoomBoxNum;
     graphInfo = pGraphInfo;
 
-    x = pX; xEnd = pXEnd; y = pY; width = pWidth; height = pHeight;
+    x = pX; xEnd = pXEnd; representedXEnd = xEnd;
+    y = pY; width = pWidth; height = pHeight;
 
     hasArrow = pHasArrow;
     arrowX = pArrowX; arrowY = pArrowY;
@@ -150,7 +153,7 @@ private void drawArrow(Graphics2D pG2)
 {
 
     int adjX = x - graphInfo.scrollOffset;
-    int adjXEnd = xEnd - graphInfo.scrollOffset;
+    int adjXEnd = representedXEnd - graphInfo.scrollOffset;
     int adjArrowX = arrowX - graphInfo.scrollOffset;
 
     //draw arrow

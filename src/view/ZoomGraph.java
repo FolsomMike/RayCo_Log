@@ -212,7 +212,7 @@ void updateZoomBox(int pX)
 {
 
     for (ZoomBox b : zoomBoxes) {
-        if ((b.getX())<=pX && pX<=(b.getXEnd())){
+        if ((b.getX())<=pX && pX<=(b.getRepresentedXEnd())){
 
             //store this zoombox info so data can be reset later
             if (lastUpdatedZoomBox != b) {
@@ -228,6 +228,72 @@ void updateZoomBox(int pX)
     }
 
 }// end of ZoomGraph::updateZoomBox
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::setLastZoomBoxDataIndex
+//
+// Sets the data for the last ZoomBox drawn to be the data represented by 
+// pIndex.
+//
+
+public void setLastZoomBoxDataIndex(int pIndex)
+{
+
+    //use the last data set collected if index out of bounds
+    int [] zoomData;
+    if (pIndex<0||pIndex>=data.size()) {
+        zoomData = data.get(data.size()-1); pIndex = data.size()-1;
+    }
+    else { zoomData = data.get(pIndex); }
+
+    //set zoombox stuff
+    zoomBoxes.get(zoomBoxes.size()-1).setData(zoomData, pIndex);
+    zoomBoxes.get(zoomBoxes.size()-1).paint((Graphics2D)getGraphics());
+
+}// end of ZoomGraph::setLastZoomBoxDataIndex
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::setLastZoomBoxToCoverUntilX
+//
+// Tells the last zoom box that he can show zoom data for points up until pX.
+//
+
+public void setLastZoomBoxToCoverUntilX(int pX)
+{
+
+    zoomBoxes.get(zoomBoxes.size()-1).setRepresentedXEnd(pX);
+
+}// end of ZoomGraph::setLastZoomBoxToCoverUntilX
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::getLastZoomBoxStartX
+//
+// Returns the start x of the last drawn ZoomBox.
+//
+
+public int getLastZoomBoxStartX()
+{
+
+    return zoomBoxes.get(zoomBoxes.size()-1).getX();
+
+}// end of ZoomGraph::getLastZoomBoxStartX
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ZoomGraph::getLastZoomBoxEndRepresentedX
+//
+// Returns the end x value that the last drawn ZoomBox can show zoom data for.
+//
+
+public int getLastZoomBoxEndRepresentedX()
+{
+
+    return zoomBoxes.get(zoomBoxes.size()-1).getRepresentedXEnd();
+
+}// end of ZoomGraph:getLastZoomBoxEndRepresentedX
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

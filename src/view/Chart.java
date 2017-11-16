@@ -792,6 +792,15 @@ public void markSegmentStart()
 public void markSegmentEnd()
 {
     
+    if (hasZoomGraph) {
+        zoomGraph.setLastZoomBoxToCoverUntilX(graphs[0].getTrace(0).getPrevX());
+        
+        int peakIndex = getIndexOfTracesPeak(
+                                    zoomGraph.getLastZoomBoxStartX(),
+                                    zoomGraph.getLastZoomBoxEndRepresentedX());
+        zoomGraph.setLastZoomBoxDataIndex(peakIndex);
+    }
+    
     for (Graph c : graphs){ c.markSegmentEnd();  }
 
 }//end of Chart::markSegmentEnd
