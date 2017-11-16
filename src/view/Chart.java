@@ -835,7 +835,7 @@ public void updateAnnotationGraph()
     int prevX = graphs[0].getTrace(0).getPrevX();
     if (prevXGraph0Trace0 == -1){ prevXGraph0Trace0 = prevX; return; }
 
-    if (prevX!=prevXGraph0Trace0 && (prevX % zoomGraph.getNextBoxEndX()== 0)) {
+    if (prevX!=prevXGraph0Trace0 && prevX > zoomGraph.getNextBoxEndX()) {
 
         prevXGraph0Trace0 = prevX;
 
