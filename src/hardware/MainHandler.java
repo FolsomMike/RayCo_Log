@@ -1307,7 +1307,7 @@ private void setBufferAdvancedFlags(boolean pState)
         
     }
 
-}//end of MainHandler::collectDataForScanOrTimerMode
+}//end of MainHandler::setBufferAdvancedFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1338,9 +1338,9 @@ private void setBufferAdvancedFlags(boolean pState)
 // direction).
 //
 
-public void initializeOffsetDelays(int pDirection)
+private void initializeOffsetDelays(int pDirection)
 {
-    
+
     //key = chart group + chart num + graph num
     Map<String, Channel> leads = new HashMap<>();
     Map<String, Channel> trails = new HashMap<>();
