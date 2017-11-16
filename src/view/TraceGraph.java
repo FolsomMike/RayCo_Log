@@ -431,6 +431,26 @@ public int getXOfPeakInBox(int pX, int pY, int pWidth, int pHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// TraceGraph::getLastDrawnX
+//
+// Returns the last known drawn x.
+//
+
+@Override
+public int getLastDrawnX()
+{
+
+    int greatestX = 0;
+    for (Trace t : traces) { 
+        if (t.getPrevX()>greatestX) { greatestX = t.getPrevX(); } 
+    }
+    
+    return greatestX;
+
+}// end of TraceGraph::getLastDrawnX
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // TraceGraph::getTrace
 //
 // Returns Trace pTrace.

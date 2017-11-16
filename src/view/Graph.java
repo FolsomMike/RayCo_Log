@@ -233,6 +233,22 @@ public void scrollGraph (int pShiftAmount)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::getLastDrawnX
+//
+// Returns the last known drawn x.
+//
+// Generally overridden by subclasses to return a valid value.
+//
+
+public int getLastDrawnX()
+{
+
+    return 0;
+
+}// end of Graph::getLastDrawnX
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::getTrace
 //
 // Returns Trace pTrace.

@@ -54,7 +54,7 @@ class Chart extends JPanel implements MouseListener, MouseMotionListener {
     int numGraphs;
     boolean hasZoomGraph = false;
     boolean hasInfoPanel;
-    int prevXGraph0Trace0;
+    int prevXGraph0;
 
     boolean graphsVisible;
     boolean specifiedGraphsVisible;
@@ -665,7 +665,7 @@ public void setVerticalBarAllChildren()
 public void resetAll()
 {
 
-    prevXGraph0Trace0 = -1;
+    prevXGraph0 = -1;
 
     for (Graph graph: graphs){ graph.resetAll(); }
 
@@ -841,12 +841,12 @@ public void updateAnnotationGraph()
 
     zoomGraph.retrieveDataChanges();
 
-    int prevX = graphs[0].getTrace(0).getPrevX();
-    if (prevXGraph0Trace0 == -1){ prevXGraph0Trace0 = prevX; return; }
+    int prevX = graphs[0].getLastDrawnX();
+    if (prevXGraph0 == -1){ prevXGraph0 = prevX; return; }
 
-    if (prevX!=prevXGraph0Trace0 && prevX > zoomGraph.getNextBoxEndX()) {
+    if (prevX!=prevXGraph0 && prevX > zoomGraph.getNextBoxEndX()) {
 
-        prevXGraph0Trace0 = prevX;
+        prevXGraph0 = prevX;
 
         int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartX(),
                                                 zoomGraph.getNextBoxEndX());
