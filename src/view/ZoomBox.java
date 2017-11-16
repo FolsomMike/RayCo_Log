@@ -26,7 +26,7 @@ import javax.swing.UIManager;
 // class ZoomBox
 //
 
-class ZoomBox{
+public class ZoomBox{
 
     private GraphInfo graphInfo;
 

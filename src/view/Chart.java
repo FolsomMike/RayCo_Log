@@ -792,15 +792,6 @@ public void markSegmentStart()
 public void markSegmentEnd()
 {
     
-    if (hasZoomGraph) {
-        zoomGraph.setLastZoomBoxToCoverUntilX(graphs[0].getTrace(0).getPrevX());
-        
-        int peakIndex = getIndexOfTracesPeak(
-                                    zoomGraph.getLastZoomBoxStartX(),
-                                    zoomGraph.getLastZoomBoxEndRepresentedX());
-        zoomGraph.setLastZoomBoxDataIndex(peakIndex);
-    }
-    
     for (Graph c : graphs){ c.markSegmentEnd();  }
 
 }//end of Chart::markSegmentEnd
@@ -839,24 +830,48 @@ public void updateAnnotationGraph()
 
     if(!hasZoomGraph){ return; }
 
-    zoomGraph.retrieveDataChanges();
+    zoomGraph.retrieveDataChanges(); //retrieve data changes from data buffer
 
     int prevX = graphs[0].getLastDrawnX();
-    if (prevXGraph0 == -1){ prevXGraph0 = prevX; return; }
-
-    if (prevX!=prevXGraph0 && prevX > zoomGraph.getNextBoxEndX()) {
-
-        prevXGraph0 = prevX;
+    
+    //bail if no changes to last drawn x
+    if (prevX == prevXGraph0) { return; }
+    
+    prevXGraph0 = prevX; //this is the new x
+    
+    //add a ZoomBox if necessary
+    if (prevXGraph0 > zoomGraph.getNextBoxEndX()
+            || zoomGraph.getZoomBoxes().size()<=0) 
+    {
 
         int peakIndex = getIndexOfTracesPeak(zoomGraph.getNextBoxStartX(),
                                                 zoomGraph.getNextBoxEndX());
         zoomGraph.addZoomBox(peakIndex);
+        
+        //now that we have a new ZoomBox, make sure that the previous last
+        //one is set to only represent zoom data for the x points drawn
+        //directly above it -- will no longer show zoom data until the very
+        //end of the trace because I new box has been added in and takes over
+        //everything after the last previous one
+        int prevLastBoxIndex = zoomGraph.getZoomBoxes().size()-2;
+        if (prevLastBoxIndex>=0) {
+            ZoomBox prevLastBox = zoomGraph.getZoomBoxes().get(prevLastBoxIndex);
 
-        //DEBUG HSS//
-        if (this.debugHss != zoomGraph.debugHss) {
-            return;
+            
+            int newRepXEnd = prevLastBox.getXEnd();
+            prevLastBox.setRepresentedXEnd(newRepXEnd);
+
+            peakIndex = getIndexOfTracesPeak(prevLastBox.getX(),
+                                                    prevLastBox.getXEnd());
+
+            zoomGraph.setDataOfZoomBoxToIndex(prevLastBoxIndex, peakIndex);
         }
 
+    } 
+    else { //allow last ZoomBox to represent more data points until new one
+        
+        zoomGraph.setLastZoomBoxToCoverUntilX(prevXGraph0);
+        
     }
 
 }// end of Chart::updateAnnotationGraph

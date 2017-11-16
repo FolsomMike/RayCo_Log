@@ -36,6 +36,7 @@ import toolkit.Tools;
 public class ZoomGraph extends Graph{
 
     private final ArrayList<ZoomBox> zoomBoxes = new ArrayList<>();
+    public ArrayList<ZoomBox> getZoomBoxes() { return zoomBoxes; }
     private int lastUpdatedZoomBoxDataIndex = 0;
     private ZoomBox lastUpdatedZoomBox = null;
 
@@ -165,6 +166,9 @@ public void retrieveDataChanges()
 int debugHss = -1;//DEBUG HSS//
 public void addZoomBox(int pIndex)
 {
+    
+    //bail if no data that can be represented in ZoomBox
+    if (data.size()<=0) { return; }
 
     zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
                     graphInfo, annoX, annoX+annoWidth+gap, annoY, annoWidth,
@@ -231,6 +235,30 @@ void updateZoomBox(int pX)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ZoomGraph::setDataOfZoomBoxToIndex
+//
+// Sets the data for the last ZoomBox drawn to be the data represented by 
+// pIndex.
+//
+
+public void setDataOfZoomBoxToIndex(int pZoomBoxIndex, int pIndex)
+{
+
+    //use the last data set collected if index out of bounds
+    int [] zoomData;
+    if (pIndex<0||pIndex>=data.size()) {
+        zoomData = data.get(data.size()-1); pIndex = data.size()-1;
+    }
+    else { zoomData = data.get(pIndex); }
+
+    //set zoombox stuff
+    zoomBoxes.get(pZoomBoxIndex).setData(zoomData, pIndex);
+    zoomBoxes.get(pZoomBoxIndex).paint((Graphics2D)getGraphics());
+
+}// end of ZoomGraph::setDataOfZoomBoxToIndex
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ZoomGraph::setLastZoomBoxDataIndex
 //
 // Sets the data for the last ZoomBox drawn to be the data represented by 
@@ -239,6 +267,10 @@ void updateZoomBox(int pX)
 
 public void setLastZoomBoxDataIndex(int pIndex)
 {
+    
+    //bail if no zoomboxes yet or if same index as previous
+    if (zoomBoxes.size()<=0 || 
+        pIndex == zoomBoxes.get(zoomBoxes.size()-1).getArrowX()) { return; }
 
     //use the last data set collected if index out of bounds
     int [] zoomData;
@@ -263,6 +295,7 @@ public void setLastZoomBoxDataIndex(int pIndex)
 public void setLastZoomBoxToCoverUntilX(int pX)
 {
 
+    if (zoomBoxes.size()<=0) { return; } //bail if no zoomboxes yet
     zoomBoxes.get(zoomBoxes.size()-1).setRepresentedXEnd(pX);
 
 }// end of ZoomGraph::setLastZoomBoxToCoverUntilX
@@ -277,6 +310,7 @@ public void setLastZoomBoxToCoverUntilX(int pX)
 public int getLastZoomBoxStartX()
 {
 
+    if (zoomBoxes.size()<=0) { return -1; } //bail if no zoomboxes yet
     return zoomBoxes.get(zoomBoxes.size()-1).getX();
 
 }// end of ZoomGraph::getLastZoomBoxStartX
@@ -291,6 +325,7 @@ public int getLastZoomBoxStartX()
 public int getLastZoomBoxEndRepresentedX()
 {
 
+    if (zoomBoxes.size()<=0) { return -1; } //bail if no zoomboxes yet
     return zoomBoxes.get(zoomBoxes.size()-1).getRepresentedXEnd();
 
 }// end of ZoomGraph:getLastZoomBoxEndRepresentedX
