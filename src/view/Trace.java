@@ -496,7 +496,7 @@ public void scrollGraph (Graphics2D pG2, int pX)
     pG2.fillRect(width-shiftAmt, 0, shiftAmt, height);
 
     graphInfo.scrollOffset += shiftAmt;
-    graphInfo.lastScrollAmount = shiftAmt;
+    graphInfo.lastScrollAmount += shiftAmt;
 
 }// end of Trace::scrollGraph
 //-----------------------------------------------------------------------------

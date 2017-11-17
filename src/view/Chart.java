@@ -938,6 +938,7 @@ private void scrollTrackingGraphs(int pGraphNum)
         }
     }
 
+    //reset now that tracking graphs scrolled
     graphs[pGraphNum].graphInfo.lastScrollAmount = 0;
 
 }// end of Chart::scrollTrackingGraphs
