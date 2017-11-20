@@ -1055,7 +1055,7 @@ boolean handleControlForInspectMode()
     boolean newPositionData = true;  //signal that position has been changed
 
     //check to see if encoder hand over should occur
-    encoders.handleEncoderSwitchOver();
+    //DEBUG HSS//encoders.handleEncoderSwitchOver();
     
     moveEncoders();
 
@@ -1179,7 +1179,7 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
 
                     //track position to find end of section at start of pipe where
                     //modifier is to be applied
-                    if (hdwVs.nearStartOfPieceTracker != 0){
+                    /*//DEBUG HSS//if (hdwVs.nearStartOfPieceTracker != 0){
                         hdwVs.nearStartOfPieceTracker--;
                     }
                     else{
@@ -1193,7 +1193,7 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
                         else{
                             hdwVs.nearEndOfPiece = true;
                         }
-                    }
+                    }*/
                     
                 }
             }
@@ -1279,7 +1279,7 @@ void moveBuffersBackward(int pPixelsMoved, double pPosition)
                     // signal, reverse this process -- the tracker normally counts down
                     // from endOfPiecePosition to zero, so count up when reversing
 
-                    if (hdwVs.trackToEndOfPiece){
+                    /*//DEBUG HSS//if (hdwVs.trackToEndOfPiece){
                         if (hdwVs.endOfPieceTracker != hdwVs.endOfPiecePosition){
                             hdwVs.endOfPieceTracker++;
                         }
@@ -1288,7 +1288,7 @@ void moveBuffersBackward(int pPixelsMoved, double pPosition)
                             hdwVs.trackToEndOfPiece = false;
                         }
 
-                    }
+                    }*/
                 }
             }
         }
