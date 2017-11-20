@@ -123,8 +123,6 @@ public class Trace{
 
 public Trace()
 {
-    
-    flaggingEnabled = true;//DEBUG HSS// remove later
 
 }//end of Trace::Trace (constructor)
 //-----------------------------------------------------------------------------
@@ -619,9 +617,6 @@ public void updateTrace(Graphics2D pG2)
 
     while((r = dataBuffer.getDataChange(dataSet)) != 0){
         
-        //check to see if this data point should be segment start
-        checkSegmentStart(dataSet);
-        
         //check and flag any threshold violations
         checkThresholdViolations(dataSet);
 
@@ -846,30 +841,6 @@ public boolean isSegmentStarted()
     return lastSegmentStartIndex>-1 && data.size()>10;
 
 }//end of Trace::isSegmentStarted
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::checkSegmentStart
-//
-// If in INSPECT or INSPECT_WITH_TIMER_DRIVEN_TRACKING mode, will start a
-// segment if the flag to mark the next data point read in is true. The segment 
-// is started by setting the flags variable in pDataSet to indicate a segment 
-// start.
-//
-
-private void checkSegmentStart(DataSetInt pDataSet)
-{
-    
-    if ((sharedSettings.opMode != SharedSettings.INSPECT_MODE 
-        && sharedSettings.opMode != SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE)
-        || lastSegmentStartIndex != -1)
-        { return; } //bail if not in proper modes or if already started
-    
-    //DEBUG HSS// //WIP HSS// perform check to ensure distance traveled is past mask
-    
-    pDataSet.flags |= DataFlags.SEGMENT_START_SEPARATOR;
-
-}//end of Trace::checkSegmentStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

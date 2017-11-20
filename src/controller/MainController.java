@@ -777,6 +777,9 @@ private void prepareForNextPiece()
 
     //tell view to reset everything to left edge if setting say so
     if (sharedSettings.startNewPieceAtLeftEdge) { mainView.resetAll();  }
+    
+    //mark the starting point of a new segment
+    markSegmentStart();
 
 }// end of MainController::prepareForNextPiece
 //-----------------------------------------------------------------------------

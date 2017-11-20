@@ -815,6 +815,29 @@ public boolean isSegmentStarted()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::checkFlagging
+//
+// Tells all traces to enable or disable flagging depending on the leading and
+// trailing masks. 
+//
+// Will only enable if in INSPECT or INSPECT_WITH_TIMER_DRIVEN_TRACKING mode.
+//
+
+private void checkFlagging()
+{
+    
+    if ((sharedSettings.opMode != SharedSettings.INSPECT_MODE 
+        && sharedSettings.opMode != SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE))
+        { return; } //bail if not in proper modes or if already started
+    
+    //DEBUG HSS// //WIP HSS// perform check to ensure distance traveled is past mask
+    
+    for (Object o : traces) { Trace t = (Trace)o; t.enableFlagging(true); }
+
+}//end of Chart::checkFlagging
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::updateAnnotationGraph
 //
 // Plots data added to annoBuffer and/or erases any data which has been
@@ -904,6 +927,8 @@ public void updateChild(int pGraphNum, int pChildNum)
 public void updateChildren()
 {
 
+    checkFlagging();
+    
     for (Graph g : graphs) { 
         g.updateChildren(); 
         scrollTrackingGraphs(g.getGraphNum());

@@ -1166,7 +1166,35 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
                 c.getDataBuffer().setPositionAdvanced(true);
                 
                 for (int x=0; x<pPixelsMoved; x++) { 
+                    
                     c.getDataBuffer().incPutPtrAndSetReadyAfterDataFill(); 
+                    
+                    //debug mks
+                    //the end of piece, near start of piece, and near endof piece
+                    //tracking needs to be done separately for each trace, trigger
+                    //distances need to be loaded from config, track counts (which
+                    //is in pixels) needs to be converted from the inch distances
+                    //for the desired effect
+                    //see HardwareVars notes for more details
+
+                    //track position to find end of section at start of pipe where
+                    //modifier is to be applied
+                    if (hdwVs.nearStartOfPieceTracker != 0){
+                        hdwVs.nearStartOfPieceTracker--;
+                    }
+                    else{
+                        hdwVs.nearStartOfPiece = false;
+                    }
+
+                    if (hdwVs.trackToNearEndofPiece){
+                        if (hdwVs.nearEndOfPieceTracker != 0){
+                            hdwVs.nearEndOfPieceTracker--;
+                        }
+                        else{
+                            hdwVs.nearEndOfPiece = true;
+                        }
+                    }
+                    
                 }
             }
         }
@@ -1242,6 +1270,25 @@ void moveBuffersBackward(int pPixelsMoved, double pPosition)
                 
                 for (int x=0; x<pPixelsMoved; x++) { 
                     c.getDataBuffer().decrementPutPointerAndSetErasedFlag();
+                    
+                    //currently, the nearStartOfPiece and nearEndOfPiece conditions are not
+                    //tracked in reverse -- should probably be fixed just in case reversing
+                    //occurs in these areas
+
+                    //if tracking to the end of the piece after end of piece photo eye
+                    // signal, reverse this process -- the tracker normally counts down
+                    // from endOfPiecePosition to zero, so count up when reversing
+
+                    if (hdwVs.trackToEndOfPiece){
+                        if (hdwVs.endOfPieceTracker != hdwVs.endOfPiecePosition){
+                            hdwVs.endOfPieceTracker++;
+                        }
+                        else{
+                            //original trigger point passed, so no longer near end
+                            hdwVs.trackToEndOfPiece = false;
+                        }
+
+                    }
                 }
             }
         }
