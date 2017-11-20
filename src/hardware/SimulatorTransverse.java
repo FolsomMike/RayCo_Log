@@ -50,7 +50,7 @@ public class SimulatorTransverse extends Simulator
     int positionTrack; // this is the number of packets sent, not the encoder
                        // value
 
-    public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
+    public static int DELAY_BETWEEN_INSPECT_PACKETS = 5;
     int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
     //This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
