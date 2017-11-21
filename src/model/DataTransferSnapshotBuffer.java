@@ -171,15 +171,17 @@ synchronized public void putData(int pPeak, int[] pData)
 
     }else{
         //only store if new data is a new peak
+        int absNew = Math.abs(pPeak);
+        
         if(peakType == DataFlags.CATCH_HIGHEST){
-            if (pPeak > dataPeakBuf[putPointer]) {
-                dataPeakBuf[putPointer] = pPeak;
+            if (absNew > dataPeakBuf[putPointer]) {
+                dataPeakBuf[putPointer] = absNew;
                 System.arraycopy(pData,0, dataBuf[putPointer], 0, pData.length);
             }
         }
         else{
-            if (pPeak < dataPeakBuf[putPointer]) {
-                dataPeakBuf[putPointer] = pPeak;
+            if (absNew < dataPeakBuf[putPointer]) {
+                dataPeakBuf[putPointer] = absNew;
                 System.arraycopy(pData,0, dataBuf[putPointer], 0, pData.length);
             }
         }

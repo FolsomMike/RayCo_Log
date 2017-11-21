@@ -170,24 +170,6 @@ public void addZoomBox(int pIndex)
     
     //bail if no data that can be represented in ZoomBox
     if (data.size()<=0) { return; }
-    
-    //DEBUG HSS// remove later
-    System.out.print("Snaps  : ");
-    for (int[] d : data) {
-        
-        int peak = 0; int absPeak = 0;
-        
-        for (int p : d) {
-            int absD = Math.abs(p);
-
-            if (absD>absPeak) { peak = p; absPeak = absD; }
-        }
-        
-        System.out.print(String.format("%03d", peak) + ", ");
-        
-    }
-    System.out.println("");
-    //DEBUG HSS// end
 
     zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
                     graphInfo, annoX, annoX+annoWidth+gap, annoY, annoWidth,

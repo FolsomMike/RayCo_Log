@@ -402,27 +402,38 @@ public int getXOfPeakInBox(int pX, int pY, int pWidth, int pHeight)
     int yStart = pY-pHeight/2;
     int yEnd = pY+pHeight/2;
 
-    //determine the greatest peak
-    Trace peakTrace = null; int peak=-1; int peakX=-1; int yDistance=-1;
+    //find peak
+    Trace peakTrace=null; int peak=-1; int peakX=-1;
+    Trace boxTrace=null; int boxPeak=-1; int boxPeakX=-1;
     for (Trace t : traces) {
-
+        
+        //get peak in box
         int newP = t.getPeak(xStart, xEnd, yStart, yEnd);
-
-        //if trace has a peak, but its not in the box, and no other
-        //peaks have been found in the box yet, use the trace as the
-        //peak trace if his peak's y distance from the center of the
-        //box is closer than any other traces'
-        if (newP==-1&&peak==-1&&t.getLastRequestedPeakX()!=-1) {
-            int newYDist = Math.abs(t.getLastRequestedPeakY()-pY);
-
-            if (yDistance==-1||newYDist<yDistance) {
-                yDistance = newYDist;
-                peakTrace=t;
-            }
+        
+        //store if greatest peak in box
+        if (newP!=-1 && newP>boxPeak) {
+            boxTrace = t;
+            boxPeak = t.getLastRequestedPeak();
+            boxPeakX = t.getLastRequestedPeakX();
         }
-        //peak found and is new peak
-        else if (newP>peak) { peak=newP; peakTrace=t; }
+        //store if not in box, but new greatest peak
+        else if (t.getLastRequestedPeak()>peak&&t.getLastRequestedPeakX()!=-1) {
+            peakTrace = t;
+            peak = t.getLastRequestedPeak();
+            peakX = t.getLastRequestedPeakX();
+        }
+        
     }
+    
+    //if peak was found in box, use it. Otherwise, use the greatest found peak
+    //within the x range
+    if (boxTrace!=null) {
+        peakTrace = boxTrace;
+        peak = boxPeak;
+        peakX = boxPeakX;
+    }
+    
+    
     if (peakTrace!=null) { peakX = peakTrace.getLastRequestedPeakX(); }
 
     return peakX;

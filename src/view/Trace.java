@@ -94,6 +94,7 @@ public class Trace{
     public void enableFlagging(boolean pEn) { flaggingEnabled = pEn; }
 
     private int lastRequestedPeak = -1;
+    public int getLastRequestedPeak() { return lastRequestedPeak; }
     private int lastRequestedPeakX = -1;
     public int getLastRequestedPeakX() { return lastRequestedPeakX; }
     private int lastRequestedPeakY = -1;
@@ -559,13 +560,6 @@ public void paintSingleTraceDataPoint(
 
     int y = calculateY(pY);
 
-    //if so configured, invert y so zero is at the bottom of the chart
-
-    if(invertTrace){
-        if(y > yMax){ y = 0; }
-        else { y = yMax - y; }
-    }
-
     //draw between each two points
     if(connectPoints) {
         pG2.drawLine(prevXAdj, prevY, xAdj, y);
@@ -731,7 +725,15 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 private int calculateY(int pY)
 {
 
-    return (int)Math.round(((pY - baseLine) * yScale) + offset);
+    int y = (int)Math.round(((pY - baseLine) * yScale) + offset);
+    
+    //if so configured, invert y so zero is at the bottom of the chart
+    if(invertTrace){
+        if(y > yMax){ y = 0; }
+        else { y = yMax - y; }
+    }
+    
+    return y;
 
 }// end of Trace::calculateY
 //-----------------------------------------------------------------------------
@@ -747,16 +749,6 @@ public int getPeak (int pXStart, int pXEnd)
 
     //ensure index start falls within array bounds
     if (pXStart<0) { lastRequestedPeakX = -1; return -1; }
-    
-    //DEBUG HSS// remove later
-    System.out.print("Trace " + traceNum + ": ");
-    for (int d : data) {
-        
-        System.out.print(String.format("%03d", d) + ", ");
-  
-    }
-    System.out.println("");
-    //DEBUG HSS// end
 
     lastRequestedPeak=-1;
     for (int i=pXStart; i<=pXEnd&&i<data.size(); i++){
@@ -785,6 +777,7 @@ public int getPeak (int pXStart, int pXEnd, int pYStart, int pYEnd)
 
     //if peak does not lie within y points, set peak to -1
     lastRequestedPeakY = calculateY(peak);
+    
     if (lastRequestedPeakY<pYStart||pYEnd<lastRequestedPeakY) { peak = -1; }
 
     return peak;

@@ -1720,7 +1720,7 @@ private void displayDataFromDevices()
         if (results != true) { continue; }
         
         //DEBUG HSS// remove later
-        if (results) {
+        /*if (results) {
 
             System.out.println("-------------------------------------------------------------------");
             
@@ -1744,7 +1744,7 @@ private void displayDataFromDevices()
             System.out.println("Snapshots peak: " + peak);
             System.out.println("");
 
-        }
+        }*/
         //DEBUG HSS// end remove later
         
         //put data in snapshot buffer
