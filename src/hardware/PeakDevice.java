@@ -206,11 +206,10 @@ public boolean getPeakSnapshotDataAndReset(PeakSnapshotData pPeakSnapData)
     if(peakSnapshotBuffer == null) { return(false); }
 
     pPeakSnapData.meta = snapshotMeta; //channel/buffer/graph etc. info
+    pPeakSnapData.peak = peakSnapshotBuffer.peak;
 
     boolean peakUpdated
                 = peakSnapshotBuffer.getPeakAndReset(pPeakSnapData.peakArray);
-
-    pPeakSnapData.peak = peakSnapshotBuffer.peak;
 
     return(peakUpdated);
 
@@ -1010,12 +1009,12 @@ public void setUpPeakSnapshotBuffer()
 
         case CATCH_HIGHEST:
             peakSnapshotBuffer = new HighPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
-            peakSnapshotBuffer.setResetValue(Integer.MIN_VALUE);
+            peakSnapshotBuffer.setResetValue(0);
             break;
 
         case CATCH_LOWEST:
             peakSnapshotBuffer = new LowPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
-            peakSnapshotBuffer.setResetValue(Integer.MAX_VALUE);
+            peakSnapshotBuffer.setResetValue(0);
             break;
 
         default:

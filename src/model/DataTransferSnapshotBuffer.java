@@ -63,7 +63,7 @@ public void setPositionAdvanced(boolean pSet) { positionAdvanced = pSet; }
 
 int bufLength;
 int bufWidth;
-int dataPeakBuf[];
+int dataPeakBuf[]; //note that the absolute values are stored, not actuals
 int dataBuf[][];
 int flags[];
 

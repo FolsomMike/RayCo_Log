@@ -747,6 +747,16 @@ public int getPeak (int pXStart, int pXEnd)
 
     //ensure index start falls within array bounds
     if (pXStart<0) { lastRequestedPeakX = -1; return -1; }
+    
+    //DEBUG HSS// remove later
+    System.out.print("Trace " + traceNum + ": ");
+    for (int d : data) {
+        
+        System.out.print(String.format("%03d", d) + ", ");
+  
+    }
+    System.out.println("");
+    //DEBUG HSS// end
 
     lastRequestedPeak=-1;
     for (int i=pXStart; i<=pXEnd&&i<data.size(); i++){
@@ -755,7 +765,7 @@ public int getPeak (int pXStart, int pXEnd)
             lastRequestedPeakX = i;
         }
     }
-
+    
     return lastRequestedPeak;
 
 }// end of Trace::getPeak

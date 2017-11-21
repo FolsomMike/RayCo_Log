@@ -151,6 +151,7 @@ public void retrieveDataChanges()
         if ((dataSet.flags & DataFlags.SEGMENT_END_SEPARATOR) != 0) {
             lastSegmentEndIndex = index;
         }
+        
     }
 
 }// end of ZoomGraph::retrieveDataChanges
@@ -169,6 +170,24 @@ public void addZoomBox(int pIndex)
     
     //bail if no data that can be represented in ZoomBox
     if (data.size()<=0) { return; }
+    
+    //DEBUG HSS// remove later
+    System.out.print("Snaps  : ");
+    for (int[] d : data) {
+        
+        int peak = 0; int absPeak = 0;
+        
+        for (int p : d) {
+            int absD = Math.abs(p);
+
+            if (absD>absPeak) { peak = p; absPeak = absD; }
+        }
+        
+        System.out.print(String.format("%03d", peak) + ", ");
+        
+    }
+    System.out.println("");
+    //DEBUG HSS// end
 
     zoomBoxes.add(new ZoomBox(chartGroupNum, chartNum, graphNum, 0,
                     graphInfo, annoX, annoX+annoWidth+gap, annoY, annoWidth,
@@ -185,15 +204,6 @@ public void addZoomBox(int pIndex)
         zoomData = data.get(data.size()-1); pIndex = data.size()-1;
     }
     else { zoomData = data.get(pIndex); }
-
-    //DEBUG HSS//
-    int p=-1;
-    for (int d : zoomData) {
-        int absD = Math.abs(d);
-        if (absD>p) { p = absD; }
-    }
-    debugHss = p;
-    //DEBUG HSS//
 
     //set zoombox stuff
     zoomBoxes.get(zoomBoxes.size()-1).setData(zoomData, pIndex);
