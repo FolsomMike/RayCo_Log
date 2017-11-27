@@ -22,7 +22,6 @@ package hardware;
 //-----------------------------------------------------------------------------
 
 import java.text.DecimalFormat;
-import javax.swing.JLabel;
 import model.SharedSettings;
 
 
@@ -44,6 +43,8 @@ public class EncoderDualLinear extends EncoderHandler{
     private final DecimalFormat decimalFormat = new DecimalFormat("0.0");
 
     public final static int ENCODER1 = 0, ENCODER2 = 1;
+    
+    private void setEncoderInUse(int pE, String pMsg) { encoderInUse = pE; displayMsg(pMsg); }
 
 //-----------------------------------------------------------------------------
 // EncoderDualLinear::EncoderDualLinear (constructor)
@@ -85,7 +86,7 @@ public void resetAll()
 
     super.resetAll();
     
-    encoderInUse = ENCODER1;
+    setEncoderInUse(ENCODER1, "switching to encoder 1...");
 
     encoder1CountAtSwitchToEncoder2 = 0;    
     encoder1InchesAtSwitchToEncoder2 = 0.0;
@@ -285,10 +286,8 @@ public void handleEncoderSwitchOver()
     if (encoderInUse == ENCODER1 && 
        linearDistanceMovedInches > encVals.distanceToSwitchToEncoder2){
         
-        sharedSettings.displayMsg("Switching to Encoder 2...");
-
-        //switch to encoder 2        
-        encoderInUse = ENCODER2;
+        //switch to encoder 2
+        setEncoderInUse(ENCODER2, "switching to encoder 2...");
   
         //encoder 2 starts tracking at current position
         encoder2Start = encoder2;
@@ -303,10 +302,8 @@ public void handleEncoderSwitchOver()
     }else if (encoderInUse == ENCODER2 && 
         linearDistanceMovedInches < encVals.distanceToSwitchToEncoder1){
         
-        sharedSettings.displayMsg("Switching to Encoder 1...");
-        
         //switch to encoder 1
-        encoderInUse = ENCODER1;        
+        setEncoderInUse(ENCODER1, "switching to encoder 1...");      
 
         //set encoder 1 counts and start counts appropriately
         encoder1 = encoder1CountAtSwitchToEncoder2; encoder1Start = 0;
