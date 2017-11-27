@@ -257,6 +257,10 @@ private void processInspectPacket()
 
     //control flags are active high
     onPipeFlag = ((processControlFlags & ON_PIPE_CTRL) != 0);
+    
+    //entry eye flag only different if we decide to bring in another ctrl byte
+    //from signals read from PLC
+    entryEyeFlag = onPipeFlag;
 
     head1Down = ((processControlFlags & HEAD1_DOWN_CTRL) != 0);
 

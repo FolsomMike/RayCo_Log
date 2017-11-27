@@ -58,8 +58,6 @@ public class Device implements Runnable, ControlDevice
     final String calFileSection;
     final SharedSettings sharedSettings;
     
-    private String msg = "";
-    
     protected boolean canBeControlDevice = false;
     public boolean canBeControlDevice() { return canBeControlDevice; }
     
@@ -170,7 +168,12 @@ public class Device implements Runnable, ControlDevice
     int encoder2, prevEncoder2;
     int encoder1Dir, encoder2Dir;
     
+    //number of counts each encoder moves to trigger an inspection data packet
+    //these values are read later from the config file
+    int encoder1DeltaTrigger, encoder2DeltaTrigger;
+    
     boolean onPipeFlag = false;
+    boolean entryEyeFlag = false;
     boolean inspectControlFlag = false;
     boolean head1Down = false;
     boolean head2Down = false;
@@ -598,6 +601,8 @@ public void getInspectControlVars(InspectControlVars pICVars)
 {
 
     pICVars.onPipeFlag = onPipeFlag;
+    
+    pICVars.entryEyeFlag = entryEyeFlag;
 
     pICVars.head1Down = head1Down;
 
@@ -846,6 +851,12 @@ void loadConfigSettings()
     
     encoderHandlerName = configFile.readString(
                   section, "Encoder Handler Name", "Linear and Rotational");
+    
+    encoder1DeltaTrigger =
+          configFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 83);
+
+    encoder2DeltaTrigger =
+          configFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 83);
 
 }// end of Device::loadConfigSettings
 //-----------------------------------------------------------------------------
@@ -1727,27 +1738,10 @@ public void saveCalFile(IniFile pCalFile)
 
 public void displayMsg(String pMessage)
 {
-
-    msg = pMessage;
-
-    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);    
+    
+    sharedSettings.displayMsg(pMessage);  
 
 }//end of Device::displayMsg
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Device::displayMsgThreadSafe
-//
-// Displays a message on the msgLabel and should only be called from
-// invokeLater.
-//
-
-public void displayMsgThreadSafe()
-{
-
-    //DEBUG HSS// //WIP HSS//settings.msgLabel.setText(msg);
-    
-}//end of Device::displayMsgThreadSafe
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

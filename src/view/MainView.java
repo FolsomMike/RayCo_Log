@@ -1637,11 +1637,11 @@ public void saveSegment(BufferedWriter pOut) throws IOException {
         pOut.newLine();
         pOut.write("Segment Data Version=" + SharedSettings.SEGMENT_DATA_VERSION);
         pOut.newLine();
-        /*pOut.write("Measured Length=" + hardware.hdwVs.measuredLength);
+        pOut.write("Measured Length=" + sharedSettings.getMeasuredLength());
         pOut.newLine();
         pOut.write("Inspection Direction="
-                                     + settings.inspectionDirectionDescription);
-        pOut.newLine();*/ //WIP HSS// write these at a future date
+                                     + sharedSettings.inspectionDirectionDescription);
+        pOut.newLine();
         pOut.write("[Header End]"); pOut.newLine(); pOut.newLine();
 
     for (ChartGroup c : chartGroups) { c.saveSegment(pOut); }

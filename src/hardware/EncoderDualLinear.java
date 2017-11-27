@@ -23,6 +23,7 @@ package hardware;
 
 import java.text.DecimalFormat;
 import javax.swing.JLabel;
+import model.SharedSettings;
 
 
 
@@ -48,10 +49,10 @@ public class EncoderDualLinear extends EncoderHandler{
 // EncoderDualLinear::EncoderDualLinear (constructor)
 //
 
-public EncoderDualLinear(EncoderValues pEncVals, JLabel pMsgLabel)
+public EncoderDualLinear(EncoderValues pEncVals, SharedSettings pSettings)
 {
 
-    super(pEncVals, pMsgLabel);
+    super(pEncVals, pSettings);
 
 }//end of EncoderDualLinear::EncoderDualLinear (constructor)
 //-----------------------------------------------------------------------------
@@ -283,6 +284,8 @@ public void handleEncoderSwitchOver()
 
     if (encoderInUse == ENCODER1 && 
        linearDistanceMovedInches > encVals.distanceToSwitchToEncoder2){
+        
+        sharedSettings.displayMsg("Switching to Encoder 2...");
 
         //switch to encoder 2        
         encoderInUse = ENCODER2;
@@ -299,6 +302,8 @@ public void handleEncoderSwitchOver()
         
     }else if (encoderInUse == ENCODER2 && 
         linearDistanceMovedInches < encVals.distanceToSwitchToEncoder1){
+        
+        sharedSettings.displayMsg("Switching to Encoder 1...");
         
         //switch to encoder 1
         encoderInUse = ENCODER1;        

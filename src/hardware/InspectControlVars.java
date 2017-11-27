@@ -20,6 +20,9 @@
 package hardware;
 
 //-----------------------------------------------------------------------------
+
+import hardware.EncoderHandler;
+
 // class InspectControlVars
 //
 
@@ -28,6 +31,8 @@ public class InspectControlVars extends Object{
     public EncoderHandler encoderHandler;    
     
     public boolean onPipeFlag = false;
+    public boolean inspectCtrlFlag = false;
+    public boolean entryEyeFlag = false;
     public boolean head1Down = false;
     public boolean head2Down = false;
     public boolean head3Down = false;    

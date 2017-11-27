@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import toolkit.Tools;
 
@@ -47,6 +48,9 @@ public class SharedSettings{
     private final Object lock1 = new Object();
 
     JFrame mainFrame;
+    public String msg = "";
+    private JLabel msgLabel;
+    public void setMsgLabel(JLabel pM) { msgLabel = pM; }
 
     public String appTitle;
 
@@ -66,12 +70,18 @@ public class SharedSettings{
 
     public boolean isCalDataSaved = false;
 
+    public boolean flaggingEnabled = false;
+    
     public boolean calMode = false;
     public int nextPieceNumber = 1;
     public int nextCalPieceNumber = 1;
     public int lastPieceNumber;
     public int lastCalPieceNumber;
     public boolean startNewPieceAtLeftEdge = true;
+    
+    public double measuredLength;
+    synchronized public double getMeasuredLength() { return measuredLength; }
+    synchronized public void setMeasuredLength(double pV) { measuredLength = pV; }
     
     static public final int STOP_MODE = 0;
     static public final int SCAN_MODE = 1;
@@ -360,6 +370,41 @@ private void deleteFileIfOverSizeLimit(String pFilename, int pLimit)
     }
 
 }//end of SharedSettings::deleteFileIfOverSizeLimit
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::displayMsg
+//
+// Displays a message on the msgLabel using a threadsafe method.
+//
+// There is no bufferering, so if this function is called again before
+// invokeLater calls displayMsgThreadSafe, the prior message will be
+// overwritten.
+//
+
+public void displayMsg(String pMessage)
+{
+
+    msg = pMessage;
+
+    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);
+
+}//end of SharedSettings::displayMsg
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::displayMsgThreadSafe
+//
+// Displays a message on the msgLabel and should only be called from
+// invokeLater.
+//
+
+private void displayMsgThreadSafe()
+{
+
+    if (msgLabel!=null) { msgLabel.setText(msg); }
+
+}//end of SharedSettings::displayMsgThreadSafe
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

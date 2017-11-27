@@ -88,8 +88,6 @@ public class MainHandler
     
     //START control vars
     
-    private String msg = "";
-    
     private int scanRateCounter = 0;
     
     private String encoderHandlerName;
@@ -99,6 +97,11 @@ public class MainHandler
     private EncoderCalValues encoderCalValues;
     
     private HardwareVars hdwVs;
+    private EncoderHandler encoders;
+    private EncoderValues encoderValues;
+    private InspectionCtrlHandler inspectionCtrlHandler;
+    private MaskCtrlHandler maskCtrlHandler;
+    
     private boolean manualInspectControl = false;
     public double delayDistance;
     
@@ -112,9 +115,6 @@ public class MainHandler
     private boolean prepareForNewPiece;
     public boolean needToPrepareForNewPiece() { return prepareForNewPiece; }
     public void setPrepareForNewPiece(boolean pPrep) { prepareForNewPiece = pPrep; }
-    
-    private EncoderHandler encoders;
-    private EncoderValues encoderValues;
     
     private double previousTally = 0.0;
     
@@ -156,10 +156,18 @@ public void init()
     loadConfigSettings();
     
     hdwVs = new HardwareVars(configFile); hdwVs.init();
+    
+    inspectionCtrlHandler = new InspectionCtrlByEyeSignal();
+    
+    maskCtrlHandler = new MaskCtrlByEncoder(sharedSettings, hdwVs, 
+                                                inspectCtrlVars);
+    
     setEncoderHandler();
     
     inspectCtrlVars = new InspectControlVars(encoders); inspectCtrlVars.init();
     encoderCalValues = new EncoderCalValues(); encoderCalValues.init();
+    
+    inspectionCtrlHandler.setInspectCtrlVars(inspectCtrlVars);
 
     //add one logging master panel for the main handler to use
 
@@ -190,15 +198,18 @@ private void setEncoderHandler()
     switch(encoderHandlerName){
 
         case "Linear and Rotational" :
-            encoders = new EncoderLinearAndRotational(hdwVs.encoderValues, null);
+            encoders = new EncoderLinearAndRotational(hdwVs.encoderValues, 
+                                                        sharedSettings);
         break;
 
         case "Encoder Dual Linear" :
-            encoders = new EncoderDualLinear(hdwVs.encoderValues, null);
+            encoders = new EncoderDualLinear(hdwVs.encoderValues, 
+                                                        sharedSettings);
         break;
 
         default:
-            encoders = new EncoderLinearAndRotational(hdwVs.encoderValues,null);
+            encoders = new EncoderLinearAndRotational(hdwVs.encoderValues,
+                                                        sharedSettings);
         break;
 
     }
@@ -973,13 +984,19 @@ boolean handleControlForInspectMode()
     //if waiting for piece clear of system, do nothing until flag says true
     if (hdwVs.waitForOffPipe){
 
-        if (manualInspectControl) {inspectCtrlVars.onPipeFlag = false;}
+        if (manualInspectControl) {
+            inspectionCtrlHandler.setTubePresentState(false);
+        }
 
-        if (inspectCtrlVars.onPipeFlag) {return false;}
+        if (inspectionCtrlHandler.getTubePresentState()) {return false;}
         else {
             //piece has been removed; prepare for it to enter to begin
             hdwVs.waitForOffPipe = false;
             hdwVs.waitForOnPipe = true;
+            
+            //assume all heads up if off pipe and disable flagging
+            maskCtrlHandler.resetFlaggingEnableDelays();
+            
             displayMsg("system clear, previous tally = " + 
                                        decFmt0x0.format(previousTally));
             previousTally = 0;
@@ -987,21 +1004,26 @@ boolean handleControlForInspectMode()
             }
         }
 
-    if (manualInspectControl) {inspectCtrlVars.onPipeFlag = true;}
+    if (manualInspectControl) {
+        inspectionCtrlHandler.setTubePresentState(true);
+    }
 
     //if waiting for piece to enter the head, do nothing until flag says true
     if (hdwVs.waitForOnPipe){
 
-        if (!inspectCtrlVars.onPipeFlag) {return false;}
+        if (!inspectionCtrlHandler.getTubePresentState()) {return false;}
         else {
             hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
 
             //the direction of the linear encoder at the start of the inspection
             //sets the forward direction (increasing or decreasing encoder
             //count)
-            encoders.setCurrentLinearDirectionAsFoward();            
+            encoders.setCurrentLinearDirectionAsFoward();
+            
             initializeOffsetDelays(encoders.getDirectionSetForLinearFoward());
 
+            //heads are up, flagging disabled upon start
+            maskCtrlHandler.resetFlaggingEnableDelays();
             
             //set the text description for the direction of inspection
             if (encoders.getDirectionSetForLinearFoward() == 
@@ -1022,10 +1044,13 @@ boolean handleControlForInspectMode()
             displayMsg("entry eye blocked...");
         }
     }
+    
+    int readyToFlag = maskCtrlHandler.process(); //handle masking enable/disable
+    if (readyToFlag != 0){ sharedSettings.flaggingEnabled = false; } //seen by view
         
     //watch for piece to exit head
     if (hdwVs.watchForOffPipe){
-        if (!inspectCtrlVars.onPipeFlag){
+        if (!inspectionCtrlHandler.getTubePresentState()){
 
             //use tracking counter to delay after leading photo eye cleared
             //until position where modifier is to be added until the end of
@@ -1034,10 +1059,12 @@ boolean handleControlForInspectMode()
             //start counting down to near end of piece modifier apply start
             //position
             hdwVs.trackToNearEndofPiece = true;
-            //calculate length of tube
+            
+            //get latest encoder values
             controlDevice.requestAllEncoderValuesPacket();
 
             hdwVs.measuredLength = encoders.calculateTally();
+            sharedSettings.setMeasuredLength(hdwVs.measuredLength);
 
             previousTally = hdwVs.measuredLength;
             
@@ -1055,7 +1082,7 @@ boolean handleControlForInspectMode()
     boolean newPositionData = true;  //signal that position has been changed
 
     //check to see if encoder hand over should occur
-    //DEBUG HSS//encoders.handleEncoderSwitchOver();
+    encoders.handleEncoderSwitchOver();
     
     moveEncoders();
 
@@ -1969,7 +1996,7 @@ public void shutDown()
 private void loadConfigSettings()
 {
 
-    String section = "Hardware Settings";
+    String section = "Hardware";
 
     allDevicesSimulatedOverride = configFile.readBoolean(
                                         section, "simulate all devices", true);
@@ -2077,26 +2104,9 @@ public void saveCalFile(IniFile pCalFile)
 public void displayMsg(String pMessage)
 {
 
-    msg = pMessage;
-
-    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);    
-
-}//end of MainHandler::displayMsg
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainHandler::displayMsgThreadSafe
-//
-// Displays a message on the msgLabel and should only be called from
-// invokeLater.
-//
-
-public void displayMsgThreadSafe()
-{
-
-    //DEBUG HSS// //WIP HSS//settings.msgLabel.setText(msg);
+    sharedSettings.displayMsg(pMessage);
     
-}//end of MainHandler::displayMsgThreadSafe
+}//end of MainHandler::displayMsg
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

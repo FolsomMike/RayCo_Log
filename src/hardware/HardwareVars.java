@@ -192,13 +192,15 @@ public void saveCalFile(IniFile pCalFile, String pJobPath)
 public void configure(IniFile pConfigFile)
 {
 
+    String section = "Hardware";
+    
     //load the nS per data point value and compute the uS per data point as well
     nSPerDataPoint =
-                pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
+                pConfigFile.readDouble(section, "nS per Data Point", 15.0);
 
     uSPerDataPoint = nSPerDataPoint / 1000;
 
-    pixelsPerInch = pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
+    pixelsPerInch = pConfigFile.readDouble(section, "Pixels per Inch", 1.0);
 
     decimalFeetPerPixel = 1/(pixelsPerInch * 12);
 

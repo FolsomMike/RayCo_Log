@@ -50,7 +50,7 @@ public class SimulatorTransverse extends Simulator
     int positionTrack; // this is the number of packets sent, not the encoder
                        // value
 
-    public static int DELAY_BETWEEN_INSPECT_PACKETS = 5;
+    public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
     int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
     //This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
@@ -469,11 +469,7 @@ public int handleStopInspect()
 private void resetAllInspectionValues()
 {
 
-    positionTrack = 0;
-    onPipeFlag = false;
-    encoder1 = 0; encoder2 = 0;
-    inspectPacketCount = 0;
-    delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+    positionTrack = 0; delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
 }//end of ControlSimulator::resetAllInspectionValues
 //-----------------------------------------------------------------------------
@@ -520,13 +516,14 @@ public void simulateInspection()
     //after photo eye reaches piece, give "on pipe" signal
     onPipeFlag = triggerTrack >= 10;
 
+    //after photo eye reaches piece, give "on pipe" signal
+    if (triggerTrack >= 10) {onPipeFlag = true;} else {onPipeFlag = false;}
+
     //after photo eye reaches end of piece, turn off "on pipe" signal
     if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS) {onPipeFlag = false;}
 
     //wait a bit after head has passed the end and prepare for the next piece
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS + 10) {
-        resetAllInspectionValues();
-    }
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS + 10) {resetAllInspectionValues();}
 
     //start with all control flags set to 0
     controlFlags = (byte)0x00;

@@ -20,9 +20,7 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
-import javax.swing.JLabel;
-
-
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -37,10 +35,10 @@ public class EncoderLinearAndRotational extends EncoderHandler{
 // EncoderLinearAndRotational::EncoderLinearAndRotational (constructor)
 //
 
-public EncoderLinearAndRotational(EncoderValues pEncVals, JLabel pMsgLabel)
+public EncoderLinearAndRotational(EncoderValues pEncVals, SharedSettings pSettings)
 {
 
-    super(pEncVals, pMsgLabel);
+    super(pEncVals, pSettings);
     
 }//end of EncoderLinearAndRotational::EncoderLinearAndRotational (constructor)
 //-----------------------------------------------------------------------------

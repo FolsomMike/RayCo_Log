@@ -21,9 +21,7 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
-import javax.swing.JLabel;
-
-
+import model.SharedSettings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -34,6 +32,7 @@ import javax.swing.JLabel;
 public class EncoderHandler extends Object{
     
     
+    protected SharedSettings sharedSettings;
     EncoderValues encVals;
 
     public int encoder1 = 0, prevEncoder1 = 0;
@@ -46,10 +45,6 @@ public class EncoderHandler extends Object{
     //decreasing
     public int encoder1Dir = INCREASING;
     public int encoder2Dir = INCREASING;
-
-    JLabel msgLabel;
-
-    String msg = "";
     
     //debug mks -- needs to be loaded from config file -- specifies if carriage
     //moving away from home is increasing or decreasing encoder counts
@@ -76,10 +71,10 @@ public class EncoderHandler extends Object{
 // EncoderHandler::EncoderHandler (constructor)
 //
 
-public EncoderHandler(EncoderValues pEncVals, JLabel pMsgLabel)
+public EncoderHandler(EncoderValues pEncVals, SharedSettings pSettings)
 {
 
-    encVals = pEncVals; msgLabel = pMsgLabel;
+    encVals = pEncVals; sharedSettings = pSettings;
     
 }//end of EncoderHandler::EncoderHandler (constructor)
 //-----------------------------------------------------------------------------
@@ -112,27 +107,10 @@ public void init()
 
 public void displayMsg(String pMessage)
 {
-
-    msg = pMessage;
-
-    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);    
+    
+    sharedSettings.displayMsg(pMessage);  
 
 }//end of EncoderHandler::displayMsg
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// EncoderHandler::displayMsgThreadSafe
-//
-// Displays a message on the msgLabel and should only be called from
-// invokeLater.
-//
-
-public void displayMsgThreadSafe()
-{
-
-    //DEBUG HSS// null right now //msgLabel.setText(msg);
-    
-}//end of EncoderHandler::displayMsgThreadSafe
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

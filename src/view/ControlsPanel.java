@@ -32,6 +32,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -122,6 +123,10 @@ public void setupGUI()
 
     add(createModeButtonPanel());
     
+    Tools.addVerticalSpacer(this, 5);
+
+    add(createMessagesPanel());
+    
 }// end of ControlsPanel::setupGUI
 //-----------------------------------------------------------------------------
 
@@ -150,6 +155,35 @@ private JPanel createDisplayControlsButtonPanel()
     return(panel);
 
 }// end of ControlsPanel::createDisplayControlsButtonPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlsPanel::createMessagesPanel
+//
+// Creates eturns a JPanel containing the messages label. Also sets the
+// messages label in SharedSettings so that other classes and packages can
+// write messages.
+//
+
+private JPanel createMessagesPanel()
+{
+
+    JPanel panel = new JPanel();
+    panel.setBorder(BorderFactory.createTitledBorder("Messages"));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    GUITools.setSizes(panel, 202, 60);
+    
+    //create message label and hand over to SharedSettings
+    JLabel msgLabel = new JLabel("");
+    msgLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    Tools.setSizes(msgLabel, 202, 55);
+    sharedSettings.setMsgLabel(msgLabel);
+    panel.add(msgLabel);
+
+    return(panel);
+
+}// end of ControlsPanel::createMessagesPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
