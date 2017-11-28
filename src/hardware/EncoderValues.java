@@ -124,11 +124,7 @@ public class EncoderValues extends Object{
     //tube, set this value to 0.0 in the config file
 
     public double endStopLength = 0;
-
-    public int numHeads = 3;
-    public double photoEye1DistanceFrontOfHead[] = new double[numHeads];
-    public double photoEye2DistanceFrontOfHead[] = new double[numHeads];
-
+    
     double photoEye1DistanceToEncoder1;
     double photoEye1DistanceToEncoder2;
 
@@ -203,13 +199,6 @@ public EncoderValues()
 
 public void init()
 {
-
-    for(int i=0; i<numHeads; i++){
-
-        photoEye1DistanceFrontOfHead[i] = 0.0;
-        photoEye2DistanceFrontOfHead[i] = 0.0;
-
-    }
 
 }//end of EncoderValues::init
 //-----------------------------------------------------------------------------
@@ -932,24 +921,6 @@ public void configure(IniFile pConfigFile)
 {
 
     endStopLength = pConfigFile.readDouble("Hardware", "End Stop Length", 0.0);
-
-    photoEye1DistanceFrontOfHead[0] = pConfigFile.readDouble("Hardware",
-                          "Photo Eye 1 Distance to Front Edge of Head 1", 8.0);
-
-    photoEye1DistanceFrontOfHead[1] = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 1 Distance to Front Edge of Head 2", 32.0);
-
-    photoEye1DistanceFrontOfHead[2] = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 1 Distance to Front Edge of Head 3", 56.0);
-
-    photoEye2DistanceFrontOfHead[0] = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 2 Distance to Front Edge of Head 1", 46.0);
-
-    photoEye2DistanceFrontOfHead[1] = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
-
-    photoEye2DistanceFrontOfHead[2] = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 2 Distance to Front Edge of Head 3", 16.0);
 
     photoEye1DistanceToEncoder1 = pConfigFile.readDouble("Hardware",
                                 "Photo Eye 1 To Encoder 1 Distance", 9.0);

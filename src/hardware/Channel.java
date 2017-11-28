@@ -16,12 +16,9 @@ package hardware;
 
 //-----------------------------------------------------------------------------
 
-import java.util.ArrayList;
 import model.DataTransferIntBuffer;
 import model.IniFile;
 import model.SharedSettings;
-import model.ThresholdInfo;
-import toolkit.MKSBoolean;
 import toolkit.MKSInteger;
 
 //-----------------------------------------------------------------------------
@@ -85,8 +82,9 @@ public class Channel
     public double getStartRevDelayDistance() { return startRevDelayDistance; }
     public void setStartRevDelayDistance(double pD) { startRevDelayDistance = pD; }
     
-    private double distanceSensorToFrontEdgeOfHead;
-    public double getDistanceSensorToFrontEdgeOfHead() { return distanceSensorToFrontEdgeOfHead; }
+    private double distanceSensorToFrontEdgeOfDev;
+    public double getDistanceSensorToFrontEdgeOfHead() { return distanceSensorToFrontEdgeOfDev; }
+    public void setDistanceSensorToFrontEdgeOfHead(double pD) { distanceSensorToFrontEdgeOfDev = pD; }
 
     int peakType;
     PeakBufferInt peakBuffer;
@@ -189,6 +187,10 @@ private void loadConfigSettings()
     clockPosition = configFile.readInt(section, "clock position", -1);
 
     linearLocation = configFile.readInt(section, "linear location", -1);
+    
+    distanceSensorToFrontEdgeOfDev = configFile.readDouble(section,
+                                "distance from sensor to front edge of device",
+                                0.0);
 
     calPanelGroup = configFile.readString(
                         section, "calibration panel group", "Dev" + deviceNum);

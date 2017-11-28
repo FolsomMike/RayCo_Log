@@ -100,7 +100,7 @@ public void init()
 void initAfterConnect(){
 
     super.initAfterConnect();
-
+    
     //debug mks
 
     requestAllStatusPacket();
@@ -888,12 +888,15 @@ private void setUpChannels()
 
     channels = new Channel[numChannels];
 
-    int lastBoardChannel = -1; BoardChannelParameters params = null;
+    BoardChannelParameters params = null;
+    int lastBoardChannel = -1; double lastDist = 0.0;     
     for(int i=0; i<numChannels; i++){
 
         channels[i] = new Channel(getDeviceNum(), i, configFile, sharedSettings);
         channels[i].init();
 
+        //give same BoardChannelParameters instance to software channels that
+        //represent the same board channel
         if (channels[i].getBoardChannel()==lastBoardChannel&&params!=null)
         {
             channels[i].setHdwParams(params);
@@ -901,8 +904,16 @@ private void setUpChannels()
         else {
             channels[i].setHdwParams(params = new BoardChannelParameters());
         }
-
+        
+        //set all channels that have paired distance from device start values to
+        //match the distance of the previous channel
+        if (channels[i].getDistanceSensorToFrontEdgeOfHead()==-1)
+        {
+            channels[i].setDistanceSensorToFrontEdgeOfHead(lastDist); 
+        }
+        
         lastBoardChannel = channels[i].getBoardChannel();
+        lastDist = channels[i].getDistanceSensorToFrontEdgeOfHead();
 
     }
 

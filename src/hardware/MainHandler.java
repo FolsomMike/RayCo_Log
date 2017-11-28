@@ -729,6 +729,11 @@ public boolean connectToFoundDevices()
     }else{
         logPanel.appendTS("Error: Some devices did not connect!\n\n");
     }
+    
+    //calculate the distance offsets from the point where the photo eye
+    //detects the pipe so each plotter can be delayed until its sensors
+    //reach the inspection piece
+    calculateOffsetDelays();
 
     return(allDevicesConnected);
 
@@ -1059,7 +1064,7 @@ boolean handleControlForInspectMode()
             //start counting down to near end of piece modifier apply start
             //position
             hdwVs.trackToNearEndofPiece = true;
-            
+
             //get latest encoder values
             controlDevice.requestAllEncoderValuesPacket();
 
@@ -1185,6 +1190,7 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
         //channels -- only advance if delay distance reached, and hasn't 
         //already advanced
         for (Channel c : d.getChannels()) {
+            
             if (c.getDataBuffer()!=null && c.getDelayDistance()<pPosition
                 && !c.getDataBuffer().getPositionAdvanced())
             {
@@ -1459,7 +1465,7 @@ private void initializeOffsetDelays(int pDirection)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainHandler::calculateTraceOffsetDelays
+// MainHandler::calculateOffsetDelays
 //
 // Adds the appropriate photo eye distance to the front of each head to each
 // trace's distance from the front edge of its head.
@@ -1468,35 +1474,27 @@ private void initializeOffsetDelays(int pDirection)
 // pipe until the sensor(s) associated to that trace reach the pipe.
 //
 
-void calculateTraceOffsetDelays()
+private void calculateOffsetDelays()
 {
-    
+
     for (Device d : devices) {
         for (Channel c : d.getChannels()) {
             
             //set forward delay of channel
-            double photoEye1DistanceFrontOfHead =
-                hdwVs.encoderValues
-                    .photoEye1DistanceFrontOfHead[c.getMetaData().channelNum];
-            
             c.setStartFwdDelayDistance(
                                     hdwVs.encoderValues.endStopLength
-                                    + photoEye1DistanceFrontOfHead
+                                    + d.getPhotoEye1DistanceToFrontEdge()
                                     + c.getDistanceSensorToFrontEdgeOfHead());
             
             //set reverese delay of channel
-            double photoEye2DistanceFrontOfHead =
-                hdwVs.encoderValues
-                    .photoEye2DistanceFrontOfHead[c.getMetaData().channelNum];
-            
             c.setStartRevDelayDistance(
-                                    photoEye2DistanceFrontOfHead 
+                                    d.getPhotoEye1DistanceToFrontEdge()
                                     - c.getDistanceSensorToFrontEdgeOfHead());
             
         }
     }
 
-}//end of MainHandler::calculateTraceOffsetDelays
+}//end of MainHandler::calculateOffsetDelays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

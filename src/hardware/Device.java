@@ -74,14 +74,17 @@ public class Device implements Runnable, ControlDevice
     public String getDeviceType(){ return(deviceType); }
     String deviceSubtype = "";
     public String getDeviceSubtype(){ return(deviceSubtype); }
-    static final public String GROUP_PEAK_DEVICES = "Peak Devices";
-    static final public String GROUP_CONTROL_DEVICES = "Control Devices";
+    
+    double photoEye1DistanceToFrontEdge = 0.0;
+    public double getPhotoEye1DistanceToFrontEdge(){ return photoEye1DistanceToFrontEdge; }
+    
+    double photoEye2DistanceToFrontEdge = 0.0;
+    public double getPhotoEye2DistanceToFrontEdge(){ return photoEye2DistanceToFrontEdge; }
+    
     int numChannels = 0;
     public int getNumChannels(){ return(numChannels); }
     Channel[] channels = null;
     public Channel[] getChannels(){ return(channels); }
-    
-    String encoderHandlerName = "";
 
     private boolean hdwParamsDirty = false;
     public boolean getHdwParamsDirty(){ return hdwParamsDirty; }
@@ -844,19 +847,22 @@ void loadConfigSettings()
 
     deviceType = configFile.readString(section, "type", "unknown");
     deviceSubtype = configFile.readString(section, "subtype", "unknown");
+    
+    photoEye1DistanceToFrontEdge = configFile.readDouble(section,
+                                    "photo eye 1 distance to front edge", 0.0);
+    
+    photoEye2DistanceToFrontEdge = configFile.readDouble(section,
+                                    "photo eye 2 distance to front edge", 0.0);
 
     //only override if previously set simMode not true
     boolean readSimMode = configFile.readBoolean(section, "simulate", false);
     if (!simMode) { simMode = readSimMode; }
     
-    encoderHandlerName = configFile.readString(
-                  section, "Encoder Handler Name", "Linear and Rotational");
-    
     encoder1DeltaTrigger =
-          configFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 83);
+          configFile.readInt("Hardware", "encoder 1 delta count trigger", 83);
 
     encoder2DeltaTrigger =
-          configFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 83);
+          configFile.readInt("Hardware", "encoder 2 delta count trigger", 83);
 
 }// end of Device::loadConfigSettings
 //-----------------------------------------------------------------------------
