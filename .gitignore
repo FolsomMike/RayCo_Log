@@ -1,8 +1,28 @@
-
+#
+# Netbeans IDE Git Ignore
+#
+# Specificially for Universal Chart program.
+#
+# Version: 2.0
+#
+# Authors: Hunter & Mike Schoonover
+#
 # Helpful Git notes:
 #
-# In Git Bash, use "git config core.autocrlf false" to avoid unwanted changes, especially to Java source files.
-# You must do this for each project.
+# In Git Bash, use "git config core.autocrlf false" to avoid unwanted changes, especially to Java source 
+# files. You must do this for each project.
+#
+#
+# If a file or directory has already been committed, but you no longer want to track:
+#
+#	1. Change the .gitignore file
+#	2. Move the file out of the git-controlled directory
+#	3. Check the removal into git
+#	4. Move the file back into the git-controlled directory
+#
+# After moving the file or directory back, git will ignore it.
+#
+
 
 User Settings.txt
 
@@ -10,26 +30,29 @@ User Settings.txt
 archive/
 build/
 dist/
+nbdist/
+nbproject/private/
+.nb-gradle/
 Log Files/*.*
 
+# ignore any file locks
 *.lock
 
 # ignore any jar file which might be in the executable directory
 *.jar
 
-Error Messages.txt
-
 # ignore any zip files in the executable directory
 *.zip
 
-
+# ignore error message and logger files
+Error Messages.txt
 Java Logger File.txt
 Java Logger File.txt.1
 Java Logger File.txt.lck
 
 # ignore all ini files
 # these change frequently and it is not useful to propagate the changes to each developer
-# for downloading the entire project from scratch, copies of these files can be found in Golden Copies of Configuration Files Etc
+# for downloading the entire project from scratch, copies of these files can be found in 
+# Golden Copies of Configuration Files Etc
 
 # we track ini files now -- *.ini
-/nbproject/private/
