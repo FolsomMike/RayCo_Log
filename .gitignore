@@ -50,6 +50,18 @@ Java Logger File.txt
 Java Logger File.txt.1
 Java Logger File.txt.lck
 
+# Ignore job data, cal, and info files.
+# They change often for testing and do not
+# need to be tracked
+Data Folder - Primary/**/*.cal
+Data Folder - Primary/**/*.dat
+Data Folder - Primary/**/*.info
+
+Data Folder - Secondary/**/*.cal
+Data Folder - Secondary/**/*.dat
+Data Folder - Secondary/**/*.info
+
+
 # ignore all ini files
 # these change frequently and it is not useful to propagate the changes to each developer
 # for downloading the entire project from scratch, copies of these files can be found in 
