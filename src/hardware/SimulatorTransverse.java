@@ -111,7 +111,7 @@ public void init(int pBoardNumber)
 
     numClockPositions = 48;
 
-    spikeOdds = 50;
+    spikeOdds = 5;
 
 }// end of SimulatorTransverse::init
 //-----------------------------------------------------------------------------
@@ -191,8 +191,9 @@ public int handleGetRunData()
         }
 
         //simulate clock map (greatest absolute value of pos/neg signals)
-        clockMap[activeChannels[i].getClockPosition()] = abs;
-
+        int map = posAbs > negAbs ? posAbs : negAbs;
+        clockMap[activeChannels[i*2].getClockPosition()] = map;
+        
     }
 
     int snapshot[] = simulateSnapshot(snap, channelsOn);

@@ -94,7 +94,7 @@ public class Simulator extends Socket
     static final int AD_MIN_VALUE = 0;
     static final int AD_MAX_SWING = 127;
     static final int AD_ZERO_OFFSET = 127;
-    static final int SIM_NOISE = 10;
+    static final int SIM_NOISE = 7;
     static final int SPIKE_ODDS_RANGE = 10000;
     static final int WALL_SIM_NOISE = 3;
     static final int WALL_SPIKE_ODDS_RANGE = 100000;
@@ -935,8 +935,12 @@ int simulatePositiveSignal()
 {
 
     int value = AD_ZERO_OFFSET;
-
-    value += (int)(SIM_NOISE * Math.random());
+    
+    
+    value += (int)(4 * Math.random());
+    if (100 * Math.random() < 7) {
+        value += (int)(SIM_NOISE * Math.random());
+    }
 
     if ((int)(SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
         value += (int)(100 * Math.random());
@@ -960,12 +964,16 @@ int simulateNegativeSignal()
 {
 
     int value = AD_ZERO_OFFSET;
-
-    value -= (int)(SIM_NOISE * Math.random());
+    
+    value -= (int)(4 * Math.random());
+    if (100 * Math.random() < 7) {
+        value -= (int)(SIM_NOISE * Math.random());
+    }
 
     if ((int)(SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
         value -= (int)(100 * Math.random());
     }
+    
 
     if (value < AD_MIN_VALUE) { value = AD_MIN_VALUE; }
 
