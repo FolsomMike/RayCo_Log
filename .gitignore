@@ -53,10 +53,12 @@ Java Logger File.txt.lck
 # Ignore job data, cal, and info files.
 # They change often for testing and do not
 # need to be tracked
+Data Folder - Primary/**/*.ini
 Data Folder - Primary/**/*.cal
 Data Folder - Primary/**/*.dat
 Data Folder - Primary/**/*.info
 
+Data Folder - Secondary/**/*.ini
 Data Folder - Secondary/**/*.cal
 Data Folder - Secondary/**/*.dat
 Data Folder - Secondary/**/*.info
