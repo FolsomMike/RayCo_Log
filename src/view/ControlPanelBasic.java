@@ -25,6 +25,8 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Transparency;
@@ -46,7 +48,9 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import static javax.swing.SwingConstants.CENTER;
 import static javax.swing.SwingConstants.LEFT;
+import javax.swing.border.TitledBorder;
 import mksystems.mswing.MFloatSpinner;
+import toolkit.Tools;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -56,6 +60,8 @@ import mksystems.mswing.MFloatSpinner;
 class ControlPanelBasic extends ControlPanel
 {
 
+    private Chart chart;
+    
     JTabbedPane tabPane;
 
     int numChannelsPerGroup;
@@ -69,6 +75,8 @@ class ControlPanelBasic extends ControlPanel
     private MFloatSpinnerPanel viewAngle;
     private MFloatSpinnerPanel xFrom, yFrom, zFrom;
     private MFloatSpinnerPanel xAt, yAt, zAt;
+    
+    private JCheckBox hideChartCheckBox;
 
     JButton expandBtn, animateBtn;
 
@@ -94,7 +102,8 @@ class ControlPanelBasic extends ControlPanel
 // by the user.
 //
 
-public ControlPanelBasic(int pChartGroupNum, int pChartNum, String pPanelTitle,
+public ControlPanelBasic(int pChartGroupNum, int pChartNum, Chart pChart,
+                            String pPanelTitle,                            
                             LinkedHashSet<String> pGroupTitles,
                             ArrayList<ChannelInfo> pChannelList,
                             ArrayList<Threshold[]> pThresholds,
@@ -102,6 +111,8 @@ public ControlPanelBasic(int pChartGroupNum, int pChartNum, String pPanelTitle,
 {
 
     super(pChartGroupNum, pChartNum, pParentActionListener);
+    
+    chart = pChart;
 
     groupTitles = pGroupTitles; channelList = pChannelList;
 
@@ -151,7 +162,7 @@ public void setupGUI()
     tabPane.addTab("Gain", null, gainTab, "Gain & Centering");
     setupGainTab(gainTab);
 
-    JPanel chartTab = new JPanel();
+    JPanel chartTab = new JPanel();    
     tabPane.addTab("Chart", null, chartTab, "Chart settings & thresholds.");
     setupChartTab(chartTab);
 
@@ -314,8 +325,12 @@ public void addGainOffsetPanel(JPanel pPanel)
 
 public void setupChartTab(JPanel pPanel)
 {
-
+    
+    pPanel.setLayout(new BoxLayout(pPanel, BoxLayout.PAGE_AXIS));
+    pPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
     addThresholdsPanel(pPanel);
+    addDisplayPanel(pPanel);
 
 }// end of ControlPanelBasic::setupChartTab
 //-----------------------------------------------------------------------------
@@ -328,30 +343,43 @@ public void setupChartTab(JPanel pPanel)
 
 public void addThresholdsPanel(JPanel pPanel)
 {
-
+    
     JPanel panel = new JPanel();
-
-    //number of rows needed to hold the titles/labels/controls
-    //start with 1 row for top labels and first group title
-    int numRows = 1;
-
-    panel.add(new JLabel("Graph"));
-    panel.add(new JLabel("Threshold"));
-    panel.add(new JLabel("Color", CENTER));
-    panel.add(new JLabel("Level"));
-
+    panel.setLayout(new GridBagLayout());
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    Tools.setSizes(panel, 275, 90);
+    
+    GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.anchor = GridBagConstraints.PAGE_START;
+    c.weightx = 0.5;
+    c.gridx = 0;
+    c.gridy = 0;
+    c.insets = new Insets(5, 5, 5, 5);  //padding
+    
+    panel.add(new JLabel("Graph"), c); c.gridx++;
+    panel.add(new JLabel("Threshold"), c); c.gridx++;
+    panel.add(new JLabel("Color", CENTER), c); c.gridx++;
+    panel.add(new JLabel("Level"), c); 
+    
     for (Threshold[] thresholdsArray : thresholds) {
         for (Threshold threshold : thresholdsArray) {
 
+            c.gridy++; //go to next row
+            c.gridx=0; //restart back at 0 for each new row
+            
             //graph title
-            panel.add(new JLabel(threshold.getGraphInfo().title, LEFT));
+            panel.add(new JLabel(threshold.getGraphInfo().title, LEFT), c); 
+            c.gridx++;
 
             //threshold title
-            panel.add(new JLabel(threshold.getThresholdInfo().getTitle(), LEFT));
+            panel.add(new JLabel(threshold.getThresholdInfo().getTitle(),LEFT), c); 
+            c.gridx++;
 
             //add a color swatch to the color column
             Color thresColor = threshold.getThresholdInfo().getThresholdColor();
-            panel.add(new JLabel(createColorSwatch(thresColor),CENTER));
+            panel.add(new JLabel(createColorSwatch(thresColor),CENTER), c); 
+            c.gridx++;
 
             //threshold level spinner
             MFloatSpinner lvl = new MFloatSpinner(threshold.getLevel(),0,
@@ -363,16 +391,43 @@ public void addThresholdsPanel(JPanel pPanel)
                         + threshold.getThresholdInfo().getGraphNum() + ","
                         + threshold.getThresholdInfo().getThresholdNum());
             setSpinnerNameAndMouseListener(lvl, lvl.getName(), this);
-            panel.add(lvl);
-            numRows++;
+            panel.add(lvl, c);
+            c.gridx++;
+            
         }
     }
-
-    panel.setLayout(new GridLayout(numRows, 4, 3, 3));
 
     pPanel.add(panel);
 
 }// end of ControlPanelBasic::addThresholdsPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelBasic::addDisplayPanel
+//
+// Adds Display panel to pPanel.
+//
+
+public void addDisplayPanel(JPanel pPanel)
+{
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBorder(BorderFactory.createTitledBorder("Display"));
+
+    panel.add(hideChartCheckBox = new JCheckBox("Hide Chart"));
+    hideChartCheckBox.setName("Hide Chart");
+    hideChartCheckBox.setActionCommand("Hide Chart," + chartGroupNum 
+                                            + "," + chartNum);
+    hideChartCheckBox.addActionListener(this);
+    hideChartCheckBox.setSelected(!chart.isChartVisible());
+    
+    panel.add(Box.createHorizontalGlue()); //extend box to fit panel
+
+    pPanel.add(panel);
+
+}// end of ControlPanelBasic::addDisplayPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -864,6 +919,17 @@ protected boolean actionPerformedLocal(ActionEvent e)
 
     if (e.getActionCommand().startsWith("All Off")){
         setStateOfAllCheckboxesInAGroup(e.getActionCommand(), false);
+        return(true);
+    }
+    
+    if (e.getActionCommand().startsWith("Hide Chart")){
+
+        if (!(e.getSource() instanceof JCheckBox)) { return(false); }
+        JCheckBox box = (JCheckBox)e.getSource();
+
+        parentActionListener.actionPerformed(new ActionEvent(this, 1,
+                                e.getActionCommand() + "," + box.isSelected()));
+        
         return(true);
     }
 

@@ -1328,8 +1328,9 @@ public void open3DMapManipulatorControlPanel(String pActionCommand)
 // information to link the GUI controls to the channels and traces.
 //
 
-public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
-                        String pPanelTitle, ArrayList<ChannelInfo> pChannelList)
+public void displayCalibrationPanel(int pChartGroupNum, int pChartNum, 
+                                        String pPanelTitle, 
+                                        ArrayList<ChannelInfo> pChannelList)
 {
     
     int mapGraphNumber = 0; //graph of 3D map always expected to be first
@@ -1342,9 +1343,11 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
                                                         pChartNum,
                                                         mapGraphNumber);
 
-    controlsPanel.displayCalibrationPanel(pChartGroupNum, pChartNum, pPanelTitle,
-                                            pChannelList, groupTitles, 
-                                            thresholds, graphParams);
+    Chart chart = chartGroups[pChartGroupNum].getChart(pChartNum);
+    controlsPanel.displayCalibrationPanel(pChartGroupNum, pChartNum, chart,
+                                            pPanelTitle, pChannelList, 
+                                            groupTitles, thresholds, 
+                                            graphParams);
     
     mainFrame.pack();
 
@@ -1365,6 +1368,20 @@ public void displayControlsPanel()
     mainFrame.pack();
 
 }//end of MainView::displayControlsPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainView::setChartVisible
+//
+// Sets the specified Chart visible or hidden.
+//
+
+public void setChartVisible(int pChartGroupNum, int pChartNum, boolean pVisible)
+{
+
+    chartGroups[pChartGroupNum].setChartVisible(pChartNum, pVisible);
+
+}//end of MainView::setChartVisible
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

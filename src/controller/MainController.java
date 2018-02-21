@@ -1209,6 +1209,15 @@ public void actionPerformed(ActionEvent e)
         mainHandler.updateChannelParameters(e.getActionCommand(), true);
         return;
     }
+    
+    if (e.getActionCommand().startsWith("Hide Chart")) {
+        String[] split = e.getActionCommand().split(",");
+        int chartGroupNum = Integer.parseInt(split[1]);
+        int chartNum = Integer.parseInt(split[2]);
+        mainView.setChartVisible(chartGroupNum, chartNum, 
+                                                !Boolean.parseBoolean(split[3]));
+        return;
+    }
 
     if (e.getActionCommand().startsWith("Update Threshold")) {
         updateThreshold(e.getActionCommand());

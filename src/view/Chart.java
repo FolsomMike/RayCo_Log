@@ -55,6 +55,8 @@ class Chart extends JPanel implements MouseListener, MouseMotionListener {
     boolean hasZoomGraph = false;
     boolean hasInfoPanel;
     int prevXGraph0;
+    
+    private boolean isChartVisible = false;
 
     boolean graphsVisible;
     boolean specifiedGraphsVisible;
@@ -116,6 +118,8 @@ public void init()
 
     addMouseListener(this);
     addMouseMotionListener(this);
+    
+    setChartVisible(true); //ensure chart is visible
 
 }// end of Chart::init
 //-----------------------------------------------------------------------------
@@ -835,6 +839,35 @@ private void checkFlagging()
     for (Object o : traces) { Trace t = (Trace)o; t.enableFlagging(true); }
 
 }//end of Chart::checkFlagging
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::setChartVisible
+//
+// Sets all of the graphs in this chart visible or hidden.
+//
+
+public void setChartVisible(boolean pVisible)
+{
+
+    isChartVisible = pVisible;
+    for (Graph g : graphs) { g.setVisible(pVisible); }
+
+}//end of Chart::setChartVisible
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Chart::isChartVisible
+//
+// Returns true if chart visible, false if hidden.
+//
+
+public boolean isChartVisible()
+{
+
+    return isChartVisible;
+
+}//end of Chart::isChartVisible
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -212,6 +212,20 @@ private void createCharts()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::setChartVisible
+//
+// Sets the specified Chart visible or hidden.
+//
+
+public void setChartVisible(int pChartNum, boolean pVisible)
+{
+
+    charts[pChartNum].setChartVisible(pVisible);
+
+}//end of ChartGroup::setChartVisible
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::loadConfigSettings
 //
 // Loads settings for the object from configFile.

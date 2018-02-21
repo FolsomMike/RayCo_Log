@@ -319,8 +319,9 @@ public void display3DMapManipulatorControlPanel(int pInvokingChartGroupNum,
 // information to link the GUI controls to the channels and traces.
 //
 
-public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
-                        String pPanelTitle, ArrayList<ChannelInfo> pChannelList,
+public void displayCalibrationPanel(int pChartGroupNum, int pChartNum, 
+                        Chart pChart, String pPanelTitle,
+                        ArrayList<ChannelInfo> pChannelList,
                         LinkedHashSet<String> pGroupTitles, 
                         ArrayList<Threshold[]> pThresholds,
                         ArrayList<Object> pGraphParameters)
@@ -332,8 +333,9 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
     int mapGraphNumber = 0; //graph of 3D map always expected to be first
 
     ControlPanelBasic transCalPanel = new ControlPanelBasic(pChartGroupNum,
-                                            pChartNum, pPanelTitle, pGroupTitles,
-                                            pChannelList, pThresholds, this);
+                                            pChartNum, pChart, pPanelTitle,
+                                            pGroupTitles, pChannelList, 
+                                            pThresholds, this);
     transCalPanel.init();
     
     controlsGroupPanel.add(transCalPanel);

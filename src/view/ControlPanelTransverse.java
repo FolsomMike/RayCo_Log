@@ -36,13 +36,13 @@ class ControlPanelTransverse extends ControlPanelBasic
 //
 //
 
-public ControlPanelTransverse(int pChartGroupNum, int pChartNum,
+public ControlPanelTransverse(int pChartGroupNum, int pChartNum, Chart pChart,
     String pPanelTitle, LinkedHashSet<String> pGroupTitles,
      ArrayList<ChannelInfo> pChannelList,
      ArrayList<Threshold[]> pThresholds, ActionListener pParentActionListener)
 {
 
-    super(pChartGroupNum, pChartNum, pPanelTitle, pGroupTitles,
+    super(pChartGroupNum, pChartNum, pChart, pPanelTitle, pGroupTitles,
                             pChannelList, pThresholds, pParentActionListener);
 
     panelTitle = "Transverse Controls";
