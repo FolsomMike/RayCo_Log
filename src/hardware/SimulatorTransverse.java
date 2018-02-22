@@ -70,7 +70,7 @@ public class SimulatorTransverse extends Simulator
     //number of packets for length of tube -- take into account the start delay
     //packets as inspection does not occur during that time
     public static int LENGTH_OF_JOINT_IN_PACKETS =
-                                                1400 + START_DELAY_IN_PACKETS;
+                                                1000 + START_DELAY_IN_PACKETS;
 
     byte enc1AInput = 0, enc1BInput = 1, enc2AInput = 1, enc2BInput = 0;
     byte padrUnused1 = 0, padrUnused2 = 0, padrUnused3 = 0, padrUnused4 = 0;
