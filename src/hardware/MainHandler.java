@@ -1360,7 +1360,7 @@ void moveBuffersBackward(int pPixelsMoved, double pPosition)
 // MainHandler::setBufferAdvancedFlags
 //
 // Sets all devices' channel, snapshot, and map transfer data buffers advanced
-// flags to false.
+// flags to pState.
 //
 
 private void setBufferAdvancedFlags(boolean pState)
