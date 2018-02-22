@@ -912,7 +912,7 @@ private void handleControlForScanOrTimerMode()
         //nothing else updated unless at least one channel is advanced
         boolean channelAdvanced = false;
         
-        //channels
+        //channels -- will only advance shared buffers once
         for (Channel c : d.getChannels()) {
             if (c.getDataBuffer()!=null
                 && !c.getDataBuffer().getPositionAdvanced())
@@ -926,7 +926,7 @@ private void handleControlForScanOrTimerMode()
         //do nothing else for this device if no channels advanced
         if (!channelAdvanced) { continue; }
     
-        //snapshot buffers
+        //snapshot buffers -- will only advance shared buffers once
         if (d.getSnapshotDataBuffer()!=null
             && !d.getSnapshotDataBuffer().getPositionAdvanced()) 
         {
@@ -934,7 +934,7 @@ private void handleControlForScanOrTimerMode()
             d.getSnapshotDataBuffer().incPutPtrAndSetReadyAfterDataFill();
         }
         
-        //map buffers
+        //map buffers -- will only advance shared buffers once
         if (d.getMapDataBuffer()!=null
             && !d.getMapDataBuffer().getPositionAdvanced()) 
         {
