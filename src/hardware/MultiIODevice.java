@@ -408,6 +408,33 @@ public void resetTrackCounters()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MultiIODevice::setEncodersDeltaTrigger
+//
+// Tells the Control board how many encoder counts to wait before sending
+// an encoder value update.  The trigger value for each encoder is sent.
+//
+// Normally, this value will be set to something reasonable like .25 to 1.0
+// inch of travel of the piece being inspected. Should be no larger than the
+// distance represented by a single pixel.
+//
+// Overridden by children classes for custom handling.
+//
+
+@Override
+public void setEncodersDeltaTrigger()
+{
+
+    sendPacket(SET_ENCODERS_DELTA_TRIGGER_CMD,
+                (byte)((encoder1DeltaTrigger >> 8) & 0xff),
+                (byte)(encoder1DeltaTrigger & 0xff),
+                (byte)((encoder2DeltaTrigger >> 8) & 0xff),
+                (byte)(encoder2DeltaTrigger & 0xff)
+                );
+
+}//end of MultiIODevice::setEncodersDeltaTrigger
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MultiIODevice::sendRabbitControlFlags
 //
 // Sends the rabbitControlFlags value to the remotes. These flags control
