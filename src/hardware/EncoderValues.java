@@ -127,9 +127,9 @@ public class EncoderValues extends Object{
     
     double photoEye1DistanceToEncoder1;
     double photoEye1DistanceToEncoder2;
+    
+    double distanceToSwitchEncoders;
 
-    double distanceAfterEncoder2ToSwitchToEncoder2;
-    double distanceAfterEncoder2ToSwitchToEncoder1;
     double distanceToSwitchToEncoder2;
     double distanceToSwitchToEncoder1;
 
@@ -921,27 +921,20 @@ public void configure(IniFile pConfigFile)
 {
 
     endStopLength = pConfigFile.readDouble("Hardware", "End Stop Length", 0.0);
-
+    
     photoEye1DistanceToEncoder1 = pConfigFile.readDouble("Hardware",
                                 "Photo Eye 1 To Encoder 1 Distance", 9.0);
 
     photoEye1DistanceToEncoder2 = pConfigFile.readDouble("Hardware",
                                 "Photo Eye 1 To Encoder 2 Distance", 42.0);
 
-    distanceAfterEncoder2ToSwitchToEncoder2 = pConfigFile.readDouble(
+    double distanceAfterEncoder2ToSwitchToEncoder2 = pConfigFile.readDouble(
        "Hardware", "Distance after Encoder 2 to Switch Between Encoders", 24.0);
-
-    //don't use exact same distance to trigger switch back to avoid
-    //repeated flipping due to round off errors
-    distanceAfterEncoder2ToSwitchToEncoder1 =
-                                distanceAfterEncoder2ToSwitchToEncoder2 - 2.0;
 
     //calculate the distance from eye 1 to switch point to save time later
 
-    distanceToSwitchToEncoder2 =
+    distanceToSwitchEncoders =
          photoEye1DistanceToEncoder2 + distanceAfterEncoder2ToSwitchToEncoder2;
-    distanceToSwitchToEncoder1 =
-         photoEye1DistanceToEncoder2 + distanceAfterEncoder2ToSwitchToEncoder1;
 
     photoEyeToPhotoEyeDistance = pConfigFile.readDouble(
             "Hardware", "Distance Between Perpendicular Photo Eyes", 53.4375);
