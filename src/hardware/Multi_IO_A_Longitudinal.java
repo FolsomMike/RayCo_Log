@@ -124,7 +124,7 @@ void createSimulatedSocket() throws SocketException
 
     SimulatorLongitudinal longSimulator = new SimulatorLongitudinal(
                                                    getIPAddr(), 23, title, "");
-
+    longSimulator.setActiveChannels(channels);
     longSimulator.init(0);
 
     socket = longSimulator;
