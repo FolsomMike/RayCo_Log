@@ -1232,8 +1232,8 @@ void moveBuffersForward(int pPixelsMoved, double pPosition)
             }
         }
         
-        //do nothing else if no channels advanced
-        if (!channelAdvanced) { break; }
+        //do nothing else for th if no channels advanced
+        if (!channelAdvanced) { continue; }
     
         //snapshot buffers
         if (d.getSnapshotDataBuffer()!=null
