@@ -77,6 +77,10 @@ public void init()
 void initAfterConnect(){
 
     super.initAfterConnect();
+    
+    sendRabbitControlFlags();
+
+    setEncodersDeltaTrigger();
 
 }//end of Multi_IO_A_Transverse::initAfterConnect
 //-----------------------------------------------------------------------------
