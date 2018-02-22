@@ -129,7 +129,7 @@ public HardwareVars(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// EncoderValues::init
+// HardwareVars::init
 //
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
@@ -141,7 +141,7 @@ public void init()
     
     configure(configFile);
 
-}//end of EncoderValues::init
+}//end of HardwareVars::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
