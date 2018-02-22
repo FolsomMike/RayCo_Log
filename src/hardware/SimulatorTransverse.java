@@ -192,6 +192,35 @@ public int handleSetEncodersDeltaTrigger()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Simulator::handleResetForNextRun
+//
+// Handles RESET_FOR_NEXT_RUN_CMD packet requests. Resets the inspection 
+// control values.
+//
+// This method should be overridden by child classes to provide appropriate
+// processing.
+//
+
+@Override
+public int handleResetForNextRun()
+{
+    
+    int numBytesInPkt = 2; //includes the checksum byte
+
+    int result = readBytesAndVerify(inBuffer, numBytesInPkt, 
+                                        MultiIODevice.RESET_FOR_NEXT_RUN_CMD);
+    if (result != numBytesInPkt){ return(result); }
+    
+    resetAllInspectionValues();
+    
+    sendACK();
+
+    return result;
+
+}//end of Simulator::handleResetForNextRun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlSimulator::handleStartInspect
 //
 // Handles START_INSPECT_CMD packet commands from host.
