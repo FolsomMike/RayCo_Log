@@ -323,6 +323,8 @@ public void handlePacket(byte pCommand)
     else
     if (pCommand == MultiIODevice.GET_RUN_DATA_CMD) { handleGetRunData(); }
     else
+    if (pCommand == MultiIODevice.RESET_FOR_NEXT_RUN_CMD) { handleResetForNextRun(); }
+    else
     if (pCommand == MultiIODevice.START_INSPECT_CMD) { handleStartInspect(); }
     else
     if (pCommand == MultiIODevice.GET_INSPECT_PACKET_CMD) { handleGetInspectPacket(); }
@@ -830,6 +832,23 @@ private int[] simulateSnapshot(int pPeak, boolean pChannelsOn)
     return(data);
 
 }// end of SimulatorTransverse::simulateSnapshot
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::handleResetForNextRun
+//
+// Handles RESET_FOR_NEXT_RUN_CMD packet requests.
+//
+// This method should be overridden by child classes to provide appropriate
+// processing.
+//
+
+public int handleResetForNextRun()
+{
+    
+    return 0;
+
+}//end of Simulator::handleResetForNextRun
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
