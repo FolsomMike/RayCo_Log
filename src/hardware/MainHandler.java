@@ -923,8 +923,8 @@ private void handleControlForScanOrTimerMode()
             }
         }
         
-        //do nothing else if no channels advanced
-        if (!channelAdvanced) { break; }
+        //do nothing else for this device if no channels advanced
+        if (!channelAdvanced) { continue; }
     
         //snapshot buffers
         if (d.getSnapshotDataBuffer()!=null
