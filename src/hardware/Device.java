@@ -692,6 +692,25 @@ public void resetTrackCounters()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Device::setEncodersDeltaTrigger
+//
+// Tells the Control board how many encoder counts to wait before sending
+// an encoder value update.  The trigger value for each encoder is sent.
+//
+// Normally, this value will be set to something reasonable like .25 to 1.0
+// inch of travel of the piece being inspected. Should be no larger than the
+// distance represented by a single pixel.
+//
+// Overridden by children classes for custom handling.
+//
+
+public void setEncodersDeltaTrigger()
+{
+
+}//end of Device::setEncodersDeltaTrigger
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Device::sendRabbitControlFlags
 //
 // Sends the rabbitControlFlags value to the remotes. These flags control
