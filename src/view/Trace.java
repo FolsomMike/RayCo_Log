@@ -349,6 +349,7 @@ public void resetData()
 
     dataIndex = 0; gridTrack = 0;
     prevX = -1; prevY = Integer.MAX_VALUE;
+    graphInfo.lastDrawnX = 0;
 
     //reset local data buffers
     data.clear(); dataFlags.clear();
