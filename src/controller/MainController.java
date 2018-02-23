@@ -666,7 +666,7 @@ private void determineInspectionMode()
         sharedSettings.opMode = SharedSettings.INSPECT_MODE;
     }
 
-}//end of MainController::startInspectMode
+}//end of MainController::determineInspectionMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
