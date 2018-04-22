@@ -1115,6 +1115,8 @@ public void actionPerformed(ActionEvent e)
 
     if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
     
+    if ("Exit".equals(e.getActionCommand())) {beginShutDown(false); return;}
+    
     if ("View / Edit Identifier Info".equals(e.getActionCommand())) {displayPieceInfo(); return;}
 
     if ("Display Job Info".equals(e.getActionCommand())) {displayJobInfo(); return;}
