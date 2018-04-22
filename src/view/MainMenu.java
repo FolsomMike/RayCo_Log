@@ -43,6 +43,12 @@ public class MainMenu extends JMenuBar{
     JMenuItem openFile;
     JMenuItem saveFile;
     JMenuItem saveFileAs;
+    JMenu managePresetsMenuItem;
+    JMenuItem loadFromAnotherJobMenuItem;
+    JMenuItem savePresetMenuItem;
+    JMenuItem loadPresetMenuItem;
+    JMenuItem renamePresetMenuItem;
+    JMenuItem deletePresetMenuItem;
 
     JMenu viewMenu;
     JMenuItem viewCompleted;
@@ -102,6 +108,53 @@ public void init()
     newJob.setActionCommand("Display New Job");
     newJob.addActionListener(actionListener);
     fileMenu.add(newJob);
+    
+    //File/Manage Presets menu item
+    managePresetsMenuItem = new JMenu("Manage Presets");
+    managePresetsMenuItem.setMnemonic(KeyEvent.VK_M);
+    managePresetsMenuItem.setToolTipText("Manage Presets");
+    fileMenu.add(managePresetsMenuItem);
+
+    //File/Manage Presets/Load From Another Job menu item
+    loadFromAnotherJobMenuItem = new JMenuItem("Copy From Another Job");
+    loadFromAnotherJobMenuItem.setMnemonic(KeyEvent.VK_C);
+    loadFromAnotherJobMenuItem.setToolTipText(
+                                        "Copy settings from a different job.");
+    loadFromAnotherJobMenuItem.setActionCommand("Copy Presets From Another Job");
+    loadFromAnotherJobMenuItem.addActionListener(actionListener);
+    managePresetsMenuItem.add(loadFromAnotherJobMenuItem);
+
+    //File/Manage Presets/Save Preset menu item
+    savePresetMenuItem = new JMenuItem("Save Preset");
+    savePresetMenuItem.setMnemonic(KeyEvent.VK_S);
+    savePresetMenuItem.setToolTipText("Save current settings as a preset.");
+    savePresetMenuItem.setActionCommand("Save Preset");
+    savePresetMenuItem.addActionListener(actionListener);
+    managePresetsMenuItem.add(savePresetMenuItem);
+
+    //File/Manage Presets/Load Preset menu item
+    loadPresetMenuItem = new JMenuItem("Load Preset");
+    loadPresetMenuItem.setMnemonic(KeyEvent.VK_L);
+    loadPresetMenuItem.setToolTipText("Load new settings from a preset.");
+    loadPresetMenuItem.setActionCommand("Load Preset");
+    loadPresetMenuItem.addActionListener(actionListener);
+    managePresetsMenuItem.add(loadPresetMenuItem);
+
+    //File/Manage Presets/Rename Preset menu item
+    renamePresetMenuItem = new JMenuItem("Rename Preset");
+    renamePresetMenuItem.setMnemonic(KeyEvent.VK_R);
+    renamePresetMenuItem.setToolTipText("Rename the selected preset.");
+    renamePresetMenuItem.setActionCommand("Rename Preset");
+    renamePresetMenuItem.addActionListener(actionListener);
+    managePresetsMenuItem.add(renamePresetMenuItem);
+
+    //File/Manage Presets/Delete Preset menu item
+    deletePresetMenuItem = new JMenuItem("Delete Preset");
+    deletePresetMenuItem.setMnemonic(KeyEvent.VK_D);
+    deletePresetMenuItem.setToolTipText("Delete a preset.");
+    deletePresetMenuItem.setActionCommand("Delete Preset");
+    deletePresetMenuItem.addActionListener(actionListener);
+    managePresetsMenuItem.add(deletePresetMenuItem);
 
     //File/Exit menu item
     exitMenuItem = new JMenuItem("Exit");
