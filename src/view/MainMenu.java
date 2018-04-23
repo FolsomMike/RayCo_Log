@@ -152,7 +152,7 @@ public void init()
     deletePresetMenuItem = new JMenuItem("Delete Preset");
     deletePresetMenuItem.setMnemonic(KeyEvent.VK_D);
     deletePresetMenuItem.setToolTipText("Delete a preset.");
-    deletePresetMenuItem.setActionCommand("Delete Preset");
+    deletePresetMenuItem.setActionCommand("Display Delete Preset");
     deletePresetMenuItem.addActionListener(actionListener);
     managePresetsMenuItem.add(deletePresetMenuItem);
 

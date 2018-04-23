@@ -846,6 +846,23 @@ public void displayCopyPreset()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::displayDeletePreset
+//
+// Displays the Delete Preset interface.
+//
+
+public void displayDeletePreset()
+{
+    
+    DeletePreset deletePreset = new DeletePreset(mainFrame,
+                                    sharedSettings.dataPathPrimary, 
+                                    sharedSettings.dataPathSecondary, xfer);
+    deletePreset.init();
+
+}//end of MainView::displayDeletePreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::displayLoadPreset
 //
 // Displays the Load Preset interface.

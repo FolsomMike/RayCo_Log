@@ -1195,6 +1195,10 @@ public void actionPerformed(ActionEvent e)
         displayCopyPreset(); return;
     }
     
+    if ("Display Delete Preset".equals(e.getActionCommand())) {
+        displayDeletePreset(); return;
+    }
+    
     if ("Display Load Preset".equals(e.getActionCommand())) {
         displayLoadPreset(); return;
     }
@@ -2013,6 +2017,20 @@ private void displayCopyPreset()
     mainView.displayCopyPreset();
 
 }//end of MainController::displayCopyPreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayDeletePreset
+//
+// Displays the Delete Preset interface.
+//
+
+private void displayDeletePreset()
+{
+    
+    mainView.displayDeletePreset();
+
+}//end of MainController::displayDeletePreset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
