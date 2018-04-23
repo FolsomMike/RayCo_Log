@@ -155,6 +155,8 @@ public void init(JFrame pMainFrame)
     loadMainSettings();
 
     createJobPaths();
+    
+    loadPieceNumberInfo();
 
     calFileName = "00 - " + currentJobNamePathFriendly + " Calibration File.ini";
 
@@ -237,13 +239,47 @@ private void loadMainSettings()
                                      "Main Settings", "current job name", "");
     currentJobNamePathFriendly = Tools.escapeIllegalFilenameChars(currentJobName);
 
-    lastPieceNumber = configFile.readInt(
-                 "Main Settings", "number of last piece processed", 0);
-
-    lastCalPieceNumber = configFile.readInt(
-             "Main Settings", "number of last calibration piece processed", 0);
-
 }// end of SharedSettings::loadMainSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::loadPieceNumberInfo
+//
+// Loads settings such as the next piece and calibration piece numbers.
+//
+
+private void loadPieceNumberInfo()
+{
+
+    IniFile settingsFile;
+
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        
+        String primaryPath = dataPathPrimary
+                                + "02 - " + currentJobName 
+                                + " Piece Number File.ini";
+        
+        settingsFile = new IniFile(primaryPath, mainFileFormat);
+        settingsFile.init();
+        
+        }
+        catch(IOException e){
+            logSevere(e.getMessage() + " - Error: 268");
+            return;
+        }
+
+    nextPieceNumber = settingsFile.readInt(
+                                 "General", "Next Inspection Piece Number", 1);
+
+    if (nextPieceNumber < 1) {nextPieceNumber = 1;}
+
+    nextCalPieceNumber = settingsFile.readInt(
+                                "General", "Next Calibration Piece Number", 1);
+
+    if (nextCalPieceNumber < 1) {nextCalPieceNumber = 1;}
+
+}// end of SharedSettings::loadPieceNumberInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -273,8 +309,86 @@ public void save()
                             "number of last calibration piece processed",
                             lastCalPieceNumber);
     configFile.save();
+    
+    savePieceNumberInfo();
 
 }//end of SharedSettings::save
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::savePieceNumberInfo
+//
+// Saves settings such as the next piece and calibration piece numbers.
+//
+// These settings often change as part of normal operation and so are saved
+// separately from other settings which are rarely changed.
+//
+
+private void savePieceNumberInfo()
+{
+
+    //if the job path has not been set, don't save anything or it will be saved
+    //int the program root folder -- this occurs when the current job path
+    //specified in the Main Settings.ini
+
+    String jobName = currentJobName;
+    
+    if (jobName.equals("")) { return; }
+    
+    try {
+        
+        String primaryPath = dataPathPrimary
+                                + "02 - " + jobName + " Piece Number File.ini";
+        String secondaryPath = dataPathSecondary
+                                + "02 - " + jobName + " Piece Number File.ini";
+
+        //save to primary data folders
+        savePieceNumberInfoToPath(primaryPath);
+
+        //save to secondary data folders
+        savePieceNumberInfoToPath(secondaryPath);
+    }
+    catch(IOException e){ logSevere(e.getMessage()); }
+
+}//end of MainController::savePieceNumberInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SharedSettings::savePieceNumberInfoToPath
+//
+// Saves settings such as the next piece and calibration piece numbers.
+// The file is saved to the path specified by pPath.
+//
+// These settings often change as part of normal operation and so are saved
+// separately from other settings which are rarely changed.
+//
+
+private void savePieceNumberInfoToPath(String pPath)
+    throws IOException
+{
+
+    IniFile settingsFile;
+
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        settingsFile = new IniFile(pPath, mainFileFormat);
+        settingsFile.init();
+    }
+    catch(IOException e){
+        throw new IOException(e.getMessage() + " " 
+                                + SharedSettings.class.getName() 
+                                + " - Error: 344");
+    }
+
+    settingsFile.writeInt("General", "Next Inspection Piece Number", 
+                            nextPieceNumber);
+
+    settingsFile.writeInt("General", "Next Calibration Piece Number", 
+                            nextCalPieceNumber);
+
+    settingsFile.save(); //force save
+
+}//end of SharedSettings::savePieceNumberInfoToPath
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

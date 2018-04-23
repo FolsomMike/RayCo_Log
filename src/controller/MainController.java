@@ -1713,6 +1713,9 @@ public void doTimerActions()
         sharedSettings.beginHardwareShutDown = true;
 
         saveCalFile(); //save the calibration data to file
+        
+        //have SharedSettings save everything
+        sharedSettings.save();
 
         mainView.shutDown(); //tell view to shut down all of his stuff
 
