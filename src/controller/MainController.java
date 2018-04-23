@@ -1205,6 +1205,10 @@ public void actionPerformed(ActionEvent e)
     if ("Display Help".equals(e.getActionCommand())) {displayHelp(); return;}
 
     if ("Display About".equals(e.getActionCommand())) {displayAbout(); return;}
+    
+    if ("Display Save Preset".equals(e.getActionCommand())) {
+        displaySavePreset(); return;
+    }
 
     if ("Start Monitor".equals(e.getActionCommand())) { startMonitor(); return;}
 
@@ -1961,6 +1965,30 @@ private void displayNewJob()
     mainView.displayNewJob();
 
 }//end of MainController::displayNewJob
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displaySavePreset
+//
+// Instructs View to displays the Save Preset interface.
+//
+// Allows the user to save the current settings as a preset file.
+//
+// The calibration file will be copied from the current job folder to the
+// presets folder and renamed as specified by the user.
+//
+
+private void displaySavePreset()
+{
+
+    // make sure the current settings have been saved to the calibration file
+    // before it is copied to the presets folder
+
+    saveEverything(); //save all data
+    
+    mainView.displaySavePreset();
+
+}//end of MainController::displaySavePreset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -916,6 +916,30 @@ public void displayAbout()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::displaySavePreset
+//
+// Displays the Save Preset interface.
+//
+// Allows the user to save the current settings as a preset file.
+//
+// The calibration file will be copied from the current job folder to the
+// presets folder and renamed as specified by the user.
+//
+
+public void displaySavePreset()
+{
+
+    SavePreset savePreset = new SavePreset(mainFrame,
+                                    sharedSettings.dataPathPrimary, 
+                                    sharedSettings.dataPathSecondary, xfer,
+                                    sharedSettings.currentJobName);
+
+    savePreset.init();
+
+}//end of MainView::displaySavePreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::displayViewer
 //
 // Opens a viewer window for viewing saved segments.

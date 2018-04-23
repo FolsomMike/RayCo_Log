@@ -128,7 +128,7 @@ public void init()
     savePresetMenuItem = new JMenuItem("Save Preset");
     savePresetMenuItem.setMnemonic(KeyEvent.VK_S);
     savePresetMenuItem.setToolTipText("Save current settings as a preset.");
-    savePresetMenuItem.setActionCommand("Save Preset");
+    savePresetMenuItem.setActionCommand("Display Save Preset");
     savePresetMenuItem.addActionListener(actionListener);
     managePresetsMenuItem.add(savePresetMenuItem);
 
