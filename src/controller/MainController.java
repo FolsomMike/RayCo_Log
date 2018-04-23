@@ -537,6 +537,65 @@ private boolean channelGraphingEnabled()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::isConfigGoodA
+//
+// This function checks for various configuration errors and returns true if
+// it is okay to save/load to the data folders.
+//
+// If there is an error, an error message will be displayed and the function
+// will return false.
+//
+
+private boolean isConfigGoodA()
+{
+
+    //verify the data folder paths
+    if (!isConfigGoodB()) { return false;}
+
+    //verify the job name
+    if (sharedSettings.currentJobName.equals("")){
+        displayErrorMessage("No job is selected."
+              + " Use File/New Job or File/Change Job to correct this error.");
+        return false;
+        }
+
+    return true;  //no configuration error
+
+}//end of MainController::isConfigGoodA
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::isConfigGoodB
+//
+// This function checks for if the data folder paths are good and returns true
+// if it is okay to save/load to the data folders.
+//
+// If there is an error, an error message will be displayed and the function
+// will return false.  The error message does not specify which path is bad
+// because both are often set empty when either is bad.
+//
+
+private boolean isConfigGoodB()
+{
+
+    if (sharedSettings.dataPathPrimary.equals("")){
+        displayErrorMessage("The root Primary or Backup Data Path is invalid."
+                + " Use Help/Set Up System to repair this error.");
+        return false;
+    }
+
+    if (sharedSettings.dataPathSecondary.equals("")){
+        displayErrorMessage("The root Primary or Backup Data Path is invalid."
+                + " Use Help/Set Up System to repair this error.");
+        return false;
+    }
+
+    return true;  //no configuration error
+
+}//end of MainController::isConfigGoodB
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::startPauseMode
 //
 // Starts the pause mode by setting the mode in shared settings and telling 
