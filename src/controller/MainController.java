@@ -1174,13 +1174,21 @@ public void actionPerformed(ActionEvent e)
 
     if ("Timer".equals(e.getActionCommand())) {doTimerActions(); return;}
     
-    if ("Exit".equals(e.getActionCommand())) {beginShutDown(false); return;}
+    if ("Exit".equals(e.getActionCommand())) {beginShutDown(true, false); return;}
     
     if ("View / Edit Identifier Info".equals(e.getActionCommand())) {displayPieceInfo(); return;}
+    
+    if ("Copy Preset".equals(e.getActionCommand())) {
+        copyPreset(); return;
+    }
 
     if ("Display Job Info".equals(e.getActionCommand())) {displayJobInfo(); return;}
 
     if ("Display Change Job".equals(e.getActionCommand())) {displayChangeJob(); return;}
+    
+    if ("Display Copy Preset".equals(e.getActionCommand())) {
+        displayCopyPreset(); return;
+    }
 
     if (e.getActionCommand().startsWith("Change Job")) {
         changeJob(e.getActionCommand()); return;
@@ -1289,6 +1297,30 @@ public void actionPerformed(ActionEvent e)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::copyPreset
+//
+// Allows the user to copy a preset from a different job.
+//
+// The selected preset will be copied from the selected job folder to the
+// current job folder.  The program will then be restarted to load the settings.
+//
+
+private void copyPreset()
+{
+
+    //no need to save main settings - the selected preset will have been
+    //copied to the job folder so it will be loaded on restart
+
+    //exit the program, passing true to instantiate a new program which will
+    //load the new work order on startup - it is required to create a new
+    //program and kill the old one so that all of the configuration data for
+    //the job will be loaded properly
+    beginShutDown(false, true);
+
+}//end of MainController::copyPreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::handle3DMapManipulation
 //
 // Applies values from the 3D map controls panel to the map.
@@ -1394,6 +1426,27 @@ public void loadUserSettingsFromFile()
     mainView.setAllUserInputData(mainDataClass.loadUserSettingsFromFile());
 
 }//end of MainController::loadUserSettingsFromFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::saveEverything
+//
+// Saves all settings.  Some of the save functions may not actually save the
+// data if it has not been changed since the last save.
+//
+
+private void saveEverything()
+{
+
+    //save cal file last - the program won't exit while cal files are being
+    //saved so that means all files will be finished saving
+
+    //have SharedSettings save everything
+    sharedSettings.save();
+    
+    saveCalFile(); //save the calibration data to file
+
+}//end of MainController::saveEverything
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1712,10 +1765,7 @@ public void doTimerActions()
         //set true so hardware thread starts shutting down
         sharedSettings.beginHardwareShutDown = true;
 
-        saveCalFile(); //save the calibration data to file
-        
-        //have SharedSettings save everything
-        sharedSettings.save();
+        if (sharedSettings.saveOnExit) { saveEverything(); } //save everything
 
         mainView.shutDown(); //tell view to shut down all of his stuff
 
@@ -1873,6 +1923,33 @@ private void displayChangeJob()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::displayCopyPreset
+//
+// Displays copy preset interface.
+//
+// Allows the user to copy a preset from a different job.
+//
+// The selected preset will be copied from the selected job folder to the
+// current job folder.  The program will then be restarted to load the settings.
+//
+
+private void displayCopyPreset()
+{
+    
+    if(!isConfigGoodA()) { return; }
+    
+    //NOTE: save must be done BEFORE calling the dialog window else new changes
+    //may be overwritten or written to the wrong directory as the dialog window
+    //may save files or switch directories
+
+    saveEverything(); //save all data
+
+    mainView.displayCopyPreset();
+
+}//end of MainController::displayCopyPreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::displayNewJob
 //
 // Displays new job window.
@@ -1907,7 +1984,7 @@ public void createNewJob(String pInfo)
     //load the new work order on startup - it is required to create a new
     //program and kill the old one so that all of the configuration data for
     //the job will be loaded properly
-    beginShutDown(true);
+    beginShutDown(false, true);
 
 }//end of MainController::createNewJob
 //-----------------------------------------------------------------------------
@@ -1954,7 +2031,7 @@ public void changeJob(String pInfo)
     //load the new work order on startup - it is required to create a new
     //program and kill the old one so that all of the configuration data for
     //the job will be loaded properly
-    beginShutDown(true);
+    beginShutDown(true, true);
 
 }//end of MainController::changeJob
 //-----------------------------------------------------------------------------
@@ -2256,12 +2333,22 @@ void waitSleep(int pTime)
 //
 // Begins the shut down by setting the appropriate flags.
 //
+// If pSave is true, all job info data files are saved when the program is
+// exited.
+//
+// If pRestart = true, the program is restarted after shutting down. This is
+// done to switch between configurations and presets as everything must be
+// rebuilt to match the settings in the config file.
+//
 
-public void beginShutDown(boolean pRestart)
+public void beginShutDown(boolean pSave, boolean pRestart)
 {
 
     //set flag so that processes can be handled by appropriate threads
     sharedSettings.beginShutDown = true;
+    
+    //signal timer to save data or not
+    sharedSettings.saveOnExit = pSave;
 
     //set flag to know whether or not to restart
     sharedSettings.restartProgram = pRestart;
@@ -2280,7 +2367,7 @@ public void windowClosing(WindowEvent e)
 {
 
     //perform all shut down procedures
-    beginShutDown(false);
+    beginShutDown(true, false);
 
 }//end of MainController::windowClosing
 //-----------------------------------------------------------------------------

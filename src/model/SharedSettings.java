@@ -67,6 +67,7 @@ public class SharedSettings{
     public boolean beginHardwareShutDown = false;
     public boolean isHardwareShutDown = false;
     public boolean restartProgram = false;
+    public boolean saveOnExit = false;
 
     public boolean isCalDataSaved = false;
 
@@ -303,11 +304,6 @@ public void save()
     }
 
     configFile.writeString("Main Settings", "current job name", currentJobName);
-    configFile.writeInt("Main Settings", "number of last piece processed",
-                                                                lastPieceNumber);
-    configFile.writeInt("Main Settings",
-                            "number of last calibration piece processed",
-                            lastCalPieceNumber);
     configFile.save();
     
     savePieceNumberInfo();

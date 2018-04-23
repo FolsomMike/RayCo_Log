@@ -818,6 +818,34 @@ public void displayChangeJob()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::displayCopyPreset
+//
+// Displays Copy Preset window.
+//
+
+public void displayCopyPreset()
+{
+
+    CopyPreset copyPreset = new CopyPreset(
+                                mainFrame, sharedSettings.dataPathPrimary,
+                                sharedSettings.dataPathSecondary, xfer, 
+                                sharedSettings.currentJobName,
+                                sharedSettings.mainFileFormat);
+
+    copyPreset.init(); //initialize and to the actual work
+
+
+    //send message to event handler to if user selected to copy
+    if (xfer.rBoolean1) {
+        eventHandler.actionPerformed(new ActionEvent(this,
+                                                ActionEvent.ACTION_PERFORMED,
+                                                "Copy Preset"));
+    }
+
+}//end of MainView::displayCopyPreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::displayNewJob
 //
 // Displays New Job window.

@@ -120,7 +120,7 @@ public void init()
     loadFromAnotherJobMenuItem.setMnemonic(KeyEvent.VK_C);
     loadFromAnotherJobMenuItem.setToolTipText(
                                         "Copy settings from a different job.");
-    loadFromAnotherJobMenuItem.setActionCommand("Copy Presets From Another Job");
+    loadFromAnotherJobMenuItem.setActionCommand("Display Copy Preset");
     loadFromAnotherJobMenuItem.addActionListener(actionListener);
     managePresetsMenuItem.add(loadFromAnotherJobMenuItem);
 
