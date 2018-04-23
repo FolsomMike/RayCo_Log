@@ -1215,6 +1215,10 @@ public void actionPerformed(ActionEvent e)
 
     if ("Display About".equals(e.getActionCommand())) {displayAbout(); return;}
     
+    if ("Display Rename Preset".equals(e.getActionCommand())) {
+        displayRenamePreset(); return;
+    }
+    
     if ("Display Save Preset".equals(e.getActionCommand())) {
         displaySavePreset(); return;
     }
@@ -2023,6 +2027,20 @@ private void displayNewJob()
     mainView.displayNewJob();
 
 }//end of MainController::displayNewJob
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayRenamePreset
+//
+// Displays the Rename Preset interface.
+//
+
+private void displayRenamePreset()
+{
+    
+    mainView.displayRenamePreset();
+
+}//end of MainController::displayRenamePreset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -949,6 +949,23 @@ public void displayAbout()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::displayRenamePreset
+//
+// Displays the Rename Preset interface.
+//
+
+public void displayRenamePreset()
+{
+    
+    RenamePreset renamePreset = new RenamePreset(mainFrame,
+                                    sharedSettings.dataPathPrimary, 
+                                    sharedSettings.dataPathPrimary, xfer);
+    renamePreset.init();
+
+}//end of MainController::displayRenamePreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::displaySavePreset
 //
 // Displays the Save Preset interface.

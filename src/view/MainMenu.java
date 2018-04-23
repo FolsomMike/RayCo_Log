@@ -144,7 +144,7 @@ public void init()
     renamePresetMenuItem = new JMenuItem("Rename Preset");
     renamePresetMenuItem.setMnemonic(KeyEvent.VK_R);
     renamePresetMenuItem.setToolTipText("Rename the selected preset.");
-    renamePresetMenuItem.setActionCommand("Rename Preset");
+    renamePresetMenuItem.setActionCommand("Display Rename Preset");
     renamePresetMenuItem.addActionListener(actionListener);
     managePresetsMenuItem.add(renamePresetMenuItem);
 
