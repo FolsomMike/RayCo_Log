@@ -1036,6 +1036,8 @@ public void loadCalFile(IniFile pCalFile)
 {
 
     String section = "Chart Group " + chartGroupNum + " Chart " + chartNum;
+    
+    setChartVisible(pCalFile.readBoolean(section, "Chart is Visible", true));
 
     for (Graph g : graphs) { g.loadCalFile(pCalFile); }
 
@@ -1057,7 +1059,7 @@ public void saveCalFile(IniFile pCalFile)
 
     String section = "Chart Group " + chartGroupNum + " Chart " + chartNum;
 
-    pCalFile.writeString(section, "Chart Test Value", "Test");
+    pCalFile.writeBoolean(section, "Chart is Visible", isChartVisible());
 
     for (Graph g : graphs) { g.saveCalFile(pCalFile); }
 
