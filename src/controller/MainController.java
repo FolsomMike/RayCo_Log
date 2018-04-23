@@ -1181,6 +1181,11 @@ public void actionPerformed(ActionEvent e)
     if ("Copy Preset".equals(e.getActionCommand())) {
         copyPreset(); return;
     }
+    
+    if ("Load Preset".equals(e.getActionCommand())) {
+        loadPreset(); return;
+    }
+    
 
     if ("Display Job Info".equals(e.getActionCommand())) {displayJobInfo(); return;}
 
@@ -1188,6 +1193,10 @@ public void actionPerformed(ActionEvent e)
     
     if ("Display Copy Preset".equals(e.getActionCommand())) {
         displayCopyPreset(); return;
+    }
+    
+    if ("Display Load Preset".equals(e.getActionCommand())) {
+        displayLoadPreset(); return;
     }
 
     if (e.getActionCommand().startsWith("Change Job")) {
@@ -1339,6 +1348,30 @@ public void handle3DMapManipulation()
     mainView.updateGraph(0, 1, 0, values); //debug mks -- the 3 here hardcodes the map at graph 3 -- ??? need to load from config???
 
 }//end of MainController::handle3DMapManipulation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::loadPreset
+//
+// Allows the user to switch to a different preset.
+//
+// The selected preset will be copied from the presets folder to the job
+// folder.  The program will then be restarted to load the settings.
+//
+
+private void loadPreset()
+{
+
+    //no need to save main settings - the selected preset will have been
+    //copied to the job folder so it will be loaded on restart
+
+    //exit the program, passing true to instantiate a new program which will
+    //load the new work order on startup - it is required to create a new
+    //program and kill the old one so that all of the configuration data for
+    //the job will be loaded properly
+    beginShutDown(false, true);
+
+}//end of MainController::loadPreset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1896,6 +1929,31 @@ private void displayDataFromDevices()
     mainView.updateChildren(); //update view
     
 }// end of MainController::displayDataFromDevices
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainController::displayLoadPreset
+//
+// Displays the Load Preset interface.
+//
+// Allows the user to switch to a different preset.
+//
+// The selected preset will be copied from the presets folder to the job
+// folder.  The program will then be restarted to load the settings.
+//
+
+private void displayLoadPreset()
+{
+
+    //NOTE: save must be done BEFORE calling the dialog window else new changes
+    //may be overwritten or written to the wrong directory as the dialog window
+    //may save files or switch directories
+
+    saveEverything(); //save all data
+    
+    mainView.displayLoadPreset();
+
+}//end of MainController::displayLoadPreset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

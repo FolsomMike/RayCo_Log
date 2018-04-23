@@ -846,6 +846,39 @@ public void displayCopyPreset()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::displayLoadPreset
+//
+// Displays the Load Preset interface.
+//
+// Allows the user to switch to a different preset.
+//
+// The selected preset will be copied from the presets folder to the job
+// folder.  The program will then be restarted to load the settings.
+//
+
+public void displayLoadPreset()
+{
+
+    LoadPreset loadPreset = new LoadPreset( mainFrame, 
+                            sharedSettings.dataPathPrimary,
+                            sharedSettings.dataPathSecondary, 
+                            xfer, sharedSettings.currentJobName);
+
+    loadPreset.init(); //initialize and to the actual work
+
+    //if the ChooseJob window set rBoolean1 true, switch to the new preset
+    if (xfer.rBoolean1){
+
+        eventHandler.actionPerformed(new ActionEvent(this,
+                                                ActionEvent.ACTION_PERFORMED,
+                                                "Load Preset"));
+
+    }
+
+}//end of MainView::displayLoadPreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::displayNewJob
 //
 // Displays New Job window.

@@ -136,7 +136,7 @@ public void init()
     loadPresetMenuItem = new JMenuItem("Load Preset");
     loadPresetMenuItem.setMnemonic(KeyEvent.VK_L);
     loadPresetMenuItem.setToolTipText("Load new settings from a preset.");
-    loadPresetMenuItem.setActionCommand("Load Preset");
+    loadPresetMenuItem.setActionCommand("Display Load Preset");
     loadPresetMenuItem.addActionListener(actionListener);
     managePresetsMenuItem.add(loadPresetMenuItem);
 
