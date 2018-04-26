@@ -1,0 +1,231 @@
+
+;Do not erase the blank line above - it starts with a hidden flag needed by Windows Notepad to
+;discern between ANSI, UTF-8, UTF-16LE (Unicode), and UTF-16BE (Unicode big endian).
+
+[Chart Group 0]
+Chart Group Test Value=Test
+[Chart Group 0 Chart 0]
+Chart Test Value=Test
+Chart is Visible=true
+[Chart Group 0 Chart 0 Graph 0]
+Graph Test Value=Test
+[Chart Group 0 Chart 0 Graph 1]
+Graph Test Value=Test
+[Chart Group 0 Chart 0 Graph 2]
+Graph Test Value=Test
+[Chart Group 0 Chart 1]
+Chart Test Value=Test
+Chart is Visible=true
+[Chart Group 0 Chart 1 Graph 0]
+Graph Test Value=Test
+[Hardware]
+Hardware Test Value=test
+Scanning and Inspecting Speed=10
+[Device 0 Settings]
+Dev Test Value=test
+[Device 0 Channel 0]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 1]
+onOff=true
+gain=5
+offset=127
+[Chart Group 0 Chart 0 Graph 0 Threshold 0]
+threshold level=50
+[Chart Group 0 Chart 0 Graph 1 Threshold 0]
+threshold level=50
+[Chart Group 0 Chart 1 Graph 0 Threshold 0]
+threshold level=50
+[Chart Group 0 Chart 1 Graph 1 Threshold 0]
+threshold level=50
+[Chart Group 0 Chart 1 Graph 2]
+Graph Test Value=Test
+[Chart Group 0 Chart 2]
+Chart is Visible=true
+[Chart Group 0 Chart 2 Graph 0]
+Graph Test Value=Test
+[Device 0 Channel 2]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 3]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 4]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 5]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 6]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 7]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 8]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 9]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 10]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 11]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 12]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 13]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 14]
+onOff=true
+gain=5
+offset=127
+[Device 0 Channel 15]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 0]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 1]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 2]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 3]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 4]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 5]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 6]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 7]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 8]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 9]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 10]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 11]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 12]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 13]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 14]
+onOff=true
+gain=5
+offset=127
+[Device 1 Channel 15]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 0]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 1]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 2]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 3]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 4]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 5]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 6]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 7]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 8]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 9]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 10]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 11]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 12]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 13]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 14]
+onOff=true
+gain=5
+offset=127
+[Device 2 Channel 15]
+onOff=true
+gain=5
+offset=127
