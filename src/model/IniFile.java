@@ -515,7 +515,7 @@ public void removeAllLinesWhichStartsWith(String pPrefix)
 // Extracts all of the lines from pSection, and puts them into pSectionLines.
 //
 
-public void getSection(String pSection, ArrayList pSectionLines)
+public void getSection(String pSection, ArrayList<String> pSectionLines)
 {
 
     //create the section by concatenating brackets around the parameter

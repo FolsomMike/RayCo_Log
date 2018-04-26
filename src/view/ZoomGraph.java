@@ -516,12 +516,12 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     //load data points
     boolean multipleDataPointsPerLine = true;
     line = loadDataSeries(pIn, line, "[Data Set 1]",
-                                data, multipleDataPointsPerLine, 0);
+                                null, data, multipleDataPointsPerLine, 0);
 
     //load flags
     multipleDataPointsPerLine = false;
     line = loadDataSeries(pIn, line, "[Flags]",
-                                dataFlags, multipleDataPointsPerLine, 0);
+                                dataFlags, null, multipleDataPointsPerLine, 0);
 
     return line;
 
@@ -552,7 +552,8 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 //
 
 public String loadDataSeries(BufferedReader pIn, String pLastLine,
-                            String pStartTag, ArrayList pBuffer,
+                            String pStartTag, ArrayList<Integer> pBufferInt,
+                            ArrayList<int[]> pBufferIntArray,
                             boolean pMultiDataPointsPerFileLine,
                             int pDataModifier1) throws IOException
 {
@@ -590,12 +591,12 @@ public String loadDataSeries(BufferedReader pIn, String pLastLine,
                 }
 
                 //store in buffer
-                pBuffer.add(dataPoints);
+                if (pBufferIntArray!=null) { pBufferIntArray.add(dataPoints); }
             }
             //false means each file line represents one data point
             else {
                 int dataInt = Integer.parseInt(line);
-                pBuffer.add(dataInt | pDataModifier1);
+                if (pBufferInt!=null) { pBufferInt.add(dataInt | pDataModifier1); }
             }
 
         } catch(NumberFormatException e){
