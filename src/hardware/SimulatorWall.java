@@ -117,7 +117,7 @@ public void getRunPacket(byte[] pPacket)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::simulateAverageWall
+// SimulatorWall::simulateAverageWall
 //
 // Simulates an average wall trace.
 //
@@ -149,11 +149,11 @@ int simulateAverageWall()
     
     return(value);
 
-}//end of Simulator::simulateAverageWall
+}//end of SimulatorWall::simulateAverageWall
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::simulatePulseWall
+// SimulatorWall::simulatePulseWall
 //
 // Simulates a Pulse Wall trace.
 //
@@ -185,11 +185,11 @@ int simulatePulseWall()
     
     return(value);
 
-}//end of Simulator::simulatePulseWall
+}//end of SimulatorWall::simulatePulseWall
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::simulateIntelligentCoil
+// SimulatorWall::simulateIntelligentCoil
 //
 // Simulates an Intelligent Coil wall trace.
 //
@@ -221,7 +221,7 @@ int simulateIntelligentCoil()
     
     return(value);
 
-}//end of Simulator::simulateIntelligentCoil
+}//end of SimulatorWall::simulateIntelligentCoil
 //-----------------------------------------------------------------------------
 
 
