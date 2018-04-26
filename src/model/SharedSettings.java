@@ -61,6 +61,7 @@ public class SharedSettings{
     public String jobPathSecondary = "";
     public String dataPathPrimary = "", dataPathSecondary = "";
     public String calFileName = "";
+    public String pieceNumberFileName = "";
 
     public boolean beginShutDown = false;
     public boolean isViewShutDown = false;
@@ -157,9 +158,13 @@ public void init(JFrame pMainFrame)
 
     createJobPaths();
     
-    loadPieceNumberInfo();
-
+    //these values are only changed in this function so that if the job name is
+    //updated, files can still be saved to these paths before the program is
+    //restarted
     calFileName = "00 - " + currentJobNamePathFriendly + " Calibration File.ini";
+    pieceNumberFileName = "02 - " + currentJobNamePathFriendly + " Piece Number File.ini";
+
+    loadPieceNumberInfo();
 
 }// end of SharedSettings::init
 //-----------------------------------------------------------------------------
@@ -326,17 +331,13 @@ private void savePieceNumberInfo()
     //if the job path has not been set, don't save anything or it will be saved
     //int the program root folder -- this occurs when the current job path
     //specified in the Main Settings.ini
-
-    String jobName = currentJobName;
     
-    if (jobName.equals("")) { return; }
+    if (currentJobName.equals("")) { return; }
     
     try {
         
-        String primaryPath = jobPathPrimary
-                                + "02 - " + jobName + " Piece Number File.ini";
-        String secondaryPath = jobPathSecondary
-                                + "02 - " + jobName + " Piece Number File.ini";
+        String primaryPath = jobPathPrimary + pieceNumberFileName;
+        String secondaryPath = jobPathSecondary + pieceNumberFileName;
 
         //save to primary data folders
         savePieceNumberInfoToPath(primaryPath);
