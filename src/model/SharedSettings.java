@@ -257,7 +257,7 @@ private void loadPieceNumberInfo()
     //if the ini file cannot be opened and loaded, exit without action
     try {
         
-        String primaryPath = dataPathPrimary
+        String primaryPath = jobPathPrimary
                                 + "02 - " + currentJobName 
                                 + " Piece Number File.ini";
         
@@ -333,9 +333,9 @@ private void savePieceNumberInfo()
     
     try {
         
-        String primaryPath = dataPathPrimary
+        String primaryPath = jobPathPrimary
                                 + "02 - " + jobName + " Piece Number File.ini";
-        String secondaryPath = dataPathSecondary
+        String secondaryPath = jobPathSecondary
                                 + "02 - " + jobName + " Piece Number File.ini";
 
         //save to primary data folders
