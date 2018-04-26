@@ -343,11 +343,11 @@ void createJob()
 
     if (!copyFile("configurations" + "/" + configName,
                   primaryFolder + "/01 - " + newJobNamePathFriendly
-                        + " Main Configuration.ini")
+                        + " Configuration.ini")
      ||
         !copyFile("configurations" + "/" + configName,
                  backupFolder + "/01 - " + newJobNamePathFriendly
-                         + " Main Configuration.ini")){
+                         + " Configuration.ini")){
 
             JOptionPane.showMessageDialog(frame,
             "The configuration file could not be copied " +

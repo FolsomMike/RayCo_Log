@@ -704,7 +704,7 @@ public void configure()
     try {
         configFile = new IniFile(jobPrimaryPath + "01 - "
                                 + currentJobNamePathFriendly
-                                + " Main Configuration.ini",
+                                + " Configuration.ini",
                                 settings.mainFileFormat);
         configFile.init();
         }

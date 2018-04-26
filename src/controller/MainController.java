@@ -272,7 +272,7 @@ public void loadConfigSettings()
 
     String filename = sharedSettings.jobPathPrimary + "01 - " +
                             sharedSettings.currentJobNamePathFriendly
-                            + " Main Configuration.ini";
+                            + " Configuration.ini";
 
     try {
         configFile = new IniFile(filename, sharedSettings.mainFileFormat);
