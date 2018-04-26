@@ -1821,7 +1821,7 @@ public void doTimerActions()
 
     //shut the program down if everyone is ready
     if(sharedSettings.isViewShutDown && sharedSettings.isHardwareShutDown
-        && sharedSettings.isCalDataSaved)
+        && (!sharedSettings.saveOnExit || sharedSettings.isCalDataSaved))
     {
 
         //stop calling main timer during shutdown
@@ -2106,7 +2106,7 @@ public void createNewJob(String pInfo)
     //load the new work order on startup - it is required to create a new
     //program and kill the old one so that all of the configuration data for
     //the job will be loaded properly
-    beginShutDown(false, true);
+    beginShutDown(true, true);
 
 }//end of MainController::createNewJob
 //-----------------------------------------------------------------------------
