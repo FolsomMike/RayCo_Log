@@ -1887,34 +1887,6 @@ private void displayDataFromDevices()
                                                         peakMapData);
         if (results != true) { continue; }
         
-        //DEBUG HSS// remove later
-        /*if (results) {
-
-            System.out.println("-------------------------------------------------------------------");
-            
-            int peak = -1;
-
-            for (int d : peakData.peakArray) { if (d>peak) { peak = d; } }
-
-            System.out.println("");
-            System.out.println("Channels peak: " + peak);
-
-            peak = -1; int absPeak = 0;
-
-            for (int d : peakSnapshotData.peakArray) { 
-
-                int absD = Math.abs(d);
-
-                if (absD>absPeak) { peak = d; absPeak = absD; }
-            }
-
-            System.out.println("Already set peak: " + peakSnapshotData.peak);
-            System.out.println("Snapshots peak: " + peak);
-            System.out.println("");
-
-        }*/
-        //DEBUG HSS// end remove later
-        
         //put data in snapshot buffer
         peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
                                                     peakSnapshotData.peakArray);
