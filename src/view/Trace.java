@@ -618,6 +618,9 @@ public void updateTrace(Graphics2D pG2)
         //store for future use
         data.add(dataSet.d);
         dataFlags.add(dataSet.flags);
+        
+        //limit size of lists to control memory
+        if (data.size()>10000) { data.remove(0); dataFlags.remove(0); }
 
         paintSingleTraceDataPoint(pG2, dataIndex, dataSet.d, dataSet.flags);
 

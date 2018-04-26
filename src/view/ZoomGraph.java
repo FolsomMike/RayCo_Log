@@ -142,6 +142,9 @@ public void retrieveDataChanges()
         //store for future use
         data.add(dataSet.d.clone());
         dataFlags.add(dataSet.flags);
+        
+        //limit size of lists to control memory
+        if (data.size()>10000) { data.remove(0); dataFlags.remove(0); }
 
         //if segment start/end flag set, draw a vertical separator bar, store index
         int index = data.size()-1;

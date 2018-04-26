@@ -716,6 +716,9 @@ public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
             pMetaRow, 0, metaBuf[currentInsertionRow + 1], 1, pMetaRow.length);
 
     drawnData.add(pDataRow.clone()); drawnMetaData.add(pMetaRow.clone());
+    
+    //limit size of lists to control memory
+    if (drawnData.size()>10000) { drawnData.remove(0); drawnMetaData.remove(0); }
 
     quickDrawLastRow(pG2);
 
@@ -2048,6 +2051,9 @@ public void retrieveDataChanges()
         data.add(dataSet.d.clone());
         metaData.add(dataSet.m.clone());
         flags.add(dataSet.flags);
+        
+        //limit size of lists to control memory
+        if (data.size()>10000) { data.remove(0); metaData.remove(0); flags.remove(0); }
 
         //store peak data if any new peaks found
         if (transferBuffer.getPeakType()==DataFlags.CATCH_HIGHEST) {
