@@ -163,6 +163,20 @@ public void updateGraphDimensions(int pNewWidth, int pNewHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::updateGraphYOffset
+//
+// Updates the specified graph's y-offset value.
+//
+
+public void updateGraphYOffset(int pGraph, int pOffset)
+{
+
+    graphs[pGraph].updateGraphYOffset(pOffset);
+
+}// end of Chart::updateGraphYOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::addGraphs
 //
 // Adds basic graphs to the chart. The type of each graph is loaded from the

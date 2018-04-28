@@ -477,6 +477,9 @@ public JPanel createTransformPanel()
     
     for (Graph graph : chart.getGraphs()) {
         
+        //only TraceGraphs have editable y-offsets
+        if (!(graph instanceof TraceGraph)) { continue; }
+        
         c.gridy++; //go to next row
         c.gridx=0; //restart back at 0 for each new row
 
@@ -488,7 +491,7 @@ public JPanel createTransformPanel()
         MFloatSpinner lvl = new MFloatSpinner(graph.getGraphInfo().yOffset,0,
                                                 255.0,1,"##0",60,-1);
         lvl.addChangeListener(this);
-        lvl.setName("Graph Y Offset Spinner,"
+        lvl.setName("Graph Y-Offset Spinner,"
                     + graph.getChartGroupNum() + ","
                     + graph.getChartNum() + ","
                     + graph.getGraphNum());
@@ -1103,6 +1106,13 @@ public void handleSpinnerChange(MFloatSpinner pSpinner)
         //pass the name along with the value back to the parent listener
         parentActionListener.actionPerformed(new ActionEvent(
                 this, 1, "Update Threshold," + name + "," + pSpinner.getText()));
+        return;
+    }
+    
+    if (name.startsWith("Graph Y-Offset Spinner")){
+        //pass the name along with the value back to the parent listener
+        parentActionListener.actionPerformed(new ActionEvent(
+                this, 1, "Update Graph Y-Offset," + name + "," + pSpinner.getText()));
         return;
     }
 

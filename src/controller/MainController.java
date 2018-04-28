@@ -1042,6 +1042,35 @@ private void setCalibrationMode(String pInfo)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainController::updateGraphYOffset
+//
+// Invokes View to update the specified graph's y-offset value.
+//
+
+private void updateGraphYOffset(String pInfo)
+{
+
+    // [0] = Action command
+    // [1] = Spinner title
+    // [2] = Chart group num
+    // [3] = Chart num
+    // [4] = Graph num
+    // [5] = Offset value
+
+    String[] infoSplits = pInfo.split(",");
+
+    int chartGroup = Integer.parseInt(infoSplits[2]);
+    int chart = Integer.parseInt(infoSplits[3]);
+    int graph = Integer.parseInt(infoSplits[4]);
+    int offset = Integer.parseInt(infoSplits[5]);
+
+    //tell view to update the graph y-offset
+    mainView.updateGraphYOffset(chartGroup, chart, graph, offset);
+
+}// end of MainController::updateGraphYOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainController::updateThreshold
 //
 // Updates the threshold value in sharedSettings and then invokes view to
@@ -1306,6 +1335,11 @@ public void actionPerformed(ActionEvent e)
         int chartNum = Integer.parseInt(split[2]);
         mainView.setChartVisible(chartGroupNum, chartNum, 
                                                 !Boolean.parseBoolean(split[3]));
+        return;
+    }
+    
+    if (e.getActionCommand().startsWith("Update Graph Y-Offset")) {
+        updateGraphYOffset(e.getActionCommand());
         return;
     }
 

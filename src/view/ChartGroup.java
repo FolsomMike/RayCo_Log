@@ -421,6 +421,20 @@ public void updateChild(int pChart, int pGraph, int pTrace)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::updateGraphYOffset
+//
+// Updates the specified graph's y-offset value.
+//
+
+public void updateGraphYOffset(int pChart, int pGraph, int pOffset)
+{
+
+    charts[pChart].updateGraphYOffset(pGraph, pOffset);
+
+}// end of ChartGroup::updateGraphYOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::repaintChild
 //
 // Repaints pGraph of pChart.

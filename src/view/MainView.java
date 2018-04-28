@@ -586,6 +586,20 @@ public void updateChildren()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainView::updateGraphYOffset
+//
+// Updates the specified graph's y-offset value.
+//
+
+public void updateGraphYOffset(int pChartGroup, int pChart, int pGraph, int pOffset)
+{
+
+    chartGroups[pChartGroup].updateGraphYOffset(pChart, pGraph, pOffset);
+
+}// end of MainView::updateGraphYOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainView::repaintChild
 //
 // Repaints pGraph of pChart of pChartGroup.

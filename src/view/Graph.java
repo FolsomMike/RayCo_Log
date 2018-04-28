@@ -462,6 +462,20 @@ public void updateChildren()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Graph::updateGraphYOffset
+//
+// Updates this graph's y-offset value.
+//
+
+public void updateGraphYOffset(int pOffset)
+{
+
+    graphInfo.yOffset = pOffset;
+
+}// end of Graph::updateGraphYOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Graph::updateThreshold
 //
 // Updates the specified threshold.
@@ -714,6 +728,8 @@ void loadConfigSettings()
 
 public void loadCalFile(IniFile pCalFile)
 {
+    
+    graphInfo.yOffset = pCalFile.readInt(fileSection, "y offset", 0);
 
 }//end of Graph::loadCalFile
 //-----------------------------------------------------------------------------
@@ -733,7 +749,7 @@ public void loadCalFile(IniFile pCalFile)
 public void saveCalFile(IniFile pCalFile)
 {
 
-    pCalFile.writeString(fileSection, "Graph Test Value", "Test");
+    pCalFile.writeInt(fileSection, "y offset", graphInfo.yOffset);
 
 }//end of Graph::saveCalFile
 //-----------------------------------------------------------------------------

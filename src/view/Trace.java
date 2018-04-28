@@ -729,7 +729,8 @@ public void scanForGUIObjectsOfAType(ArrayList<Object>pObjectList,
 private int calculateY(int pY)
 {
 
-    int y = (int)Math.round(((pY - baseLine) * yScale) + offset);
+    int y = (int)Math.round(((pY - baseLine) * yScale) 
+                                + offset + graphInfo.yOffset);
     
     //if so configured, invert y so zero is at the bottom of the chart
     if(invertTrace){

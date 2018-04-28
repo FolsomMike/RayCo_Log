@@ -23,6 +23,9 @@ public class GraphInfo{
 
     public String title;
     public String shortTitle;
+    
+    //y offset
+    public int yOffset;
 
     //tracks number of pixels the chart (and all graphs in the chart) has been
     //scrolled since last reset

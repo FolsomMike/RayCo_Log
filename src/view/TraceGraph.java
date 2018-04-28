@@ -129,6 +129,8 @@ void loadConfigSettings()
 @Override
 public void loadCalFile(IniFile pCalFile)
 {
+    
+    super.loadCalFile(pCalFile);
 
     for (Threshold t : thresholds) { t.loadCalFile(pCalFile); }
 
@@ -148,6 +150,8 @@ public void loadCalFile(IniFile pCalFile)
 @Override
 public void saveCalFile(IniFile pCalFile)
 {
+    
+    super.saveCalFile(pCalFile);
 
     for (Threshold t : thresholds) { t.saveCalFile(pCalFile); }
 
