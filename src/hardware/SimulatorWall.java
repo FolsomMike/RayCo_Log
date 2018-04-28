@@ -26,7 +26,7 @@ public class SimulatorWall extends Simulator
 {
 
     private final int ADzeroOffset = 0;
-    private final int ADnominalWall;
+    private final int averageWallNominal;
     
     int avgWallSpikeLength = 0;
     int pulseWallSpikeLength = 0;
@@ -44,7 +44,7 @@ public SimulatorWall(InetAddress pIPAddress, int pPort,
     
     //Nominal wall on the -12V to 12V range is 1V, before scaling down to 0-3.3V
     //[1V / (12V /3.3V)] * (255 byte max / 3.3V)
-    ADnominalWall = (int)((1/(12/3.3))*(255/3.3));
+    averageWallNominal = (int)((1/(12/3.3))*(255/3.3));
     
 }//end of SimulatorWall::SimulatorWall (constructor)
 //-----------------------------------------------------------------------------
@@ -117,18 +117,21 @@ public int handleGetRunData()
     //pic rundata pkt count
     packet[index++] = (byte)(picRunDataPktCount++ &0xff);
     
+    //simulate spike
+    simulateWallSpike();
+    
     //Average Wall
-    int avgWall = simulateAverageWall();
+    int avgWall = simulateAverageWall(lastSpikeValue);
     packet[index++] = (byte)((avgWall >> 8) & 0xff);
     packet[index++] = (byte)(avgWall & 0xff);
 
     //Pulse Wall
-    int pulseWall = simulatePulseWall();
+    int pulseWall = simulatePulseWall(lastSpikeValue);
     packet[index++] = (byte)((pulseWall >> 8) & 0xff);
     packet[index++] = (byte)(pulseWall & 0xff);
     
     //Intelligent Wall
-    int intWall = simulateIntelligentCoil();
+    int intWall = simulateIntelligentCoil(lastSpikeValue);
     packet[index++] = (byte)((intWall >> 8) & 0xff);
     packet[index++] = (byte)(intWall & 0xff);
     
@@ -151,25 +154,21 @@ public int handleGetRunData()
 // Won't happen very often and not really a problem.
 //
 
-int simulateAverageWall()
+int simulateAverageWall(int pSpike)
 {
 
-    int value = ADnominalWall;
+    //start with a nominal wall
+    int value = averageWallNominal;
+    
+    //add in noise
     value += (int)(WALL_SIM_NOISE * Math.random());
     
-    if ((int)(WALL_SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
-        lastSpikeValue = (int)(100 * Math.random());
-        avgWallSpikeLength = 4 + (int)(10 * Math.random());
-        value += lastSpikeValue;
-    }else{
-        if (avgWallSpikeLength > 0){
-            value -= lastSpikeValue; avgWallSpikeLength--;
-        }
-    }
+    //add in the spike
+    value += pSpike;
 
     if (value > AD_MAX_VALUE) { value = AD_MAX_VALUE; }
     
-    return(value);
+    return value;
 
 }//end of SimulatorWall::simulateAverageWall
 //-----------------------------------------------------------------------------
@@ -184,26 +183,17 @@ int simulateAverageWall()
 // Won't happen very often and not really a problem.
 //
 
-int simulatePulseWall()
+int simulatePulseWall(int pSpike)
 {
 
-    int value = ADnominalWall;
+    int value = ADzeroOffset;
     
-    value += (int)(WALL_SIM_NOISE * Math.random());
-    
-    if ((int)(WALL_SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
-        lastSpikeValue = (int)(100 * Math.random());
-        pulseWallSpikeLength = 4 + (int)(10 * Math.random());
-        value -= lastSpikeValue;
-    }else{
-        if (pulseWallSpikeLength > 0){
-            value -= lastSpikeValue; pulseWallSpikeLength--;
-        }
-    }
+    //add in the spike
+    value += pSpike;
 
     if (value > AD_MAX_VALUE) { value = AD_MAX_VALUE; }
     
-    return(value);
+    return value;
 
 }//end of SimulatorWall::simulatePulseWall
 //-----------------------------------------------------------------------------
@@ -218,32 +208,44 @@ int simulatePulseWall()
 // Won't happen very often and not really a problem.
 //
 
-int simulateIntelligentCoil()
+int simulateIntelligentCoil(int pSpike)
 {
 
-    int value = AD_ZERO_OFFSET;
+    int value = ADzeroOffset;
     
-    value += 55;
+    //add in noise
+    value += (int)(WALL_SIM_NOISE * Math.random()) + 55;
     
-    value += (int)(WALL_SIM_NOISE * Math.random());
-    
-    if ((int)(WALL_SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
-        lastSpikeValue = (int)(100 * Math.random());
-        intCoilSpikeLength = 4 + (int)(10 * Math.random());
-        value -= lastSpikeValue;
-    }else{
-        if (intCoilSpikeLength > 0){
-            value -= lastSpikeValue; intCoilSpikeLength--;
-        }
-    }
+    //add in the spike
+    value += pSpike;
 
     if (value > AD_MAX_VALUE) { value = AD_MAX_VALUE; }
     
-    return(value);
+    return value;
 
 }//end of SimulatorWall::simulateIntelligentCoil
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// SimulatorWall::simulateWallSpike
+//
+// Randomly simulates either a spike or 0, depending on the odds.
+//
+
+void simulateWallSpike()
+{
+    
+    if ((int)(WALL_SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
+        lastSpikeValue = (int)(100 * Math.random());
+        avgWallSpikeLength = 4 + (int)(10 * Math.random());
+    }
+    else if (avgWallSpikeLength > 0) {
+            lastSpikeValue += lastSpikeValue; avgWallSpikeLength--;
+    }
+    else { lastSpikeValue = 0; }
+
+}//end of SimulatorWall::simulateWallSpike
+//-----------------------------------------------------------------------------
 
 }//end of class SimulatorWall
 //-----------------------------------------------------------------------------
