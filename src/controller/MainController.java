@@ -1120,7 +1120,8 @@ private void setDeviceSnapshotDataBuffers()
     for(Device device : mainHandler.getDevices()){
 
         SampleMetaData snapshotMeta = device.getSnapshotMeta();
-        if (snapshotMeta == null) { continue; }
+        if (snapshotMeta == null || !device.hasSnapshot()) { continue; }
+        
 
         try{
             device.setSnapshotDataBuffer(mainView.getGraph(
@@ -1161,7 +1162,7 @@ private void setDeviceMapDataBuffers()
     for(Device device : mainHandler.getDevices()){
 
         SampleMetaData mapMeta = device.getMapMeta();
-        if (mapMeta == null) { continue; }
+        if (mapMeta == null || !device.hasMap()) { continue; }
 
         //skip devices which do not map
         if(mapMeta.numClockPositions <= 0) { continue; }
@@ -1922,12 +1923,17 @@ private void displayDataFromDevices()
         if (results != true) { continue; }
         
         //put data in snapshot buffer
-        peakSnapshotData.meta.dataSnapshotBuffer.putData(peakSnapshotData.peak,
+        if (device.hasSnapshot()) {
+            peakSnapshotData.meta.dataSnapshotBuffer
+                            .putData(peakSnapshotData.peak,
                                                     peakSnapshotData.peakArray);
+        }
 
         //put data in clock map buffer
-        peakMapData.meta.dataMapBuffer.putData(peakMapData.peakArray,
+        if (device.hasMap()) {
+            peakMapData.meta.dataMapBuffer.putData(peakMapData.peakArray,
                                                 peakMapData.peakMetaArray);
+        }
 
         //put data in channel buffers
         Channel[] channels = device.getChannels();

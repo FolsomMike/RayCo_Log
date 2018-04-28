@@ -719,7 +719,7 @@ public void collectData()
         for(int i=0; i<channels.length; i++){
 
             data = getUnsignedShortFromPacket(runDataPacket, index);
-            data = Math.abs(data - AD_ZERO_OFFSET);
+            data = Math.abs(data - ADzeroOffset);
             index+=2; //skip two because short is 2 bytes
             channelPeaks[i] = data;
 
@@ -867,7 +867,7 @@ private int extractSnapshotData(byte[] pPacket, int pIndex)
 
     for(int i=0; i<snapData.length; i++) {
         //retrieve the next byte from packet
-        snapData[i]=getUnsignedByteFromPacket(pPacket, pIndex++)-AD_ZERO_OFFSET;
+        snapData[i]=getUnsignedByteFromPacket(pPacket, pIndex++)-ADzeroOffset;
     }
 
     return(pIndex);
@@ -1099,13 +1099,16 @@ void loadConfigSettings()
     if(numClockPositions > 0) loadClockMappingTranslation(section);
 
     ////WIP HSS// actually load snapshot settings from ini file
+    hasSnapshot = configFile.readBoolean(section, "has snapshot", false);
     snapshotPeakType = CATCH_HIGHEST; //WIP HSS// temp setting, should be loaded from ini
     snapshotMeta.chartGroup = configFile.readInt(section, "snapshot chart group", -1);
     snapshotMeta.chart = configFile.readInt(section, "snapshot chart", -1);
     snapshotMeta.graph = configFile.readInt(section, "snapshot graph", -1);
 
+    
+    hasMap = configFile.readBoolean(section, "has map", false);
+    
     String s;
-
     s = configFile.readString(section, "map data type", "integer");
     parseDataType(s);
 

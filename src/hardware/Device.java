@@ -148,6 +148,8 @@ public class Device implements Runnable, ControlDevice
     protected int[] channelPeaks;
     //WIP HSS//
 
+    protected boolean hasSnapshot = false;
+    public boolean hasSnapshot() { return hasSnapshot; }
     public SampleMetaData getSnapshotMeta(){ return null; }
     public void setSnapshotDataBuffer(DataTransferSnapshotBuffer pV) {}
     public DataTransferSnapshotBuffer getSnapshotDataBuffer() { return null; }
@@ -157,6 +159,8 @@ public class Device implements Runnable, ControlDevice
 
     boolean simMode;
 
+    protected boolean hasMap = false;
+    public boolean hasMap() { return hasMap; }
     int mapDataType;
     int mapPeakType;
 

@@ -25,7 +25,7 @@ import view.LogPanel;
 // class Multi_IO_A_Wall
 //
 
-public class Multi_IO_A_Wall extends MultiIODevice
+public class Multi_IO_A_Wall extends PeakDevice
 {
 
 
@@ -39,6 +39,8 @@ public Multi_IO_A_Wall(int pIndex, LogPanel pLogPanel,
 {
 
     super(pIndex, pLogPanel, pConfigFile, pSettings, pSimMode);
+    
+    ADzeroOffset = 0; //no offset for ADC converter in Wall System
 
 //debug remove this -- superseded by Socket Simulator  if(simMode){ simulator = new SimulatorWall(0); simulator.init(); }
 
@@ -113,7 +115,7 @@ void createSimulatedSocket() throws SocketException
     super.createSimulatedSocket();
 
     SimulatorWall wallSimulator = new SimulatorWall(getIPAddr(), 23, title, "");
-
+    wallSimulator.setActiveChannels(channels);
     wallSimulator.init(0);
 
     socket = wallSimulator;

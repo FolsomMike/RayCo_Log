@@ -34,7 +34,8 @@ public class MultiIODevice extends Device
     static final int AD_MAX_VALUE = 255;
     static final int AD_MIN_VALUE = 0;
     static final int AD_MAX_SWING = 127;
-    static final int AD_ZERO_OFFSET = 127;
+    
+    protected int ADzeroOffset = 127;
 
     static final int OFFSET_POT = 0;
     static final int GAIN_POT = 1;

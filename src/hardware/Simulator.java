@@ -607,6 +607,8 @@ public int handleGetRunData()
     int result = readBytesAndVerify(
                        inBuffer, numBytesInPkt, MultiIODevice.GET_RUN_DATA_CMD);
     if (result != numBytesInPkt){ return(result); }
+    
+    if (activeChannels==null) { return result; }
 
     //transverse devices have a max of 8 pos channels & 8 neg channels
     //set each channel to the default values. they will be changed to
