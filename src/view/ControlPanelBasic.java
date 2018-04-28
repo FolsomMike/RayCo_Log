@@ -69,6 +69,7 @@ class ControlPanelBasic extends ControlPanel
     ArrayList<ChannelInfo> channelList;
 
     ArrayList<Threshold[]> thresholds;
+    
 
     private MFloatSpinnerPanel xPos, yPos;
     private MFloatSpinnerPanel rotation;
@@ -113,7 +114,7 @@ public ControlPanelBasic(int pChartGroupNum, int pChartNum, Chart pChart,
     super(pChartGroupNum, pChartNum, pParentActionListener);
     
     chart = pChart;
-
+    
     groupTitles = pGroupTitles; channelList = pChannelList;
 
     thresholds = pThresholds;
@@ -326,33 +327,52 @@ public void addGainOffsetPanel(JPanel pPanel)
 public void setupChartTab(JPanel pPanel)
 {
     
-    pPanel.setLayout(new BoxLayout(pPanel, BoxLayout.PAGE_AXIS));
-    pPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    
-    addThresholdsPanel(pPanel);
-    addDisplayPanel(pPanel);
-
-}// end of ControlPanelBasic::setupChartTab
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlPanelBasic::addThresholdsPanel
-//
-// Adds Thresholds panel to pPanel.
-//
-
-public void addThresholdsPanel(JPanel pPanel)
-{
-    
-    JPanel panel = new JPanel();
+    JPanel panel = pPanel;
     panel.setLayout(new GridBagLayout());
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    Tools.setSizes(panel, 275, 90);
     
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.PAGE_START;
     c.weightx = 0.5;
+    c.weighty = 0;
+    c.gridx = 0;
+    c.gridy = 0;
+    c.insets = new Insets(5, 5, 5, 5);  //padding
+    
+    panel.add(createThresholdsPanel(), c);
+    c.gridy++;
+    panel.add(createDisplayPanel(), c);
+    c.gridy++;
+    panel.add(createTransformPanel(), c);
+    
+    //fill the remaining space in the tab so that the rest
+    //of the content shrinks to fit their children components
+    c.gridy++; c.weighty = 1;
+    panel.add(Box.createVerticalGlue(), c);
+
+}// end of ControlPanelBasic::setupChartTab
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelBasic::createThresholdsPanel
+//
+// Creates and returns the Thresholds panel.
+//
+
+public JPanel createThresholdsPanel()
+{
+    
+    JPanel panel = new JPanel();
+    panel.setLayout(new GridBagLayout());
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBorder(BorderFactory.createTitledBorder("Thresolds"));
+    
+    GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.anchor = GridBagConstraints.PAGE_START;
+    c.weightx = 0.5;
+    c.weighty = 1;
     c.gridx = 0;
     c.gridy = 0;
     c.insets = new Insets(5, 5, 5, 5);  //padding
@@ -396,19 +416,19 @@ public void addThresholdsPanel(JPanel pPanel)
             
         }
     }
+    
+    return panel;
 
-    pPanel.add(panel);
-
-}// end of ControlPanelBasic::addThresholdsPanel
+}// end of ControlPanelBasic::createThresholdsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlPanelBasic::addDisplayPanel
+// ControlPanelBasic::createDisplayPanel
 //
-// Adds Display panel to pPanel.
+// Creates and returns the Display panel.
 //
 
-public void addDisplayPanel(JPanel pPanel)
+public JPanel createDisplayPanel()
 {
 
     JPanel panel = new JPanel();
@@ -425,9 +445,62 @@ public void addDisplayPanel(JPanel pPanel)
     
     panel.add(Box.createHorizontalGlue()); //extend box to fit panel
 
-    pPanel.add(panel);
+    return panel;
 
-}// end of ControlPanelBasic::addDisplayPanel
+}// end of ControlPanelBasic::createDisplayPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanelBasic::createTransformPanel
+//
+// Creates and returns the Transform panel.
+//
+
+public JPanel createTransformPanel()
+{
+    
+    JPanel panel = new JPanel();
+    panel.setLayout(new GridBagLayout());
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBorder(BorderFactory.createTitledBorder("Transform"));
+    
+    GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.anchor = GridBagConstraints.PAGE_START;
+    c.weightx = 0.5;
+    c.gridx = 0;
+    c.gridy = 0;
+    c.insets = new Insets(5, 5, 5, 5);  //padding
+    
+    panel.add(new JLabel("Graph"), c); c.gridx++;
+    panel.add(new JLabel("Offset"), c); 
+    
+    for (Graph graph : chart.getGraphs()) {
+        
+        c.gridy++; //go to next row
+        c.gridx=0; //restart back at 0 for each new row
+
+        //graph title
+        panel.add(new JLabel(graph.title, LEFT), c); 
+        c.gridx++;
+
+        //y offset spinner
+        MFloatSpinner lvl = new MFloatSpinner(graph.getGraphInfo().yOffset,0,
+                                                255.0,1,"##0",60,-1);
+        lvl.addChangeListener(this);
+        lvl.setName("Graph Y Offset Spinner,"
+                    + graph.getChartGroupNum() + ","
+                    + graph.getChartNum() + ","
+                    + graph.getGraphNum());
+        setSpinnerNameAndMouseListener(lvl, lvl.getName(), this);
+        panel.add(lvl, c);
+        c.gridx++;
+        
+    }
+    
+    return panel;
+
+}// end of ControlPanelBasic::createTransformPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -372,6 +372,20 @@ public int getGraphHeights(int pGraph)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Chart::getGraphs
+//
+// Returns instances of all of the graphs in this Chart.
+//
+
+public Graph[] getGraphs()
+{
+    
+    return graphs;
+    
+}// end of Chart::getGraphs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Chart::setGraphHeight
 //
 // Sets the height of graph pGraph to pHeight. The calling oject is responsible
