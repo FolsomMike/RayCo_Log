@@ -97,7 +97,7 @@ public class Simulator extends Socket
     static final int SIM_NOISE = 7;
     static final int SPIKE_ODDS_RANGE = 10000;
     static final int WALL_SIM_NOISE = 3;
-    static final int WALL_SPIKE_ODDS_RANGE = 100000;
+    static final int WALL_SPIKE_ODDS_RANGE = 10000;
 
 //-----------------------------------------------------------------------------
 // Simulator::Simulator (constructor)

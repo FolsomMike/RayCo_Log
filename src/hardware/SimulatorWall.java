@@ -155,18 +155,17 @@ int simulateAverageWall()
 {
 
     int value = ADnominalWall;
-    //DEBUG HSS//
-    //DEBUG HSSvalue += (int)(WALL_SIM_NOISE * Math.random());
+    value += (int)(WALL_SIM_NOISE * Math.random());
     
-    /*if ((int)(WALL_SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
+    if ((int)(WALL_SPIKE_ODDS_RANGE*Math.random()) < spikeOdds){
         lastSpikeValue = (int)(100 * Math.random());
         avgWallSpikeLength = 4 + (int)(10 * Math.random());
-        value -= lastSpikeValue;
+        value += lastSpikeValue;
     }else{
         if (avgWallSpikeLength > 0){
             value -= lastSpikeValue; avgWallSpikeLength--;
         }
-    }*/
+    }
 
     if (value > AD_MAX_VALUE) { value = AD_MAX_VALUE; }
     
