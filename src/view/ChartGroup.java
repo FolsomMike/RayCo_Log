@@ -40,11 +40,16 @@
 package view;
 
 import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.ListIterator;
 import javax.swing.*;
 import model.IniFile;
 import model.SharedSettings;
@@ -55,7 +60,8 @@ import toolkit.Tools;
 // class ChartGroup
 //
 
-class ChartGroup extends JPanel{
+class ChartGroup extends JFrame
+{
 
     private final IniFile configFile;
     private final SharedSettings sharedSettings;
@@ -68,9 +74,13 @@ class ChartGroup extends JPanel{
     private int numCharts;
     private Chart charts[];
 
-    private final Dimension usableScreenSize;
+    private Dimension totalScreenSize, usableScreenSize;
 
-    ActionListener parentActionListener;
+    private ActionListener parentActionListener;
+    private WindowListener windowListener;
+    
+    private JPanel mainPanel;
+    private ControlsPanel controlsPanel;
 
 //-----------------------------------------------------------------------------
 // ChartGroup::ChartGroup (constructor)
@@ -78,17 +88,20 @@ class ChartGroup extends JPanel{
 //
 
 public ChartGroup(int pChartGroupNum, IniFile pConfigFile,
-                    SharedSettings pSettings, Dimension pUsableScreenSize,
-                    ActionListener pParentActionListener)
+                    SharedSettings pSettings,
+                    ActionListener pParentActionListener, 
+                    WindowListener pListener)
 {
+    
+    super("Universal Chart");
 
     chartGroupNum = pChartGroupNum;
 
     configFile = pConfigFile; sharedSettings = pSettings;
 
-    usableScreenSize = pUsableScreenSize;
-
     parentActionListener = pParentActionListener;
+    
+    windowListener = pListener;
 
 }//end of ChartGroup::ChartGroup (constructor)
 //-----------------------------------------------------------------------------
@@ -102,15 +115,32 @@ public ChartGroup(int pChartGroupNum, IniFile pConfigFile,
 public void init()
 {
 
-    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+    setUpFrame();
 
     loadConfigSettings();
-
-    createCharts();
-
-    add(Box.createVerticalGlue()); //force charts towards top of display
+    
+    //create user interface: buttons, displays, etc.
+    setupGui();
+    
+    //arrange all the GUI items
+    pack();
+    
+    //display the main frame
+    setVisible(true);
 
 }// end of Chart::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::getAllValuesFromCurrentControlPanel
+//
+
+public ArrayList<Object> getAllValuesFromCurrentControlPanel()
+{
+
+    return controlsPanel.getAllValuesFromCurrentControlPanel();
+
+}// end of ChartGroup::getAllValuesFromCurrentControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -200,15 +230,64 @@ private void createCharts()
 {
 
     charts = new Chart[numCharts];
+    
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    mainPanel.add(panel);
 
     for (int i = 0; i<charts.length; i++){
         charts[i] = new Chart(chartGroupNum, i, graphWidth, graphHeight,
                             parentActionListener, configFile, sharedSettings);
         charts[i].init();
-        add(charts[i]);
+        panel.add(charts[i]);
     }
 
 }// end of ChartGroup::createCharts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::displayCalibrationPanel
+//
+// Displays a calibration panel appropriate for pChartNum of pChartGroupNum with
+// name of pPanelName with all channels in pChannelList displayed on the panel.
+//
+// The ChannelInfo objects in list pChannelList provide the necessary
+// information to link the GUI controls to the channels and traces.
+//
+
+public void displayCalibrationPanel(int pChartNum, String pPanelTitle, 
+                                        ArrayList<ChannelInfo> pChannelList)
+{
+
+    LinkedHashSet<String> groupTitles = getListOfGroups(pChannelList);
+    ArrayList<Threshold[]> thresholds = getThresholdsForChart(pChartNum);
+
+    Chart chart = charts[pChartNum];
+    controlsPanel.displayCalibrationPanel(chartGroupNum, pChartNum, chart,
+                                            pPanelTitle, pChannelList, 
+                                            groupTitles, thresholds, 
+                                            new ArrayList<>());
+    
+    pack();
+
+}//end of ChartGroup::displayCalibrationPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::displayControlsPanel
+//
+// Displays the controls panel, which contains job #, scan speed, etc.
+//
+
+public void displayControlsPanel()
+{
+
+    //only the main window is allowed to display the controls panel
+    controlsPanel.displayControlsPanel();
+    
+    pack();
+
+}//end of ChartGroup::displayControlsPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -223,6 +302,28 @@ public void setChartVisible(int pChartNum, boolean pVisible)
     charts[pChartNum].setChartVisible(pVisible);
 
 }//end of ChartGroup::setChartVisible
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::setupGUI
+//
+// Sets up the user interface on the mainPanel: buttons, displays, etc.
+//
+
+private void setupGui()
+{
+
+    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
+
+    controlsPanel = new ControlsPanel(parentActionListener, sharedSettings);
+    controlsPanel.init();
+    mainPanel.add(controlsPanel);
+    
+    createCharts();
+
+    add(Box.createVerticalGlue()); //force charts towards top of display
+
+}// end of ChartGroup::setupGui
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -279,6 +380,18 @@ public void repaintGroup()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::refreshControlsPanel
+//
+
+public void refreshControlsPanel()
+{
+
+    controlsPanel.refresh();
+
+}// end of ChartGroup::refreshControlsPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::resetAll
 //
 // For all traces of all charts - resets all data to zero and all flags to
@@ -324,12 +437,38 @@ public Chart getChart(int pChart)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::getListOfGroups
+//
+// Returns a list of the different unique groups to which the different
+// channels in pChannelList have been assigned.
+//
+
+private LinkedHashSet<String> getListOfGroups(
+                                        ArrayList<ChannelInfo> pChannelList)
+{
+
+    //use a Set as that automatically rejects duplicates
+    LinkedHashSet<String> groups = new LinkedHashSet<>();
+
+    ListIterator iter = pChannelList.listIterator();
+
+    while(iter.hasNext()){
+        ChannelInfo info = (ChannelInfo)iter.next();
+        groups.add(info.calPanelGroup);
+    }
+
+    return(groups);
+
+}//end of ChartGroup::getListOfGroups
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::getThresholdsForChart
 //
 // Returns an array of thresholds for pChartNum.
 //
 
-public ArrayList<Threshold[]> getThresholdsForChart(int pChartNum)
+private ArrayList<Threshold[]> getThresholdsForChart(int pChartNum)
 {
 
     return charts[pChartNum].getThresholds();
@@ -372,6 +511,46 @@ public Graph getGraph(int pChart, int pGraph)
     return( charts[pChart].getGraph(pGraph) );
 
 }// end of ChartGroup::getGraph
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::getGraphParameters
+//
+// Retrieves parameters for graph specified by
+//                                          pChartGroupNum/pChartNum/pGraphNum.
+//
+// The number and type of parameters is specific to each Graph subclass.
+//
+
+public ArrayList<Object> getGraphParameters(int pChartNum, int pGraphNum)
+{
+
+    return getGraph(pChartNum, pGraphNum).getParameters();
+
+}// end of ChartGroup::getGraphParameters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::getScreenSize
+//
+// Retrieves the current screen size along with the actual usable vertical
+// size after subtracting the size of the taskbar.
+//
+
+public void getScreenSize()
+{
+    
+    totalScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    //height of the task bar
+    Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(
+                                        getGraphicsConfiguration());
+    int taskBarHeight = scnMax.bottom;
+
+    usableScreenSize = new Dimension(
+                  totalScreenSize.width, totalScreenSize.height-taskBarHeight);
+
+}// end of ChartGroup::getScreenSize
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -515,6 +694,44 @@ public void expandChartHeight(int pChart, int pGraph)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::setUpFrame
+//
+// Sets various options and styles for the frame.
+//
+
+public void setUpFrame()
+{
+
+    //add a JPanel to the frame to provide a familiar container
+    mainPanel = new JPanel();
+    setContentPane(mainPanel);
+
+    if (windowListener!=null) { addWindowListener(windowListener); }
+
+    //turn off default bold for Metal look and feel
+    UIManager.put("swing.boldMetal", Boolean.FALSE);
+
+    //force "look and feel" to Java style
+    try {
+        UIManager.setLookAndFeel(
+            UIManager.getCrossPlatformLookAndFeelClassName());
+        }
+    catch (ClassNotFoundException | InstantiationException |
+            IllegalAccessException | UnsupportedLookAndFeelException e) {
+        System.out.println("Could not set Look and Feel");
+        }
+
+    //do not auto exit on close - shut down handled by the timer function
+    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    
+    setTitle(sharedSettings.appTitle);
+
+    getScreenSize();
+
+}// end of ChartGroup::setUpFrame
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::setNormalChartHeight
 //
 // Sets the height of the chart pChart to normal height while maximizing the
@@ -549,6 +766,21 @@ public void setNormalChartHeight(int pChart, int pGraph)
     charts[pChart].setViewParamsToNormalLayout(pGraph);
 
 }//end of ChartGroup::setNormalChartHeight
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::shutDown
+//
+// Hides and disposes all resources assiciated with this group.
+//
+
+public void shutDown() {
+
+    //dispose of this frame
+    setVisible(false);
+    dispose();
+
+}//end of ChartGroup::shutDown
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -655,6 +887,29 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     return line;
 
 }//end of ChartGroup::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::open3DMapManipulatorControlPanel
+//
+// Displays a control panel for manipulating 3D maps.
+//
+// The chart group and chart number which sent the command to open the
+// panel will be appended to pActionCommand from whence it will be extracted
+// to link the panel to the appropriate chart.
+//
+
+public void open3DMapManipulatorControlPanel(int pChartNum, int pGraphNum)
+{
+    
+    ArrayList<Object> graphParams = getGraphParameters(pChartNum, pGraphNum);
+
+    controlsPanel.display3DMapManipulatorControlPanel(chartGroupNum, 
+                                                        pChartNum, graphParams);
+
+    pack();
+
+}//end of ChartGroup::open3DMapManipulatorControlPanel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

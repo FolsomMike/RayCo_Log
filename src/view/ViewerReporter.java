@@ -20,9 +20,6 @@
 
 package view;
 
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.*;
@@ -59,15 +56,13 @@ public class ViewerReporter implements ActionListener {
     JPanel chartGroupPanel;
     
     JDialog errorMessageDialog;
-    
-    javax.swing.Timer timer;
 
-    private Dimension totalScreenSize, usableScreenSize;
+    javax.swing.Timer timer;
 
     int pieceToPrint;
     boolean isCalPiece;
 
-    JFrame mainFrame;
+    ChartGroup mainFrame;
     int loadSegmentError;
     String segmentDataVersion;
 
@@ -730,15 +725,19 @@ public void configure()
 
         //pass null for the hardware object as that object is not needed for
         //viewing
-
-        for (int i = 0; i < numberOfChartGroups; i++){
-            chartGroups[i] = new ChartGroup(i, configFile, settings,
-                                                        usableScreenSize, this);
+        
+        int i=0;
+        do {
+            chartGroups[i] = new ChartGroup(i, configFile, settings, 
+                                                this, null);
             chartGroups[i].init();
             chartGroupPanel.add(chartGroups[i]);
-            }
+        } while (i++<numberOfChartGroups);
 
-        }//if (numberOfChartGroups > 0)
+        //first group will serve as the main frame/window
+        mainFrame = chartGroups[0];
+
+    }//if (numberOfChartGroups > 0)
 
     //NOTE -- debug MKS
     // pixelsPerInch VALUES NEED TO BE SAVED WITH THE JOINT DATA FILE
@@ -771,28 +770,6 @@ public void actionPerformed(ActionEvent e)
 
 
 }//end of ViewerReporter::actionPerformed
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ViewerReporter::getScreenSize
-//
-// Retrieves the current screen size along with the actual usable vertical
-// size after subtracting the size of the taskbar.
-//
-
-public void getScreenSize()
-{
-    totalScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-    //height of the task bar
-    Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(
-                                        mainFrame.getGraphicsConfiguration());
-    int taskBarHeight = scnMax.bottom;
-
-    usableScreenSize = new Dimension(
-                  totalScreenSize.width, totalScreenSize.height-taskBarHeight);
-
-}// end of ViewerReporter::getScreenSize
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

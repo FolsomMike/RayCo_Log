@@ -88,10 +88,6 @@ public void init()
     
     setupGUI();
     
-    //force display of control panel controls by mimicking action performed
-    actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                                                "Display Controls Panel"));
-    
 }// end of ControlsPanel::init
 //-----------------------------------------------------------------------------
 
@@ -330,8 +326,6 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
     //remove any panels already opened
     controlsGroupPanel.removeAll();
 
-    int mapGraphNumber = 0; //graph of 3D map always expected to be first
-
     ControlPanelBasic transCalPanel = new ControlPanelBasic(pChartGroupNum,
                                             pChartNum, pChart, pPanelTitle,
                                             pGroupTitles, pChannelList, 
@@ -341,8 +335,6 @@ public void displayCalibrationPanel(int pChartGroupNum, int pChartNum,
     controlsGroupPanel.add(transCalPanel);
     transCalPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     currentControlPanel = transCalPanel;
-
-    currentControlPanel.setAllValues(pGraphParameters);
 
     ((TitledBorder)(getBorder())).setTitle(transCalPanel.getPanelTitle());
 

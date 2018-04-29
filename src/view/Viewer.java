@@ -98,7 +98,7 @@ public void init()
 
     super.init();
 
-    mainFrame = new JFrame("Viewer");
+/*//DEBUG HSS//    mainFrame = new JFrame("Viewer");
 
     //turn off default bold for Metal look and feel
     UIManager.put("swing.boldMetal", Boolean.FALSE);
@@ -144,7 +144,7 @@ public void init()
     loadFirstOrLastAvailableSegment(LAST);
 
     //let's have a look, shall we?
-    mainFrame.setVisible(true);
+    mainFrame.setVisible(true);*/
 
 
 }//end of Viewer::init
