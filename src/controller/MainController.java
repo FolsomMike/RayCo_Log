@@ -57,6 +57,7 @@ import java.util.ListIterator;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import mksystems.mswing.MFloatSpinner;
+import model.DataSetIntMultiDim;
 import model.MainDataClass;
 import model.DataTransferIntBuffer;
 import model.DataTransferIntMultiDimBuffer;
@@ -1902,6 +1903,16 @@ private void updateGUIPeriodically()
 private void displayDataFromDevices()
 {
     
+    //DEBUG HSS// remove later
+    String debugHssDevice0[] = new String[49];
+    String debugHssDevice1[] = new String[49];
+    String debugHssDevice2[] = new String[49];
+    DataSetIntMultiDim debugHssDataSet = new DataSetIntMultiDim(48);
+    for (int i=0; i<debugHssDevice0.length; i++) { 
+       debugHssDevice0[i] = ""; debugHssDevice1[i] = ""; debugHssDevice2[i] = "";
+    }
+    //DEBUG HSS// end remove later
+    
     //tell View to update monitor window if he is displaying one
     mainView.updateMonitorStatus(mainHandler.getMonitorPacket(true));
 
@@ -1931,8 +1942,36 @@ private void displayDataFromDevices()
 
         //put data in clock map buffer
         if (device.hasMap()) {
+            
             peakMapData.meta.dataMapBuffer.putData(peakMapData.peakArray,
                                                 peakMapData.peakMetaArray);
+            
+            //DEBUG HSS// remove later
+            
+            if (device.getDeviceNum() == 0) { debugHssDevice0[0] = "Device 0: "; }
+            if (device.getDeviceNum() == 1) { debugHssDevice1[0] = "Device 1: "; }
+            if (device.getDeviceNum() == 2) { debugHssDevice2[0] = "Device 2: "; }
+
+            int clkIndex = 1;
+            for (int p : peakMapData.peakArray) {
+                
+                String val = String.format ("%02d", p);
+                
+                if (device.getDeviceNum() == 0) { 
+                    debugHssDevice0[clkIndex++] = val;
+                }
+                else if (device.getDeviceNum() == 1) { 
+                    debugHssDevice1[clkIndex++] = val;
+                }
+                else if (device.getDeviceNum() == 2) { 
+                    debugHssDevice2[clkIndex++] = val;
+                }
+                
+                peakMapData.meta.dataMapBuffer.getDataChange(debugHssDataSet);
+                
+            }
+            //DEBUG HSS// end remove later
+            
         }
 
         //put data in channel buffers
@@ -1945,6 +1984,37 @@ private void displayDataFromDevices()
 
         }
     }
+    
+    //DEBUG HSS// remove later
+    for (int i=0; i<debugHssDevice0.length; i++) { 
+       System.out.print(debugHssDevice0[i]);
+    }
+    
+    System.out.println("");
+    
+    for (int i=0; i<debugHssDevice1.length; i++) { 
+       System.out.print(debugHssDevice1[i]);
+    }
+    
+    System.out.println("");
+    
+    for (int i=0; i<debugHssDevice2.length; i++) { 
+       System.out.print(debugHssDevice2[i]);
+    }
+    
+    System.out.println("");
+    
+    System.out.print("Chosen x: ");
+    for (int i=0; i<debugHssDataSet.length; i++) { 
+       System.out.print(String.format("%02d", debugHssDataSet.d[i]));
+    }
+    
+    System.out.println("");
+    
+    System.out.println("--------------------------------------------------");
+    
+    
+    //DEBUG HSS// remove later
     
     mainView.updateChildren(); //update view
     
