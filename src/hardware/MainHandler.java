@@ -906,46 +906,6 @@ private void handleControlForScanOrTimerMode()
     } else { return; }
     
     //made it to here, so assume we can move forward
-    //set all advanced flags to false before starting
-    setBufferAdvancedFlags(false);
-    
-    //move all buffers forward for all devices
-    for (Device d : devices) {
-        
-        //nothing else updated unless at least one channel is advanced
-        boolean channelAdvanced = false;
-        
-        //channels -- will only advance shared buffers once
-        for (Channel c : d.getChannels()) {
-            if (c.getDataBuffer()!=null
-                && !c.getDataBuffer().getPositionAdvanced())
-            {
-                channelAdvanced = true; 
-                c.getDataBuffer().setPositionAdvanced(true);
-                c.getDataBuffer().incPutPtrAndSetReadyAfterDataFill(); 
-            }
-        }
-        
-        //do nothing else for this device if no channels advanced
-        if (!channelAdvanced) { continue; }
-    
-        //snapshot buffers -- will only advance shared buffers once
-        if (d.getSnapshotDataBuffer()!=null
-            && !d.getSnapshotDataBuffer().getPositionAdvanced()) 
-        {
-            d.getSnapshotDataBuffer().setPositionAdvanced(true);
-            d.getSnapshotDataBuffer().incPutPtrAndSetReadyAfterDataFill();
-        }
-        
-        //map buffers -- will only advance shared buffers once
-        if (d.getMapDataBuffer()!=null
-            && !d.getMapDataBuffer().getPositionAdvanced()) 
-        {
-            d.getMapDataBuffer().setPositionAdvanced(true);
-            d.getMapDataBuffer().incPutPtrAndSetReadyAfterDataFill();
-        }
-        
-    }
     readyToAdvanceInsertionPoints = true;
 
 }//end of MainHandler::handleControlForScanOrTimerMode
@@ -1093,7 +1053,7 @@ boolean handleControlForInspectMode()
     //check to see if encoder hand over should occur
     encoders.handleEncoderSwitchOver();
     
-    moveEncoders();
+    //DEBUG HSS// fix encorder code later. focus on scan // moveEncoders();
 
     return newPositionData;
 

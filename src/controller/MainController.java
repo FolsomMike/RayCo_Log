@@ -1903,16 +1903,6 @@ private void updateGUIPeriodically()
 private void displayDataFromDevices()
 {
     
-    //DEBUG HSS// remove later
-    String debugHssDevice0[] = new String[49];
-    String debugHssDevice1[] = new String[49];
-    String debugHssDevice2[] = new String[49];
-    DataSetIntMultiDim debugHssDataSet = new DataSetIntMultiDim(48);
-    for (int i=0; i<debugHssDevice0.length; i++) { 
-       debugHssDevice0[i] = ""; debugHssDevice1[i] = ""; debugHssDevice2[i] = "";
-    }
-    //DEBUG HSS// end remove later
-    
     //tell View to update monitor window if he is displaying one
     mainView.updateMonitorStatus(mainHandler.getMonitorPacket(true));
 
@@ -1923,6 +1913,10 @@ private void displayDataFromDevices()
 
     //prepares to scan through all channels
     mainHandler.initForPeakScan();
+    
+    //set all advanced flags to false before starting
+    mainHandler.setBufferAdvancedFlags(false);
+    boolean advance = mainHandler.isReadyToAdvanceInsertionPoints();
 
     //get peak data for each channel and insert it into the transfer buffer
     for (Device device : mainHandler.getDevices()){
@@ -1933,44 +1927,33 @@ private void displayDataFromDevices()
                                                         peakMapData);
         if (results != true) { continue; }
         
-        //put data in snapshot buffer
-        if (device.hasSnapshot()) {
-            peakSnapshotData.meta.dataSnapshotBuffer
-                            .putData(peakSnapshotData.peak,
-                                                    peakSnapshotData.peakArray);
+        //put data in snapshot buffer -- will only advance shared buffers once
+        if (device.hasSnapshot() 
+            && !device.getSnapshotDataBuffer().getPositionAdvanced()) 
+        {
+            DataTransferSnapshotBuffer buf = peakSnapshotData.meta.dataSnapshotBuffer;
+            
+            buf.putData(peakSnapshotData.peak, peakSnapshotData.peakArray);
+            
+            //advance if mainhandler ready
+            if (advance && !buf.getPositionAdvanced()) { 
+                buf.setPositionAdvanced(true);
+                buf.incPutPtrAndSetReadyAfterDataFill();
+            }
         }
 
         //put data in clock map buffer
         if (device.hasMap()) {
             
-            peakMapData.meta.dataMapBuffer.putData(peakMapData.peakArray,
-                                                peakMapData.peakMetaArray);
+            DataTransferIntMultiDimBuffer buf = peakMapData.meta.dataMapBuffer;
             
-            //DEBUG HSS// remove later
+            buf.putData(peakMapData.peakArray, peakMapData.peakMetaArray);
             
-            if (device.getDeviceNum() == 0) { debugHssDevice0[0] = "Device 0: "; }
-            if (device.getDeviceNum() == 1) { debugHssDevice1[0] = "Device 1: "; }
-            if (device.getDeviceNum() == 2) { debugHssDevice2[0] = "Device 2: "; }
-
-            int clkIndex = 1;
-            for (int p : peakMapData.peakArray) {
-                
-                String val = String.format ("%02d", p);
-                
-                if (device.getDeviceNum() == 0) { 
-                    debugHssDevice0[clkIndex++] = val;
-                }
-                else if (device.getDeviceNum() == 1) { 
-                    debugHssDevice1[clkIndex++] = val;
-                }
-                else if (device.getDeviceNum() == 2) { 
-                    debugHssDevice2[clkIndex++] = val;
-                }
-                
-                peakMapData.meta.dataMapBuffer.getDataChange(debugHssDataSet);
-                
+            //advance if mainhandler ready
+            if (advance && !buf.getPositionAdvanced()) { 
+                buf.setPositionAdvanced(true);
+                buf.incPutPtrAndSetReadyAfterDataFill();
             }
-            //DEBUG HSS// end remove later
             
         }
 
@@ -1981,42 +1964,22 @@ private void displayDataFromDevices()
             DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
 
             buf.putData(peakData.peakArray[i]);
+            
+            //advance if mainhandler ready
+            if (advance && !buf.getPositionAdvanced()) { 
+                buf.setPositionAdvanced(true);
+                buf.incPutPtrAndSetReadyAfterDataFill();
+            }
 
         }
     }
     
-    //DEBUG HSS// remove later
-    for (int i=0; i<debugHssDevice0.length; i++) { 
-       System.out.print(debugHssDevice0[i]);
+    //update view and advance insertion points AFTER all devices have 
+    //contributed to current and only if MainHandler says it's time to move on 
+    //to the next one
+    if (advance) { 
+        mainView.updateChildren();
     }
-    
-    System.out.println("");
-    
-    for (int i=0; i<debugHssDevice1.length; i++) { 
-       System.out.print(debugHssDevice1[i]);
-    }
-    
-    System.out.println("");
-    
-    for (int i=0; i<debugHssDevice2.length; i++) { 
-       System.out.print(debugHssDevice2[i]);
-    }
-    
-    System.out.println("");
-    
-    System.out.print("Chosen x: ");
-    for (int i=0; i<debugHssDataSet.length; i++) { 
-       System.out.print(String.format("%02d", debugHssDataSet.d[i]));
-    }
-    
-    System.out.println("");
-    
-    System.out.println("--------------------------------------------------");
-    
-    
-    //DEBUG HSS// remove later
-    
-    mainView.updateChildren(); //update view
     
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------
