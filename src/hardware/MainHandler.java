@@ -116,6 +116,8 @@ public class MainHandler
     public boolean needToPrepareForNewPiece() { return prepareForNewPiece; }
     public void setPrepareForNewPiece(boolean pPrep) { prepareForNewPiece = pPrep; }
     
+    private boolean readyToAdvanceInsertionPoints = false;
+    
     private double previousTally = 0.0;
     
     private int prevPixPosition;
@@ -903,6 +905,7 @@ private void handleControlForScanOrTimerMode()
         scanRateCounter = 10 - sharedSettings.scanSpeed; 
     } else { return; }
     
+    //made it to here, so assume we can move forward
     //set all advanced flags to false before starting
     setBufferAdvancedFlags(false);
     
@@ -943,6 +946,7 @@ private void handleControlForScanOrTimerMode()
         }
         
     }
+    readyToAdvanceInsertionPoints = true;
 
 }//end of MainHandler::handleControlForScanOrTimerMode
 //-----------------------------------------------------------------------------
@@ -1966,6 +1970,26 @@ synchronized private void processChannelParameterChanges()
     setHdwParamsDirty(false);
 
 }//end of MainHandler::processChannelParameterChanges
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::isReadyToAdvanceInsertionPoints
+//
+// Returns true if it is time advance all transfer buffers' insertion points.
+//
+// Resets to false so that next call to this function will say not ready unless
+// set back to true again.
+//
+
+public boolean isReadyToAdvanceInsertionPoints()
+{
+    
+    boolean isReady = readyToAdvanceInsertionPoints;
+    readyToAdvanceInsertionPoints = false;
+
+    return isReady;
+
+}// end of MainHandler::isReadyToAdvanceInsertionPoints
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
