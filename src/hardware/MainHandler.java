@@ -1367,7 +1367,7 @@ void moveBuffersBackward(int pPixelsMoved, double pPosition)
 // flags to pState.
 //
 
-private void setBufferAdvancedFlags(boolean pState)
+public void setBufferAdvancedFlags(boolean pState)
 {
 
     for (Device d : devices) {
