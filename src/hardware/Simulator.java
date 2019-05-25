@@ -599,6 +599,9 @@ public int handleGetAllLastADValuesPacket()
 // processing.
 //
 
+
+int debugCount = 127;//DEBUG HSS// remove later
+
 public int handleGetRunData()
 {
 
@@ -613,7 +616,7 @@ public int handleGetRunData()
     //transverse devices have a max of 8 pos channels & 8 neg channels
     //set each channel to the default values. they will be changed to
     //simulated values if their channels are active
-    int posSignals[] = new int[]{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    int posSignals[] = new int[]{0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f};
     int negSignals[] = new int[]{0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f};
 
     int clockMap[] = new int[] {0,0,0,0,0,0,0,0,0,0, //clock map makes up 48
@@ -629,10 +632,19 @@ public int handleGetRunData()
 
         //made it through once, so at least one channel is on
         channelsOn = true;
+        
+        //DEBUG HSS// remove later end
+        
+        /*if (i==0) { //only set first channel, leave rest at 0s
+            negSignals[i] = debugCount--;
+            if (debugCount < 0) { debugCount = 127; }
+        }*/
+        
+        //DEBUG HSS// remove later end
 
         //simulate pos/neg signals
         posSignals[i] = simulatePositiveSignal();
-        negSignals[i] = simulateNegativeSignal();
+        //DEBUG HSS// uncomment later //negSignals[i] = simulateNegativeSignal();
 
         //determine greatest absolute value and which signal used for snapshot
         //snapshot uses the signal whose abs value is greatest
