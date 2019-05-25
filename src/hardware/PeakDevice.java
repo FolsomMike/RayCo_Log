@@ -1020,17 +1020,17 @@ public void setUpPeakSnapshotBuffer()
 
         case CATCH_HIGHEST:
             peakSnapshotBuffer = new HighPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
-            peakSnapshotBuffer.setResetValue(0);
+            peakSnapshotBuffer.setResetValues(Integer.MIN_VALUE, 0);
             break;
 
         case CATCH_LOWEST:
             peakSnapshotBuffer = new LowPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
-            peakSnapshotBuffer.setResetValue(0);
+            peakSnapshotBuffer.setResetValues(Integer.MAX_VALUE, 0);
             break;
 
         default:
             peakSnapshotBuffer = new HighPeakSnapshotBuffer(0, 128); //WIP HSS// size needs to be ini
-            peakSnapshotBuffer.setResetValue(Integer.MIN_VALUE);
+            peakSnapshotBuffer.setResetValues(Integer.MIN_VALUE, 0);
             break;
 
     }

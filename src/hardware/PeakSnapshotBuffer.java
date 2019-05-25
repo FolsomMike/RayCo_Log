@@ -36,7 +36,8 @@ public class PeakSnapshotBuffer
 
     int[] peakArray;
     int[] peakArrayReset;
-    int peak = 0;
+    int peak;
+    int peakReset;
 
     final int peakArrayBufferNum;
     final int arraySize;
@@ -103,7 +104,7 @@ public void reset()
 {
 
     System.arraycopy(peakArrayReset, 0, peakArray, 0, arraySize);
-    peak = 0;
+    peak = peakReset;
     peakUpdated = false;
 
 }// end of PeakArrayBufferInt::reset
@@ -128,7 +129,7 @@ public void setResetValue(int[] pValueArray)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PeakArrayBufferInt::setResetValue
+// PeakArrayBufferInt::setResetValues
 //
 // Sets the value to which the peak array is reset when the previous peak data
 // has been retrieved and a new peak is to be found.
@@ -136,12 +137,14 @@ public void setResetValue(int[] pValueArray)
 // This version of the method sets all positions in the reset array to pValue.
 //
 
-public void setResetValue(int pValue)
+public void setResetValues(int pPeakReset, int pArrayReset)
 {
+    
+    peakReset = pPeakReset;
 
-    for(int i=0; i<arraySize; i++){ peakArrayReset[i] = pValue; }
+    for(int i=0; i<arraySize; i++){ peakArrayReset[i] = pArrayReset; }
 
-}// end of PeakArrayBufferInt::setResetValue
+}// end of PeakArrayBufferInt::setResetValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
