@@ -1,0 +1,30 @@
+Solution is in MainController::displayDataFromDevices. Incrementing put
+pointers is now done AFTER all of the channels have a chance to put data 
+into the current put pointer indexes.
+
+
+Does each trans ring have its own snapshot buffer?
+	yes, because each PeakDevice has call to setUpPeakSnapshotBuffer(), which instantiates a new buffer
+
+I think the snapshot buffer problem for transverse graph is caused by trying to combine to snapshot buffers
+into one. 
+	But then why is there still an issue with longitudinal? He has only one device.
+
+Need to keep tracking data all the way through. Issue will reveal itself then.
+
+Where are the transverse values combined?
+	
+
+From here on out, I am going to focus on longitudinal all the way back to the graph. It seems a
+major issue that the graph with one buffer is still having issues.
+	
+I created a new job that ONLY has a longitudinal device, chart, & zoom graph. 
+
+When all channels are set to 0, except channel 0, which is incremented by 1 until it hits the max, the data read from the trace buffs
+and from the snap buffs match. (also works when decrmenting by 1 for neg chann)
+
+While leaving negative signals at default, simulating random positive values causes issues. Why????
+
+Is the issue in DataTransferIntBuffer::putData? Everything looks good up until that point.
+	
+

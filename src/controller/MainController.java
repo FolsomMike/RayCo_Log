@@ -1927,10 +1927,56 @@ private void displayDataFromDevices()
                                                         peakMapData);
         if (results != true) { continue; }
         
+        //DEBUG HSS// remove later
+        if ("Longitudianl Multi-IO Config Board".equals(device.getTitle())) {
+         
+            Channel[] channelsd = device.getChannels();
+            int cp = 0;
+            for (int i=0; i<channelsd.length; i++){ 
+                if (peakData.peakArray[i] > cp) { cp = peakData.peakArray[i]; }
+            }
+            System.out.println("sending peak to view:: peak=" + cp
+                                + " snapPeak=" 
+                                + peakSnapshotData.peakArray[peakSnapshotData.peakArray.length/2]);
+            
+        }
+        //DEBUG HSS// remove later end
+
+        //put data in channel buffers
+        Channel[] channels = device.getChannels();
+        for (int i=0; i<channels.length; i++){
+
+            DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
+
+            buf.putData(peakData.peakArray[i]);
+            
+            //DEBUG HSS// uncomment later
+            //advance if mainhandler ready
+            /*if (advance && !buf.getPositionAdvanced()) { 
+                buf.setPositionAdvanced(true);
+                buf.incPutPtrAndSetReadyAfterDataFill();
+            }*/
+            //DEBUG HSS// uncomment later end
+
+        }
+        
+        //DEBUG HSS// remove later
+        //checkin to see if buffers are being advanced before ready
+        for (int i=0; i<channels.length; i++){
+
+            DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
+            
+            //advance if mainhandler ready
+            if (advance && !buf.getPositionAdvanced()) { 
+                buf.setPositionAdvanced(true);
+                buf.incPutPtrAndSetReadyAfterDataFill();
+            }
+
+        }
+        //DEBUG HSS// remove later end
+        
         //put data in snapshot buffer -- will only advance shared buffers once
-        if (device.hasSnapshot() 
-            && !device.getSnapshotDataBuffer().getPositionAdvanced()) 
-        {
+        if (device.hasSnapshot()) {
             DataTransferSnapshotBuffer buf = peakSnapshotData.meta.dataSnapshotBuffer;
             
             buf.putData(peakSnapshotData.peak, peakSnapshotData.peakArray);
@@ -1956,22 +2002,7 @@ private void displayDataFromDevices()
             }
             
         }
-
-        //put data in channel buffers
-        Channel[] channels = device.getChannels();
-        for (int i=0; i<channels.length; i++){
-
-            DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
-
-            buf.putData(peakData.peakArray[i]);
-            
-            //advance if mainhandler ready
-            if (advance && !buf.getPositionAdvanced()) { 
-                buf.setPositionAdvanced(true);
-                buf.incPutPtrAndSetReadyAfterDataFill();
-            }
-
-        }
+        
     }
     
     //update view and advance insertion points AFTER all devices have 
