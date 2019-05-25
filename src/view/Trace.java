@@ -615,13 +615,6 @@ public void updateTrace(Graphics2D pG2)
         //check and flag any threshold violations
         checkThresholdViolations(dataSet);
         
-        //DEBUG HSS// remove later
-        //if (chartNum==1) {
-            System.out.println("trace data from buff:: graph" + graphNum + title + "=" + dataSet.d);
-        //}
-        //DEBUG HSS// remove later end
-        
-
         //store for future use
         data.add(dataSet.d);
         dataFlags.add(dataSet.flags);

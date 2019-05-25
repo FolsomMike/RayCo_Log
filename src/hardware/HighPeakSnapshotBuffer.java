@@ -47,20 +47,11 @@ public HighPeakSnapshotBuffer(int pIndex, int pArraySize)
 // If pNewPeak > old peak, pNewData is stored.
 //
 
-public String title = "";//DEBUG HSS// remove later
-
 @Override
 public void catchPeak(int pNewPeak, int[] pNewData)
 {
     
     if (pNewPeak>peak) { 
-        
-        //DEBUG HSS// remove later
-        if ("Longitudianl Multi-IO Config Board".equals(title)) {
-            //DEBUG HSS//System.out.println("Storing peak from device:: peak=" + peak + ", New peak=" + pNewPeak);
-        }
-        //System.out.print(", Peak in array = " + pNewData[pNewData.length/2]);
-        //DEBUG HSS// remove later end
         
         peak=pNewPeak; setPeak(pNewData); }
 

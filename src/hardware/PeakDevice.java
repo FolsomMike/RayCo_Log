@@ -714,12 +714,6 @@ public void collectData()
         //file specifies otherwise. (2 bytes per channel)
         int clockMapIndex = index+32;
         int snapshotIndex = clockMapIndex+48;
-        
-        //DEBUG HSS// remove later
-        //System.out.println("");
-        //System.out.println("----------------------");
-        //System.out.print("Dev: " + getTitle() + " ");
-        //DEBUG HSS// remove later end
 
         int peak=0;
         for(int i=0; i<channels.length; i++){
@@ -728,20 +722,12 @@ public void collectData()
             data = Math.abs(data - ADzeroOffset);
             index+=2; //skip two because short is 2 bytes
             channelPeaks[i] = data;
-            
-            //DEBUG HSS// remove later
-            //System.out.println("Channel " + i + ": " + data);
-            //DEBUG HSS// remove later end
 
             if (data>peak) { peak=data; }
 
         }
 
         extractSnapshotData(runDataPacket, snapshotIndex);
-        
-        //DEBUG HSS// remove later
-        //System.out.println("Snap: " + "raw=" + snapData[snapData.length/2]);
-        //DEBUG HSS// remove later end
 
         if(numClockPositions > 0) { extractMapData(runDataPacket, clockMapIndex); }
         
@@ -1048,8 +1034,6 @@ public void setUpPeakSnapshotBuffer()
             break;
 
     }
-
-    ((HighPeakSnapshotBuffer)peakSnapshotBuffer).title = getTitle();//DEBUG HSS// remove later
     
     peakSnapshotBuffer.reset();
 

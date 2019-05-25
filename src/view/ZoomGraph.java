@@ -137,12 +137,6 @@ public void retrieveDataChanges()
     
     while(snapshotBuffer.getDataChange(dataSet) != 0){
         
-        //DEBUG HSS// remove later
-        //if (chartNum==1) {
-            System.out.println("Zoom:: peak=" + dataSet.d[dataSet.d.length/2]);
-        //}
-        //DEBUG HSS// remove later end
-        
         //check to see if this data point should be segment start
         checkSegmentStart(dataSet);
 

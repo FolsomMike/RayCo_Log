@@ -50,10 +50,6 @@ public HighPeakBufferInt(int pIndex)
 @Override
 public void catchPeak(int pNewData)
 {
-    
-    //DEBUG HSS// remove later
-    //DEBUG HSS//System.out.println("Chan:: Peak: " + peak + ", New peak: " + pNewData);
-    //DEBUG HSS// remove later end
 
     if(pNewData > peak) {
         peak = pNewData;
