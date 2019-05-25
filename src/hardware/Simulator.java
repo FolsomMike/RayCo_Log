@@ -599,9 +599,6 @@ public int handleGetAllLastADValuesPacket()
 // processing.
 //
 
-
-int debugCount = 127;//DEBUG HSS// remove later
-
 public int handleGetRunData()
 {
 
@@ -632,19 +629,10 @@ public int handleGetRunData()
 
         //made it through once, so at least one channel is on
         channelsOn = true;
-        
-        //DEBUG HSS// remove later end
-        
-        /*if (i==0) { //only set first channel, leave rest at 0s
-            negSignals[i] = debugCount--;
-            if (debugCount < 0) { debugCount = 127; }
-        }*/
-        
-        //DEBUG HSS// remove later end
 
         //simulate pos/neg signals
         posSignals[i] = simulatePositiveSignal();
-        //DEBUG HSS// uncomment later //negSignals[i] = simulateNegativeSignal();
+        negSignals[i] = simulateNegativeSignal();
 
         //determine greatest absolute value and which signal used for snapshot
         //snapshot uses the signal whose abs value is greatest
