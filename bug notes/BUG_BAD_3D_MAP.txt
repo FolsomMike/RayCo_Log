@@ -1,0 +1,124 @@
+So, I ended up solving this issue. Read the final commit for BUG_BAD_3D_MAP for details.
+
+I think I have thought of a way to move the transfer process back to MainHandler in the future if desired:
+	Everywhere where the buffers are advanced, be sure to call buf.putData(peakData.peakArray[i]); first
+	This was not being done previously inside of MainHandler. I think this is the real reason that moving
+	the code back to MainController fixed the issue; MainController called putData()
+
+
+is the data map buffer SUPPOSED to be the same??
+	yes
+
+is the data map buffer ACTUALLY the same??
+	yes
+
+is the data being but into the same spot??
+	no
+
+Who is increasing putPointer??
+	All functions increasing/decreasing in class DataTransferIntMultiDimBuffer::
+	
+	::getData
+		well, not being increased here, but DATA_VALID flag being reset, which means
+		that the next call to putData() can choose to override prev data
+		without checking for peeks
+
+	::getDataChange
+		retrieves data changes and then inc/dec the getPointer.. NOT put
+
+	::incPutPtrAndSetReadyAfterDataFill
+		this one be the key son
+
+Who all calls ::incPutPtrAndSetReadyAfterDataFill? could it be the cause of the issue?
+	MainHandler::handleControlForScanOrTimerMode is caller we're concerned about
+	
+	yes, it could be cause. I remember from past looks into this bug
+
+Is putPointer different with each call to putData??
+	Yes, it is increased by one each time its called. This is definitely cause of prob!!
+
+Something interesting:
+	the fucking slower it is the worse it is. But.. what? haha
+
+Is the problem still there if you get rid of the wall devices??
+	yues
+
+Something thoughts:
+	its always the same device that increases the put pointer (First transverse)
+	I believe the MainHandler is running in a separate thread from the GUI update
+		thread (pretty confident about this). So, basically, what is 
+		happening is that the MainHandler is updating the inc put pointer 
+		"properly" but the GUI isn't pulling in the data fast enough.
+		I'll have to look back through the code and see if it was done the
+		way I think it was before (which is that the View updated the put
+		pointer, which honestly makes the most sense with the way the code
+		is currently organized). Will have to go through pros and cons of both
+		ways and then go back to the old way anyways ahaha. Or just figure out a
+		better way to handle it. I know there was a reason I switched, but do
+		not remember it at this moment. Maybe git will reveal comments as to why
+		if it doesn't, ima be pissed at meself. lolz.
+
+	I think I was treating the program as if the hardware thread had a separate trans
+		buffer than the view 
+
+Note about 2 months later:
+	I think I was having the MainHandler increment the put pointer because I
+	considered the get and put pointer to be unrelated. This way, the view could fall 
+	behind the hardware thread, and then catch up later. All the while, the Hardware
+	thread is still doing stuff
+
+What thread is MainController::displayDataFromDevices running in?
+	AWT thread
+
+What thread is MainHandler::handleControlForScanOrTimerMode running in?
+	Thread-3 ... in other words, my thoughts outlined above are probably correct
+
+Was incPutPointer every in MainController class?? If so, wtf did I move it?
+	I checked out branch RAY_DEMO_11_16_17
+
+	looks like calls to incPutPtr were all done from View side of things in the
+		children classes like Trace. I assume that this is why I moved it away
+		Seemed too split up.
+
+	All old code for ::collectDataForScanOrTimerMode did before was
+		readyToAdvanceInsertionPoints = true;
+	
+	Man.. this just shows why young fucks like me shouldn't be allowed to work on/change
+		shit. It was motherfucking fine the way it was hahaaaa (I think)
+
+Who checks the readyToAdvanceInsertionPoints flag?
+	MainController::displayDataFromDevices
+
+	I think that I should revert back to this, but instead of the children classes in
+		the view increasing the insertion pointers, I think that the MainController
+		class should, but still check same if statement
+
+Are the encoders handled the same way in old branch?
+	yes.. because it's fucking beautiful
+
+Does moveBuffersForward exist in old branch??
+	no.. which I bet is the real reason I moved inc put pointer over to MainHandler
+
+	The new way increments the buffers according to how far the encoders have moved.
+		The only problem with this is that there may still be instances where the
+		Swing thread still can't snag the data fast enough for the update. The
+		put pointer shouldn't be updated by any thread but the thread that actually
+		puts the data into the buffer.
+	
+	Truth be told.. I don't actually understand how the pixels moved thing works.
+
+I think I have a solution!
+	Basically, the answer is to use a moveBuffersForwardBy value that can be accessed
+		from the MainController in the same exact way the readyToAdvanceInsertionPoints
+		flag was.
+
+	This will put the inc pointer values in the proper thread.
+
+	Things to watch out for:
+		the integer HAS to be thread safe.. also, need check to determine if View
+		has already pulled the value away... 
+
+		or! I can simply let the value be 
+		incremented and decremented by both sides.. will that work???
+
+		
