@@ -1910,107 +1910,13 @@ private void displayDataFromDevices()
     if(sharedSettings.opMode != SharedSettings.INSPECT_MODE
         && sharedSettings.opMode != SharedSettings.INSPECT_WITH_TIMER_TRACKING_MODE
         && sharedSettings.opMode != SharedSettings.SCAN_MODE) { return; }
-
-    //prepares to scan through all channels
-    mainHandler.initForPeakScan();
     
-    //set all advanced flags to false before starting
-    mainHandler.setBufferAdvancedFlags(false);
-    boolean advance = mainHandler.isReadyToAdvanceInsertionPoints();
-
-    //get peak data for each channel and insert it into the transfer buffer
-    for (Device device : mainHandler.getDevices()){
-
-        //get data, skip this device if results not good
-        boolean results = device.getDeviceDataAndReset(peakData,
+    //invoke hardware handler to put data into transfer buffers and advance
+    //insertion points if ready
+    boolean advanced = mainHandler.putDataIntoBuffers(peakData,
                                                         peakSnapshotData,
                                                         peakMapData);
-        if (results != true) { continue; }
-        
-        //DEBUG HSS// remove later
-        if ("Longitudianl Multi-IO Config Board".equals(device.getTitle())) {
-         
-            Channel[] channelsd = device.getChannels();
-            int cp = 0;
-            for (int i=0; i<channelsd.length; i++){ 
-                if (peakData.peakArray[i] > cp) { cp = peakData.peakArray[i]; }
-            }
-            System.out.println("sending peak to view:: peak=" + cp
-                                + " snapPeak=" 
-                                + peakSnapshotData.peakArray[peakSnapshotData.peakArray.length/2]);
-            
-        }
-        //DEBUG HSS// remove later end
-
-        //put data in channel buffers
-        Channel[] channels = device.getChannels();
-        for (int i=0; i<channels.length; i++){
-
-            DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
-
-            buf.putData(peakData.peakArray[i]);
-            
-            //DEBUG HSS// uncomment later
-            //advance if mainhandler ready
-            /*if (advance && !buf.getPositionAdvanced()) { 
-                buf.setPositionAdvanced(true);
-                buf.incPutPtrAndSetReadyAfterDataFill();
-            }*/
-            //DEBUG HSS// uncomment later end
-
-        }
-        
-        //DEBUG HSS// remove later
-        //checkin to see if buffers are being advanced before ready
-        for (int i=0; i<channels.length; i++){
-
-            DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
-            
-            //advance if mainhandler ready
-            if (advance && !buf.getPositionAdvanced()) { 
-                buf.setPositionAdvanced(true);
-                buf.incPutPtrAndSetReadyAfterDataFill();
-            }
-
-        }
-        //DEBUG HSS// remove later end
-        
-        //put data in snapshot buffer -- will only advance shared buffers once
-        if (device.hasSnapshot()) {
-            DataTransferSnapshotBuffer buf = peakSnapshotData.meta.dataSnapshotBuffer;
-            
-            buf.putData(peakSnapshotData.peak, peakSnapshotData.peakArray);
-            
-            //advance if mainhandler ready
-            if (advance && !buf.getPositionAdvanced()) { 
-                buf.setPositionAdvanced(true);
-                buf.incPutPtrAndSetReadyAfterDataFill();
-            }
-        }
-
-        //put data in clock map buffer
-        if (device.hasMap()) {
-            
-            DataTransferIntMultiDimBuffer buf = peakMapData.meta.dataMapBuffer;
-            
-            buf.putData(peakMapData.peakArray, peakMapData.peakMetaArray);
-            
-            //advance if mainhandler ready
-            if (advance && !buf.getPositionAdvanced()) { 
-                buf.setPositionAdvanced(true);
-                buf.incPutPtrAndSetReadyAfterDataFill();
-            }
-            
-        }
-        
-    }
-    
-    //update view and advance insertion points AFTER all devices have 
-    //contributed to current and only if MainHandler says it's time to move on 
-    //to the next one
-    if (advance) { 
-        mainView.updateChildren();
-    }
+    if (advanced) { mainView.updateChildren(); }
     
 }// end of MainController::displayDataFromDevices
 //-----------------------------------------------------------------------------

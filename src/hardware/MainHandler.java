@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.DataTransferIntBuffer;
+import model.DataTransferIntMultiDimBuffer;
+import model.DataTransferSnapshotBuffer;
 import model.IniFile;
 import model.SharedSettings;
 import view.LogPanel;
@@ -117,6 +119,10 @@ public class MainHandler
     public void setPrepareForNewPiece(boolean pPrep) { prepareForNewPiece = pPrep; }
     
     private boolean readyToAdvanceInsertionPoints = false;
+    //WIP HSS// base these sizes on config file??
+    private ArrayList<DataTransferIntBuffer> intBuffers = new ArrayList<>(100);
+    private ArrayList<DataTransferSnapshotBuffer> snapBuffers = new ArrayList<>(5);
+    private ArrayList<DataTransferIntMultiDimBuffer> multiDimBuffers = new ArrayList<>(5);
     
     private double previousTally = 0.0;
     
@@ -1058,6 +1064,131 @@ boolean handleControlForInspectMode()
     return newPositionData;
 
 }//end of MainHandler::handleControlForInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::putDataIntoBuffers
+//
+// Transferd data collected from the hardware to the buffers designated for 
+// screen display controls such as traces, numeric displays, graphs, etc.
+//
+// Currently, this function is called from another class MainController.
+//
+// @param PeakData pPeakData
+// @param PeakSnapshotData pPeakSnapshotData
+// @param PeakMapData pPeakMapData
+// @returns boolean results of ::incrementPutPointers
+//
+
+public boolean putDataIntoBuffers(PeakData pPeakData,
+                                PeakSnapshotData pPeakSnapshotData,
+                                PeakMapData pPeakMapData)
+{
+    
+    PeakData peakData = pPeakData;
+    PeakSnapshotData peakSnapshotData = pPeakSnapshotData;
+    PeakMapData peakMapData = pPeakMapData;
+    
+    //prepares to scan through all channels
+    initForPeakScan();
+    
+    intBuffers.clear(); snapBuffers.clear(); multiDimBuffers.clear();
+
+    //get peak data for each channel and insert it into the transfer buffer
+    for (Device device : getDevices()){
+
+        //get data, skip this device if results not good
+        boolean results = device.getDeviceDataAndReset(peakData,
+                                                        peakSnapshotData,
+                                                        peakMapData);
+        if (results != true) { continue; }
+
+        //put data in channel buffers
+        for (int i=0; i<device.getChannels().length; i++) {
+
+            DataTransferIntBuffer buf = peakData.metaArray[i].dataBuffer;
+            intBuffers.add(buf);
+
+            buf.putData(peakData.peakArray[i]);
+
+        }
+        
+        //put data in snapshot buffer -- will only advance shared buffers once
+        if (device.hasSnapshot()) {
+            
+            DataTransferSnapshotBuffer buf = peakSnapshotData.meta.dataSnapshotBuffer;
+            snapBuffers.add(buf);
+            
+            buf.putData(peakSnapshotData.peak, peakSnapshotData.peakArray);
+
+        }
+
+        //put data in clock map buffer
+        if (device.hasMap()) {
+            
+            DataTransferIntMultiDimBuffer buf = peakMapData.meta.dataMapBuffer;
+            multiDimBuffers.add(buf);
+            
+            buf.putData(peakMapData.peakArray, peakMapData.peakMetaArray);
+            
+        }
+        
+    }
+    
+    //increment pointers and return results
+    return incrementPutPointers();
+
+}// end of MainHandler::putDataIntoBuffers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainHandler::incrementPutPointers
+//
+// Increments the put pointers for all of the device buffers.
+//
+// This should only be called after ::putDataIntoBuffers.
+//
+// @returns boolean true if pointers incremented, false if not
+//
+
+private boolean incrementPutPointers()
+{
+    
+    if (!isReadyToAdvanceInsertionPoints()) { return false; }
+    
+    //set all advanced flags to false before starting
+    setBufferAdvancedFlags(false);
+    
+    for (DataTransferIntBuffer buf : intBuffers) {
+        
+        if (!buf.getPositionAdvanced()) { 
+            buf.setPositionAdvanced(true);
+            buf.incPutPtrAndSetReadyAfterDataFill();
+        }
+        
+    }
+    
+    for (DataTransferSnapshotBuffer buf : snapBuffers) {
+        
+        if (!buf.getPositionAdvanced()) { 
+            buf.setPositionAdvanced(true);
+            buf.incPutPtrAndSetReadyAfterDataFill();
+        }
+        
+    }
+    
+    for (DataTransferIntMultiDimBuffer buf : multiDimBuffers) {
+        
+        if (!buf.getPositionAdvanced()) { 
+            buf.setPositionAdvanced(true);
+            buf.incPutPtrAndSetReadyAfterDataFill();
+        }
+        
+    }
+    
+    return true;
+
+}// end of MainHandler::incrementPutPointers
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
