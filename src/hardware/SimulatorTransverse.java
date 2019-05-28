@@ -398,6 +398,37 @@ public void simulateInspection()
 }//end of ControlSimulator::simulateInspection
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// SimulatorTransverse::simulateClockMap
+//
+// Creates a simulated data stream representing a snapshot of a peak.
+//
+// If no channels are on, snapshot is filled with 0s (0x7f due to pos/neg
+// offset).
+//
+
+@Override
+protected int[] simulateClockMap(int pPosSignals[], int pNegSignals[])
+{
+
+    int clockMap[] = super.simulateClockMap(pPosSignals, pNegSignals);
+
+    for (int i=0; i<pPosSignals.length; i++) {
+        
+        int posAbs = pPosSignals[i];
+        int negAbs = pNegSignals[i];
+        
+        //(greatest absolute value of pos/neg signals)
+        int map = posAbs > negAbs ? posAbs : negAbs;
+        clockMap[activeChannels[i*2].getClockPosition()] = map;
+        
+    }
+    
+    return clockMap;
+
+}// end of SimulatorTransverse::simulateClockMap
+//-----------------------------------------------------------------------------
+
 }//end of class SimulatorTransverse
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

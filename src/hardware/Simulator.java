@@ -615,12 +615,9 @@ public int handleGetRunData()
     //simulated values if their channels are active
     int posSignals[] = new int[]{0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f};
     int negSignals[] = new int[]{0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f};
-
-    int clockMap[] = new int[] {0,0,0,0,0,0,0,0,0,0, //clock map makes up 48
-                                0,0,0,0,0,0,0,0,0,0, //bytes in run data pkt
-                                0,0,0,0,0,0,0,0,0,0, //only clock positions
-                                0,0,0,0,0,0,0,0,0,0, //marked as used will be
-                                0,0,0,0,0,0,0,0};    //changed
+    
+    int posAbsSigs[] = new int[]{0,0,0,0,0,0,0,0};
+    int negAbsSigs[] = new int[]{0,0,0,0,0,0,0,0};
 
     //iterate through all of the active channels and simulate values -- unactive
     //channels will not be simulated
@@ -636,21 +633,18 @@ public int handleGetRunData()
 
         //determine greatest absolute value and which signal used for snapshot
         //snapshot uses the signal whose abs value is greatest
-        int posAbs = Math.abs(posSignals[i] - AD_ZERO_OFFSET);
-        int negAbs = Math.abs(negSignals[i] - AD_ZERO_OFFSET);
-        if (posAbs>=negAbs&&posAbs>abs) {
-            snap = posSignals[i]; abs = posAbs;
+        posAbsSigs[i] = Math.abs(posSignals[i] - AD_ZERO_OFFSET);
+        negAbsSigs[i] = Math.abs(negSignals[i] - AD_ZERO_OFFSET);
+        if (posAbsSigs[i]>=negAbsSigs[i]&&posAbsSigs[i]>abs) {
+            snap = posSignals[i]; abs = posAbsSigs[i];
         }
-        else if (negAbs>posAbs&&negAbs>abs) {
-            snap = negSignals[i]; abs = negAbs;
+        else if (negAbsSigs[i]>posAbsSigs[i]&&negAbsSigs[i]>abs) {
+            snap = negSignals[i]; abs = negAbsSigs[i];
         }
-
-        //simulate clock map (greatest absolute value of pos/neg signals)
-        int map = posAbs > negAbs ? posAbs : negAbs;
-        clockMap[activeChannels[i*2].getClockPosition()] = map;
         
     }
 
+    int clockMap[] = simulateClockMap(posAbsSigs, negAbsSigs);
     int snapshot[] = simulateSnapshot(snap, channelsOn);
 
     //send run packet -- sendPacket appends Rabbit's checksum
@@ -805,6 +799,29 @@ public int handleGetRunData()
     return(result);
 
 }//end of Simulator::handleGetRunData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::simulateClockMap
+//
+// Creates and returns a clock map based on the signals already generated for
+// all of the channels.
+//
+// This method is meant to be overridden by children classes.
+//
+
+protected int[] simulateClockMap(int pPosSignals[], int pNegSignals[])
+{
+
+    int clockMap[] = new int[] {0,0,0,0,0,0,0,0,0,0, //clock map makes up 48
+                                0,0,0,0,0,0,0,0,0,0, //bytes in run data pkt
+                                0,0,0,0,0,0,0,0,0,0, //only clock positions
+                                0,0,0,0,0,0,0,0,0,0, //marked as used will be
+                                0,0,0,0,0,0,0,0};    //changed
+
+    return clockMap;
+
+}// end of Simulator::simulateClockMap
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

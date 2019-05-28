@@ -101,6 +101,49 @@ public void getRunPacket2(byte[] pPacket)
 }// end of SimulatorLongitudinal::getRunPacket2
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// SimulatorLongitudinal::simulateClockMap
+//
+// Creates a simulated data stream representing a snapshot of a peak.
+//
+// If no channels are on, snapshot is filled with 0s (0x7f due to pos/neg
+// offset).
+//
+
+int debugPos=0;//DEBUG HSS// remove later
+int debugNeg=0;//DEBUG HSS// remove later
+
+@Override
+protected int[] simulateClockMap(int pPosSignals[], int pNegSignals[])
+{
+
+    int clockMap[] = super.simulateClockMap(pPosSignals, pNegSignals);
+    
+    int range = 47;
+
+    for (int i=0; i<pPosSignals.length; i++) {
+        
+        int posAbs = pPosSignals[i];
+        int negAbs = pNegSignals[i];
+        
+        int rand;
+        
+        //put pos value into a random clock map space
+        do { rand = (int)(Math.random() * range);  }
+        while (clockMap[rand]!=0);
+        clockMap[rand] = posAbs;
+        
+        //put neg value into a random clock map space
+        do { rand = (int)(Math.random() * range);  }
+        while (clockMap[rand]!=0);
+        clockMap[rand] = negAbs;
+        
+    }
+
+    return clockMap;
+
+}// end of SimulatorLongitudinal::simulateClockMap
+//-----------------------------------------------------------------------------
 
 }//end of class SimulatorLongitudinal
 //-----------------------------------------------------------------------------
