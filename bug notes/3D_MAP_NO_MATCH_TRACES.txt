@@ -1,3 +1,37 @@
 It seems that the issues are with longitudinal devices. Shoe 1 is showing on graph, shoe 2 is not.
 
 Also, sometimes repaint paints previously green spikes on map to blue.
+
+-----------------------------------------------
+Solving repaint issues:
+
+Solution was surprisingly easy and honestly just a guess on my part after watching what was happening.
+
+Problem was caused by shiftDataDownOneRow not also shifting meta data to match actual data.
+
+
+-----------------------------------------------
+Solving shoe 2 not showing:
+
+I'm going to assume that the issue is with the simulator just because both shoes are one device
+which means that both shoes share one 3d map buffer. This eliminates the possibility of having
+issues when combining two diff maps.
+
+Do values from shoe 2 ever show up in simulator?
+	kind of ditched this question.. read below
+
+Okay, so the way the simulator code is written only works for the transverse. The code
+is written so that each channel has a designated shoe position/range. With a transverse ring,
+this "rings" true (hahahah). But, with a longitudinal, each shoe has a chance to
+do one full revolution around the pipe, meaning that each shoe logs a value for every clock
+position. 
+
+The max from each shoe should show up SOMEWHERE within the clock map. It is possible that the
+max for a shoe doesn't show up on the map if it is overridden by a shoe that detected a flaw
+with a higher peak at the same clock map position.
+
+But now I have a new question: Why even bother having separate traces for longitudinal shoes?
+
+Pipe doesn't rotate does it? It makes sense to have two traces for transverse if this true, not long
+
+source clock to grid clock translation=0>0:0,1>1:1,2>2:2,3>3:3,4>4:4,5>5:5,6>6:6,7>7:7,8>8:8,9>9:9,10>10:10,11>11:11,12>12:12,13>13:13,14>14:14,15>15:15,16>16:16,17>17:17,18>18:18,19>19:19,20>20:20,21>21:21,22>22:22,23>23:23,24>24:24,25>25:25,26>26:26,27>27:27,28>28:28,29>29:29,30>30:30,31>31:31,32>32:32,33>33:33,34>34:34,35>35:35,36>36:36,37>37:37,38>38:38,39>39:39,40>40:40,41>41:41,42>42:42,43>43:43,44>44:44,45>45:45,46>46:46,47>47:47

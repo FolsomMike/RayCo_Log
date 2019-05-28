@@ -726,7 +726,7 @@ public void setAndDrawDataRow(Graphics2D pG2, int[] pDataRow, int[] pMetaRow)
     if (currentInsertionRow >= dataXMax){
         currentInsertionRow = dataXMax-1;
         shiftDataDownOneRow();
-        Arrays.fill(dataBuf[currentInsertionRow+1], -1); // reset final row
+        Arrays.fill(dataBuf[currentInsertionRow+1], 0); // reset final row
         drawingAtFarRightRow = true;
     }
 
@@ -744,6 +744,10 @@ public void shiftDataDownOneRow()
 
     for(int i=0; i<dataBuf.length-2; i++){
         System.arraycopy(dataBuf[i + 1], 0, dataBuf[i] , 0, yMax);
+    }
+    
+    for(int i=0; i<metaBuf.length-2; i++){
+        System.arraycopy(metaBuf[i + 1], 0, metaBuf[i] , 0, yMax);
     }
 
 }// end of Map3D::shiftDataDownOneRow
